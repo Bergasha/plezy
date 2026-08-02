@@ -729,6 +729,7 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
   bool _isLongPressing = false;
   // Subtitle visibility toggle state
   bool _subtitlesVisible = true;
+  int _subtitleCycleIndex = -1;
   bool _confirmedSubtitlesVisible = true;
   int _subtitleVisibilityWriteGeneration = 0;
   // Skip marker button focus node (for TV D-pad navigation)

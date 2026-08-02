@@ -1964,6 +1964,15 @@ class Translations$videoControls$en {
 	/// en: 'Screenshot saved'
 	String get screenshotSaved => 'Screenshot saved';
 
+	/// en: 'Subtitles: none available'
+	String get subtitlesNoneAvailable => 'Subtitles: none available';
+
+	/// en: 'Subtitles: off'
+	String get subtitlesOff => 'Subtitles: off';
+
+	/// en: 'Subtitles: ${label}'
+	String subtitlesTrack({required Object label}) => 'Subtitles: ${label}';
+
 	/// en: 'Zoom ${percent}%'
 	String zoomPercent({required Object percent}) => 'Zoom ${percent}%';
 
@@ -6579,6 +6588,8 @@ extension on Translations {
 			'mediaMenu.confirmDelete' => 'Delete this media and its files from your server?',
 			'mediaMenu.deleteMultipleWarning' => 'This includes all episodes and their files.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Media item deleted successfully',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Failed to delete media item',
 			'mediaMenu.rate' => 'Rate',
 			'mediaMenu.playFromBeginning' => 'Play from Beginning',
@@ -6590,11 +6601,7 @@ extension on Translations {
 			'rateSheet.saved' => 'Saved',
 			'rateSheet.notAvailable' => 'No match found',
 			'rateSheet.noConnectedServices' => 'Connect a service in Settings to rate there.',
-			_ => null,
-		} ?? switch (path) {
 			'accessibility.mediaCardMovie' => ({required Object title}) => '${title}, movie',
-			_ => null,
-		} ?? switch (path) {
 			'accessibility.mediaCardShow' => ({required Object title}) => '${title}, TV show',
 			'accessibility.mediaCardEpisode' => ({required Object title, required Object episodeInfo}) => '${title}, ${episodeInfo}',
 			'accessibility.mediaCardSeason' => ({required Object title, required Object seasonInfo}) => '${title}, ${seasonInfo}',
@@ -6685,6 +6692,9 @@ extension on Translations {
 			'videoControls.pipActive' => 'Playing in Picture-in-Picture',
 			'videoControls.pipFailed' => 'Picture-in-picture failed to start',
 			'videoControls.screenshotSaved' => 'Screenshot saved',
+			'videoControls.subtitlesNoneAvailable' => 'Subtitles: none available',
+			'videoControls.subtitlesOff' => 'Subtitles: off',
+			'videoControls.subtitlesTrack' => ({required Object label}) => 'Subtitles: ${label}',
 			'videoControls.zoomPercent' => ({required Object percent}) => 'Zoom ${percent}%',
 			'videoControls.pipErrors.androidVersion' => 'Requires Android 8.0 or newer',
 			'videoControls.pipErrors.iosVersion' => 'Requires iOS 15.0 or newer',
@@ -7092,6 +7102,8 @@ extension on Translations {
 			'explore.stats.listed' => ({required Object n}) => '${n} listed',
 			'explore.stats.viewersDay' => ({required Object n}) => '${n} watched today',
 			'explore.stats.viewersWeek' => ({required Object n}) => '${n} watched this week',
+			_ => null,
+		} ?? switch (path) {
 			'explore.stats.viewersMonth' => ({required Object n}) => '${n} watched this month',
 			'explore.stats.viewersYear' => ({required Object n}) => '${n} watched this year',
 			'explore.stats.viewersAllTime' => ({required Object n}) => '${n} viewers',
@@ -7107,8 +7119,6 @@ extension on Translations {
 			'explore.season.winter' => 'Winter',
 			'explore.season.spring' => 'Spring',
 			'explore.season.summer' => 'Summer',
-			_ => null,
-		} ?? switch (path) {
 			'explore.season.fall' => 'Fall',
 			'explore.season.withYear' => ({required Object season, required Object year}) => '${season} ${year}',
 			'explore.format.tv' => 'TV',
@@ -7133,19 +7143,6 @@ extension on Translations {
 			'explore.creditRole.producer' => 'Producer',
 			'explore.creditRole.creator' => 'Creator',
 			'explore.creditRole.composer' => 'Composer',
-			'explore.ratingSource.critic' => 'Critics',
-			'explore.ratingSource.audience' => 'Audience',
-			'explore.ratingSource.imdb' => 'IMDb',
-			'explore.ratingSource.tmdb' => 'TMDB',
-			'explore.ratingSource.rottenTomatoes' => 'Rotten Tomatoes',
-			'explore.ratingSource.simkl' => 'Simkl',
-			'explore.ratingSource.mal' => 'MyAnimeList',
-			_ => null,
-		} ?? switch (path) {
-			'explore.ratingSource.anilist' => 'AniList',
-			'explore.ratingSource.trakt' => 'Trakt',
-			'explore.ratingSource.rottenTomatoesCritic' => 'Rotten Tomatoes critics',
-			'explore.ratingSource.rottenTomatoesAudience' => 'Rotten Tomatoes audience',
 			'explore.relation.prequel' => 'Prequel',
 			'explore.relation.sequel' => 'Sequel',
 			'explore.relation.sideStory' => 'Side story',
@@ -7619,6 +7616,8 @@ extension on Translations {
 			'performanceOverlay.player' => 'Player',
 			'performanceOverlay.memory' => 'Memory',
 			'performanceOverlay.uiFps' => 'UI FPS',
+			_ => null,
+		} ?? switch (path) {
 			'externalPlayer.title' => 'External Player',
 			'externalPlayer.useExternalPlayer' => 'Use External Player',
 			'externalPlayer.useExternalPlayerDescription' => 'Open videos in another app',
@@ -7634,8 +7633,6 @@ extension on Translations {
 			'externalPlayer.off' => 'Off',
 			'externalPlayer.launchFailed' => 'Failed to open external player',
 			'externalPlayer.appNotInstalled' => ({required Object name}) => '${name} is not installed',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.playInExternalPlayer' => 'Play in External Player',
 			'metadataEdit.editMetadata' => 'Edit...',
 			'metadataEdit.screenTitle' => 'Edit Metadata',
@@ -7656,8 +7653,6 @@ extension on Translations {
 			'metadataEdit.squareArt' => 'Square Art',
 			'metadataEdit.selectPoster' => 'Select Poster',
 			'metadataEdit.selectBackground' => 'Select Background',
-			_ => null,
-		} ?? switch (path) {
 			'metadataEdit.selectLogo' => 'Select Logo',
 			'metadataEdit.selectSquareArt' => 'Select Square Art',
 			'metadataEdit.fromUrl' => 'From URL',

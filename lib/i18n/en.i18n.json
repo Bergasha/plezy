@@ -646,6 +646,9 @@
     "pipActive": "Playing in Picture-in-Picture",
     "pipFailed": "Picture-in-picture failed to start",
     "screenshotSaved": "Screenshot saved",
+    "subtitlesNoneAvailable": "Subtitles: none available",
+    "subtitlesOff": "Subtitles: off",
+    "subtitlesTrack": "Subtitles: ${label}",
     "zoomPercent": "Zoom ${percent}%",
     "pipErrors": {
       "androidVersion": "Requires Android 8.0 or newer",

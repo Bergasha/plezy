@@ -29,6 +29,7 @@ class FlutterWindow : public Win32Window {
 
   // The Flutter instance hosted by this window.
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+  bool is_destroying_flutter_controller_ = false;
 
   // Method channel exposing window controls to Dart (plezy/window).
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> window_channel_;

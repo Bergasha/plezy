@@ -202,6 +202,10 @@ Win32Window::MessageHandler(HWND hwnd, UINT const message, WPARAM const wparam, 
 }
 
 void Win32Window::Destroy() {
+  if (window_handle_) {
+    ShowWindow(window_handle_, SW_HIDE);
+  }
+
   OnDestroy();
 
   if (window_handle_) {

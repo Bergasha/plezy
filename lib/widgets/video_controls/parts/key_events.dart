@@ -66,6 +66,31 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
     return event is KeyDownEvent ? _transportCommandFor(event) : null;
   }
 
+  void _cycleSubtitleTracks() {
+    if (!widget.canControl) return;
+    final tracks = widget.player.state.tracks.subtitle;
+    if (tracks.isEmpty) {
+      widget.toastController.show(Symbols.subtitles_off_rounded, t.videoControls.subtitlesNoneAvailable);
+      return;
+    }
+    final nextIndex = _subtitlesVisible ? _subtitleCycleIndex + 1 : 0;
+    if (nextIndex >= tracks.length) {
+      widget.player.selectSubtitleTrack(SubtitleTrack.off);
+      _onSubtitleTrackChanged(SubtitleTrack.off);
+      _setSubtitleVisibility(false);
+      _subtitleCycleIndex = -1;
+      widget.toastController.show(Symbols.subtitles_off_rounded, t.videoControls.subtitlesOff);
+    } else {
+      final targetTrack = tracks[nextIndex];
+      widget.player.selectSubtitleTrack(targetTrack);
+      _onSubtitleTrackChanged(targetTrack);
+      _setSubtitleVisibility(true);
+      _subtitleCycleIndex = nextIndex;
+      final label = targetTrack.title ?? targetTrack.language ?? '${nextIndex + 1}';
+      widget.toastController.show(Symbols.subtitles_rounded, t.videoControls.subtitlesTrack(label: label));
+    }
+  }
+
   void _activateHiddenControlsPrimaryAction() {
     if (!widget.canControl) {
       _showControlsWithFocus();
@@ -113,7 +138,7 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
       event,
       widget.player,
       _toggleFullscreen,
-      _toggleSubtitles,
+      _cycleSubtitleTracks,
       _nextAudioTrack,
       _nextSubtitleTrack,
       _nextChapter,
