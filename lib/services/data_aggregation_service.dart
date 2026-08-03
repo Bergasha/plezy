@@ -3,6 +3,7 @@ import '../media/ids.dart';
 
 import '../media/media_hub.dart';
 import '../media/media_item.dart';
+import '../media/media_item_merge.dart';
 import '../media/media_kind.dart';
 import '../media/media_library.dart';
 import '../media/media_server_client.dart';
@@ -51,6 +52,33 @@ Map<String, int> _searchKindCounts(Iterable<MediaItem> items) {
     counts.update(item.kind.name, (count) => count + 1, ifAbsent: () => 1);
   }
   return counts;
+}
+
+/// Drop items belonging to a hidden library.
+///
+/// Items the backend could not attribute to a library ([MediaItem.libraryGlobalKey]
+/// is null) are kept: Plex search and `/library/shared/all` return shared and
+/// external rows that have no local section, and those are not something the
+/// user hid.
+List<MediaItem> _withoutHiddenLibraries(List<MediaItem> items, Set<String>? hiddenLibraryKeys) {
+  if (hiddenLibraryKeys == null || hiddenLibraryKeys.isEmpty) return items;
+  return items.where((item) {
+    final libraryKey = item.libraryGlobalKey;
+    return libraryKey == null || !hiddenLibraryKeys.contains(libraryKey);
+  }).toList();
+}
+
+/// The server-local library ids [serverId] owns within [hiddenLibraryKeys],
+/// which hold cross-server `serverId:libraryId` global keys. Backends that
+/// cannot attribute a search hit to a library need these to scope the request.
+Set<String> _hiddenLibraryIdsOn(String serverId, Set<String>? hiddenLibraryKeys) {
+  if (hiddenLibraryKeys == null || hiddenLibraryKeys.isEmpty) return const {};
+  final ids = <String>{};
+  for (final key in hiddenLibraryKeys) {
+    final parsed = parseGlobalKey(key);
+    if (parsed != null && parsed.serverId == serverId) ids.add(parsed.ratingKey);
+  }
+  return ids;
 }
 
 /// Cross-server aggregation: fans calls out to every online client and
@@ -171,17 +199,8 @@ class DataAggregationService {
       failureMessage: (serverId) => 'Failed on-deck fetch from $serverId',
       fetch: (_, client) => client.fetchContinueWatching(count: limit),
     );
-    final allOnDeck = fetched.items;
-
     // Filter out items from hidden libraries
-    List<MediaItem> filteredOnDeck = allOnDeck;
-    if (hiddenLibraryKeys != null && hiddenLibraryKeys.isNotEmpty) {
-      filteredOnDeck = allOnDeck.where((item) {
-        if (item.libraryId == null || item.serverId == null) return true;
-        final globalKey = buildGlobalKey(ServerId(item.serverId!), item.libraryId!);
-        return !hiddenLibraryKeys.contains(globalKey);
-      }).toList();
-    }
+    var filteredOnDeck = _withoutHiddenLibraries(fetched.items, hiddenLibraryKeys);
 
     // Sort by most recently viewed, falling back to addedAt for unwatched items.
     // Same key as JellyfinClient's continue-watching merge (MediaItem.recencySortKey)
@@ -537,7 +556,16 @@ class DataAggregationService {
 
   /// Search across all online servers (Plex + Jellyfin). Per-server outcomes
   /// distinguish authoritative empty results from failed or cancelled legs.
-  Future<SearchAggregationResult> searchAcrossServers(String query, {int? limit, AbortController? abort}) async {
+  ///
+  /// [hiddenLibraryKeys] excludes results the user has hidden, matching every
+  /// other aggregated surface. Backends whose search rows carry no library id
+  /// cannot be filtered here; they must scope the search server-side instead.
+  Future<SearchAggregationResult> searchAcrossServers(
+    String query, {
+    int? limit,
+    Set<String>? hiddenLibraryKeys,
+    AbortController? abort,
+  }) async {
     if (query.trim().isEmpty) {
       return (
         items: const <MediaItem>[],
@@ -566,7 +594,12 @@ class DataAggregationService {
       failureMessage: (serverId) => 'Search failed on $serverId',
       fetch: (serverId, client) async {
         final stopwatch = Stopwatch()..start();
-        final items = await client.searchItems(query, limit: fetchLimit, abort: abort);
+        final items = await client.searchItems(
+          query,
+          limit: fetchLimit,
+          abort: abort,
+          excludedLibraryIds: _hiddenLibraryIdsOn(serverId, hiddenLibraryKeys),
+        );
         appLogger.i(
           'Search completed on $serverId in ${stopwatch.elapsedMilliseconds}ms: '
           '${items.length} results ${_searchKindCounts(items)}',
@@ -575,7 +608,10 @@ class DataAggregationService {
       },
     );
     abort?.throwIfAborted();
-    final items = rankMediaSearchResults(fetched.items, query, limit: resultLimit);
+    // Before ranking, so hidden results cannot spend the `resultLimit` budget
+    // and silently shrink what the user sees.
+    final visible = _withoutHiddenLibraries(fetched.items, hiddenLibraryKeys);
+    final items = rankMediaSearchResults(visible, query, limit: resultLimit);
 
     appLogger.i(
       'Search aggregation completed: ${items.length} results '
@@ -594,6 +630,15 @@ class DataAggregationService {
   /// Reverse external-id lookup fanned out to every online server (see
   /// [MediaServerClient.findByExternalIds]). One request wave per tap on an
   /// Explore catalog item; per-server failures are logged and skipped.
+  ///
+  /// Every server contributes every copy it holds, not one apiece: the same
+  /// movie routinely sits in a 4K library and an HD library on one server
+  /// (#1754). Results are deduped by global key and ordered best-first with
+  /// [compareLibraryCopies] so the chooser is stable across repeated passes.
+  ///
+  /// Because per-server failures are dropped here, a caller holding earlier
+  /// results must merge rather than replace (see [mergeLibraryCopies]) — a
+  /// degraded wave is not evidence that a copy went away.
   Future<List<MediaItem>> findByExternalIdsAcrossServers(
     ExternalIds ids, {
     required MediaKind kind,
@@ -618,11 +663,11 @@ class DataAggregationService {
         );
       } catch (e, st) {
         appLogger.w('External-id lookup failed on ${entry.key}', error: e, stackTrace: st);
-        return null;
+        return const <MediaItem>[];
       }
     });
 
-    return (await Future.wait(futures)).nonNulls.toList();
+    return mergeLibraryCopies(const [], (await Future.wait(futures)).expand((items) => items));
   }
 
   /// Group libraries by server (internal aggregation helper).

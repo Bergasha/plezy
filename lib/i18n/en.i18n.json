@@ -611,6 +611,7 @@
     "pauseButton": "Pause",
     "playbackPaused": "Paused",
     "playbackResumed": "Playing",
+    "loadingVideo": "Loading video",
     "showPlaybackControls": "Show playback controls",
     "hidePlaybackControls": "Hide playback controls",
     "seekBackwardButton": "Seek backward ${seconds} seconds",
