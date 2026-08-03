@@ -810,6 +810,42 @@ class Translations$settings$en {
 	/// en: 'Regex pattern to match credits markers in chapter titles'
 	String get creditsPatternDescription => 'Regex pattern to match credits markers in chapter titles';
 
+	/// en: 'Prerolls'
+	String get prerolls => 'Prerolls';
+
+	/// en: 'Play prerolls before movies'
+	String get playPrerollsBeforeMovies => 'Play prerolls before movies';
+
+	/// en: 'Plays a random clip from your selection below before each movie. Press back to skip.'
+	String get playPrerollsBeforeMoviesDescription => 'Plays a random clip from your selection below before each movie. Press back to skip.';
+
+	/// en: 'Preroll library'
+	String get prerollLibrary => 'Preroll library';
+
+	/// en: 'Not set'
+	String get prerollLibraryNotSet => 'Not set';
+
+	/// en: 'No libraries found on your servers.'
+	String get prerollLibraryNoneFound => 'No libraries found on your servers.';
+
+	/// en: 'Selected prerolls'
+	String get prerollSelection => 'Selected prerolls';
+
+	/// en: 'Pick a library first'
+	String get prerollSelectionPickLibraryFirst => 'Pick a library first';
+
+	/// en: 'No prerolls selected'
+	String get prerollSelectionNoneSelected => 'No prerolls selected';
+
+	/// en: '${count} selected'
+	String prerollSelectionCount({required Object count}) => '${count} selected';
+
+	/// en: 'Select prerolls'
+	String get prerollItemPicker => 'Select prerolls';
+
+	/// en: 'Couldn't load items from this library.'
+	String get prerollItemPickerLoadFailed => 'Couldn\'t load items from this library.';
+
 	/// en: 'Invalid regular expression'
 	String get invalidRegex => 'Invalid regular expression';
 
@@ -1930,6 +1966,15 @@ class Translations$videoControls$en {
 
 	/// en: 'Screenshot saved'
 	String get screenshotSaved => 'Screenshot saved';
+
+	/// en: 'Subtitles: none available'
+	String get subtitlesNoneAvailable => 'Subtitles: none available';
+
+	/// en: 'Subtitles: off'
+	String get subtitlesOff => 'Subtitles: off';
+
+	/// en: 'Subtitles: ${label}'
+	String subtitlesTrack({required Object label}) => 'Subtitles: ${label}';
 
 	/// en: 'Zoom ${percent}%'
 	String zoomPercent({required Object percent}) => 'Zoom ${percent}%';
@@ -4951,6 +4996,9 @@ class Translations$hotkeys$actions$en {
 	/// en: 'Toggle Shaders'
 	String get shaderToggle => 'Toggle Shaders';
 
+	/// en: 'Toggle Performance Overlay'
+	String get performanceOverlayToggle => 'Toggle Performance Overlay';
+
 	/// en: 'Skip Intro/Credits'
 	String get skipMarker => 'Skip Intro/Credits';
 
@@ -6266,6 +6314,18 @@ extension on Translations {
 			'settings.introPatternDescription' => 'Regex pattern to match intro markers in chapter titles',
 			'settings.creditsPattern' => 'Credits Marker Pattern',
 			'settings.creditsPatternDescription' => 'Regex pattern to match credits markers in chapter titles',
+			'settings.prerolls' => 'Prerolls',
+			'settings.playPrerollsBeforeMovies' => 'Play prerolls before movies',
+			'settings.playPrerollsBeforeMoviesDescription' => 'Plays a random clip from your selection below before each movie. Press back to skip.',
+			'settings.prerollLibrary' => 'Preroll library',
+			'settings.prerollLibraryNotSet' => 'Not set',
+			'settings.prerollLibraryNoneFound' => 'No libraries found on your servers.',
+			'settings.prerollSelection' => 'Selected prerolls',
+			'settings.prerollSelectionPickLibraryFirst' => 'Pick a library first',
+			'settings.prerollSelectionNoneSelected' => 'No prerolls selected',
+			'settings.prerollSelectionCount' => ({required Object count}) => '${count} selected',
+			'settings.prerollItemPicker' => 'Select prerolls',
+			'settings.prerollItemPickerLoadFailed' => 'Couldn\'t load items from this library.',
 			'settings.invalidRegex' => 'Invalid regular expression',
 			'settings.regex' => 'Regular expression',
 			'settings.downloads' => 'Downloads',
@@ -6407,6 +6467,7 @@ extension on Translations {
 			'hotkeys.actions.subSeekNext' => 'Seek to Next Subtitle',
 			'hotkeys.actions.subSeekPrev' => 'Seek to Previous Subtitle',
 			'hotkeys.actions.shaderToggle' => 'Toggle Shaders',
+			'hotkeys.actions.performanceOverlayToggle' => 'Toggle Performance Overlay',
 			'hotkeys.actions.skipMarker' => 'Skip Intro/Credits',
 			'hotkeys.actions.screenshot' => 'Take Screenshot',
 			'fileInfo.title' => 'File Info',
@@ -6533,6 +6594,8 @@ extension on Translations {
 			'mediaMenu.deleteFromServer' => 'Delete from server',
 			'mediaMenu.confirmDelete' => 'Delete this media and its files from your server?',
 			'mediaMenu.deleteMultipleWarning' => 'This includes all episodes and their files.',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaDeletedSuccessfully' => 'Media item deleted successfully',
 			'mediaMenu.mediaFailedToDelete' => 'Failed to delete media item',
 			'mediaMenu.rate' => 'Rate',
@@ -6546,8 +6609,6 @@ extension on Translations {
 			'rateSheet.notAvailable' => 'No match found',
 			'rateSheet.noConnectedServices' => 'Connect a service in Settings to rate there.',
 			'accessibility.mediaCardMovie' => ({required Object title}) => '${title}, movie',
-			_ => null,
-		} ?? switch (path) {
 			'accessibility.mediaCardShow' => ({required Object title}) => '${title}, TV show',
 			'accessibility.mediaCardEpisode' => ({required Object title, required Object episodeInfo}) => '${title}, ${episodeInfo}',
 			'accessibility.mediaCardSeason' => ({required Object title, required Object seasonInfo}) => '${title}, ${seasonInfo}',
@@ -6639,6 +6700,9 @@ extension on Translations {
 			'videoControls.pipActive' => 'Playing in Picture-in-Picture',
 			'videoControls.pipFailed' => 'Picture-in-picture failed to start',
 			'videoControls.screenshotSaved' => 'Screenshot saved',
+			'videoControls.subtitlesNoneAvailable' => 'Subtitles: none available',
+			'videoControls.subtitlesOff' => 'Subtitles: off',
+			'videoControls.subtitlesTrack' => ({required Object label}) => 'Subtitles: ${label}',
 			'videoControls.zoomPercent' => ({required Object percent}) => 'Zoom ${percent}%',
 			'videoControls.pipErrors.androidVersion' => 'Requires Android 8.0 or newer',
 			'videoControls.pipErrors.iosVersion' => 'Requires iOS 15.0 or newer',
@@ -7044,6 +7108,8 @@ extension on Translations {
 			'explore.badge.minutesPerEpisode' => ({required Object n}) => '${n} min/ep',
 			'explore.badge.adult' => '18+',
 			'explore.stats.listed' => ({required Object n}) => '${n} listed',
+			_ => null,
+		} ?? switch (path) {
 			'explore.stats.viewersDay' => ({required Object n}) => '${n} watched today',
 			'explore.stats.viewersWeek' => ({required Object n}) => '${n} watched this week',
 			'explore.stats.viewersMonth' => ({required Object n}) => '${n} watched this month',
@@ -7060,8 +7126,6 @@ extension on Translations {
 			'explore.stats.dropped' => ({required Object n}) => '${n} dropped',
 			'explore.season.winter' => 'Winter',
 			'explore.season.spring' => 'Spring',
-			_ => null,
-		} ?? switch (path) {
 			'explore.season.summer' => 'Summer',
 			'explore.season.fall' => 'Fall',
 			'explore.season.withYear' => ({required Object season, required Object year}) => '${season} ${year}',
@@ -7558,6 +7622,8 @@ extension on Translations {
 			'performanceOverlay.cacheLimit' => 'Cache Limit',
 			'performanceOverlay.speed' => 'Speed',
 			'performanceOverlay.player' => 'Player',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.memory' => 'Memory',
 			'performanceOverlay.uiFps' => 'UI FPS',
 			'externalPlayer.title' => 'External Player',
@@ -7574,8 +7640,6 @@ extension on Translations {
 			'externalPlayer.playerUrlScheme' => 'URL Scheme',
 			'externalPlayer.off' => 'Off',
 			'externalPlayer.launchFailed' => 'Failed to open external player',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.appNotInstalled' => ({required Object name}) => '${name} is not installed',
 			'externalPlayer.playInExternalPlayer' => 'Play in External Player',
 			'metadataEdit.editMetadata' => 'Edit...',
