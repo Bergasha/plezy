@@ -9,6 +9,10 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
     widget.toastController.show(Symbols.photo_camera_rounded, t.videoControls.screenshotSaved);
   }
 
+  void _togglePerformanceOverlay() {
+    unawaited(_settings.write(SettingsService.showPerformanceOverlay, !_showPerformanceOverlay));
+  }
+
   bool _isDirectionalKey(LogicalKeyboardKey key) {
     return key == LogicalKeyboardKey.arrowUp ||
         key == LogicalKeyboardKey.arrowDown ||
@@ -147,6 +151,7 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
       canNavigateMediaItems: widget.canNavigateMediaItems,
       onPlayPause: () => unawaited(_playOrPause()),
       onToggleShader: _toggleShader,
+      onTogglePerformanceOverlay: _togglePerformanceOverlay,
       onSkipMarker: onSkipMarker,
       onNextEpisode: widget.onNext,
       onPreviousEpisode: widget.onPrevious,

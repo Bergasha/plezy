@@ -402,6 +402,7 @@
       "subSeekNext": "Seek to Next Subtitle",
       "subSeekPrev": "Seek to Previous Subtitle",
       "shaderToggle": "Toggle Shaders",
+      "performanceOverlayToggle": "Toggle Performance Overlay",
       "skipMarker": "Skip Intro/Credits",
       "screenshot": "Take Screenshot"
     }

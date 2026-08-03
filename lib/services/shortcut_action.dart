@@ -69,6 +69,7 @@ enum ShortcutAction {
     requiresPlayback: true,
   ),
   shaderToggle('shader_toggle', HotKey(key: PhysicalKeyboardKey.keyG), requiresShaderSupport: true),
+  performanceOverlayToggle('performance_overlay_toggle', HotKey(key: PhysicalKeyboardKey.keyI)),
   skipMarker('skip_marker', HotKey(key: PhysicalKeyboardKey.enter), requiresPlayback: true),
   screenshot('screenshot', HotKey(key: PhysicalKeyboardKey.keyS, modifiers: [HotKeyModifier.control]));
 
@@ -134,6 +135,7 @@ enum ShortcutAction {
     ShortcutAction.subSeekNext => t.hotkeys.actions.subSeekNext,
     ShortcutAction.subSeekPrev => t.hotkeys.actions.subSeekPrev,
     ShortcutAction.shaderToggle => t.hotkeys.actions.shaderToggle,
+    ShortcutAction.performanceOverlayToggle => t.hotkeys.actions.performanceOverlayToggle,
     ShortcutAction.skipMarker => t.hotkeys.actions.skipMarker,
     ShortcutAction.screenshot => t.hotkeys.actions.screenshot,
   };

@@ -4993,6 +4993,9 @@ class Translations$hotkeys$actions$en {
 	/// en: 'Toggle Shaders'
 	String get shaderToggle => 'Toggle Shaders';
 
+	/// en: 'Toggle Performance Overlay'
+	String get performanceOverlayToggle => 'Toggle Performance Overlay';
+
 	/// en: 'Skip Intro/Credits'
 	String get skipMarker => 'Skip Intro/Credits';
 
@@ -6461,6 +6464,7 @@ extension on Translations {
 			'hotkeys.actions.subSeekNext' => 'Seek to Next Subtitle',
 			'hotkeys.actions.subSeekPrev' => 'Seek to Previous Subtitle',
 			'hotkeys.actions.shaderToggle' => 'Toggle Shaders',
+			'hotkeys.actions.performanceOverlayToggle' => 'Toggle Performance Overlay',
 			'hotkeys.actions.skipMarker' => 'Skip Intro/Credits',
 			'hotkeys.actions.screenshot' => 'Take Screenshot',
 			'fileInfo.title' => 'File Info',
@@ -6587,9 +6591,9 @@ extension on Translations {
 			'mediaMenu.deleteFromServer' => 'Delete from server',
 			'mediaMenu.confirmDelete' => 'Delete this media and its files from your server?',
 			'mediaMenu.deleteMultipleWarning' => 'This includes all episodes and their files.',
-			'mediaMenu.mediaDeletedSuccessfully' => 'Media item deleted successfully',
 			_ => null,
 		} ?? switch (path) {
+			'mediaMenu.mediaDeletedSuccessfully' => 'Media item deleted successfully',
 			'mediaMenu.mediaFailedToDelete' => 'Failed to delete media item',
 			'mediaMenu.rate' => 'Rate',
 			'mediaMenu.playFromBeginning' => 'Play from Beginning',
@@ -7101,9 +7105,9 @@ extension on Translations {
 			'explore.badge.adult' => '18+',
 			'explore.stats.listed' => ({required Object n}) => '${n} listed',
 			'explore.stats.viewersDay' => ({required Object n}) => '${n} watched today',
-			'explore.stats.viewersWeek' => ({required Object n}) => '${n} watched this week',
 			_ => null,
 		} ?? switch (path) {
+			'explore.stats.viewersWeek' => ({required Object n}) => '${n} watched this week',
 			'explore.stats.viewersMonth' => ({required Object n}) => '${n} watched this month',
 			'explore.stats.viewersYear' => ({required Object n}) => '${n} watched this year',
 			'explore.stats.viewersAllTime' => ({required Object n}) => '${n} viewers',
@@ -7615,9 +7619,9 @@ extension on Translations {
 			'performanceOverlay.speed' => 'Speed',
 			'performanceOverlay.player' => 'Player',
 			'performanceOverlay.memory' => 'Memory',
-			'performanceOverlay.uiFps' => 'UI FPS',
 			_ => null,
 		} ?? switch (path) {
+			'performanceOverlay.uiFps' => 'UI FPS',
 			'externalPlayer.title' => 'External Player',
 			'externalPlayer.useExternalPlayer' => 'Use External Player',
 			'externalPlayer.useExternalPlayerDescription' => 'Open videos in another app',
