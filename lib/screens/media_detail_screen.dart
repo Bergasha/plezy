@@ -1149,6 +1149,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
           serverId: _metadata.serverId!,
           serverName: _metadata.serverName,
           backend: _metadata.backend,
+          sourceMediaItem: _metadata,
         ),
       ),
     );

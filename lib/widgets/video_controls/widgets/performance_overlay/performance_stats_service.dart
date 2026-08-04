@@ -353,8 +353,8 @@ class PerformanceStatsService {
     if (upper.contains('AV1')) return 'AV1';
     if (upper.contains('VP9')) return 'VP9';
     if (upper.contains('AAC')) return 'AAC';
-    if (upper.contains('AC3') || upper.contains('AC-3')) return 'AC3';
     if (upper.contains('EAC3') || upper.contains('E-AC-3')) return 'EAC3';
+    if (upper.contains('AC3') || upper.contains('AC-3')) return 'AC3';
     if (upper.contains('DTS')) return 'DTS';
     if (upper.contains('TRUEHD')) return 'TrueHD';
     if (upper.contains('FLAC')) return 'FLAC';

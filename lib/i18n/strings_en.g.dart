@@ -693,6 +693,30 @@ class Translations$settings$en {
 	/// en: 'Image cache cleared successfully'
 	String get clearImageCacheSuccess => 'Image cache cleared successfully';
 
+	/// en: 'Scan Library for Cast Info'
+	String get scanCastInfo => 'Scan Library for Cast Info';
+
+	/// en: 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they're instant the first time you look someone up.'
+	String get scanCastInfoDescription => 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they\'re instant the first time you look someone up.';
+
+	/// en: 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn't affect app performance while it runs.'
+	String get scanCastInfoConfirm => 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.';
+
+	/// en: 'Start Scan'
+	String get scanCastInfoStart => 'Start Scan';
+
+	/// en: 'Starting scan…'
+	String get scanCastInfoStarting => 'Starting scan…';
+
+	/// en: 'Scanned ${current} of ${total} titles'
+	String scanCastInfoProgress({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles';
+
+	/// en: 'Run in Background'
+	String get scanCastInfoRunInBackground => 'Run in Background';
+
+	/// en: 'Cast info scan complete'
+	String get scanCastInfoComplete => 'Cast info scan complete';
+
 	/// en: 'Reset Settings'
 	String get resetSettings => 'Reset Settings';
 
@@ -6275,6 +6299,14 @@ extension on Translations {
 			'settings.clearImageCache' => 'Clear Image Cache',
 			'settings.clearImageCacheDescription' => 'Clear cached artwork and thumbnails. Images may load slower until downloaded again.',
 			'settings.clearImageCacheSuccess' => 'Image cache cleared successfully',
+			'settings.scanCastInfo' => 'Scan Library for Cast Info',
+			'settings.scanCastInfoDescription' => 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they\'re instant the first time you look someone up.',
+			'settings.scanCastInfoConfirm' => 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.',
+			'settings.scanCastInfoStart' => 'Start Scan',
+			'settings.scanCastInfoStarting' => 'Starting scan…',
+			'settings.scanCastInfoProgress' => ({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles',
+			'settings.scanCastInfoRunInBackground' => 'Run in Background',
+			'settings.scanCastInfoComplete' => 'Cast info scan complete',
 			'settings.resetSettings' => 'Reset Settings',
 			'settings.resetSettingsDescription' => 'Restore default settings. This can\'t be undone.',
 			'settings.resetSettingsSuccess' => 'Settings reset successfully',
@@ -6586,6 +6618,8 @@ extension on Translations {
 			'mediaMenu.markAsWatched' => 'Mark as Watched',
 			'mediaMenu.markAsUnwatched' => 'Mark as Unwatched',
 			'mediaMenu.removeFromContinueWatching' => 'Remove from Continue Watching',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.viewDetails' => 'View details',
 			'mediaMenu.goToSeries' => 'Go to series',
 			'mediaMenu.shufflePlay' => 'Shuffle Play',
@@ -6594,8 +6628,6 @@ extension on Translations {
 			'mediaMenu.deleteFromServer' => 'Delete from server',
 			'mediaMenu.confirmDelete' => 'Delete this media and its files from your server?',
 			'mediaMenu.deleteMultipleWarning' => 'This includes all episodes and their files.',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.mediaDeletedSuccessfully' => 'Media item deleted successfully',
 			'mediaMenu.mediaFailedToDelete' => 'Failed to delete media item',
 			'mediaMenu.rate' => 'Rate',
@@ -7100,6 +7132,8 @@ extension on Translations {
 			'explore.badge.processing' => 'Processing',
 			'explore.badge.declined' => 'Declined',
 			'explore.badge.requestFailed' => 'Request failed',
+			_ => null,
+		} ?? switch (path) {
 			'explore.badge.requested4k' => '4K requested',
 			'explore.badge.seasonsAvailable' => ({required Object available, required Object total}) => '${available}/${total} seasons',
 			'explore.badge.nextEpisodeIn' => ({required Object episode, required Object duration}) => 'Ep ${episode} in ${duration}',
@@ -7108,8 +7142,6 @@ extension on Translations {
 			'explore.badge.minutesPerEpisode' => ({required Object n}) => '${n} min/ep',
 			'explore.badge.adult' => '18+',
 			'explore.stats.listed' => ({required Object n}) => '${n} listed',
-			_ => null,
-		} ?? switch (path) {
 			'explore.stats.viewersDay' => ({required Object n}) => '${n} watched today',
 			'explore.stats.viewersWeek' => ({required Object n}) => '${n} watched this week',
 			'explore.stats.viewersMonth' => ({required Object n}) => '${n} watched this month',
@@ -7614,6 +7646,8 @@ extension on Translations {
 			'performanceOverlay.dvRpus' => 'DV RPUs',
 			'performanceOverlay.dvRpuAverage' => 'DV RPU Avg',
 			'performanceOverlay.dvSampleAverage' => 'DV Sample Avg',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.maxLuma' => 'Max Luma',
 			'performanceOverlay.minLuma' => 'Min Luma',
 			'performanceOverlay.maxCll' => 'MaxCLL',
@@ -7622,8 +7656,6 @@ extension on Translations {
 			'performanceOverlay.cacheLimit' => 'Cache Limit',
 			'performanceOverlay.speed' => 'Speed',
 			'performanceOverlay.player' => 'Player',
-			_ => null,
-		} ?? switch (path) {
 			'performanceOverlay.memory' => 'Memory',
 			'performanceOverlay.uiFps' => 'UI FPS',
 			'externalPlayer.title' => 'External Player',

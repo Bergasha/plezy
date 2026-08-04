@@ -16,6 +16,7 @@ import '../../i18n/strings.g.dart';
 import '../main_screen.dart';
 import '../../mixins/mounted_set_state_mixin.dart';
 import '../../mixins/refreshable.dart';
+import '../../database/app_database.dart';
 import '../../providers/hidden_libraries_provider.dart';
 import '../../providers/download_provider.dart';
 import '../../providers/libraries_provider.dart';
@@ -29,9 +30,12 @@ import '../../providers/seerr_account_provider.dart';
 import '../../services/keyboard_shortcuts_service.dart';
 import '../../services/background_work_diagnostics_service.dart';
 import '../../services/settings_service.dart' as settings;
+import '../../services/tmdb_cache_warmer.dart';
+import '../../services/tmdb_cast_matcher.dart';
 import '../../widgets/background_download_warning_banner.dart';
 import '../../services/update_service.dart';
 import '../../utils/dialogs.dart';
+import '../../utils/provider_extensions.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../utils/platform_detector.dart';
 import '../../utils/update_dialog.dart';
@@ -511,6 +515,12 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           onTap: () => _showClearImageCacheDialog(),
         ),
         SettingNavigationTile(
+          icon: Symbols.groups_rounded,
+          title: t.settings.scanCastInfo,
+          subtitle: t.settings.scanCastInfoDescription,
+          onTap: () => _showScanCastInfoDialog(),
+        ),
+        SettingNavigationTile(
           focusNode: _focusTracker.get(_kResetSettings),
           icon: Symbols.restore_rounded,
           title: t.settings.resetSettings,
@@ -744,6 +754,81 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
     if (!confirmed) return;
     await _settingsService.clearImageCache();
     if (mounted) showSuccessSnackBar(context, t.settings.clearImageCacheSuccess);
+  }
+
+  Future<void> _showScanCastInfoDialog() async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: t.settings.scanCastInfo,
+      message: t.settings.scanCastInfoConfirm,
+      confirmText: t.settings.scanCastInfoStart,
+    );
+    if (!confirmed) return;
+
+    final libraries = context.read<LibrariesProvider>().libraries;
+    final database = context.read<AppDatabase>();
+    final matcher = TmdbCastMatcher(database: database);
+
+    var current = 0;
+    var total = 0;
+    StateSetter? dialogSetState;
+
+    final warmer = TmdbCacheWarmer(
+      clientForLibrary: (library) => context.getMediaClientForLibrary(library),
+      matcher: matcher,
+      onProgress: (scanned, totalItems) {
+        current = scanned;
+        total = totalItems;
+        dialogSetState?.call(() {});
+      },
+    );
+
+    final scanFuture = warmer.scanLibraries(libraries).then((_) {
+      matcher.dispose();
+      if (mounted) showSuccessSnackBar(context, t.settings.scanCastInfoComplete);
+    });
+    unawaited(scanFuture);
+
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            dialogSetState = setState;
+            return AlertDialog(
+              title: Text(t.settings.scanCastInfo),
+              content: Column(
+                mainAxisSize: .min,
+                children: [
+                  const SizedBox(width: 48, height: 48, child: CircularProgressIndicator()),
+                  const SizedBox(height: 24),
+                  Text(
+                    total > 0
+                        ? t.settings.scanCastInfoProgress(current: current, total: total)
+                        : t.settings.scanCastInfoStarting,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(t.settings.scanCastInfoRunInBackground),
+                ),
+                TextButton(
+                  onPressed: () {
+                    warmer.cancel();
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: Text(t.common.cancel),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _showResetSettingsDialog() async {
