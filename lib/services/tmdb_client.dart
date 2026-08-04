@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../database/app_database.dart';
 import '../database/tmdb_cache_operations.dart';
 import '../models/tmdb/tmdb_cast_credit.dart';
+import '../models/tmdb/tmdb_filmography_credit.dart';
 import '../models/tmdb/tmdb_person.dart';
 import '../utils/app_logger.dart';
 
@@ -37,6 +38,14 @@ class TmdbClient {
     final json = await _get('/person/$personId');
     if (json == null) return null;
     return TmdbPerson.fromJson(json);
+  }
+
+  Future<List<TmdbFilmographyCredit>> getPersonCombinedCredits(int personId) async {
+    final json = await _get('/person/$personId/combined_credits');
+    if (json == null) return const [];
+    final cast = json['cast'] as List<dynamic>?;
+    if (cast == null) return const [];
+    return cast.map((entry) => TmdbFilmographyCredit.fromJson(entry as Map<String, dynamic>)).toList();
   }
 
   Future<Map<String, dynamic>?> _get(String path) async {

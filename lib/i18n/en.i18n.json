@@ -373,6 +373,9 @@
     "seekAndTiming": "Seek & Timing",
     "behavior": "Behavior"
   },
+  "actor": {
+    "filmography": "Filmography"
+  },
   "search": {
     "hint": "Search movies, shows, music...",
     "tryDifferentTerm": "Try a different search term",

@@ -2,6 +2,7 @@ import '../database/app_database.dart';
 import '../media/media_item.dart';
 import '../media/media_kind.dart';
 import '../media/media_server_client.dart';
+import '../models/tmdb/tmdb_filmography_credit.dart';
 import '../models/tmdb/tmdb_person.dart';
 import '../utils/app_logger.dart';
 import 'tmdb_client.dart';
@@ -42,6 +43,8 @@ class TmdbCastMatcher {
     );
     return null;
   }
+
+  Future<List<TmdbFilmographyCredit>> getFilmography(int personId) => _tmdb.getPersonCombinedCredits(personId);
 
   String _normalize(String name) => name.trim().toLowerCase();
 

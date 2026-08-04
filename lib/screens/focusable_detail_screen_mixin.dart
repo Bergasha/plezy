@@ -193,6 +193,7 @@ mixin FocusableDetailScreenMixin<T extends StatefulWidget> on State<T>, GridFocu
     String? collectionId,
     VoidCallback? onListRefresh,
     CardShape? shape,
+    FocusNode? navigateUpTarget,
   }) {
     return SettingsBuilder(
       prefs: const [SettingsService.viewMode, SettingsService.libraryDensity, SettingsService.tvFullCardLayout],
@@ -222,7 +223,9 @@ mixin FocusableDetailScreenMixin<T extends StatefulWidget> on State<T>, GridFocu
             onListRefresh: onListRefresh,
             fullBleedImage: useFullCardLayout && position.isGrid,
             cardShapeOverride: shape,
-            onNavigateUp: position.isFirstRow ? navigateToAppBar : null,
+            onNavigateUp: position.isFirstRow
+                ? (navigateUpTarget != null ? navigateUpTarget.requestFocus : navigateToAppBar)
+                : null,
             onBack: handleBackFromContent,
             onFocusChange: (hasFocus) => trackGridItemFocus(index, hasFocus),
           );

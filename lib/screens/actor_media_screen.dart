@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../media/ids.dart';
@@ -23,8 +25,15 @@ import 'focusable_detail_screen_mixin.dart';
 import '../mixins/grid_focus_node_mixin.dart';
 import '../focus/focusable_action_bar.dart';
 import '../database/app_database.dart';
+import '../models/catalog/catalog_item.dart';
 import '../models/tmdb/tmdb_person.dart';
+import '../focus/focus_theme.dart';
+import '../services/settings_service.dart';
 import '../services/tmdb_cast_matcher.dart';
+import '../services/tmdb_filmography_mapper.dart';
+import '../utils/grid_size_calculator.dart';
+import '../utils/platform_detector.dart';
+import '../widgets/focusable_media_card.dart';
 
 /// Screen to browse all media featuring a specific actor.
 class ActorMediaScreen extends StatefulWidget {
@@ -62,9 +71,12 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
         StandardPaginatedView<MediaItem, ActorMediaScreen> {
   static const int _pageSize = 200;
 
-  late final _tmdbMatcher = TmdbCastMatcher(database: context.read<AppDatabase>());
+  TmdbCastMatcher? _tmdbMatcherOrNull;
+  TmdbCastMatcher get _tmdbMatcher => _tmdbMatcherOrNull ??= TmdbCastMatcher(database: context.read<AppDatabase>());
   TmdbPerson? _tmdbPerson;
   bool _tmdbLoading = false;
+  final _bioFocusNode = FocusNode();
+  List<CatalogItem>? _filmography;
 
   @override
   void initState() {
@@ -74,12 +86,20 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
       _tmdbLoading = true;
       _tmdbMatcher
           .resolveCastMember(metadata: source, actorName: widget.actorName, client: _mediaClient)
-          .then((person) {
+          .then((person) async {
             if (!mounted) return;
             setState(() {
               _tmdbPerson = person;
               _tmdbLoading = false;
             });
+            if (person == null) return;
+            try {
+              final credits = await _tmdbMatcher.getFilmography(person.id);
+              if (!mounted) return;
+              setState(() => _filmography = mapTmdbFilmography(credits));
+            } catch (_) {
+              if (mounted) setState(() => _filmography = const []);
+            }
           })
           .catchError((_) {
             if (!mounted) return;
@@ -108,7 +128,8 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
 
   @override
   void dispose() {
-    _tmdbMatcher.dispose();
+    _tmdbMatcherOrNull?.dispose();
+    _bioFocusNode.dispose();
     disposePagination();
     disposeFocusResources();
     super.dispose();
@@ -218,7 +239,13 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
                   ],
                   if (person?.biography != null) ...[
                     const SizedBox(height: 12),
-                    CollapsibleText(text: person!.biography!, maxLines: 4, style: theme.textTheme.bodyMedium),
+                    CollapsibleText(
+                      text: person!.biography!,
+                      maxLines: 4,
+                      style: theme.textTheme.bodyMedium,
+                      skipTraversal: false,
+                      focusNode: _bioFocusNode,
+                    ),
                   ],
                   if (widget.characterName != null) ...[
                     const SizedBox(height: 8),
@@ -245,6 +272,61 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
     );
   }
 
+  Widget _buildFilmographySection() {
+    final filmography = _filmography;
+    if (filmography == null || filmography.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    final theme = Theme.of(context);
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: .start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(t.actor.filmography, style: theme.textTheme.titleMedium?.copyWith(fontWeight: .bold)),
+            ),
+            const SizedBox(height: 8),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final density = SettingsService.instance.read(SettingsService.libraryDensity);
+                final isTv = PlatformDetector.isTV();
+                final cardWidth = GridSizeCalculator.getCellWidth(constraints.maxWidth, context, density);
+                final posterWidth = cardWidth - 6;
+                final posterHeight = posterWidth * 1.5;
+                final containerHeight = posterHeight + (isTv ? 48 : 33);
+                final focusExtra = FocusTheme.focusBorderWidth * 2;
+
+                return SizedBox(
+                  height: containerHeight + focusExtra + (isTv ? 12 : 4) + 16,
+                  child: ListView.builder(
+                    scrollDirection: .horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filmography.length,
+                    itemBuilder: (context, index) {
+                      final catalogItem = filmography[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FocusableMediaCard(
+                          item: catalogItem.toMediaItem(),
+                          width: cardWidth,
+                          height: containerHeight,
+                          forceGridMode: true,
+                          onBack: handleBackFromContent,
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return buildDetailScaffold(
@@ -258,7 +340,9 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
             itemAt: (index) => loadedItems[index],
             onRefresh: updateItem,
             onSkeletonVisible: (index) => ensureIndexLoaded(index, pageSize: _pageSize),
+            navigateUpTarget: _tmdbPerson?.biography != null ? _bioFocusNode : null,
           ),
+        _buildFilmographySection(),
       ],
     );
   }
