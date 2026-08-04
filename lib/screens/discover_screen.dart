@@ -27,6 +27,7 @@ import '../providers/multi_server_provider.dart';
 import '../providers/watch_state_store.dart';
 import '../widgets/hub_section.dart';
 import '../widgets/app_menu.dart';
+import '../widgets/home_clock.dart';
 import '../widgets/clickable_cursor.dart';
 import '../widgets/loading_indicator_box.dart';
 import '../widgets/profile_switching_overlay.dart';
@@ -841,6 +842,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               );
             },
           ),
+          const SizedBox(width: 12),
+          HomeClock(color: foregroundColor),
         ],
       ),
     );

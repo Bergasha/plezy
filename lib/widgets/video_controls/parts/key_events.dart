@@ -104,11 +104,7 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
       _activateSkipMarker();
       return;
     }
-    // Raise the chrome *before* toggling: Select is the deliberate "show me the
-    // controls" affordance, and the visible chrome suppresses the transient
-    // transport disc that would otherwise flash underneath it.
     _showControlsWithFocus();
-    unawaited(_playOrPause());
   }
 
   KeyEventResult _handleLocalPlayerNavigationKeyEvent(KeyEvent event, PlayerNavigationKey navigationKey) {
