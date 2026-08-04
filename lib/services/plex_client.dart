@@ -73,6 +73,7 @@ import 'plex_lyrics_parser.dart';
 import 'plex_mappers.dart';
 import 'plex_playback_mapper.dart';
 import 'playback_initialization_types.dart';
+import 'track_selection_service.dart';
 
 part 'plex_client/parts/live_tv.dart';
 part 'plex_client/parts/playlists.dart';
@@ -1564,7 +1565,7 @@ class PlexClient
 
     final response = await retryTransientMediaServerCall(
       operation: 'Plex continue watching hubs',
-      attemptTimeouts: MediaServerTimeouts.homeHubAttemptTimeouts,
+      deadline: MediaServerTimeouts.homeHubDeadline,
       call: (timeout, abort) => _getWithFailover(
         continueWatchingHubKey ?? '/hubs',
         queryParameters: queryParameters,
@@ -1929,30 +1930,6 @@ class PlexClient
     return _getFirstMetadataJsonFromData(data);
   }
 
-  /// Fetch the raw `Guid` array for a metadata item (`includeGuids=1`).
-  ///
-  /// Returns the list of `{id: 'imdb://tt...'}` maps as Plex returns them, or
-  /// an empty list if the item has no external IDs / can't be fetched.
-  /// Used by the Trakt integration to match Plex items against Trakt's catalog.
-  Future<List<dynamic>> fetchExternalGuids(String ratingKey) async {
-    try {
-      final response = await _getWithFailover('/library/metadata/$ratingKey', queryParameters: {'includeGuids': 1});
-      final data = response.data;
-      if (data is! Map) return const [];
-      final container = data['MediaContainer'] as Map?;
-      final metadata = container?['Metadata'];
-      if (metadata is! List || metadata.isEmpty) return const [];
-      final first = metadata.first;
-      if (first is! Map) return const [];
-      final guids = first['Guid'];
-      if (guids is List) return guids;
-      return const [];
-    } catch (e) {
-      appLogger.d('fetchExternalGuids failed for $ratingKey', error: e);
-      return const [];
-    }
-  }
-
   /// Mark media as watched (transport only — see [MediaServerClient.markWatched]).
   Future<void> markAsWatched(String ratingKey) async {
     await _getWithFailover(
@@ -2244,7 +2221,7 @@ class PlexClient
     required String path,
     required Map<String, dynamic> queryParameters,
     required String operation,
-    required List<Duration> attemptTimeouts,
+    required Duration deadline,
     required String failureLabel,
     int? librarySectionID,
     String? librarySectionTitle,
@@ -2253,7 +2230,7 @@ class PlexClient
     try {
       final response = await retryTransientMediaServerCall(
         operation: operation,
-        attemptTimeouts: attemptTimeouts,
+        deadline: deadline,
         call: (timeout, abort) => _getWithFailover(
           path,
           queryParameters: queryParameters,
@@ -2291,7 +2268,7 @@ class PlexClient
     path: '/hubs/sections/$sectionId',
     queryParameters: {'count': limit, 'includeGuids': 1},
     operation: 'Plex library hubs',
-    attemptTimeouts: MediaServerTimeouts.libraryHubAttemptTimeouts,
+    deadline: MediaServerTimeouts.libraryHubDeadline,
     failureLabel: 'library hubs',
     librarySectionID: _librarySectionIdFromString(sectionId),
     librarySectionTitle: libraryName,
@@ -2305,7 +2282,7 @@ class PlexClient
     path: _providerPromotedHubKey ?? _providerHomeHubKey ?? '/hubs',
     queryParameters: {'count': limit, 'includeGuids': 1},
     operation: 'Plex global hubs',
-    attemptTimeouts: MediaServerTimeouts.homeHubAttemptTimeouts,
+    deadline: MediaServerTimeouts.homeHubDeadline,
     failureLabel: 'global hubs',
   );
 
@@ -2314,7 +2291,7 @@ class PlexClient
     path: '/hubs/metadata/$ratingKey/related',
     queryParameters: {'count': count},
     operation: 'Plex related hubs',
-    attemptTimeouts: MediaServerTimeouts.libraryHubAttemptTimeouts,
+    deadline: MediaServerTimeouts.libraryHubDeadline,
     failureLabel: 'related hubs',
     filter: _videoOrCollectionHubItem,
   );
@@ -3252,6 +3229,10 @@ class PlexClient
       if (!data.hasValidVideoUrl) {
         throw PlaybackException(t.messages.fileInfoNotAvailable, reason: PlaybackFailureReason.noPlayableSource);
       }
+      final carriedAudioTrack = options.selectedAudioStreamId == null ? options.preferredAudioTrack : null;
+      final carriedAudioStreamId = carriedAudioTrack == null || data.mediaInfo == null
+          ? null
+          : findSourceAudioTrackForIntent(carriedAudioTrack, data.mediaInfo!.audioTracks)?.id;
 
       // Tracks consult the music preset — [qualityPreset] is video-shaped
       // (resolution/videoQuality) and is ignored for audio.
@@ -3286,7 +3267,9 @@ class PlexClient
           return _transcodeFallbackResult(data, result.outcome, options);
         }
 
-        final resolvedAudioId = _resolveAudioStreamId(options.selectedAudioStreamId, data.mediaInfo);
+        final resolvedAudioId = carriedAudioTrack == null
+            ? _resolveAudioStreamId(options.selectedAudioStreamId, data.mediaInfo)
+            : carriedAudioStreamId;
         final result = await buildTranscodeStartPath(
           ratingKey: options.metadata.id,
           mediaIndex: data.selectedMediaIndex,
@@ -3314,7 +3297,7 @@ class PlexClient
           );
         }
 
-        return _transcodeFallbackResult(data, result.outcome, options);
+        return _transcodeFallbackResult(data, result.outcome, options, activeAudioStreamId: carriedAudioStreamId);
       }
 
       return PlaybackInitializationResult(
@@ -3323,6 +3306,7 @@ class PlexClient
         mediaInfo: data.mediaInfo,
         subtitleSidecars: _buildExternalSubtitles(data.mediaInfo),
         isOffline: false,
+        activeAudioStreamId: carriedAudioStreamId,
         playMethod: 'DirectPlay',
         playSessionId: options.sessionIdentifier,
         selectedMediaIndex: data.selectedMediaIndex,
@@ -3340,8 +3324,9 @@ class PlexClient
   PlaybackInitializationResult _transcodeFallbackResult(
     PlexVideoPlaybackData data,
     TranscodeDecisionOutcome outcome,
-    PlaybackInitializationOptions options,
-  ) {
+    PlaybackInitializationOptions options, {
+    int? activeAudioStreamId,
+  }) {
     final fallbackReason = outcome == TranscodeDecisionOutcome.directPlayOnly
         ? TranscodeFallbackReason.directPlayOnly
         : TranscodeFallbackReason.decisionFailed;
@@ -3354,6 +3339,7 @@ class PlexClient
       isOffline: false,
       isTranscoding: false,
       fallbackReason: fallbackReason,
+      activeAudioStreamId: activeAudioStreamId,
       playMethod: 'DirectPlay',
       playSessionId: options.sessionIdentifier,
       selectedMediaIndex: data.selectedMediaIndex,
@@ -3769,10 +3755,14 @@ class PlexClient
   }
 
   /// Full item with on-deck episode from a single `/library/metadata/{id}`
-  /// round-trip. Implements [MediaServerClient.fetchItemWithOnDeck];
-  /// Jellyfin has no analogous endpoint and returns onDeck=null there.
+  /// round-trip. Implements [MediaServerClient.fetchItemWithOnDeck]. Both
+  /// halves arrive together, so there is no window in which the item is known
+  /// and on-deck is not — `onItemReady` is intentionally never invoked.
   @override
-  Future<({MediaItem? item, MediaItem? onDeckEpisode})> fetchItemWithOnDeck(String id) async {
+  Future<({MediaItem? item, MediaItem? onDeckEpisode})> fetchItemWithOnDeck(
+    String id, {
+    void Function(MediaItem item)? onItemReady,
+  }) async {
     try {
       final result = await getMetadataWithImagesAndOnDeck(id, shouldFallback: _shouldFallbackPlexItemLookup);
       final itemDto = result['metadata'] as PlexMetadataDto?;
@@ -3857,10 +3847,30 @@ class PlexClient
   @override
   Map<String, String> get streamHeaders => Map.unmodifiable(config.headers);
 
+  /// Reads both guid shapes Plex can answer with. The `Guid` array only exists
+  /// for items matched by the Plex Movie / Plex TV Series agents; a library
+  /// still on a legacy agent (HAMA, `com.plexapp.agents.thetvdb`, ...) carries
+  /// its ids in the scalar `guid` instead, so reading only the array left every
+  /// tracker, watchlist and dedupe path blind to those libraries (#1788).
+  ///
+  /// The array wins per field; the scalar only fills what it left null.
   @override
   Future<ExternalIds> fetchExternalIds(String itemId) async {
-    final guids = await fetchExternalGuids(itemId);
-    return ExternalIds.fromGuids(guids);
+    try {
+      final response = await _getWithFailover('/library/metadata/$itemId', queryParameters: {'includeGuids': 1});
+      final data = response.data;
+      if (data is! Map) return const ExternalIds();
+      final metadata = (data['MediaContainer'] as Map?)?['Metadata'];
+      if (metadata is! List || metadata.isEmpty) return const ExternalIds();
+      final first = metadata.first;
+      if (first is! Map) return const ExternalIds();
+      final guids = first['Guid'];
+      final modern = guids is List ? ExternalIds.fromGuids(guids) : const ExternalIds();
+      return modern.fillFrom(ExternalIds.fromLegacyPlexGuid(first['guid']));
+    } catch (e) {
+      appLogger.d('fetchExternalIds failed for $itemId', error: e);
+      return const ExternalIds();
+    }
   }
 
   /// Map id-verified candidates to items, dropping any sequel the server does

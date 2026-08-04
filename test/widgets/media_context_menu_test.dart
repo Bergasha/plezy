@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:plezy/connection/connection.dart';
 import 'package:plezy/database/app_database.dart';
 import 'package:plezy/i18n/strings.g.dart';
@@ -15,6 +16,7 @@ import 'package:plezy/navigation/profile_navigation_scope.dart';
 import 'package:plezy/media/ids.dart';
 import 'package:plezy/media/library_query.dart';
 import 'package:plezy/media/media_backend.dart';
+import 'package:plezy/media/media_file_info.dart';
 import 'package:plezy/media/media_item.dart';
 import 'package:plezy/media/media_kind.dart';
 import 'package:plezy/media/media_playlist.dart';
@@ -43,6 +45,7 @@ import 'package:plezy/theme/mono_theme.dart';
 import 'package:plezy/utils/media_server_http_client.dart';
 import 'package:plezy/utils/media_server_timeouts.dart';
 import 'package:plezy/utils/platform_detector.dart';
+import 'package:plezy/widgets/file_info_bottom_sheet.dart';
 import 'package:plezy/widgets/media_context_menu.dart';
 import 'package:provider/provider.dart';
 import '../test_helpers/backend_client_fixtures.dart';
@@ -554,6 +557,42 @@ void main() {
       expect(find.text('picker target'), findsOneWidget);
     });
 
+    testWidgets('the music menu gives Instant Mix an icon it shares with no sibling row', (tester) async {
+      final track = testMediaItem(
+        id: 'track-1',
+        backend: MediaBackend.jellyfin,
+        kind: MediaKind.track,
+        title: 'Track',
+        parentId: 'album-1',
+        parentTitle: 'Album',
+        grandparentId: 'artist-1',
+        grandparentTitle: 'Artist',
+        serverId: 'srv-1',
+      );
+      final harness = await _pumpSiblingMusicMenu(tester, item: track, relatedItems: const []);
+
+      harness.menuKey.currentState!.showContextMenu(tester.element(find.text('mini-player menu target')));
+      await tester.pumpAndSettle();
+
+      expect(find.text(t.music.instantMix), findsOneWidget);
+      expect(find.byIcon(Symbols.wand_stars_rounded), findsOneWidget);
+
+      // #1629: the fader glyph reads as an equalizer, and the neighbouring
+      // rows must stay tellable apart at a glance on a TV.
+      expect(find.byIcon(Symbols.instant_mix_rounded), findsNothing);
+      expect(find.byIcon(Symbols.tune_rounded), findsNothing);
+      final musicIcons = tester
+          .widgetList<Icon>(find.byType(Icon))
+          .map((icon) => icon.icon)
+          .whereType<IconData>()
+          .toList();
+      expect(
+        musicIcons.where((icon) => icon == Symbols.wand_stars_rounded),
+        hasLength(1),
+        reason: 'Instant Mix must not reuse the glyph of Play, Play next, Add to queue, or Go to artist',
+      );
+    });
+
     testWidgets('track album action uses the profile navigator from the sibling menu overlay', (tester) async {
       final track = testMediaItem(
         id: 'track-1',
@@ -691,6 +730,69 @@ void main() {
       expect(harness.music.addedNext, isEmpty);
       expect(harness.music.playedTracks, [newerTrack]);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('track file info fetches the tapped track and renders its audio-only sheet', (tester) async {
+      const trackPath = '/music/Boards of Canada/Geogaddi/01 Ready Lets Go.flac';
+      final track = testMediaItem(
+        id: 'track-1',
+        backend: MediaBackend.jellyfin,
+        kind: MediaKind.track,
+        title: 'Ready Lets Go',
+        parentId: 'album-1',
+        parentTitle: 'Geogaddi',
+        grandparentId: 'artist-1',
+        grandparentTitle: 'Boards of Canada',
+        serverId: 'srv-1',
+      );
+      final harness = await _pumpSiblingMusicMenu(tester, item: track, relatedItems: const []);
+      harness.client.fileInfo = const MediaFileInfo(
+        versions: [
+          MediaFileVersion(
+            container: 'flac',
+            parts: [
+              MediaFilePart(
+                filePath: trackPath,
+                fileSize: 35651584,
+                streams: [MediaStreamDetails(kind: MediaStreamKind.audio, ordinal: 1, codec: 'flac', channels: 2)],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await _selectSiblingMusicMenuAction(tester, harness, t.mediaMenu.fileInfo);
+
+      expect(harness.client.fileInfoRequests, [same(track)]);
+      expect(find.byType(FileInfoBottomSheet), findsOneWidget);
+      expect(find.text('Ready Lets Go'), findsOneWidget);
+      expect(find.text(trackPath), findsOneWidget);
+      expect(find.text(t.fileInfo.audio), findsOneWidget);
+      expect(find.text(t.fileInfo.video), findsNothing);
+      // The loading dialog must be gone and no error snackbar raised.
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('album menu omits file info because containers carry no media sources', (tester) async {
+      final album = testMediaItem(
+        id: 'album-1',
+        backend: MediaBackend.jellyfin,
+        kind: MediaKind.album,
+        title: 'Geogaddi',
+        parentId: 'artist-1',
+        parentTitle: 'Boards of Canada',
+        serverId: 'srv-1',
+      );
+      final harness = await _pumpSiblingMusicMenu(tester, item: album, relatedItems: const []);
+
+      harness.menuKey.currentState!.showContextMenu(tester.element(find.text('mini-player menu target')));
+      await tester.pumpAndSettle();
+
+      expect(find.text(t.music.playNext), findsOneWidget);
+      expect(find.text(t.mediaMenu.fileInfo), findsNothing);
+      expect(harness.client.fileInfoRequests, isEmpty);
     });
   });
 }
@@ -976,6 +1078,17 @@ class _RelatedMusicClient implements MediaServerClient {
 
   @override
   Future<List<MediaItem>> fetchArtistAlbums(MediaItem artist) async => const [];
+
+  /// Items the menu asked file info for, in call order — the track menu must
+  /// resolve the client for the tapped item, not for whatever is playing.
+  final List<MediaItem> fileInfoRequests = [];
+  MediaFileInfo? fileInfo;
+
+  @override
+  Future<MediaFileInfo?> getFileInfo(MediaItem item) async {
+    fileInfoRequests.add(item);
+    return fileInfo;
+  }
 
   @override
   void close() {}
