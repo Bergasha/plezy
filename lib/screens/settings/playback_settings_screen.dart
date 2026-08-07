@@ -116,6 +116,7 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
                 if (PlatformDetector.isAppleTV()) _atmosDiagnosticsTile(),
                 if (exoActive) _dvConversionModeTile(),
                 _bufferSizeTile(),
+                if (exoActive) _playbackBufferTile(),
                 _defaultQualityTile(),
                 _musicQualityTile(),
               ],
@@ -545,6 +546,22 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
       },
     );
   }
+
+  Widget _playbackBufferTile() => SettingSelectionTile<PlaybackBufferTier>(
+    pref: SettingsService.playbackBufferTier,
+    icon: Symbols.hourglass_top_rounded,
+    title: t.settings.playbackBuffer,
+    subtitleBuilder: (tier) => '${_playbackBufferLabel(tier)} · ${t.settings.playbackBufferDescription}',
+    options: PlaybackBufferTier.values
+        .map((tier) => DialogOption(value: tier, title: _playbackBufferLabel(tier)))
+        .toList(),
+  );
+
+  String _playbackBufferLabel(PlaybackBufferTier tier) => switch (tier) {
+    PlaybackBufferTier.auto => t.settings.playbackBufferAuto,
+    PlaybackBufferTier.large => t.settings.playbackBufferLarge,
+    PlaybackBufferTier.extraLarge => t.settings.playbackBufferExtraLarge,
+  };
 
   Widget _defaultQualityTile() => SettingSelectionTile<TranscodeQualityPreset>(
     pref: SettingsService.defaultQualityPreset,

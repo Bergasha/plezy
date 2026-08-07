@@ -589,6 +589,21 @@ class Translations$settings$en {
 	/// en: '${heap}MB memory available. A ${size}MB buffer may affect playback.'
 	String bufferSizeWarning({required Object heap, required Object size}) => '${heap}MB memory available. A ${size}MB buffer may affect playback.';
 
+	/// en: 'Playback Buffer'
+	String get playbackBuffer => 'Playback Buffer';
+
+	/// en: 'Auto (Recommended)'
+	String get playbackBufferAuto => 'Auto (Recommended)';
+
+	/// en: 'Large'
+	String get playbackBufferLarge => 'Large';
+
+	/// en: 'Extra Large'
+	String get playbackBufferExtraLarge => 'Extra Large';
+
+	/// en: 'Buffer more against unstable connections. Also limited by Buffer Size.'
+	String get playbackBufferDescription => 'Buffer more against unstable connections. Also limited by Buffer Size.';
+
 	/// en: 'Default Quality'
 	String get defaultQualityTitle => 'Default Quality';
 
@@ -6367,6 +6382,11 @@ extension on Translations {
 			'settings.bufferSizeMB' => ({required Object size}) => '${size}MB',
 			'settings.bufferSizeAuto' => 'Auto (Recommended)',
 			'settings.bufferSizeWarning' => ({required Object heap, required Object size}) => '${heap}MB memory available. A ${size}MB buffer may affect playback.',
+			'settings.playbackBuffer' => 'Playback Buffer',
+			'settings.playbackBufferAuto' => 'Auto (Recommended)',
+			'settings.playbackBufferLarge' => 'Large',
+			'settings.playbackBufferExtraLarge' => 'Extra Large',
+			'settings.playbackBufferDescription' => 'Buffer more against unstable connections. Also limited by Buffer Size.',
 			'settings.defaultQualityTitle' => 'Default Quality',
 			'settings.musicQualityTitle' => 'Music Quality',
 			'settings.subtitleStyling' => 'Subtitle Styling',
@@ -6747,6 +6767,8 @@ extension on Translations {
 			'mediaMenu.deleteMovieTitle' => 'Delete this movie?',
 			'mediaMenu.deleteEpisodeConfirm' => 'Delete episode',
 			'mediaMenu.deleteSeasonConfirm' => 'Delete season',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => 'Delete show',
 			'mediaMenu.deleteMovieConfirm' => 'Delete movie',
 			'mediaMenu.deleteAnyway' => 'Delete anyway',
@@ -7264,6 +7286,8 @@ extension on Translations {
 			'explore.badge.pendingApproval' => 'Pending approval',
 			'explore.badge.processing' => 'Processing',
 			'explore.badge.declined' => 'Declined',
+			_ => null,
+		} ?? switch (path) {
 			'explore.badge.requestFailed' => 'Request failed',
 			'explore.badge.requested4k' => '4K requested',
 			'explore.badge.seasonsAvailable' => ({required Object available, required Object total}) => '${available}/${total} seasons',
@@ -7778,6 +7802,8 @@ extension on Translations {
 			'performanceOverlay.dvRpus' => 'DV RPUs',
 			'performanceOverlay.dvRpuAverage' => 'DV RPU Avg',
 			'performanceOverlay.dvSampleAverage' => 'DV Sample Avg',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.maxLuma' => 'Max Luma',
 			'performanceOverlay.minLuma' => 'Min Luma',
 			'performanceOverlay.maxCll' => 'MaxCLL',

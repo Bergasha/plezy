@@ -105,7 +105,7 @@ extension _PlexVideoControlsMarkerMethods on _PlexVideoControlsState {
       // due to position stream throttling, and an unattended auto-skip
       // should still respect Still Watching.
       if (!skipAutoPlayCountdown && widget.onSkipCreditsExit != null) {
-        widget.onSkipCreditsExit!.call();
+        _abandoningBurst(widget.onSkipCreditsExit)!.call();
       } else {
         await widget.player.pause();
         widget.onReachedEnd?.call(skipAutoPlayCountdown: skipAutoPlayCountdown);
