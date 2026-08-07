@@ -9,6 +9,7 @@ import '../focus/card_focus_scope.dart';
 import '../focus/dpad_navigator.dart';
 import '../focus/dpad_select_long_press_controller.dart';
 import '../focus/focus_theme.dart';
+import '../focus/input_mode_tracker.dart';
 import '../focus/key_event_utils.dart';
 import '../focus/locked_hub_controller.dart';
 import '../i18n/strings.g.dart';
@@ -813,6 +814,11 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   }
 
   void _setHoveredItem(MediaHub hub, int index) {
+    // A stationary cursor can end up "inside" a card that scrolls underneath
+    // it during d-pad navigation — Flutter re-hit-tests every frame, so that
+    // fires onEnter with no real mouse movement. Only trust hover as an
+    // intentional focus change while we're actually in pointer mode.
+    if (InputModeTracker.isKeyboardMode(context, listen: false)) return;
     final active = _activeHub;
     if (active == null || _hubKey(active) != _hubKey(hub) || index >= hub.items.length || _itemIndex == index) {
       return;
