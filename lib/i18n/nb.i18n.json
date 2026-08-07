@@ -11,7 +11,7 @@
     "waitingForAuth": "Venter på autentisering...\nLogg inn fra nettleseren.",
     "useBrowser": "Bruk nettleser",
     "or": "eller",
-    "connectToJellyfin": "Koble til Jellyfin",
+    "connectToMediaBrowser": "",
     "useQuickConnect": "Bruk Quick Connect",
     "quickConnectInstructions": "Åpne Quick Connect i Jellyfin og skriv inn denne koden.",
     "quickConnectWaiting": "Venter på godkjenning…",
@@ -518,9 +518,35 @@
     "shufflePlay": "Tilfeldig avspilling",
     "shuffleNotAvailableOffline": "Tilfeldig avspilling er ikke tilgjengelig uten nett",
     "fileInfo": "Filinformasjon",
-    "deleteFromServer": "Slett fra server",
-    "confirmDelete": "Slette dette mediet og filene fra serveren?",
+    "deleteEpisodeFromServer": "",
+    "deleteSeasonFromServer": "",
+    "deleteShowFromServer": "",
+    "deleteMovieFromServer": "",
+    "deleteEpisodeTitle": "",
+    "deleteSeasonTitle": "",
+    "deleteShowTitle": "",
+    "deleteMovieTitle": "",
+    "deleteEpisodeConfirm": "",
+    "deleteSeasonConfirm": "",
+    "deleteShowConfirm": "",
+    "deleteMovieConfirm": "",
+    "deleteAnyway": "",
+    "confirmDeleteTarget": "",
     "deleteMultipleWarning": "Dette inkluderer alle episoder og deres filer.",
+    "deleteEpisodeCountWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteMultiPartWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteSharedFileHeading": {
+      "one": "",
+      "other": ""
+    },
+    "deleteScopeUnverifiedProbeFailed": "",
+    "deleteScopeUnverifiedNoFileInfo": "",
     "mediaDeletedSuccessfully": "Medieelement slettet",
     "mediaFailedToDelete": "Kunne ikke slette medieelement",
     "rate": "Vurder",
@@ -794,6 +820,8 @@
     "noConnectionsHint": "Ingen tilkoblinger — legg til én for å bruke denne profilen.",
     "noConnections": "Ingen tilkoblinger",
     "plexHomeAccount": "Plex Home-konto",
+    "plexAccountChip": "Plex-konto: ${account}",
+    "plexAccountUserChip": "${user} via ${account}",
     "connectionDefault": "Standard",
     "connectionAs": "som ${displayName}",
     "makeDefault": "Gjør til standard",
@@ -827,8 +855,8 @@
     "sessionExpiredOne": "Økten er utløpt for ${name}",
     "sessionExpiredMany": "Økten er utløpt for ${count} servere",
     "signInAgain": "Logg inn igjen",
-    "editJellyfinTitle": "Rediger Jellyfin-tilkobling",
-    "editJellyfinIntro": "Legg til eller fjern URL-er for ${serverName}. Plezy bruker den tilgjengelige URL-en med lavest forsinkelse."
+    "editMediaBrowserTitle": "",
+    "editMediaBrowserIntro": ""
   },
   "discover": {
     "title": "Oppdag",
@@ -1622,7 +1650,6 @@
     "hdr": "HDR",
     "audioOutput": "Lydutgang",
     "performanceOverlay": "Ytelsesoverlegg",
-    "audioPassthrough": "Direkte lydutgang",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Surround",
@@ -1840,7 +1867,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": ""
     },
     "deviceCode": {
       "title": "Aktiver Plezy på ${service}",
@@ -1873,12 +1901,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Legg til Jellyfin-server",
+    "addMediaBrowserTitle": "",
     "serverUrls": "Server-URL-er",
     "serverUrlsHelper": "Flere URL-er er tillatt, atskilt med komma.",
     "findServer": "Finn server",
-    "searchingLocalServers": "Søker etter lokale Jellyfin-servere...",
-    "localServers": "Lokale Jellyfin-servere",
+    "searchingLocalMediaBrowserServers": "",
+    "localMediaBrowserServers": "",
     "username": "Brukernavn",
     "password": "Passord",
     "signIn": "Logg inn",
@@ -1890,15 +1918,15 @@
     "addPlexTitle": "Logg inn med Plex",
     "pinExpired": "PIN-koden utløp før innloggingen var fullført. Prøv igjen.",
     "failedToRegisterAccount": "Kunne ikke registrere kontoen: ${error}",
-    "enterJellyfinUrlError": "Oppgi URL-en til Jellyfin-serveren din",
+    "enterMediaBrowserUrlError": "",
     "addConnectionTitle": "Legg til tilkobling",
     "addConnectionTitleScoped": "Legg til for ${name}",
     "signInWithPlexCard": "Logg inn med Plex",
     "signInWithPlexCardSubtitle": "Autoriser denne enheten. Delte servere legges til.",
     "signInWithPlexCardSubtitleScoped": "Autoriser en Plex-konto. Home-brukere blir profiler.",
-    "connectToJellyfinCard": "Koble til Jellyfin",
-    "connectToJellyfinCardSubtitle": "Skriv inn server-URL, brukernavn og passord.",
-    "connectToJellyfinCardSubtitleScoped": "Logg på en Jellyfin-server. Knyttes til ${name}.",
+    "connectToMediaBrowserCard": "",
+    "connectToMediaBrowserCardSubtitle": "",
+    "connectToMediaBrowserCardSubtitleScoped": "",
     "borrowFromAnotherProfile": "Lån fra en annen profil",
     "borrowFromAnotherProfileSubtitle": "Gjenbruk en annen profils tilkobling. PIN-beskyttede profiler krever PIN."
   }

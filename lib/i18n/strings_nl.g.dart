@@ -115,7 +115,6 @@ class _Translations$auth$nl extends Translations$auth$en {
 	@override String get waitingForAuth => 'Wachten op authenticatie...\nMeld je aan via je browser.';
 	@override String get useBrowser => 'Gebruik browser';
 	@override String get or => 'of';
-	@override String get connectToJellyfin => 'Verbinden met Jellyfin';
 	@override String get useQuickConnect => 'Quick Connect gebruiken';
 	@override String get quickConnectInstructions => 'Open Quick Connect in Jellyfin en voer deze code in.';
 	@override String get quickConnectWaiting => 'Wachten op goedkeuring…';
@@ -547,8 +546,6 @@ class _Translations$mediaMenu$nl extends Translations$mediaMenu$en {
 	@override String get shufflePlay => 'Willekeurig afspelen';
 	@override String get shuffleNotAvailableOffline => 'Willekeurig afspelen is offline niet beschikbaar';
 	@override String get fileInfo => 'Bestandsinformatie';
-	@override String get deleteFromServer => 'Van server verwijderen';
-	@override String get confirmDelete => 'Deze media en bestanden van je server verwijderen?';
 	@override String get deleteMultipleWarning => 'Dit omvat alle afleveringen en hun bestanden.';
 	@override String get mediaDeletedSuccessfully => 'Media-item succesvol verwijderd';
 	@override String get mediaFailedToDelete => 'Verwijderen van media-item mislukt';
@@ -878,6 +875,8 @@ class _Translations$profiles$nl extends Translations$profiles$en {
 	@override String get noConnectionsHint => 'Geen verbindingen — voeg er één toe om dit profiel te gebruiken.';
 	@override String get noConnections => 'Geen verbindingen';
 	@override String get plexHomeAccount => 'Plex Home-account';
+	@override String plexAccountChip({required Object account}) => 'Plex-account: ${account}';
+	@override String plexAccountUserChip({required Object user, required Object account}) => '${user} via ${account}';
 	@override String get connectionDefault => 'Standaard';
 	@override String connectionAs({required Object displayName}) => 'als ${displayName}';
 	@override String get makeDefault => 'Als standaard instellen';
@@ -918,8 +917,6 @@ class _Translations$connections$nl extends Translations$connections$en {
 	@override String sessionExpiredOne({required Object name}) => 'Sessie verlopen voor ${name}';
 	@override String sessionExpiredMany({required Object count}) => 'Sessie verlopen voor ${count} servers';
 	@override String get signInAgain => 'Opnieuw aanmelden';
-	@override String get editJellyfinTitle => 'Jellyfin-verbinding bewerken';
-	@override String editJellyfinIntro({required Object serverName}) => 'Voeg URL\'s voor ${serverName} toe of verwijder ze. Plezy gebruikt de bereikbare URL met de laagste latentie.';
 }
 
 // Path: discover
@@ -1520,7 +1517,6 @@ class _Translations$videoSettings$nl extends Translations$videoSettings$en {
 	@override String get hdr => 'HDR';
 	@override String get audioOutput => 'Audio-uitvoer';
 	@override String get performanceOverlay => 'Prestatie-overlay';
-	@override String get audioPassthrough => 'Audio-doorvoer';
 	@override String get audioOutputDolbyAtmos => 'Dolby Atmos';
 	@override String get audioOutputDolbyAudio => 'Dolby Audio';
 	@override String get audioOutputSurround => 'Surround';
@@ -1803,12 +1799,9 @@ class _Translations$addServer$nl extends Translations$addServer$en {
 	final TranslationsNl _root; // ignore: unused_field
 
 	// Translations
-	@override String get addJellyfinTitle => 'Jellyfin-server toevoegen';
 	@override String get serverUrls => 'Server-URL\'s';
 	@override String get serverUrlsHelper => 'Meerdere URL\'s toegestaan, gescheiden door komma\'s.';
 	@override String get findServer => 'Server zoeken';
-	@override String get searchingLocalServers => 'Lokale Jellyfin-servers zoeken...';
-	@override String get localServers => 'Lokale Jellyfin-servers';
 	@override String get username => 'Gebruikersnaam';
 	@override String get password => 'Wachtwoord';
 	@override String get signIn => 'Inloggen';
@@ -1820,15 +1813,11 @@ class _Translations$addServer$nl extends Translations$addServer$en {
 	@override String get addPlexTitle => 'Inloggen met Plex';
 	@override String get pinExpired => 'De pincode verliep voordat je kon inloggen. Probeer het opnieuw.';
 	@override String failedToRegisterAccount({required Object error}) => 'Account registreren mislukt: ${error}';
-	@override String get enterJellyfinUrlError => 'Voer de URL van je Jellyfin-server in';
 	@override String get addConnectionTitle => 'Verbinding toevoegen';
 	@override String addConnectionTitleScoped({required Object name}) => 'Toevoegen aan ${name}';
 	@override String get signInWithPlexCard => 'Inloggen met Plex';
 	@override String get signInWithPlexCardSubtitle => 'Autoriseer dit apparaat. Gedeelde servers worden toegevoegd.';
 	@override String get signInWithPlexCardSubtitleScoped => 'Autoriseer een Plex-account. Home-gebruikers worden profielen.';
-	@override String get connectToJellyfinCard => 'Verbinden met Jellyfin';
-	@override String get connectToJellyfinCardSubtitle => 'Voer je server-URL, gebruikersnaam en wachtwoord in.';
-	@override String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Log in op een Jellyfin-server. Wordt gekoppeld aan ${name}.';
 	@override String get borrowFromAnotherProfile => 'Van een ander profiel lenen';
 	@override String get borrowFromAnotherProfileSubtitle => 'Hergebruik de verbinding van een ander profiel. Voor profielen met pincodebeveiliging is een pincode vereist.';
 }
@@ -2208,7 +2197,6 @@ extension on TranslationsNl {
 			'auth.waitingForAuth' => 'Wachten op authenticatie...\nMeld je aan via je browser.',
 			'auth.useBrowser' => 'Gebruik browser',
 			'auth.or' => 'of',
-			'auth.connectToJellyfin' => 'Verbinden met Jellyfin',
 			'auth.useQuickConnect' => 'Quick Connect gebruiken',
 			'auth.quickConnectInstructions' => 'Open Quick Connect in Jellyfin en voer deze code in.',
 			'auth.quickConnectWaiting' => 'Wachten op goedkeuring…',
@@ -2592,8 +2580,6 @@ extension on TranslationsNl {
 			'mediaMenu.shufflePlay' => 'Willekeurig afspelen',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Willekeurig afspelen is offline niet beschikbaar',
 			'mediaMenu.fileInfo' => 'Bestandsinformatie',
-			'mediaMenu.deleteFromServer' => 'Van server verwijderen',
-			'mediaMenu.confirmDelete' => 'Deze media en bestanden van je server verwijderen?',
 			'mediaMenu.deleteMultipleWarning' => 'Dit omvat alle afleveringen en hun bestanden.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Media-item succesvol verwijderd',
 			'mediaMenu.mediaFailedToDelete' => 'Verwijderen van media-item mislukt',
@@ -2711,11 +2697,11 @@ extension on TranslationsNl {
 			'videoControls.searchSubtitles' => 'Ondertitels zoeken',
 			'videoControls.language' => 'Taal',
 			'videoControls.noSubtitlesFound' => 'Geen ondertitels gevonden',
-			_ => null,
-		} ?? switch (path) {
 			'videoControls.subtitleDownloaded' => 'Ondertitel gedownload',
 			'videoControls.subtitleDownloadedNotApplied' => 'De ondertiteling is gedownload, maar kon niet worden geselecteerd',
 			'videoControls.subtitleDownloadFailed' => 'Ondertitel downloaden mislukt',
+			_ => null,
+		} ?? switch (path) {
 			'videoControls.searchLanguages' => 'Talen zoeken...',
 			'messages.markedAsWatched' => 'Gemarkeerd als gekeken',
 			'messages.markedAsUnwatched' => 'Gemarkeerd als ongekeken',
@@ -2838,6 +2824,8 @@ extension on TranslationsNl {
 			'profiles.noConnectionsHint' => 'Geen verbindingen — voeg er één toe om dit profiel te gebruiken.',
 			'profiles.noConnections' => 'Geen verbindingen',
 			'profiles.plexHomeAccount' => 'Plex Home-account',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Plex-account: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object user, required Object account}) => '${user} via ${account}',
 			'profiles.connectionDefault' => 'Standaard',
 			'profiles.connectionAs' => ({required Object displayName}) => 'als ${displayName}',
 			'profiles.makeDefault' => 'Als standaard instellen',
@@ -2869,8 +2857,6 @@ extension on TranslationsNl {
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Sessie verlopen voor ${name}',
 			'connections.sessionExpiredMany' => ({required Object count}) => 'Sessie verlopen voor ${count} servers',
 			'connections.signInAgain' => 'Opnieuw aanmelden',
-			'connections.editJellyfinTitle' => 'Jellyfin-verbinding bewerken',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => 'Voeg URL\'s voor ${serverName} toe of verwijder ze. Plezy gebruikt de bereikbare URL met de laagste latentie.',
 			'discover.title' => 'Ontdekken',
 			'discover.noContentAvailable' => 'Geen inhoud beschikbaar',
 			'discover.addMediaToLibraries' => 'Voeg wat media toe aan je bibliotheken',
@@ -3225,11 +3211,11 @@ extension on TranslationsNl {
 			'watchTogether.failedToCreate' => 'Sessie maken mislukt',
 			'watchTogether.failedToJoin' => 'Deelnemen aan sessie mislukt',
 			'watchTogether.sessionCodeCopied' => 'Sessiecode naar het klembord gekopieerd',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.relayUnreachable' => 'De relayserver is onbereikbaar. Een blokkering door je internetprovider kan Samen kijken verhinderen.',
 			'watchTogether.reconnectingToHost' => 'Opnieuw verbinden met host...',
 			'watchTogether.currentPlayback' => 'Wat nu wordt afgespeeld',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.joinCurrentPlayback' => 'Deelnemen aan huidige weergave',
 			'watchTogether.joinCurrentPlaybackDescription' => 'Ga terug naar wat de host nu kijkt',
 			'watchTogether.failedToOpenCurrentPlayback' => 'Wat nu wordt afgespeeld kon niet worden geopend',
@@ -3431,7 +3417,6 @@ extension on TranslationsNl {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => 'Audio-uitvoer',
 			'videoSettings.performanceOverlay' => 'Prestatie-overlay',
-			'videoSettings.audioPassthrough' => 'Audio-doorvoer',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => 'Surround',
@@ -3656,12 +3641,9 @@ extension on TranslationsNl {
 			'services.libraryFilter.modeHintWhitelist' => 'Synchroniseer alleen de hieronder aangevinkte bibliotheken.',
 			'services.libraryFilter.libraries' => 'Bibliotheken',
 			'services.libraryFilter.noLibraries' => 'Geen bibliotheken beschikbaar',
-			'addServer.addJellyfinTitle' => 'Jellyfin-server toevoegen',
 			'addServer.serverUrls' => 'Server-URL\'s',
 			'addServer.serverUrlsHelper' => 'Meerdere URL\'s toegestaan, gescheiden door komma\'s.',
 			'addServer.findServer' => 'Server zoeken',
-			'addServer.searchingLocalServers' => 'Lokale Jellyfin-servers zoeken...',
-			'addServer.localServers' => 'Lokale Jellyfin-servers',
 			'addServer.username' => 'Gebruikersnaam',
 			'addServer.password' => 'Wachtwoord',
 			'addServer.signIn' => 'Inloggen',
@@ -3673,15 +3655,11 @@ extension on TranslationsNl {
 			'addServer.addPlexTitle' => 'Inloggen met Plex',
 			'addServer.pinExpired' => 'De pincode verliep voordat je kon inloggen. Probeer het opnieuw.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => 'Account registreren mislukt: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Voer de URL van je Jellyfin-server in',
 			'addServer.addConnectionTitle' => 'Verbinding toevoegen',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => 'Toevoegen aan ${name}',
 			'addServer.signInWithPlexCard' => 'Inloggen met Plex',
 			'addServer.signInWithPlexCardSubtitle' => 'Autoriseer dit apparaat. Gedeelde servers worden toegevoegd.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Autoriseer een Plex-account. Home-gebruikers worden profielen.',
-			'addServer.connectToJellyfinCard' => 'Verbinden met Jellyfin',
-			'addServer.connectToJellyfinCardSubtitle' => 'Voer je server-URL, gebruikersnaam en wachtwoord in.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Log in op een Jellyfin-server. Wordt gekoppeld aan ${name}.',
 			'addServer.borrowFromAnotherProfile' => 'Van een ander profiel lenen',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Hergebruik de verbinding van een ander profiel. Voor profielen met pincodebeveiliging is een pincode vereist.',
 			_ => null,

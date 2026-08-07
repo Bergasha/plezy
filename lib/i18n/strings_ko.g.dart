@@ -115,7 +115,6 @@ class _Translations$auth$ko extends Translations$auth$en {
 	@override String get waitingForAuth => '인증 대기 중...\n브라우저에서 로그인하세요.';
 	@override String get useBrowser => '브라우저 사용';
 	@override String get or => '또는';
-	@override String get connectToJellyfin => 'Jellyfin에 연결';
 	@override String get useQuickConnect => 'Quick Connect 사용';
 	@override String get quickConnectInstructions => 'Jellyfin에서 Quick Connect를 열고 이 코드를 입력하세요.';
 	@override String get quickConnectWaiting => '승인 대기 중…';
@@ -547,8 +546,6 @@ class _Translations$mediaMenu$ko extends Translations$mediaMenu$en {
 	@override String get shufflePlay => '무작위 재생';
 	@override String get shuffleNotAvailableOffline => '오프라인에서는 무작위 재생을 사용할 수 없습니다';
 	@override String get fileInfo => '파일 정보';
-	@override String get deleteFromServer => '서버에서 삭제';
-	@override String get confirmDelete => '이 미디어와 해당 파일을 서버에서 삭제할까요?';
 	@override String get deleteMultipleWarning => '모든 에피소드와 파일이 포함됩니다.';
 	@override String get mediaDeletedSuccessfully => '미디어 항목이 성공적으로 삭제되었습니다';
 	@override String get mediaFailedToDelete => '미디어 항목 삭제 실패';
@@ -877,6 +874,8 @@ class _Translations$profiles$ko extends Translations$profiles$en {
 	@override String get noConnectionsHint => '연결이 없습니다 — 이 프로필을 사용하려면 하나 추가하세요.';
 	@override String get noConnections => '연결 없음';
 	@override String get plexHomeAccount => 'Plex Home 계정';
+	@override String plexAccountChip({required Object account}) => 'Plex 계정: ${account}';
+	@override String plexAccountUserChip({required Object account, required Object user}) => '${account} 계정의 ${user}';
 	@override String get connectionDefault => '기본값';
 	@override String connectionAs({required Object displayName}) => '${displayName}(으)로';
 	@override String get makeDefault => '기본값으로 설정';
@@ -917,8 +916,6 @@ class _Translations$connections$ko extends Translations$connections$en {
 	@override String sessionExpiredOne({required Object name}) => '${name}의 세션이 만료되었습니다';
 	@override String sessionExpiredMany({required Object count}) => '${count}개 서버의 세션이 만료되었습니다';
 	@override String get signInAgain => '다시 로그인';
-	@override String get editJellyfinTitle => 'Jellyfin 연결 편집';
-	@override String editJellyfinIntro({required Object serverName}) => '${serverName}의 URL을 추가하거나 제거하세요. Plezy는 연결 가능한 URL 중 지연 시간이 가장 낮은 URL을 사용합니다.';
 }
 
 // Path: discover
@@ -1517,7 +1514,6 @@ class _Translations$videoSettings$ko extends Translations$videoSettings$en {
 	@override String get hdr => 'HDR';
 	@override String get audioOutput => '오디오 출력';
 	@override String get performanceOverlay => '성능 오버레이';
-	@override String get audioPassthrough => '오디오 패스스루';
 	@override String get audioOutputDolbyAtmos => 'Dolby Atmos';
 	@override String get audioOutputDolbyAudio => 'Dolby Audio';
 	@override String get audioOutputSurround => '서라운드';
@@ -1800,12 +1796,9 @@ class _Translations$addServer$ko extends Translations$addServer$en {
 	final TranslationsKo _root; // ignore: unused_field
 
 	// Translations
-	@override String get addJellyfinTitle => 'Jellyfin 서버 추가';
 	@override String get serverUrls => '서버 URL';
 	@override String get serverUrlsHelper => '쉼표로 구분하여 여러 URL을 입력할 수 있습니다.';
 	@override String get findServer => '서버 찾기';
-	@override String get searchingLocalServers => '로컬 Jellyfin 서버 검색 중...';
-	@override String get localServers => '로컬 Jellyfin 서버';
 	@override String get username => '사용자 이름';
 	@override String get password => '비밀번호';
 	@override String get signIn => '로그인';
@@ -1817,15 +1810,11 @@ class _Translations$addServer$ko extends Translations$addServer$en {
 	@override String get addPlexTitle => 'Plex로 로그인';
 	@override String get pinExpired => '로그인 전에 PIN이 만료되었습니다. 다시 시도하세요.';
 	@override String failedToRegisterAccount({required Object error}) => '계정 등록 실패: ${error}';
-	@override String get enterJellyfinUrlError => 'Jellyfin 서버 URL을 입력하세요';
 	@override String get addConnectionTitle => '연결 추가';
 	@override String addConnectionTitleScoped({required Object name}) => '${name}에 추가';
 	@override String get signInWithPlexCard => 'Plex로 로그인';
 	@override String get signInWithPlexCardSubtitle => '이 기기를 승인합니다. 공유 서버가 추가됩니다.';
 	@override String get signInWithPlexCardSubtitleScoped => 'Plex 계정을 승인합니다. Home 사용자는 프로필이 됩니다.';
-	@override String get connectToJellyfinCard => 'Jellyfin에 연결';
-	@override String get connectToJellyfinCardSubtitle => '서버 URL, 사용자 이름, 비밀번호를 입력하세요.';
-	@override String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Jellyfin 서버에 로그인합니다. ${name}에 연결됩니다.';
 	@override String get borrowFromAnotherProfile => '다른 프로필에서 빌리기';
 	@override String get borrowFromAnotherProfileSubtitle => '다른 프로필의 연결을 재사용합니다. PIN으로 보호된 프로필에는 PIN이 필요합니다.';
 }
@@ -2205,7 +2194,6 @@ extension on TranslationsKo {
 			'auth.waitingForAuth' => '인증 대기 중...\n브라우저에서 로그인하세요.',
 			'auth.useBrowser' => '브라우저 사용',
 			'auth.or' => '또는',
-			'auth.connectToJellyfin' => 'Jellyfin에 연결',
 			'auth.useQuickConnect' => 'Quick Connect 사용',
 			'auth.quickConnectInstructions' => 'Jellyfin에서 Quick Connect를 열고 이 코드를 입력하세요.',
 			'auth.quickConnectWaiting' => '승인 대기 중…',
@@ -2589,8 +2577,6 @@ extension on TranslationsKo {
 			'mediaMenu.shufflePlay' => '무작위 재생',
 			'mediaMenu.shuffleNotAvailableOffline' => '오프라인에서는 무작위 재생을 사용할 수 없습니다',
 			'mediaMenu.fileInfo' => '파일 정보',
-			'mediaMenu.deleteFromServer' => '서버에서 삭제',
-			'mediaMenu.confirmDelete' => '이 미디어와 해당 파일을 서버에서 삭제할까요?',
 			'mediaMenu.deleteMultipleWarning' => '모든 에피소드와 파일이 포함됩니다.',
 			'mediaMenu.mediaDeletedSuccessfully' => '미디어 항목이 성공적으로 삭제되었습니다',
 			'mediaMenu.mediaFailedToDelete' => '미디어 항목 삭제 실패',
@@ -2708,11 +2694,11 @@ extension on TranslationsKo {
 			'videoControls.searchSubtitles' => '자막 검색',
 			'videoControls.language' => '언어',
 			'videoControls.noSubtitlesFound' => '자막을 찾을 수 없습니다',
-			_ => null,
-		} ?? switch (path) {
 			'videoControls.subtitleDownloaded' => '자막이 다운로드되었습니다',
 			'videoControls.subtitleDownloadedNotApplied' => '자막을 다운로드했지만 선택할 수 없습니다',
 			'videoControls.subtitleDownloadFailed' => '자막 다운로드에 실패했습니다',
+			_ => null,
+		} ?? switch (path) {
 			'videoControls.searchLanguages' => '언어 검색...',
 			'messages.markedAsWatched' => '시청 완료로 표시됨',
 			'messages.markedAsUnwatched' => '미시청으로 표시됨',
@@ -2835,6 +2821,8 @@ extension on TranslationsKo {
 			'profiles.noConnectionsHint' => '연결이 없습니다 — 이 프로필을 사용하려면 하나 추가하세요.',
 			'profiles.noConnections' => '연결 없음',
 			'profiles.plexHomeAccount' => 'Plex Home 계정',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Plex 계정: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object account, required Object user}) => '${account} 계정의 ${user}',
 			'profiles.connectionDefault' => '기본값',
 			'profiles.connectionAs' => ({required Object displayName}) => '${displayName}(으)로',
 			'profiles.makeDefault' => '기본값으로 설정',
@@ -2866,8 +2854,6 @@ extension on TranslationsKo {
 			'connections.sessionExpiredOne' => ({required Object name}) => '${name}의 세션이 만료되었습니다',
 			'connections.sessionExpiredMany' => ({required Object count}) => '${count}개 서버의 세션이 만료되었습니다',
 			'connections.signInAgain' => '다시 로그인',
-			'connections.editJellyfinTitle' => 'Jellyfin 연결 편집',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => '${serverName}의 URL을 추가하거나 제거하세요. Plezy는 연결 가능한 URL 중 지연 시간이 가장 낮은 URL을 사용합니다.',
 			'discover.title' => '둘러보기',
 			'discover.noContentAvailable' => '사용 가능한 콘텐츠가 없습니다',
 			'discover.addMediaToLibraries' => '미디어 라이브러리에 미디어를 추가해 주세요',
@@ -3222,11 +3208,11 @@ extension on TranslationsKo {
 			'watchTogether.failedToCreate' => '세션 생성 실패',
 			'watchTogether.failedToJoin' => '세션 참여 실패',
 			'watchTogether.sessionCodeCopied' => '세션 코드가 클립보드에 복사되었습니다',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.relayUnreachable' => '릴레이 서버에 연결할 수 없습니다. ISP 차단으로 함께 보기를 사용하지 못할 수 있습니다.',
 			'watchTogether.reconnectingToHost' => '호스트에 재연결 중...',
 			'watchTogether.currentPlayback' => '현재 재생',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.joinCurrentPlayback' => '현재 재생 참여',
 			'watchTogether.joinCurrentPlaybackDescription' => '호스트가 현재 시청 중인 콘텐츠로 이동합니다',
 			'watchTogether.failedToOpenCurrentPlayback' => '현재 재생을 열 수 없습니다',
@@ -3428,7 +3414,6 @@ extension on TranslationsKo {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => '오디오 출력',
 			'videoSettings.performanceOverlay' => '성능 오버레이',
-			'videoSettings.audioPassthrough' => '오디오 패스스루',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => '서라운드',
@@ -3653,12 +3638,9 @@ extension on TranslationsKo {
 			'services.libraryFilter.modeHintWhitelist' => '아래에 선택한 라이브러리만 동기화합니다.',
 			'services.libraryFilter.libraries' => '라이브러리',
 			'services.libraryFilter.noLibraries' => '사용 가능한 라이브러리가 없습니다',
-			'addServer.addJellyfinTitle' => 'Jellyfin 서버 추가',
 			'addServer.serverUrls' => '서버 URL',
 			'addServer.serverUrlsHelper' => '쉼표로 구분하여 여러 URL을 입력할 수 있습니다.',
 			'addServer.findServer' => '서버 찾기',
-			'addServer.searchingLocalServers' => '로컬 Jellyfin 서버 검색 중...',
-			'addServer.localServers' => '로컬 Jellyfin 서버',
 			'addServer.username' => '사용자 이름',
 			'addServer.password' => '비밀번호',
 			'addServer.signIn' => '로그인',
@@ -3670,15 +3652,11 @@ extension on TranslationsKo {
 			'addServer.addPlexTitle' => 'Plex로 로그인',
 			'addServer.pinExpired' => '로그인 전에 PIN이 만료되었습니다. 다시 시도하세요.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => '계정 등록 실패: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Jellyfin 서버 URL을 입력하세요',
 			'addServer.addConnectionTitle' => '연결 추가',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => '${name}에 추가',
 			'addServer.signInWithPlexCard' => 'Plex로 로그인',
 			'addServer.signInWithPlexCardSubtitle' => '이 기기를 승인합니다. 공유 서버가 추가됩니다.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Plex 계정을 승인합니다. Home 사용자는 프로필이 됩니다.',
-			'addServer.connectToJellyfinCard' => 'Jellyfin에 연결',
-			'addServer.connectToJellyfinCardSubtitle' => '서버 URL, 사용자 이름, 비밀번호를 입력하세요.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Jellyfin 서버에 로그인합니다. ${name}에 연결됩니다.',
 			'addServer.borrowFromAnotherProfile' => '다른 프로필에서 빌리기',
 			'addServer.borrowFromAnotherProfileSubtitle' => '다른 프로필의 연결을 재사용합니다. PIN으로 보호된 프로필에는 PIN이 필요합니다.',
 			_ => null,

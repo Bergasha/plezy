@@ -115,7 +115,6 @@ class _Translations$auth$kk extends Translations$auth$en {
 	@override String get waitingForAuth => 'Растау күтілуде...\nБраузеріңізден кіріңіз.';
 	@override String get useBrowser => 'Браузерді пайдалану';
 	@override String get or => 'немесе';
-	@override String get connectToJellyfin => 'Jellyfin-ге қосылу';
 	@override String get useQuickConnect => 'Жылдам қосылуды пайдалану';
 	@override String get quickConnectInstructions => 'Jellyfin-де Жылдам қосылуды ашып, осы кодты енгізіңіз.';
 	@override String get quickConnectWaiting => 'Растау күтілуде…';
@@ -550,8 +549,6 @@ class _Translations$mediaMenu$kk extends Translations$mediaMenu$en {
 	@override String get shufflePlay => 'Араластырып ойнату';
 	@override String get shuffleNotAvailableOffline => 'Араластырып ойнату офлайн режимде қолжетімсіз';
 	@override String get fileInfo => 'Файл туралы ақпарат';
-	@override String get deleteFromServer => 'Серверден өшіру';
-	@override String get confirmDelete => 'Осы медиа мен файлдар серверден өшірілсін бе?';
 	@override String get deleteMultipleWarning => 'Бұл барлық бөлімдер мен файлдарға әсер етеді.';
 	@override String get mediaDeletedSuccessfully => 'Медиа элементі сәтті өшірілді';
 	@override String get mediaFailedToDelete => 'Медиа элементін өшіру мүмкін болмады';
@@ -882,6 +879,8 @@ class _Translations$profiles$kk extends Translations$profiles$en {
 	@override String get noConnectionsHint => 'Қосылымдар жоқ — бұл профильді пайдалану үшін қосылым қосыңыз.';
 	@override String get noConnections => 'Қосылымдар жоқ';
 	@override String get plexHomeAccount => 'Plex Home тіркелгісі';
+	@override String plexAccountChip({required Object account}) => 'Plex тіркелгісі: ${account}';
+	@override String plexAccountUserChip({required Object account, required Object user}) => '${account} арқылы ${user}';
 	@override String get connectionDefault => 'Әдепкі';
 	@override String connectionAs({required Object displayName}) => '${displayName} ретінде';
 	@override String get makeDefault => 'Әдепкі ету';
@@ -922,8 +921,6 @@ class _Translations$connections$kk extends Translations$connections$en {
 	@override String sessionExpiredOne({required Object name}) => '${name} үшін сеанс мерзімі өтті';
 	@override String sessionExpiredMany({required Object count}) => '${count} сервер үшін сеанс мерзімі өтті';
 	@override String get signInAgain => 'Қайтадан кіру';
-	@override String get editJellyfinTitle => 'Jellyfin қосылымын өңдеу';
-	@override String editJellyfinIntro({required Object serverName}) => '${serverName} үшін URL мекенжайын қосыңыз немесе өшіріңіз.';
 }
 
 // Path: discover
@@ -1531,7 +1528,6 @@ class _Translations$videoSettings$kk extends Translations$videoSettings$en {
 	@override String get hdr => 'HDR';
 	@override String get audioOutput => 'Аудио шығысы';
 	@override String get performanceOverlay => 'Өнімділік панелі';
-	@override String get audioPassthrough => 'Дыбысты тікелей өткізу';
 	@override String get audioOutputDolbyAtmos => 'Dolby Atmos';
 	@override String get audioOutputDolbyAudio => 'Dolby Audio';
 	@override String get audioOutputSurround => 'Көлемді дыбыс';
@@ -1814,12 +1810,9 @@ class _Translations$addServer$kk extends Translations$addServer$en {
 	final TranslationsKk _root; // ignore: unused_field
 
 	// Translations
-	@override String get addJellyfinTitle => 'Jellyfin серверін қосу';
 	@override String get serverUrls => 'Сервер URL-дері';
 	@override String get serverUrlsHelper => 'Үтірмен бөлінген бірнеше URL мекенжайына рұқсат етіледі.';
 	@override String get findServer => 'Серверді табу';
-	@override String get searchingLocalServers => 'Жергілікті Jellyfin серверлері ізделуде...';
-	@override String get localServers => 'Жергілікті Jellyfin серверлері';
 	@override String get username => 'Пайдаланушы аты';
 	@override String get password => 'Құпия сөз';
 	@override String get signIn => 'Кіру';
@@ -1831,15 +1824,11 @@ class _Translations$addServer$kk extends Translations$addServer$en {
 	@override String get addPlexTitle => 'Plex арқылы кіру';
 	@override String get pinExpired => 'PIN код мерзімі өтті.';
 	@override String failedToRegisterAccount({required Object error}) => 'Тіркелгіні тіркеу қатесі: ${error}';
-	@override String get enterJellyfinUrlError => 'Jellyfin сервер URL-ін енгізіңіз';
 	@override String get addConnectionTitle => 'Қосылым қосу';
 	@override String addConnectionTitleScoped({required Object name}) => '${name} профиліне қосу';
 	@override String get signInWithPlexCard => 'Plex арқылы кіру';
 	@override String get signInWithPlexCardSubtitle => 'Осы құрылғыны авторизациялау.';
 	@override String get signInWithPlexCardSubtitleScoped => 'Plex тіркелгісін авторизациялау.';
-	@override String get connectToJellyfinCard => 'Jellyfin-ге қосылу';
-	@override String get connectToJellyfinCardSubtitle => 'Сервер URL-ін, пайдаланушы атын енгізіңіз.';
-	@override String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Jellyfin серверіне кіру. ${name} профиліне жалғануда.';
 	@override String get borrowFromAnotherProfile => 'Басқа профильден алу';
 	@override String get borrowFromAnotherProfileSubtitle => 'Басқа профильдің қосылымын қайта пайдалану.';
 }
@@ -2219,7 +2208,6 @@ extension on TranslationsKk {
 			'auth.waitingForAuth' => 'Растау күтілуде...\nБраузеріңізден кіріңіз.',
 			'auth.useBrowser' => 'Браузерді пайдалану',
 			'auth.or' => 'немесе',
-			'auth.connectToJellyfin' => 'Jellyfin-ге қосылу',
 			'auth.useQuickConnect' => 'Жылдам қосылуды пайдалану',
 			'auth.quickConnectInstructions' => 'Jellyfin-де Жылдам қосылуды ашып, осы кодты енгізіңіз.',
 			'auth.quickConnectWaiting' => 'Растау күтілуде…',
@@ -2606,8 +2594,6 @@ extension on TranslationsKk {
 			'mediaMenu.shufflePlay' => 'Араластырып ойнату',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Араластырып ойнату офлайн режимде қолжетімсіз',
 			'mediaMenu.fileInfo' => 'Файл туралы ақпарат',
-			'mediaMenu.deleteFromServer' => 'Серверден өшіру',
-			'mediaMenu.confirmDelete' => 'Осы медиа мен файлдар серверден өшірілсін бе?',
 			'mediaMenu.deleteMultipleWarning' => 'Бұл барлық бөлімдер мен файлдарға әсер етеді.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Медиа элементі сәтті өшірілді',
 			'mediaMenu.mediaFailedToDelete' => 'Медиа элементін өшіру мүмкін болмады',
@@ -2722,11 +2708,11 @@ extension on TranslationsKk {
 			'videoControls.noChaptersAvailable' => 'Бөлімдер қолжетімсіз',
 			'videoControls.queue' => 'Кезек',
 			'videoControls.noQueueItems' => 'Кезекте элементтер жоқ',
-			_ => null,
-		} ?? switch (path) {
 			'videoControls.searchSubtitles' => 'Субтитр іздеу',
 			'videoControls.language' => 'Тіл',
 			'videoControls.noSubtitlesFound' => 'Субтитр табылмады',
+			_ => null,
+		} ?? switch (path) {
 			'videoControls.subtitleDownloaded' => 'Субтитр жүктелді',
 			'videoControls.subtitleDownloadedNotApplied' => 'Субтитр жүктелді, бірақ қолданылмады',
 			'videoControls.subtitleDownloadFailed' => 'Субтитрді жүктеу мүмкін болмады',
@@ -2853,6 +2839,8 @@ extension on TranslationsKk {
 			'profiles.noConnectionsHint' => 'Қосылымдар жоқ — бұл профильді пайдалану үшін қосылым қосыңыз.',
 			'profiles.noConnections' => 'Қосылымдар жоқ',
 			'profiles.plexHomeAccount' => 'Plex Home тіркелгісі',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Plex тіркелгісі: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object account, required Object user}) => '${account} арқылы ${user}',
 			'profiles.connectionDefault' => 'Әдепкі',
 			'profiles.connectionAs' => ({required Object displayName}) => '${displayName} ретінде',
 			'profiles.makeDefault' => 'Әдепкі ету',
@@ -2884,8 +2872,6 @@ extension on TranslationsKk {
 			'connections.sessionExpiredOne' => ({required Object name}) => '${name} үшін сеанс мерзімі өтті',
 			'connections.sessionExpiredMany' => ({required Object count}) => '${count} сервер үшін сеанс мерзімі өтті',
 			'connections.signInAgain' => 'Қайтадан кіру',
-			'connections.editJellyfinTitle' => 'Jellyfin қосылымын өңдеу',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => '${serverName} үшін URL мекенжайын қосыңыз немесе өшіріңіз.',
 			'discover.title' => 'Шолу',
 			'discover.noContentAvailable' => 'Мазмұн қолжетімсіз',
 			'discover.addMediaToLibraries' => 'Кітапханаларыңызға медиа қосыңыз',
@@ -3236,11 +3222,11 @@ extension on TranslationsKk {
 			'watchTogether.enterCodeHint' => '5 таңбалы кодты енгізіңіз',
 			'watchTogether.pasteFromClipboard' => 'Алмасу буферінен қою',
 			'watchTogether.pleaseEnterCode' => 'Сеанс кодын енгізіңіз',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.codeMustBe5Chars' => 'Сеанс коды 5 таңбадан тұруы керек',
 			'watchTogether.joinInstructions' => 'Ұйымдастырушының сеанс кодын енгізіңіз.',
 			'watchTogether.failedToCreate' => 'Сеансты жасау мүмкін болмады',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.failedToJoin' => 'Сеансқа қосылу мүмкін болмады',
 			'watchTogether.sessionCodeCopied' => 'Сеанс коды көшірілді',
 			'watchTogether.relayUnreachable' => 'Реле сервері қолжетімсіз.',
@@ -3453,7 +3439,6 @@ extension on TranslationsKk {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => 'Аудио шығысы',
 			'videoSettings.performanceOverlay' => 'Өнімділік панелі',
-			'videoSettings.audioPassthrough' => 'Дыбысты тікелей өткізу',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => 'Көлемді дыбыс',
@@ -3678,12 +3663,9 @@ extension on TranslationsKk {
 			'services.libraryFilter.modeHintWhitelist' => 'Тек төменде таңдалған кітапханаларды синхрондау.',
 			'services.libraryFilter.libraries' => 'Кітапханалар',
 			'services.libraryFilter.noLibraries' => 'Кітапханалар жоқ',
-			'addServer.addJellyfinTitle' => 'Jellyfin серверін қосу',
 			'addServer.serverUrls' => 'Сервер URL-дері',
 			'addServer.serverUrlsHelper' => 'Үтірмен бөлінген бірнеше URL мекенжайына рұқсат етіледі.',
 			'addServer.findServer' => 'Серверді табу',
-			'addServer.searchingLocalServers' => 'Жергілікті Jellyfin серверлері ізделуде...',
-			'addServer.localServers' => 'Жергілікті Jellyfin серверлері',
 			'addServer.username' => 'Пайдаланушы аты',
 			'addServer.password' => 'Құпия сөз',
 			'addServer.signIn' => 'Кіру',
@@ -3695,15 +3677,11 @@ extension on TranslationsKk {
 			'addServer.addPlexTitle' => 'Plex арқылы кіру',
 			'addServer.pinExpired' => 'PIN код мерзімі өтті.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => 'Тіркелгіні тіркеу қатесі: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Jellyfin сервер URL-ін енгізіңіз',
 			'addServer.addConnectionTitle' => 'Қосылым қосу',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => '${name} профиліне қосу',
 			'addServer.signInWithPlexCard' => 'Plex арқылы кіру',
 			'addServer.signInWithPlexCardSubtitle' => 'Осы құрылғыны авторизациялау.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Plex тіркелгісін авторизациялау.',
-			'addServer.connectToJellyfinCard' => 'Jellyfin-ге қосылу',
-			'addServer.connectToJellyfinCardSubtitle' => 'Сервер URL-ін, пайдаланушы атын енгізіңіз.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Jellyfin серверіне кіру. ${name} профиліне жалғануда.',
 			'addServer.borrowFromAnotherProfile' => 'Басқа профильден алу',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Басқа профильдің қосылымын қайта пайдалану.',
 			_ => null,

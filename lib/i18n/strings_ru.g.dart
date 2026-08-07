@@ -115,7 +115,6 @@ class _Translations$auth$ru extends Translations$auth$en {
 	@override String get waitingForAuth => 'Ожидание аутентификации...\nВыполните вход в браузере.';
 	@override String get useBrowser => 'Использовать браузер';
 	@override String get or => 'или';
-	@override String get connectToJellyfin => 'Подключиться к Jellyfin';
 	@override String get useQuickConnect => 'Использовать Quick Connect';
 	@override String get quickConnectInstructions => 'Откройте Quick Connect в Jellyfin и введите этот код.';
 	@override String get quickConnectWaiting => 'Ожидание подтверждения…';
@@ -547,8 +546,6 @@ class _Translations$mediaMenu$ru extends Translations$mediaMenu$en {
 	@override String get shufflePlay => 'Случайное воспроизведение';
 	@override String get shuffleNotAvailableOffline => 'Перемешивание недоступно офлайн';
 	@override String get fileInfo => 'Информация о файле';
-	@override String get deleteFromServer => 'Удалить с сервера';
-	@override String get confirmDelete => 'Удалить это медиа и его файлы с сервера?';
 	@override String get deleteMultipleWarning => 'Это включает все эпизоды и их файлы.';
 	@override String get mediaDeletedSuccessfully => 'Медиаэлемент успешно удалён';
 	@override String get mediaFailedToDelete => 'Не удалось удалить медиаэлемент';
@@ -880,6 +877,8 @@ class _Translations$profiles$ru extends Translations$profiles$en {
 	@override String get noConnectionsHint => 'Нет соединений — добавьте одно, чтобы использовать этот профиль.';
 	@override String get noConnections => 'Нет соединений';
 	@override String get plexHomeAccount => 'Аккаунт Plex Home';
+	@override String plexAccountChip({required Object account}) => 'Аккаунт Plex: ${account}';
+	@override String plexAccountUserChip({required Object user, required Object account}) => '${user} через ${account}';
 	@override String get connectionDefault => 'По умолчанию';
 	@override String connectionAs({required Object displayName}) => 'как ${displayName}';
 	@override String get makeDefault => 'Сделать по умолчанию';
@@ -920,8 +919,6 @@ class _Translations$connections$ru extends Translations$connections$en {
 	@override String sessionExpiredOne({required Object name}) => 'Сессия истекла для ${name}';
 	@override String sessionExpiredMany({required Object count}) => 'Сессия истекла для ${count} серверов';
 	@override String get signInAgain => 'Войти снова';
-	@override String get editJellyfinTitle => 'Изменить подключение Jellyfin';
-	@override String editJellyfinIntro({required Object serverName}) => 'Добавьте или удалите URL для ${serverName}. Plezy будет использовать доступный URL с минимальной задержкой.';
 }
 
 // Path: discover
@@ -1526,7 +1523,6 @@ class _Translations$videoSettings$ru extends Translations$videoSettings$en {
 	@override String get hdr => 'HDR';
 	@override String get audioOutput => 'Аудиовыход';
 	@override String get performanceOverlay => 'Оверлей производительности';
-	@override String get audioPassthrough => 'Сквозной вывод аудио';
 	@override String get audioOutputDolbyAtmos => 'Dolby Atmos';
 	@override String get audioOutputDolbyAudio => 'Dolby Audio';
 	@override String get audioOutputSurround => 'Объёмный звук';
@@ -1809,12 +1805,9 @@ class _Translations$addServer$ru extends Translations$addServer$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get addJellyfinTitle => 'Добавить сервер Jellyfin';
 	@override String get serverUrls => 'URL-адреса сервера';
 	@override String get serverUrlsHelper => 'Можно указать несколько URL через запятую.';
 	@override String get findServer => 'Найти сервер';
-	@override String get searchingLocalServers => 'Поиск локальных серверов Jellyfin...';
-	@override String get localServers => 'Локальные серверы Jellyfin';
 	@override String get username => 'Имя пользователя';
 	@override String get password => 'Пароль';
 	@override String get signIn => 'Войти';
@@ -1826,15 +1819,11 @@ class _Translations$addServer$ru extends Translations$addServer$en {
 	@override String get addPlexTitle => 'Войти через Plex';
 	@override String get pinExpired => 'Срок действия PIN истёк до входа. Попробуйте снова.';
 	@override String failedToRegisterAccount({required Object error}) => 'Не удалось зарегистрировать учётную запись: ${error}';
-	@override String get enterJellyfinUrlError => 'Введите URL вашего сервера Jellyfin';
 	@override String get addConnectionTitle => 'Добавить подключение';
 	@override String addConnectionTitleScoped({required Object name}) => 'Добавить в ${name}';
 	@override String get signInWithPlexCard => 'Войти через Plex';
 	@override String get signInWithPlexCardSubtitle => 'Авторизуйте это устройство. Общие серверы будут добавлены.';
 	@override String get signInWithPlexCardSubtitleScoped => 'Авторизуйте аккаунт Plex. Пользователи Home станут профилями.';
-	@override String get connectToJellyfinCard => 'Подключиться к Jellyfin';
-	@override String get connectToJellyfinCardSubtitle => 'Введите URL сервера, имя пользователя и пароль.';
-	@override String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Войдите на сервер Jellyfin. Привязывается к ${name}.';
 	@override String get borrowFromAnotherProfile => 'Использовать подключение другого профиля';
 	@override String get borrowFromAnotherProfileSubtitle => 'Повторно используйте подключение другого профиля. Для защищённых профилей потребуется PIN.';
 }
@@ -2214,7 +2203,6 @@ extension on TranslationsRu {
 			'auth.waitingForAuth' => 'Ожидание аутентификации...\nВыполните вход в браузере.',
 			'auth.useBrowser' => 'Использовать браузер',
 			'auth.or' => 'или',
-			'auth.connectToJellyfin' => 'Подключиться к Jellyfin',
 			'auth.useQuickConnect' => 'Использовать Quick Connect',
 			'auth.quickConnectInstructions' => 'Откройте Quick Connect в Jellyfin и введите этот код.',
 			'auth.quickConnectWaiting' => 'Ожидание подтверждения…',
@@ -2598,8 +2586,6 @@ extension on TranslationsRu {
 			'mediaMenu.shufflePlay' => 'Случайное воспроизведение',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Перемешивание недоступно офлайн',
 			'mediaMenu.fileInfo' => 'Информация о файле',
-			'mediaMenu.deleteFromServer' => 'Удалить с сервера',
-			'mediaMenu.confirmDelete' => 'Удалить это медиа и его файлы с сервера?',
 			'mediaMenu.deleteMultipleWarning' => 'Это включает все эпизоды и их файлы.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Медиаэлемент успешно удалён',
 			'mediaMenu.mediaFailedToDelete' => 'Не удалось удалить медиаэлемент',
@@ -2717,11 +2703,11 @@ extension on TranslationsRu {
 			'videoControls.searchSubtitles' => 'Поиск субтитров',
 			'videoControls.language' => 'Язык',
 			'videoControls.noSubtitlesFound' => 'Субтитры не найдены',
-			_ => null,
-		} ?? switch (path) {
 			'videoControls.subtitleDownloaded' => 'Субтитры загружены',
 			'videoControls.subtitleDownloadedNotApplied' => 'Субтитры загружены, но их не удалось выбрать',
 			'videoControls.subtitleDownloadFailed' => 'Не удалось загрузить субтитры',
+			_ => null,
+		} ?? switch (path) {
 			'videoControls.searchLanguages' => 'Поиск языков...',
 			'messages.markedAsWatched' => 'Отмечено как просмотренное',
 			'messages.markedAsUnwatched' => 'Отмечено как непросмотренное',
@@ -2844,6 +2830,8 @@ extension on TranslationsRu {
 			'profiles.noConnectionsHint' => 'Нет соединений — добавьте одно, чтобы использовать этот профиль.',
 			'profiles.noConnections' => 'Нет соединений',
 			'profiles.plexHomeAccount' => 'Аккаунт Plex Home',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Аккаунт Plex: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object user, required Object account}) => '${user} через ${account}',
 			'profiles.connectionDefault' => 'По умолчанию',
 			'profiles.connectionAs' => ({required Object displayName}) => 'как ${displayName}',
 			'profiles.makeDefault' => 'Сделать по умолчанию',
@@ -2875,8 +2863,6 @@ extension on TranslationsRu {
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Сессия истекла для ${name}',
 			'connections.sessionExpiredMany' => ({required Object count}) => 'Сессия истекла для ${count} серверов',
 			'connections.signInAgain' => 'Войти снова',
-			'connections.editJellyfinTitle' => 'Изменить подключение Jellyfin',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => 'Добавьте или удалите URL для ${serverName}. Plezy будет использовать доступный URL с минимальной задержкой.',
 			'discover.title' => 'Обзор',
 			'discover.noContentAvailable' => 'Контент недоступен',
 			'discover.addMediaToLibraries' => 'Добавьте медиафайлы в ваши библиотеки',
@@ -3231,11 +3217,11 @@ extension on TranslationsRu {
 			'watchTogether.failedToCreate' => 'Не удалось создать сессию',
 			'watchTogether.failedToJoin' => 'Не удалось присоединиться к сессии',
 			'watchTogether.sessionCodeCopied' => 'Код сессии скопирован в буфер обмена',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.relayUnreachable' => 'Сервер ретрансляции недоступен. Блокировка интернет-провайдером может помешать совместному просмотру.',
 			'watchTogether.reconnectingToHost' => 'Повторное подключение к организатору...',
 			'watchTogether.currentPlayback' => 'Текущее воспроизведение',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.joinCurrentPlayback' => 'Присоединиться к текущему воспроизведению',
 			'watchTogether.joinCurrentPlaybackDescription' => 'Вернуться к материалу, который сейчас смотрит организатор',
 			'watchTogether.failedToOpenCurrentPlayback' => 'Не удалось открыть текущее воспроизведение',
@@ -3437,7 +3423,6 @@ extension on TranslationsRu {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => 'Аудиовыход',
 			'videoSettings.performanceOverlay' => 'Оверлей производительности',
-			'videoSettings.audioPassthrough' => 'Сквозной вывод аудио',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => 'Объёмный звук',
@@ -3662,12 +3647,9 @@ extension on TranslationsRu {
 			'services.libraryFilter.modeHintWhitelist' => 'Синхронизировать только библиотеки, отмеченные ниже.',
 			'services.libraryFilter.libraries' => 'Библиотеки',
 			'services.libraryFilter.noLibraries' => 'Библиотеки недоступны',
-			'addServer.addJellyfinTitle' => 'Добавить сервер Jellyfin',
 			'addServer.serverUrls' => 'URL-адреса сервера',
 			'addServer.serverUrlsHelper' => 'Можно указать несколько URL через запятую.',
 			'addServer.findServer' => 'Найти сервер',
-			'addServer.searchingLocalServers' => 'Поиск локальных серверов Jellyfin...',
-			'addServer.localServers' => 'Локальные серверы Jellyfin',
 			'addServer.username' => 'Имя пользователя',
 			'addServer.password' => 'Пароль',
 			'addServer.signIn' => 'Войти',
@@ -3679,15 +3661,11 @@ extension on TranslationsRu {
 			'addServer.addPlexTitle' => 'Войти через Plex',
 			'addServer.pinExpired' => 'Срок действия PIN истёк до входа. Попробуйте снова.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => 'Не удалось зарегистрировать учётную запись: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Введите URL вашего сервера Jellyfin',
 			'addServer.addConnectionTitle' => 'Добавить подключение',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => 'Добавить в ${name}',
 			'addServer.signInWithPlexCard' => 'Войти через Plex',
 			'addServer.signInWithPlexCardSubtitle' => 'Авторизуйте это устройство. Общие серверы будут добавлены.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Авторизуйте аккаунт Plex. Пользователи Home станут профилями.',
-			'addServer.connectToJellyfinCard' => 'Подключиться к Jellyfin',
-			'addServer.connectToJellyfinCardSubtitle' => 'Введите URL сервера, имя пользователя и пароль.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Войдите на сервер Jellyfin. Привязывается к ${name}.',
 			'addServer.borrowFromAnotherProfile' => 'Использовать подключение другого профиля',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Повторно используйте подключение другого профиля. Для защищённых профилей потребуется PIN.',
 			_ => null,

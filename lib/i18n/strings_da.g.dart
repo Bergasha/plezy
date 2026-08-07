@@ -115,7 +115,6 @@ class _Translations$auth$da extends Translations$auth$en {
 	@override String get waitingForAuth => 'Venter på godkendelse...\nLog ind fra din browser.';
 	@override String get useBrowser => 'Brug browseren';
 	@override String get or => 'eller';
-	@override String get connectToJellyfin => 'Forbind til Jellyfin';
 	@override String get useQuickConnect => 'Brug Quick Connect';
 	@override String get quickConnectInstructions => 'Åbn Quick Connect i Jellyfin, og indtast denne kode.';
 	@override String get quickConnectWaiting => 'Venter på godkendelse…';
@@ -547,8 +546,6 @@ class _Translations$mediaMenu$da extends Translations$mediaMenu$en {
 	@override String get shufflePlay => 'Afspil tilfældigt';
 	@override String get shuffleNotAvailableOffline => 'Tilfældig afspilning er ikke tilgængelig offline';
 	@override String get fileInfo => 'Filinfo';
-	@override String get deleteFromServer => 'Slet fra server';
-	@override String get confirmDelete => 'Slet dette medie og dets filer fra din server?';
 	@override String get deleteMultipleWarning => 'Dette inkluderer alle episoder og deres filer.';
 	@override String get mediaDeletedSuccessfully => 'Mediet blev slettet';
 	@override String get mediaFailedToDelete => 'Mediet kunne ikke slettes';
@@ -878,6 +875,8 @@ class _Translations$profiles$da extends Translations$profiles$en {
 	@override String get noConnectionsHint => 'Ingen forbindelser — tilføj en for at bruge denne profil.';
 	@override String get noConnections => 'Ingen forbindelser';
 	@override String get plexHomeAccount => 'Plex Home-konto';
+	@override String plexAccountChip({required Object account}) => 'Plex-konto: ${account}';
+	@override String plexAccountUserChip({required Object user, required Object account}) => '${user} via ${account}';
 	@override String get connectionDefault => 'Standard';
 	@override String connectionAs({required Object displayName}) => 'som ${displayName}';
 	@override String get makeDefault => 'Gør til standard';
@@ -918,8 +917,6 @@ class _Translations$connections$da extends Translations$connections$en {
 	@override String sessionExpiredOne({required Object name}) => 'Sessionen er udløbet for ${name}';
 	@override String sessionExpiredMany({required Object count}) => 'Sessionerne er udløbet for ${count} servere';
 	@override String get signInAgain => 'Log ind igen';
-	@override String get editJellyfinTitle => 'Rediger Jellyfin-forbindelse';
-	@override String editJellyfinIntro({required Object serverName}) => 'Tilføj eller fjern URL\'er for ${serverName}. Plezy bruger den tilgængelige URL med lavest latenstid.';
 }
 
 // Path: discover
@@ -1520,7 +1517,6 @@ class _Translations$videoSettings$da extends Translations$videoSettings$en {
 	@override String get hdr => 'HDR';
 	@override String get audioOutput => 'Lydoutput';
 	@override String get performanceOverlay => 'Ydelsesoverlay';
-	@override String get audioPassthrough => 'Lyd-passthrough';
 	@override String get audioOutputDolbyAtmos => 'Dolby Atmos';
 	@override String get audioOutputDolbyAudio => 'Dolby Audio';
 	@override String get audioOutputSurround => 'Surround';
@@ -1803,12 +1799,9 @@ class _Translations$addServer$da extends Translations$addServer$en {
 	final TranslationsDa _root; // ignore: unused_field
 
 	// Translations
-	@override String get addJellyfinTitle => 'Tilføj Jellyfin-server';
 	@override String get serverUrls => 'Server-URL\'er';
 	@override String get serverUrlsHelper => 'Du kan angive flere URL\'er adskilt med komma.';
 	@override String get findServer => 'Find server';
-	@override String get searchingLocalServers => 'Søger efter lokale Jellyfin-servere...';
-	@override String get localServers => 'Lokale Jellyfin-servere';
 	@override String get username => 'Brugernavn';
 	@override String get password => 'Adgangskode';
 	@override String get signIn => 'Log ind';
@@ -1820,15 +1813,11 @@ class _Translations$addServer$da extends Translations$addServer$en {
 	@override String get addPlexTitle => 'Log ind med Plex';
 	@override String get pinExpired => 'PIN-koden udløb før login. Prøv igen.';
 	@override String failedToRegisterAccount({required Object error}) => 'Kunne ikke registrere kontoen: ${error}';
-	@override String get enterJellyfinUrlError => 'Angiv URL\'en til din Jellyfin-server';
 	@override String get addConnectionTitle => 'Tilføj forbindelse';
 	@override String addConnectionTitleScoped({required Object name}) => 'Tilføj til ${name}';
 	@override String get signInWithPlexCard => 'Log ind med Plex';
 	@override String get signInWithPlexCardSubtitle => 'Godkend denne enhed. Delte servere tilføjes.';
 	@override String get signInWithPlexCardSubtitleScoped => 'Godkend en Plex-konto. Plex Home-brugere bliver til profiler.';
-	@override String get connectToJellyfinCard => 'Forbind til Jellyfin';
-	@override String get connectToJellyfinCardSubtitle => 'Indtast din server-URL, dit brugernavn og din adgangskode.';
-	@override String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Log ind på en Jellyfin-server. Serveren knyttes til ${name}.';
 	@override String get borrowFromAnotherProfile => 'Lån fra en anden profil';
 	@override String get borrowFromAnotherProfileSubtitle => 'Genbrug en anden profils forbindelse. PIN-beskyttede profiler kræver en PIN.';
 }
@@ -2208,7 +2197,6 @@ extension on TranslationsDa {
 			'auth.waitingForAuth' => 'Venter på godkendelse...\nLog ind fra din browser.',
 			'auth.useBrowser' => 'Brug browseren',
 			'auth.or' => 'eller',
-			'auth.connectToJellyfin' => 'Forbind til Jellyfin',
 			'auth.useQuickConnect' => 'Brug Quick Connect',
 			'auth.quickConnectInstructions' => 'Åbn Quick Connect i Jellyfin, og indtast denne kode.',
 			'auth.quickConnectWaiting' => 'Venter på godkendelse…',
@@ -2592,8 +2580,6 @@ extension on TranslationsDa {
 			'mediaMenu.shufflePlay' => 'Afspil tilfældigt',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Tilfældig afspilning er ikke tilgængelig offline',
 			'mediaMenu.fileInfo' => 'Filinfo',
-			'mediaMenu.deleteFromServer' => 'Slet fra server',
-			'mediaMenu.confirmDelete' => 'Slet dette medie og dets filer fra din server?',
 			'mediaMenu.deleteMultipleWarning' => 'Dette inkluderer alle episoder og deres filer.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Mediet blev slettet',
 			'mediaMenu.mediaFailedToDelete' => 'Mediet kunne ikke slettes',
@@ -2711,11 +2697,11 @@ extension on TranslationsDa {
 			'videoControls.searchSubtitles' => 'Søg undertekster',
 			'videoControls.language' => 'Sprog',
 			'videoControls.noSubtitlesFound' => 'Ingen undertekster fundet',
-			_ => null,
-		} ?? switch (path) {
 			'videoControls.subtitleDownloaded' => 'Undertekst downloadet',
 			'videoControls.subtitleDownloadedNotApplied' => 'Underteksten blev downloadet, men kunne ikke vælges',
 			'videoControls.subtitleDownloadFailed' => 'Kunne ikke downloade undertekst',
+			_ => null,
+		} ?? switch (path) {
 			'videoControls.searchLanguages' => 'Søg sprog...',
 			'messages.markedAsWatched' => 'Markeret som set',
 			'messages.markedAsUnwatched' => 'Markeret som uset',
@@ -2838,6 +2824,8 @@ extension on TranslationsDa {
 			'profiles.noConnectionsHint' => 'Ingen forbindelser — tilføj en for at bruge denne profil.',
 			'profiles.noConnections' => 'Ingen forbindelser',
 			'profiles.plexHomeAccount' => 'Plex Home-konto',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Plex-konto: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object user, required Object account}) => '${user} via ${account}',
 			'profiles.connectionDefault' => 'Standard',
 			'profiles.connectionAs' => ({required Object displayName}) => 'som ${displayName}',
 			'profiles.makeDefault' => 'Gør til standard',
@@ -2869,8 +2857,6 @@ extension on TranslationsDa {
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Sessionen er udløbet for ${name}',
 			'connections.sessionExpiredMany' => ({required Object count}) => 'Sessionerne er udløbet for ${count} servere',
 			'connections.signInAgain' => 'Log ind igen',
-			'connections.editJellyfinTitle' => 'Rediger Jellyfin-forbindelse',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => 'Tilføj eller fjern URL\'er for ${serverName}. Plezy bruger den tilgængelige URL med lavest latenstid.',
 			'discover.title' => 'Opdag',
 			'discover.noContentAvailable' => 'Intet indhold tilgængeligt',
 			'discover.addMediaToLibraries' => 'Tilføj medier til dine biblioteker',
@@ -3225,11 +3211,11 @@ extension on TranslationsDa {
 			'watchTogether.failedToCreate' => 'Kunne ikke oprette session',
 			'watchTogether.failedToJoin' => 'Kunne ikke deltage i session',
 			'watchTogether.sessionCodeCopied' => 'Sessionskode kopieret til udklipsholder',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.relayUnreachable' => 'Relayserveren kan ikke nås. Blokering hos internetudbyderen kan forhindre Se sammen.',
 			'watchTogether.reconnectingToHost' => 'Genopretter forbindelse til vært...',
 			'watchTogether.currentPlayback' => 'Nuværende afspilning',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.joinCurrentPlayback' => 'Deltag i nuværende afspilning',
 			'watchTogether.joinCurrentPlaybackDescription' => 'Hop tilbage til det værten ser nu',
 			'watchTogether.failedToOpenCurrentPlayback' => 'Kunne ikke åbne nuværende afspilning',
@@ -3431,7 +3417,6 @@ extension on TranslationsDa {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => 'Lydoutput',
 			'videoSettings.performanceOverlay' => 'Ydelsesoverlay',
-			'videoSettings.audioPassthrough' => 'Lyd-passthrough',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => 'Surround',
@@ -3656,12 +3641,9 @@ extension on TranslationsDa {
 			'services.libraryFilter.modeHintWhitelist' => 'Synkroniser kun de biblioteker, du markerer nedenfor.',
 			'services.libraryFilter.libraries' => 'Biblioteker',
 			'services.libraryFilter.noLibraries' => 'Ingen biblioteker tilgængelige',
-			'addServer.addJellyfinTitle' => 'Tilføj Jellyfin-server',
 			'addServer.serverUrls' => 'Server-URL\'er',
 			'addServer.serverUrlsHelper' => 'Du kan angive flere URL\'er adskilt med komma.',
 			'addServer.findServer' => 'Find server',
-			'addServer.searchingLocalServers' => 'Søger efter lokale Jellyfin-servere...',
-			'addServer.localServers' => 'Lokale Jellyfin-servere',
 			'addServer.username' => 'Brugernavn',
 			'addServer.password' => 'Adgangskode',
 			'addServer.signIn' => 'Log ind',
@@ -3673,15 +3655,11 @@ extension on TranslationsDa {
 			'addServer.addPlexTitle' => 'Log ind med Plex',
 			'addServer.pinExpired' => 'PIN-koden udløb før login. Prøv igen.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => 'Kunne ikke registrere kontoen: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Angiv URL\'en til din Jellyfin-server',
 			'addServer.addConnectionTitle' => 'Tilføj forbindelse',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => 'Tilføj til ${name}',
 			'addServer.signInWithPlexCard' => 'Log ind med Plex',
 			'addServer.signInWithPlexCardSubtitle' => 'Godkend denne enhed. Delte servere tilføjes.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Godkend en Plex-konto. Plex Home-brugere bliver til profiler.',
-			'addServer.connectToJellyfinCard' => 'Forbind til Jellyfin',
-			'addServer.connectToJellyfinCardSubtitle' => 'Indtast din server-URL, dit brugernavn og din adgangskode.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Log ind på en Jellyfin-server. Serveren knyttes til ${name}.',
 			'addServer.borrowFromAnotherProfile' => 'Lån fra en anden profil',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Genbrug en anden profils forbindelse. PIN-beskyttede profiler kræver en PIN.',
 			_ => null,

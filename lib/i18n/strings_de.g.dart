@@ -115,7 +115,6 @@ class _Translations$auth$de extends Translations$auth$en {
 	@override String get waitingForAuth => 'Warte auf die Authentifizierung …\nMelde dich über deinen Browser an.';
 	@override String get useBrowser => 'Browser verwenden';
 	@override String get or => 'oder';
-	@override String get connectToJellyfin => 'Mit Jellyfin verbinden';
 	@override String get useQuickConnect => 'Quick Connect verwenden';
 	@override String get quickConnectInstructions => 'Öffne Quick Connect in Jellyfin und gib diesen Code ein.';
 	@override String get quickConnectWaiting => 'Warte auf Bestätigung…';
@@ -547,8 +546,6 @@ class _Translations$mediaMenu$de extends Translations$mediaMenu$en {
 	@override String get shufflePlay => 'Zufallswiedergabe';
 	@override String get shuffleNotAvailableOffline => 'Zufallswiedergabe ist offline nicht verfügbar';
 	@override String get fileInfo => 'Dateiinfo';
-	@override String get deleteFromServer => 'Vom Server löschen';
-	@override String get confirmDelete => 'Dieses Medium und seine Dateien von deinem Server löschen?';
 	@override String get deleteMultipleWarning => 'Dies umfasst alle Episoden und deren Dateien.';
 	@override String get mediaDeletedSuccessfully => 'Medienelement gelöscht';
 	@override String get mediaFailedToDelete => 'Medienelement konnte nicht gelöscht werden';
@@ -878,6 +875,8 @@ class _Translations$profiles$de extends Translations$profiles$en {
 	@override String get noConnectionsHint => 'Keine Verbindungen — füge eine hinzu, um dieses Profil zu nutzen.';
 	@override String get noConnections => 'Keine Verbindungen';
 	@override String get plexHomeAccount => 'Plex Home-Konto';
+	@override String plexAccountChip({required Object account}) => 'Plex-Konto: ${account}';
+	@override String plexAccountUserChip({required Object user, required Object account}) => '${user} über ${account}';
 	@override String get connectionDefault => 'Standard';
 	@override String connectionAs({required Object displayName}) => 'als ${displayName}';
 	@override String get makeDefault => 'Als Standard festlegen';
@@ -918,8 +917,6 @@ class _Translations$connections$de extends Translations$connections$en {
 	@override String sessionExpiredOne({required Object name}) => 'Sitzung für ${name} abgelaufen';
 	@override String sessionExpiredMany({required Object count}) => 'Sitzungen für ${count} Server abgelaufen';
 	@override String get signInAgain => 'Erneut anmelden';
-	@override String get editJellyfinTitle => 'Jellyfin-Verbindung bearbeiten';
-	@override String editJellyfinIntro({required Object serverName}) => 'Füge URLs für ${serverName} hinzu oder entferne sie. Plezy verwendet die erreichbare URL mit der geringsten Latenz.';
 }
 
 // Path: discover
@@ -1520,7 +1517,6 @@ class _Translations$videoSettings$de extends Translations$videoSettings$en {
 	@override String get hdr => 'HDR';
 	@override String get audioOutput => 'Audioausgabe';
 	@override String get performanceOverlay => 'Leistungsanzeige';
-	@override String get audioPassthrough => 'Audio-Durchleitung';
 	@override String get audioOutputDolbyAtmos => 'Dolby Atmos';
 	@override String get audioOutputDolbyAudio => 'Dolby Audio';
 	@override String get audioOutputSurround => 'Surround';
@@ -1803,12 +1799,9 @@ class _Translations$addServer$de extends Translations$addServer$en {
 	final TranslationsDe _root; // ignore: unused_field
 
 	// Translations
-	@override String get addJellyfinTitle => 'Jellyfin-Server hinzufügen';
 	@override String get serverUrls => 'Server-URLs';
 	@override String get serverUrlsHelper => 'Mehrere URLs möglich, durch Kommas getrennt.';
 	@override String get findServer => 'Server finden';
-	@override String get searchingLocalServers => 'Suche nach lokalen Jellyfin-Servern …';
-	@override String get localServers => 'Lokale Jellyfin-Server';
 	@override String get username => 'Benutzername';
 	@override String get password => 'Passwort';
 	@override String get signIn => 'Anmelden';
@@ -1820,15 +1813,11 @@ class _Translations$addServer$de extends Translations$addServer$en {
 	@override String get addPlexTitle => 'Mit Plex anmelden';
 	@override String get pinExpired => 'PIN ist vor der Anmeldung abgelaufen. Bitte erneut versuchen.';
 	@override String failedToRegisterAccount({required Object error}) => 'Konto konnte nicht registriert werden: ${error}';
-	@override String get enterJellyfinUrlError => 'Gib die URL deines Jellyfin-Servers ein';
 	@override String get addConnectionTitle => 'Verbindung hinzufügen';
 	@override String addConnectionTitleScoped({required Object name}) => 'Zu ${name} hinzufügen';
 	@override String get signInWithPlexCard => 'Mit Plex anmelden';
 	@override String get signInWithPlexCardSubtitle => 'Dieses Gerät autorisieren. Geteilte Server werden hinzugefügt.';
 	@override String get signInWithPlexCardSubtitleScoped => 'Ein Plex-Konto autorisieren. Home-Benutzer werden zu Profilen.';
-	@override String get connectToJellyfinCard => 'Mit Jellyfin verbinden';
-	@override String get connectToJellyfinCardSubtitle => 'Gib Server-URL, Benutzername und Passwort ein.';
-	@override String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Bei einem Jellyfin-Server anmelden. Wird mit ${name} verknüpft.';
 	@override String get borrowFromAnotherProfile => 'Von einem anderen Profil ausleihen';
 	@override String get borrowFromAnotherProfileSubtitle => 'Verbindung eines anderen Profils wiederverwenden. PIN-geschützte Profile erfordern eine PIN.';
 }
@@ -2208,7 +2197,6 @@ extension on TranslationsDe {
 			'auth.waitingForAuth' => 'Warte auf die Authentifizierung …\nMelde dich über deinen Browser an.',
 			'auth.useBrowser' => 'Browser verwenden',
 			'auth.or' => 'oder',
-			'auth.connectToJellyfin' => 'Mit Jellyfin verbinden',
 			'auth.useQuickConnect' => 'Quick Connect verwenden',
 			'auth.quickConnectInstructions' => 'Öffne Quick Connect in Jellyfin und gib diesen Code ein.',
 			'auth.quickConnectWaiting' => 'Warte auf Bestätigung…',
@@ -2592,8 +2580,6 @@ extension on TranslationsDe {
 			'mediaMenu.shufflePlay' => 'Zufallswiedergabe',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Zufallswiedergabe ist offline nicht verfügbar',
 			'mediaMenu.fileInfo' => 'Dateiinfo',
-			'mediaMenu.deleteFromServer' => 'Vom Server löschen',
-			'mediaMenu.confirmDelete' => 'Dieses Medium und seine Dateien von deinem Server löschen?',
 			'mediaMenu.deleteMultipleWarning' => 'Dies umfasst alle Episoden und deren Dateien.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Medienelement gelöscht',
 			'mediaMenu.mediaFailedToDelete' => 'Medienelement konnte nicht gelöscht werden',
@@ -2711,11 +2697,11 @@ extension on TranslationsDe {
 			'videoControls.searchSubtitles' => 'Untertitel suchen',
 			'videoControls.language' => 'Sprache',
 			'videoControls.noSubtitlesFound' => 'Keine Untertitel gefunden',
-			_ => null,
-		} ?? switch (path) {
 			'videoControls.subtitleDownloaded' => 'Untertitel heruntergeladen',
 			'videoControls.subtitleDownloadedNotApplied' => 'Der Untertitel wurde heruntergeladen, konnte aber nicht ausgewählt werden',
 			'videoControls.subtitleDownloadFailed' => 'Untertitel konnte nicht heruntergeladen werden',
+			_ => null,
+		} ?? switch (path) {
 			'videoControls.searchLanguages' => 'Sprachen suchen...',
 			'messages.markedAsWatched' => 'Als gesehen markiert',
 			'messages.markedAsUnwatched' => 'Als ungesehen markiert',
@@ -2838,6 +2824,8 @@ extension on TranslationsDe {
 			'profiles.noConnectionsHint' => 'Keine Verbindungen — füge eine hinzu, um dieses Profil zu nutzen.',
 			'profiles.noConnections' => 'Keine Verbindungen',
 			'profiles.plexHomeAccount' => 'Plex Home-Konto',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Plex-Konto: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object user, required Object account}) => '${user} über ${account}',
 			'profiles.connectionDefault' => 'Standard',
 			'profiles.connectionAs' => ({required Object displayName}) => 'als ${displayName}',
 			'profiles.makeDefault' => 'Als Standard festlegen',
@@ -2869,8 +2857,6 @@ extension on TranslationsDe {
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Sitzung für ${name} abgelaufen',
 			'connections.sessionExpiredMany' => ({required Object count}) => 'Sitzungen für ${count} Server abgelaufen',
 			'connections.signInAgain' => 'Erneut anmelden',
-			'connections.editJellyfinTitle' => 'Jellyfin-Verbindung bearbeiten',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => 'Füge URLs für ${serverName} hinzu oder entferne sie. Plezy verwendet die erreichbare URL mit der geringsten Latenz.',
 			'discover.title' => 'Entdecken',
 			'discover.noContentAvailable' => 'Kein Inhalt verfügbar',
 			'discover.addMediaToLibraries' => 'Medien zur Mediathek hinzufügen',
@@ -3225,11 +3211,11 @@ extension on TranslationsDe {
 			'watchTogether.failedToCreate' => 'Sitzung konnte nicht erstellt werden',
 			'watchTogether.failedToJoin' => 'Beitritt zur Sitzung fehlgeschlagen',
 			'watchTogether.sessionCodeCopied' => 'Sitzungscode in Zwischenablage kopiert',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.relayUnreachable' => 'Relay-Server nicht erreichbar. Eine Sperre durch den Internetanbieter kann gemeinsames Schauen verhindern.',
 			'watchTogether.reconnectingToHost' => 'Verbindung zum Host wird wiederhergestellt …',
 			'watchTogether.currentPlayback' => 'Aktuelle Wiedergabe',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.joinCurrentPlayback' => 'Aktueller Wiedergabe beitreten',
 			'watchTogether.joinCurrentPlaybackDescription' => 'Zu dem Inhalt wechseln, den der Host gerade ansieht',
 			'watchTogether.failedToOpenCurrentPlayback' => 'Aktuelle Wiedergabe konnte nicht geöffnet werden',
@@ -3431,7 +3417,6 @@ extension on TranslationsDe {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => 'Audioausgabe',
 			'videoSettings.performanceOverlay' => 'Leistungsanzeige',
-			'videoSettings.audioPassthrough' => 'Audio-Durchleitung',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => 'Surround',
@@ -3656,12 +3641,9 @@ extension on TranslationsDe {
 			'services.libraryFilter.modeHintWhitelist' => 'Nur die unten markierten Mediatheken synchronisieren.',
 			'services.libraryFilter.libraries' => 'Mediatheken',
 			'services.libraryFilter.noLibraries' => 'Keine Mediatheken verfügbar',
-			'addServer.addJellyfinTitle' => 'Jellyfin-Server hinzufügen',
 			'addServer.serverUrls' => 'Server-URLs',
 			'addServer.serverUrlsHelper' => 'Mehrere URLs möglich, durch Kommas getrennt.',
 			'addServer.findServer' => 'Server finden',
-			'addServer.searchingLocalServers' => 'Suche nach lokalen Jellyfin-Servern …',
-			'addServer.localServers' => 'Lokale Jellyfin-Server',
 			'addServer.username' => 'Benutzername',
 			'addServer.password' => 'Passwort',
 			'addServer.signIn' => 'Anmelden',
@@ -3673,15 +3655,11 @@ extension on TranslationsDe {
 			'addServer.addPlexTitle' => 'Mit Plex anmelden',
 			'addServer.pinExpired' => 'PIN ist vor der Anmeldung abgelaufen. Bitte erneut versuchen.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => 'Konto konnte nicht registriert werden: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Gib die URL deines Jellyfin-Servers ein',
 			'addServer.addConnectionTitle' => 'Verbindung hinzufügen',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => 'Zu ${name} hinzufügen',
 			'addServer.signInWithPlexCard' => 'Mit Plex anmelden',
 			'addServer.signInWithPlexCardSubtitle' => 'Dieses Gerät autorisieren. Geteilte Server werden hinzugefügt.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Ein Plex-Konto autorisieren. Home-Benutzer werden zu Profilen.',
-			'addServer.connectToJellyfinCard' => 'Mit Jellyfin verbinden',
-			'addServer.connectToJellyfinCardSubtitle' => 'Gib Server-URL, Benutzername und Passwort ein.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Bei einem Jellyfin-Server anmelden. Wird mit ${name} verknüpft.',
 			'addServer.borrowFromAnotherProfile' => 'Von einem anderen Profil ausleihen',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Verbindung eines anderen Profils wiederverwenden. PIN-geschützte Profile erfordern eine PIN.',
 			_ => null,

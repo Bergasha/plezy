@@ -148,11 +148,13 @@ flutter:
     - assets/plezy_adaptive_foreground.svg
     - assets/plex_chevron.svg
     - assets/jellyfin_icon.svg
+    - assets/emby_icon.svg
     - assets/trakt_circlemark.svg
     - assets/mal_mark.svg
     - assets/anilist_mark.svg
     - assets/simkl_mark.svg
     - assets/seerr_mark.svg
+    - assets/mdblist_mark.svg
     - assets/go-noto-current-regular.ttf
     - assets/shaders/nvscaler/
     - assets/shaders/artcnn/

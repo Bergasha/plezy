@@ -11,7 +11,7 @@
     "waitingForAuth": "Растау күтілуде...\nБраузеріңізден кіріңіз.",
     "useBrowser": "Браузерді пайдалану",
     "or": "немесе",
-    "connectToJellyfin": "Jellyfin-ге қосылу",
+    "connectToMediaBrowser": "",
     "useQuickConnect": "Жылдам қосылуды пайдалану",
     "quickConnectInstructions": "Jellyfin-де Жылдам қосылуды ашып, осы кодты енгізіңіз.",
     "quickConnectWaiting": "Растау күтілуде…",
@@ -518,9 +518,35 @@
     "shufflePlay": "Араластырып ойнату",
     "shuffleNotAvailableOffline": "Араластырып ойнату офлайн режимде қолжетімсіз",
     "fileInfo": "Файл туралы ақпарат",
-    "deleteFromServer": "Серверден өшіру",
-    "confirmDelete": "Осы медиа мен файлдар серверден өшірілсін бе?",
+    "deleteEpisodeFromServer": "",
+    "deleteSeasonFromServer": "",
+    "deleteShowFromServer": "",
+    "deleteMovieFromServer": "",
+    "deleteEpisodeTitle": "",
+    "deleteSeasonTitle": "",
+    "deleteShowTitle": "",
+    "deleteMovieTitle": "",
+    "deleteEpisodeConfirm": "",
+    "deleteSeasonConfirm": "",
+    "deleteShowConfirm": "",
+    "deleteMovieConfirm": "",
+    "deleteAnyway": "",
+    "confirmDeleteTarget": "",
     "deleteMultipleWarning": "Бұл барлық бөлімдер мен файлдарға әсер етеді.",
+    "deleteEpisodeCountWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteMultiPartWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteSharedFileHeading": {
+      "one": "",
+      "other": ""
+    },
+    "deleteScopeUnverifiedProbeFailed": "",
+    "deleteScopeUnverifiedNoFileInfo": "",
     "mediaDeletedSuccessfully": "Медиа элементі сәтті өшірілді",
     "mediaFailedToDelete": "Медиа элементін өшіру мүмкін болмады",
     "rate": "Бағалау",
@@ -794,6 +820,8 @@
     "noConnectionsHint": "Қосылымдар жоқ — бұл профильді пайдалану үшін қосылым қосыңыз.",
     "noConnections": "Қосылымдар жоқ",
     "plexHomeAccount": "Plex Home тіркелгісі",
+    "plexAccountChip": "Plex тіркелгісі: ${account}",
+    "plexAccountUserChip": "${account} арқылы ${user}",
     "connectionDefault": "Әдепкі",
     "connectionAs": "${displayName} ретінде",
     "makeDefault": "Әдепкі ету",
@@ -827,8 +855,8 @@
     "sessionExpiredOne": "${name} үшін сеанс мерзімі өтті",
     "sessionExpiredMany": "${count} сервер үшін сеанс мерзімі өтті",
     "signInAgain": "Қайтадан кіру",
-    "editJellyfinTitle": "Jellyfin қосылымын өңдеу",
-    "editJellyfinIntro": "${serverName} үшін URL мекенжайын қосыңыз немесе өшіріңіз."
+    "editMediaBrowserTitle": "",
+    "editMediaBrowserIntro": ""
   },
   "discover": {
     "title": "Шолу",
@@ -1622,7 +1650,6 @@
     "hdr": "HDR",
     "audioOutput": "Аудио шығысы",
     "performanceOverlay": "Өнімділік панелі",
-    "audioPassthrough": "Дыбысты тікелей өткізу",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Көлемді дыбыс",
@@ -1840,7 +1867,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": ""
     },
     "deviceCode": {
       "title": "Plezy-ді ${service} қызметінде белсендіру",
@@ -1873,12 +1901,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Jellyfin серверін қосу",
+    "addMediaBrowserTitle": "",
     "serverUrls": "Сервер URL-дері",
     "serverUrlsHelper": "Үтірмен бөлінген бірнеше URL мекенжайына рұқсат етіледі.",
     "findServer": "Серверді табу",
-    "searchingLocalServers": "Жергілікті Jellyfin серверлері ізделуде...",
-    "localServers": "Жергілікті Jellyfin серверлері",
+    "searchingLocalMediaBrowserServers": "",
+    "localMediaBrowserServers": "",
     "username": "Пайдаланушы аты",
     "password": "Құпия сөз",
     "signIn": "Кіру",
@@ -1890,15 +1918,15 @@
     "addPlexTitle": "Plex арқылы кіру",
     "pinExpired": "PIN код мерзімі өтті.",
     "failedToRegisterAccount": "Тіркелгіні тіркеу қатесі: ${error}",
-    "enterJellyfinUrlError": "Jellyfin сервер URL-ін енгізіңіз",
+    "enterMediaBrowserUrlError": "",
     "addConnectionTitle": "Қосылым қосу",
     "addConnectionTitleScoped": "${name} профиліне қосу",
     "signInWithPlexCard": "Plex арқылы кіру",
     "signInWithPlexCardSubtitle": "Осы құрылғыны авторизациялау.",
     "signInWithPlexCardSubtitleScoped": "Plex тіркелгісін авторизациялау.",
-    "connectToJellyfinCard": "Jellyfin-ге қосылу",
-    "connectToJellyfinCardSubtitle": "Сервер URL-ін, пайдаланушы атын енгізіңіз.",
-    "connectToJellyfinCardSubtitleScoped": "Jellyfin серверіне кіру. ${name} профиліне жалғануда.",
+    "connectToMediaBrowserCard": "",
+    "connectToMediaBrowserCardSubtitle": "",
+    "connectToMediaBrowserCardSubtitleScoped": "",
     "borrowFromAnotherProfile": "Басқа профильден алу",
     "borrowFromAnotherProfileSubtitle": "Басқа профильдің қосылымын қайта пайдалану."
   }

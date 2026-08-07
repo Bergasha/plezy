@@ -182,6 +182,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
     required SettingsService settingsService,
     required double? preKnownFps,
     required bool hasVideoUrl,
+    required bool isTranscoding,
     required Future<void> Function() ensureAudioFocus,
     int preKnownWidth = 0,
     int preKnownHeight = 0,
@@ -192,6 +193,20 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
     // the two Android backends: mpv needs its decoder refreshed after a
     // display switch (pre-load path), ExoPlayer switches pre-open instead.
     final isAndroidMpv = currentPlayer.needsDecoderRefreshAfterDisplaySwitch;
+
+    // Independent of matchContentFrameRate: ExoPlayer needs the rate even when the
+    // display never switches, because it also decides whether video tunneling is
+    // safe for this item. Neither the Matroska nor the MP4 extractor populates
+    // Format.frameRate, and a tunneled session renders no frames back for the
+    // native FPS detector, so metadata is the only source.
+    //
+    // Source-side only, like _primeDisplayCriteria: a transcode's metadata rate
+    // describes the original file, not what the server is about to send. "0" clears
+    // a stale rate carried over from the previous item.
+    if (Platform.isAndroid && !isAndroidMpv) {
+      final directPlayFps = isTranscoding ? null : preKnownFps;
+      await currentPlayer.setProperty('content-frame-rate', (directPlayFps ?? 0).toString());
+    }
     final needsMpvPreLoad = willAutoSwitch && isAndroidMpv && hasVideoUrl;
     final needsExoPreOpen = willAutoSwitch && !isAndroidMpv && hasVideoUrl;
     plan.needsPostOpenSwitch = willAutoSwitch && !needsMpvPreLoad && !needsExoPreOpen;
@@ -351,6 +366,16 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
     final trackManager = _trackManager;
     if (trackManager == null) return;
     appLogger.d('Frame rate matching: resuming playback after $reason');
+    if (!automotivePlaybackAllowedNow()) {
+      // The vehicle outranks the startup gate: releasing the frame-rate gate is not permission to
+      // play. Subtitle selection still has to land, or the track stays stuck waiting for it.
+      _playbackIntentShouldPlay = false;
+      if (externalSubtitlePlan.requiresPostOpenAdd) {
+        trackManager.waitingForExternalSubsTrackSelection = false;
+        trackManager.applyTrackSelectionWhenReady();
+      }
+      return;
+    }
     _playbackIntentShouldPlay = true;
     if (externalSubtitlePlan.requiresPostOpenAdd) {
       await trackManager.resumeAfterSubtitleLoad();
@@ -484,10 +509,14 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
           waitUntilReady: externalSubtitlePlan.readyAfterOpen,
         );
       } finally {
-        if (shouldResumeAfterSubtitleLoad()) {
+        // A car must not start playing just because subtitles finished loading: the vehicle's
+        // verdict outranks the caller's startup gate, and a skipped resume still has to release the
+        // subtitle-selection wait.
+        final resumeWanted = shouldResumeAfterSubtitleLoad();
+        if (resumeWanted && automotivePlaybackAllowedNow()) {
           _playbackIntentShouldPlay = true;
           await trackManager.resumeAfterSubtitleLoad();
-        } else if (applySelectionWhenResumeSkipped) {
+        } else if (applySelectionWhenResumeSkipped || resumeWanted) {
           trackManager.waitingForExternalSubsTrackSelection = false;
           trackManager.applyTrackSelectionWhenReady();
         }
@@ -613,7 +642,11 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
       onOpening?.call();
       return player.open(
         media,
-        play: shouldPlay,
+        // The last word on the vehicle, taken here because this is the only place media actually
+        // starts: callers decide `play` before awaiting resolve, tuning and track work, and a car
+        // that starts driving in between has already spent its restriction pausing the outgoing
+        // item. `DD-3` allows video no exemption, and the gated resume paths start it once parked.
+        play: shouldPlay && automotivePlaybackAllowedNow(),
         externalSubtitles: externalSubtitles,
         timelineDuration: timing.timelineDuration,
       );

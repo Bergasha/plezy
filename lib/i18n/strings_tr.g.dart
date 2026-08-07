@@ -115,7 +115,6 @@ class _Translations$auth$tr extends Translations$auth$en {
 	@override String get waitingForAuth => 'Doğrulama bekleniyor...\nTarayıcınızdan giriş yapın.';
 	@override String get useBrowser => 'Tarayıcı kullan';
 	@override String get or => 'veya';
-	@override String get connectToJellyfin => 'Jellyfin\'e Bağlan';
 	@override String get useQuickConnect => 'Hızlı Bağlantıyı Kullan';
 	@override String get quickConnectInstructions => 'Jellyfin\'de Hızlı Bağlantı\'yı açın ve bu kodu girin.';
 	@override String get quickConnectWaiting => 'Onay bekleniyor…';
@@ -550,8 +549,6 @@ class _Translations$mediaMenu$tr extends Translations$mediaMenu$en {
 	@override String get shufflePlay => 'Karışık Oynat';
 	@override String get shuffleNotAvailableOffline => 'Karışık oynatma çevrimdışıyken kullanılamaz';
 	@override String get fileInfo => 'Dosya Bilgisi';
-	@override String get deleteFromServer => 'Sunucudan sil';
-	@override String get confirmDelete => 'Bu medya ve dosyaları sunucunuzdan silinsin mi?';
 	@override String get deleteMultipleWarning => 'Bu işlem tüm bölümleri ve dosyalarını içerir.';
 	@override String get mediaDeletedSuccessfully => 'Medya ögesi başarıyla silindi';
 	@override String get mediaFailedToDelete => 'Medya ögesi silinemedi';
@@ -882,6 +879,8 @@ class _Translations$profiles$tr extends Translations$profiles$en {
 	@override String get noConnectionsHint => 'Bağlantı yok — bu profili kullanmak için bir tane ekleyin.';
 	@override String get noConnections => 'Bağlantı yok';
 	@override String get plexHomeAccount => 'Plex Ev hesabı';
+	@override String plexAccountChip({required Object account}) => 'Plex hesabı: ${account}';
+	@override String plexAccountUserChip({required Object account, required Object user}) => '${account} hesabı üzerinden ${user}';
 	@override String get connectionDefault => 'Varsayılan';
 	@override String connectionAs({required Object displayName}) => '${displayName} olarak';
 	@override String get makeDefault => 'Varsayılan yap';
@@ -922,8 +921,6 @@ class _Translations$connections$tr extends Translations$connections$en {
 	@override String sessionExpiredOne({required Object name}) => '${name} için oturum süresi doldu';
 	@override String sessionExpiredMany({required Object count}) => '${count} sunucu için oturum süresi doldu';
 	@override String get signInAgain => 'Tekrar giriş yap';
-	@override String get editJellyfinTitle => 'Jellyfin bağlantısını düzenle';
-	@override String editJellyfinIntro({required Object serverName}) => '${serverName} için URL\'ler ekleyin veya kaldırın. Plezy, en düşük gecikmeye sahip ulaşılabilir URL\'yi kullanacaktır.';
 }
 
 // Path: discover
@@ -1531,7 +1528,6 @@ class _Translations$videoSettings$tr extends Translations$videoSettings$en {
 	@override String get hdr => 'HDR';
 	@override String get audioOutput => 'Ses Çıkışı';
 	@override String get performanceOverlay => 'Performans Katmanı';
-	@override String get audioPassthrough => 'Ses Doğrudan Geçişi';
 	@override String get audioOutputDolbyAtmos => 'Dolby Atmos';
 	@override String get audioOutputDolbyAudio => 'Dolby Audio';
 	@override String get audioOutputSurround => 'Çevreleyen Ses';
@@ -1814,12 +1810,9 @@ class _Translations$addServer$tr extends Translations$addServer$en {
 	final TranslationsTr _root; // ignore: unused_field
 
 	// Translations
-	@override String get addJellyfinTitle => 'Jellyfin sunucusu ekle';
 	@override String get serverUrls => 'Sunucu URL\'leri';
 	@override String get serverUrlsHelper => 'Virgülle ayrılmış birden fazla URL\'ye izin verilir.';
 	@override String get findServer => 'Sunucu bul';
-	@override String get searchingLocalServers => 'Yerel Jellyfin sunucuları aranıyor...';
-	@override String get localServers => 'Yerel Jellyfin sunucuları';
 	@override String get username => 'Kullanıcı adı';
 	@override String get password => 'Şifre';
 	@override String get signIn => 'Giriş Yap';
@@ -1831,15 +1824,11 @@ class _Translations$addServer$tr extends Translations$addServer$en {
 	@override String get addPlexTitle => 'Plex ile Giriş Yap';
 	@override String get pinExpired => 'Giriş yapmadan önce PIN süresi doldu. Lütfen tekrar deneyin.';
 	@override String failedToRegisterAccount({required Object error}) => 'Hesap kaydı başarısız oldu: ${error}';
-	@override String get enterJellyfinUrlError => 'Jellyfin sunucu URL\'nizi girin';
 	@override String get addConnectionTitle => 'Bağlantı ekle';
 	@override String addConnectionTitleScoped({required Object name}) => '${name} profiline ekle';
 	@override String get signInWithPlexCard => 'Plex ile Giriş Yap';
 	@override String get signInWithPlexCardSubtitle => 'Bu cihazı yetkilendirin. Paylaşılan sunucular eklenir.';
 	@override String get signInWithPlexCardSubtitleScoped => 'Bir Plex hesabını yetkilendirin. Ev kullanıcıları profile dönüşür.';
-	@override String get connectToJellyfinCard => 'Jellyfin\'e Bağlan';
-	@override String get connectToJellyfinCardSubtitle => 'Sunucu URL\'nizi, kullanıcı adınızı ve şifrenizi girin.';
-	@override String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Bir Jellyfin sunucusuna giriş yapın. ${name} profiline bağlanır.';
 	@override String get borrowFromAnotherProfile => 'Başka bir profilden ödünç al';
 	@override String get borrowFromAnotherProfileSubtitle => 'Başka bir profilin bağlantısını yeniden kullanın. PIN korumalı profiller bir PIN gerektirir.';
 }
@@ -2219,7 +2208,6 @@ extension on TranslationsTr {
 			'auth.waitingForAuth' => 'Doğrulama bekleniyor...\nTarayıcınızdan giriş yapın.',
 			'auth.useBrowser' => 'Tarayıcı kullan',
 			'auth.or' => 'veya',
-			'auth.connectToJellyfin' => 'Jellyfin\'e Bağlan',
 			'auth.useQuickConnect' => 'Hızlı Bağlantıyı Kullan',
 			'auth.quickConnectInstructions' => 'Jellyfin\'de Hızlı Bağlantı\'yı açın ve bu kodu girin.',
 			'auth.quickConnectWaiting' => 'Onay bekleniyor…',
@@ -2606,8 +2594,6 @@ extension on TranslationsTr {
 			'mediaMenu.shufflePlay' => 'Karışık Oynat',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Karışık oynatma çevrimdışıyken kullanılamaz',
 			'mediaMenu.fileInfo' => 'Dosya Bilgisi',
-			'mediaMenu.deleteFromServer' => 'Sunucudan sil',
-			'mediaMenu.confirmDelete' => 'Bu medya ve dosyaları sunucunuzdan silinsin mi?',
 			'mediaMenu.deleteMultipleWarning' => 'Bu işlem tüm bölümleri ve dosyalarını içerir.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Medya ögesi başarıyla silindi',
 			'mediaMenu.mediaFailedToDelete' => 'Medya ögesi silinemedi',
@@ -2722,11 +2708,11 @@ extension on TranslationsTr {
 			'videoControls.noChaptersAvailable' => 'Kısım bulunmuyor',
 			'videoControls.queue' => 'Kuyruk',
 			'videoControls.noQueueItems' => 'Kuyrukta öge yok',
-			_ => null,
-		} ?? switch (path) {
 			'videoControls.searchSubtitles' => 'Altyazı Ara',
 			'videoControls.language' => 'Dil',
 			'videoControls.noSubtitlesFound' => 'Altyazı bulunamadı',
+			_ => null,
+		} ?? switch (path) {
 			'videoControls.subtitleDownloaded' => 'Altyazı indirildi',
 			'videoControls.subtitleDownloadedNotApplied' => 'Altyazı indirildi ancak seçilemedi',
 			'videoControls.subtitleDownloadFailed' => 'Altyazı indirilemedi',
@@ -2853,6 +2839,8 @@ extension on TranslationsTr {
 			'profiles.noConnectionsHint' => 'Bağlantı yok — bu profili kullanmak için bir tane ekleyin.',
 			'profiles.noConnections' => 'Bağlantı yok',
 			'profiles.plexHomeAccount' => 'Plex Ev hesabı',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Plex hesabı: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object account, required Object user}) => '${account} hesabı üzerinden ${user}',
 			'profiles.connectionDefault' => 'Varsayılan',
 			'profiles.connectionAs' => ({required Object displayName}) => '${displayName} olarak',
 			'profiles.makeDefault' => 'Varsayılan yap',
@@ -2884,8 +2872,6 @@ extension on TranslationsTr {
 			'connections.sessionExpiredOne' => ({required Object name}) => '${name} için oturum süresi doldu',
 			'connections.sessionExpiredMany' => ({required Object count}) => '${count} sunucu için oturum süresi doldu',
 			'connections.signInAgain' => 'Tekrar giriş yap',
-			'connections.editJellyfinTitle' => 'Jellyfin bağlantısını düzenle',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => '${serverName} için URL\'ler ekleyin veya kaldırın. Plezy, en düşük gecikmeye sahip ulaşılabilir URL\'yi kullanacaktır.',
 			'discover.title' => 'Keşfet',
 			'discover.noContentAvailable' => 'İçerik bulunmuyor',
 			'discover.addMediaToLibraries' => 'Kitaplıklarınıza biraz medya ekleyin',
@@ -3236,11 +3222,11 @@ extension on TranslationsTr {
 			'watchTogether.enterCodeHint' => '5 karakterlik kodu girin',
 			'watchTogether.pasteFromClipboard' => 'Panodan yapıştır',
 			'watchTogether.pleaseEnterCode' => 'Lütfen bir oturum kodu girin',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.codeMustBe5Chars' => 'Oturum kodu 5 karakter olmalıdır',
 			'watchTogether.joinInstructions' => 'Katılmak için kurucunun oturum kodunu girin.',
 			'watchTogether.failedToCreate' => 'Oturum oluşturulamadı',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.failedToJoin' => 'Oturuma katılınamadı',
 			'watchTogether.sessionCodeCopied' => 'Oturum kodu panoya kopyalandı',
 			'watchTogether.relayUnreachable' => 'Aktarıcı sunucusuna ulaşılamıyor. İSS engellemesi Birlikte İzle\'yi önleyebilir.',
@@ -3453,7 +3439,6 @@ extension on TranslationsTr {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => 'Ses Çıkışı',
 			'videoSettings.performanceOverlay' => 'Performans Katmanı',
-			'videoSettings.audioPassthrough' => 'Ses Doğrudan Geçişi',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => 'Çevreleyen Ses',
@@ -3678,12 +3663,9 @@ extension on TranslationsTr {
 			'services.libraryFilter.modeHintWhitelist' => 'Yalnızca aşağıda işaretlenen kitaplıkları eşitle.',
 			'services.libraryFilter.libraries' => 'Kitaplıklar',
 			'services.libraryFilter.noLibraries' => 'Kitaplık bulunmuyor',
-			'addServer.addJellyfinTitle' => 'Jellyfin sunucusu ekle',
 			'addServer.serverUrls' => 'Sunucu URL\'leri',
 			'addServer.serverUrlsHelper' => 'Virgülle ayrılmış birden fazla URL\'ye izin verilir.',
 			'addServer.findServer' => 'Sunucu bul',
-			'addServer.searchingLocalServers' => 'Yerel Jellyfin sunucuları aranıyor...',
-			'addServer.localServers' => 'Yerel Jellyfin sunucuları',
 			'addServer.username' => 'Kullanıcı adı',
 			'addServer.password' => 'Şifre',
 			'addServer.signIn' => 'Giriş Yap',
@@ -3695,15 +3677,11 @@ extension on TranslationsTr {
 			'addServer.addPlexTitle' => 'Plex ile Giriş Yap',
 			'addServer.pinExpired' => 'Giriş yapmadan önce PIN süresi doldu. Lütfen tekrar deneyin.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => 'Hesap kaydı başarısız oldu: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Jellyfin sunucu URL\'nizi girin',
 			'addServer.addConnectionTitle' => 'Bağlantı ekle',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => '${name} profiline ekle',
 			'addServer.signInWithPlexCard' => 'Plex ile Giriş Yap',
 			'addServer.signInWithPlexCardSubtitle' => 'Bu cihazı yetkilendirin. Paylaşılan sunucular eklenir.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Bir Plex hesabını yetkilendirin. Ev kullanıcıları profile dönüşür.',
-			'addServer.connectToJellyfinCard' => 'Jellyfin\'e Bağlan',
-			'addServer.connectToJellyfinCardSubtitle' => 'Sunucu URL\'nizi, kullanıcı adınızı ve şifrenizi girin.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Bir Jellyfin sunucusuna giriş yapın. ${name} profiline bağlanır.',
 			'addServer.borrowFromAnotherProfile' => 'Başka bir profilden ödünç al',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Başka bir profilin bağlantısını yeniden kullanın. PIN korumalı profiller bir PIN gerektirir.',
 			_ => null,

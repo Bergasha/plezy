@@ -61,9 +61,16 @@ class ExoPlayerPlugin :
     val headers: Map<String, String>?,
     val startPositionMs: Long,
     val hasStartPosition: Boolean,
-    val autoPlay: Boolean,
+    /**
+     * Whether to start playing once open. Mutable because a play or pause arriving while this
+     * request is queued behind a backend handover has no player to reach — the outgoing core is
+     * being disposed and the replacement does not exist yet — so the latest intent is recorded here
+     * instead. Without that, a pause the caller was told succeeded is silently undone by the open.
+     */
+    var autoPlay: Boolean,
     val isLive: Boolean,
     val externalSubtitles: List<Map<String, Any?>>?,
+    val contentFrameRate: Float,
     private val result: MethodChannel.Result?
   ) {
     private val completed = AtomicBoolean(false)
@@ -319,6 +326,14 @@ class ExoPlayerPlugin :
         fallbackInProgress = false
       }
 
+      // An initialize without an intervening dispose would otherwise orphan the previous core
+      // along with its ExoPlayer, audio sink, codecs and surface views — nothing else holds a
+      // reference, so they would never be released.
+      playerCore?.let { stale ->
+        playerCore = null
+        stale.dispose()
+      }
+
       try {
         val core = ExoPlayerCore(currentActivity).apply {
           delegate = this@ExoPlayerPlugin
@@ -371,6 +386,8 @@ class ExoPlayerPlugin :
     val autoPlay = call.argument<Boolean>("autoPlay") ?: true
     val isLive = call.argument<Boolean>("isLive") ?: false
     val externalSubtitles = call.argument<List<Map<String, Any?>>>("externalSubtitles")
+    // Server-reported frame rate for this item; -1 when the metadata did not carry one.
+    val contentFrameRate = call.argument<Number>("contentFrameRate")?.toFloat() ?: -1f
 
     if (uri == null) {
       result.error("INVALID_ARGS", "Missing 'uri'", null)
@@ -391,6 +408,7 @@ class ExoPlayerPlugin :
       autoPlay = autoPlay,
       isLive = isLive,
       externalSubtitles = externalSubtitles?.map { it.toMap() },
+      contentFrameRate = contentFrameRate,
       result = result
     )
     terminalEventGeneration = null
@@ -450,7 +468,8 @@ class ExoPlayerPlugin :
         autoPlay = autoPlay,
         mediaGeneration = request.mediaGeneration,
         isLive = isLive,
-        externalSubtitleList = request.externalSubtitles
+        externalSubtitleList = request.externalSubtitles,
+        contentFrameRate = request.contentFrameRate
       )
       request.success()
     }
@@ -811,6 +830,9 @@ class ExoPlayerPlugin :
   }
 
   private fun handlePlay(result: MethodChannel.Result) {
+    // A backend handover leaves nothing to command: record the intent on the queued open instead,
+    // so the replacement starts the way the caller last asked.
+    pendingOpen?.autoPlay = true
     if (usingMpvFallback) {
       handleFallbackMpvProperty("pause", "no", result)
       return
@@ -822,6 +844,10 @@ class ExoPlayerPlugin :
   }
 
   private fun handlePause(result: MethodChannel.Result) {
+    // See handlePlay. This direction matters more: the caller is told the pause succeeded, and a
+    // queued open that still carried autoPlay would start playing anyway — on a car, that is
+    // playback after the vehicle said no.
+    pendingOpen?.autoPlay = false
     if (usingMpvFallback) {
       handleFallbackMpvProperty("pause", "yes", result)
       return
@@ -1386,6 +1412,8 @@ class ExoPlayerPlugin :
       autoPlay = playWhenReady,
       isLive = false,
       externalSubtitles = currentExternalSubtitles?.map { it.toMap() },
+      // The mpv fallback core paces frames itself; the rate only gates ExoPlayer tunneling.
+      contentFrameRate = -1f,
       result = null
     )
     fallbackInProgress = true

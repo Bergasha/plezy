@@ -11,7 +11,7 @@
     "waitingForAuth": "Doğrulama bekleniyor...\nTarayıcınızdan giriş yapın.",
     "useBrowser": "Tarayıcı kullan",
     "or": "veya",
-    "connectToJellyfin": "Jellyfin'e Bağlan",
+    "connectToMediaBrowser": "",
     "useQuickConnect": "Hızlı Bağlantıyı Kullan",
     "quickConnectInstructions": "Jellyfin'de Hızlı Bağlantı'yı açın ve bu kodu girin.",
     "quickConnectWaiting": "Onay bekleniyor…",
@@ -518,9 +518,35 @@
     "shufflePlay": "Karışık Oynat",
     "shuffleNotAvailableOffline": "Karışık oynatma çevrimdışıyken kullanılamaz",
     "fileInfo": "Dosya Bilgisi",
-    "deleteFromServer": "Sunucudan sil",
-    "confirmDelete": "Bu medya ve dosyaları sunucunuzdan silinsin mi?",
+    "deleteEpisodeFromServer": "",
+    "deleteSeasonFromServer": "",
+    "deleteShowFromServer": "",
+    "deleteMovieFromServer": "",
+    "deleteEpisodeTitle": "",
+    "deleteSeasonTitle": "",
+    "deleteShowTitle": "",
+    "deleteMovieTitle": "",
+    "deleteEpisodeConfirm": "",
+    "deleteSeasonConfirm": "",
+    "deleteShowConfirm": "",
+    "deleteMovieConfirm": "",
+    "deleteAnyway": "",
+    "confirmDeleteTarget": "",
     "deleteMultipleWarning": "Bu işlem tüm bölümleri ve dosyalarını içerir.",
+    "deleteEpisodeCountWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteMultiPartWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteSharedFileHeading": {
+      "one": "",
+      "other": ""
+    },
+    "deleteScopeUnverifiedProbeFailed": "",
+    "deleteScopeUnverifiedNoFileInfo": "",
     "mediaDeletedSuccessfully": "Medya ögesi başarıyla silindi",
     "mediaFailedToDelete": "Medya ögesi silinemedi",
     "rate": "Oyla",
@@ -794,6 +820,8 @@
     "noConnectionsHint": "Bağlantı yok — bu profili kullanmak için bir tane ekleyin.",
     "noConnections": "Bağlantı yok",
     "plexHomeAccount": "Plex Ev hesabı",
+    "plexAccountChip": "Plex hesabı: ${account}",
+    "plexAccountUserChip": "${account} hesabı üzerinden ${user}",
     "connectionDefault": "Varsayılan",
     "connectionAs": "${displayName} olarak",
     "makeDefault": "Varsayılan yap",
@@ -827,8 +855,8 @@
     "sessionExpiredOne": "${name} için oturum süresi doldu",
     "sessionExpiredMany": "${count} sunucu için oturum süresi doldu",
     "signInAgain": "Tekrar giriş yap",
-    "editJellyfinTitle": "Jellyfin bağlantısını düzenle",
-    "editJellyfinIntro": "${serverName} için URL'ler ekleyin veya kaldırın. Plezy, en düşük gecikmeye sahip ulaşılabilir URL'yi kullanacaktır."
+    "editMediaBrowserTitle": "",
+    "editMediaBrowserIntro": ""
   },
   "discover": {
     "title": "Keşfet",
@@ -1622,7 +1650,6 @@
     "hdr": "HDR",
     "audioOutput": "Ses Çıkışı",
     "performanceOverlay": "Performans Katmanı",
-    "audioPassthrough": "Ses Doğrudan Geçişi",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Çevreleyen Ses",
@@ -1840,7 +1867,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": ""
     },
     "deviceCode": {
       "title": "Plezy'yi ${service} üzerinde etkinleştirin",
@@ -1873,12 +1901,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Jellyfin sunucusu ekle",
+    "addMediaBrowserTitle": "",
     "serverUrls": "Sunucu URL'leri",
     "serverUrlsHelper": "Virgülle ayrılmış birden fazla URL'ye izin verilir.",
     "findServer": "Sunucu bul",
-    "searchingLocalServers": "Yerel Jellyfin sunucuları aranıyor...",
-    "localServers": "Yerel Jellyfin sunucuları",
+    "searchingLocalMediaBrowserServers": "",
+    "localMediaBrowserServers": "",
     "username": "Kullanıcı adı",
     "password": "Şifre",
     "signIn": "Giriş Yap",
@@ -1890,15 +1918,15 @@
     "addPlexTitle": "Plex ile Giriş Yap",
     "pinExpired": "Giriş yapmadan önce PIN süresi doldu. Lütfen tekrar deneyin.",
     "failedToRegisterAccount": "Hesap kaydı başarısız oldu: ${error}",
-    "enterJellyfinUrlError": "Jellyfin sunucu URL'nizi girin",
+    "enterMediaBrowserUrlError": "",
     "addConnectionTitle": "Bağlantı ekle",
     "addConnectionTitleScoped": "${name} profiline ekle",
     "signInWithPlexCard": "Plex ile Giriş Yap",
     "signInWithPlexCardSubtitle": "Bu cihazı yetkilendirin. Paylaşılan sunucular eklenir.",
     "signInWithPlexCardSubtitleScoped": "Bir Plex hesabını yetkilendirin. Ev kullanıcıları profile dönüşür.",
-    "connectToJellyfinCard": "Jellyfin'e Bağlan",
-    "connectToJellyfinCardSubtitle": "Sunucu URL'nizi, kullanıcı adınızı ve şifrenizi girin.",
-    "connectToJellyfinCardSubtitleScoped": "Bir Jellyfin sunucusuna giriş yapın. ${name} profiline bağlanır.",
+    "connectToMediaBrowserCard": "",
+    "connectToMediaBrowserCardSubtitle": "",
+    "connectToMediaBrowserCardSubtitleScoped": "",
     "borrowFromAnotherProfile": "Başka bir profilden ödünç al",
     "borrowFromAnotherProfileSubtitle": "Başka bir profilin bağlantısını yeniden kullanın. PIN korumalı profiller bir PIN gerektirir."
   }

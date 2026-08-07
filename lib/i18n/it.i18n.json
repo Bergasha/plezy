@@ -11,7 +11,7 @@
     "waitingForAuth": "In attesa di autenticazione...\nAccedi dal browser.",
     "useBrowser": "Usa il browser",
     "or": "o",
-    "connectToJellyfin": "Connettiti a Jellyfin",
+    "connectToMediaBrowser": "",
     "useQuickConnect": "Usa Quick Connect",
     "quickConnectInstructions": "Apri Quick Connect in Jellyfin e inserisci questo codice.",
     "quickConnectWaiting": "In attesa di approvazione…",
@@ -518,9 +518,35 @@
     "shufflePlay": "Riproduzione casuale",
     "shuffleNotAvailableOffline": "Riproduzione casuale non disponibile offline",
     "fileInfo": "Info sul file",
-    "deleteFromServer": "Elimina dal server",
-    "confirmDelete": "Eliminare questo media e i suoi file dal server?",
+    "deleteEpisodeFromServer": "",
+    "deleteSeasonFromServer": "",
+    "deleteShowFromServer": "",
+    "deleteMovieFromServer": "",
+    "deleteEpisodeTitle": "",
+    "deleteSeasonTitle": "",
+    "deleteShowTitle": "",
+    "deleteMovieTitle": "",
+    "deleteEpisodeConfirm": "",
+    "deleteSeasonConfirm": "",
+    "deleteShowConfirm": "",
+    "deleteMovieConfirm": "",
+    "deleteAnyway": "",
+    "confirmDeleteTarget": "",
     "deleteMultipleWarning": "Sono inclusi tutti gli episodi e i relativi file.",
+    "deleteEpisodeCountWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteMultiPartWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteSharedFileHeading": {
+      "one": "",
+      "other": ""
+    },
+    "deleteScopeUnverifiedProbeFailed": "",
+    "deleteScopeUnverifiedNoFileInfo": "",
     "mediaDeletedSuccessfully": "Elemento multimediale eliminato correttamente",
     "mediaFailedToDelete": "Impossibile eliminare l'elemento multimediale",
     "rate": "Valuta",
@@ -794,6 +820,8 @@
     "noConnectionsHint": "Nessuna connessione — aggiungine una per usare questo profilo.",
     "noConnections": "Nessuna connessione",
     "plexHomeAccount": "Account Plex Home",
+    "plexAccountChip": "Account Plex: ${account}",
+    "plexAccountUserChip": "${user} tramite ${account}",
     "connectionDefault": "Predefinita",
     "connectionAs": "come ${displayName}",
     "makeDefault": "Imposta come predefinita",
@@ -827,8 +855,8 @@
     "sessionExpiredOne": "Sessione scaduta per ${name}",
     "sessionExpiredMany": "Sessione scaduta per ${count} server",
     "signInAgain": "Accedi di nuovo",
-    "editJellyfinTitle": "Modifica connessione Jellyfin",
-    "editJellyfinIntro": "Aggiungi o rimuovi URL per ${serverName}. Plezy userà l'URL raggiungibile con la latenza più bassa."
+    "editMediaBrowserTitle": "",
+    "editMediaBrowserIntro": ""
   },
   "discover": {
     "title": "Esplora",
@@ -1622,7 +1650,6 @@
     "hdr": "HDR",
     "audioOutput": "Uscita audio",
     "performanceOverlay": "Overlay prestazioni",
-    "audioPassthrough": "Passthrough audio",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Surround",
@@ -1840,7 +1867,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": ""
     },
     "deviceCode": {
       "title": "Attiva Plezy su ${service}",
@@ -1873,12 +1901,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Aggiungi server Jellyfin",
+    "addMediaBrowserTitle": "",
     "serverUrls": "URL del server",
     "serverUrlsHelper": "Sono consentiti più URL, separati da virgole.",
     "findServer": "Trova il server",
-    "searchingLocalServers": "Ricerca dei server Jellyfin locali...",
-    "localServers": "Server Jellyfin locali",
+    "searchingLocalMediaBrowserServers": "",
+    "localMediaBrowserServers": "",
     "username": "Nome utente",
     "password": "Password",
     "signIn": "Accedi",
@@ -1890,15 +1918,15 @@
     "addPlexTitle": "Accedi con Plex",
     "pinExpired": "PIN scaduto prima dell'accesso. Riprova.",
     "failedToRegisterAccount": "Registrazione account non riuscita: ${error}",
-    "enterJellyfinUrlError": "Inserisci l'URL del tuo server Jellyfin",
+    "enterMediaBrowserUrlError": "",
     "addConnectionTitle": "Aggiungi connessione",
     "addConnectionTitleScoped": "Aggiungi a ${name}",
     "signInWithPlexCard": "Accedi con Plex",
     "signInWithPlexCardSubtitle": "Autorizza questo dispositivo. I server condivisi vengono aggiunti.",
     "signInWithPlexCardSubtitleScoped": "Autorizza un account Plex. Gli utenti Home diventano profili.",
-    "connectToJellyfinCard": "Connettiti a Jellyfin",
-    "connectToJellyfinCardSubtitle": "Inserisci l'URL del server, il nome utente e la password.",
-    "connectToJellyfinCardSubtitleScoped": "Accedi a un server Jellyfin. Verrà associato a ${name}.",
+    "connectToMediaBrowserCard": "",
+    "connectToMediaBrowserCardSubtitle": "",
+    "connectToMediaBrowserCardSubtitleScoped": "",
     "borrowFromAnotherProfile": "Prendi in prestito da un altro profilo",
     "borrowFromAnotherProfileSubtitle": "Riutilizza la connessione di un altro profilo. I profili protetti da PIN richiedono un PIN."
   }
