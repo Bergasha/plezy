@@ -537,8 +537,14 @@ class HubSectionState extends State<HubSection> with MountedSetStateMixin, Skele
 
                     final containerHeight = posterHeight + (isTv ? 48 : 33);
                     final focusBorderWidth = FocusTheme.focusBorderWidth;
-                    final focusExtra = focusBorderWidth * 2; // border on both sides
-                    _itemExtent = cardWidth + focusExtra + 4;
+                    final focusExtra = focusBorderWidth * 2; // border on both sides, for container height only
+                    // Real per-item pitch in the list below: cardWidth plus its own
+                    // 2px+2px padding. The focus border is paint-only (see
+                    // CardFocusScope) and must not be folded in here — it would
+                    // overstate every preceding item's width, and the error compounds
+                    // with index until the precise post-frame correction in
+                    // _scrollToIndex has to visibly yank the scroll position back.
+                    _itemExtent = cardWidth + 4;
 
                     // Everything the card closures capture; a change flushes
                     // the memo so cached cards can't carry stale geometry.

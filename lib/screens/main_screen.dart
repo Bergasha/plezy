@@ -1266,13 +1266,35 @@ class _MainScreenState extends State<MainScreen>
     final lastBackPressAt = _lastBackPressAt;
     if (lastBackPressAt != null && now.difference(lastBackPressAt) < _backExitWindow) {
       _lastBackPressAt = null;
-      unawaited(AppExitService.requestExit());
+      unawaited(_exitFromBackGesture());
       return KeyEventResult.handled;
     }
 
     _lastBackPressAt = now;
     showMainSnackBar(t.common.pressBackAgainToExit, duration: _backExitWindow);
     return KeyEventResult.handled;
+  }
+
+  /// Exit from the press-back-twice gesture. `AppExitService.requestExit`
+  /// uses a `required` platform exit, which — unlike the graceful/cancelable
+  /// exit `_exitOnWindowClose` uses — skips Dart-side teardown entirely and
+  /// tells the native side to terminate immediately. On desktop that can
+  /// leave a just-torn-down native player surface (mpv's GPU-next/D3D11
+  /// context, WASAPI exclusive audio) mid-teardown, hanging the process with
+  /// a blank window instead of closing. Route desktop through the same
+  /// graceful-with-fallback path the window close button already uses;
+  /// other platforms keep the existing immediate-exit behavior.
+  Future<void> _exitFromBackGesture() async {
+    if (!PlatformDetector.isDesktopOS()) {
+      unawaited(AppExitService.requestExit());
+      return;
+    }
+    try {
+      await AppExitService.requestGracefulExit().timeout(const Duration(seconds: 5));
+    } catch (e, st) {
+      appLogger.w('Graceful exit from back gesture failed; exiting immediately', error: e, stackTrace: st);
+    }
+    exit(0);
   }
 
   KeyEventResult _handleMainBackKeyAction(KeyEvent event) {

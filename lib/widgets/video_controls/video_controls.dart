@@ -499,6 +499,12 @@ class PlexVideoControls extends StatefulWidget {
   /// completion flow so the auto-play-next setting is honored.
   final void Function({required bool skipAutoPlayCountdown})? onReachedEnd;
 
+  /// Called when the user manually presses Skip Credits at the very end of an
+  /// episode (credits extend to EOF). Parent should mark the episode watched
+  /// and exit back to the caller — Plex's behavior — instead of continuing
+  /// playback in place or showing the Play Next / Still Watching prompt.
+  final VoidCallback? onSkipCreditsExit;
+
   /// Whether the user can control playback (false in host-only mode for non-host).
   final bool canControl;
 
@@ -609,6 +615,7 @@ class PlexVideoControls extends StatefulWidget {
     this.onSeekCompleted,
     this.onBack,
     this.onReachedEnd,
+    this.onSkipCreditsExit,
     this.canControl = true,
     required this.canNavigateMediaItems,
     this.hasFirstFrame,
@@ -666,6 +673,7 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
   bool _showLockIcon = false; // Whether to show the lock overlay icon
   Timer? _lockIconTimer;
   bool get _clickVideoTogglesPlayback => _settings.read(SettingsService.clickVideoTogglesPlayback);
+  bool get _showControlsOnMouseMove => _settings.read(SettingsService.showControlsOnMouseMove);
   bool get _showChapterMarkersOnTimeline => _settings.read(SettingsService.showChapterMarkersOnTimeline);
   int _trafficLightVisibilityGeneration = 0;
 
@@ -1042,7 +1050,9 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
             onPointerSignal: _handlePointerSignal,
             onPointerPanZoomStart: (_) => _cancelAutoSkipFromUserInteraction(),
             child: MouseRegion(
-              onHover: (_) => _showControlsFromPointerActivity(),
+              onHover: (_) {
+                if (_showControlsOnMouseMove) _showControlsFromPointerActivity();
+              },
               child: Stack(
                 children: [
                   // Keep-alive for Linux's idle GTK frame clock; inert on every

@@ -247,6 +247,13 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
           title: t.settings.clickVideoTogglesPlayback,
           subtitle: t.settings.clickVideoTogglesPlaybackDescription,
         ),
+      if (!isMobile)
+        SettingSwitchTile(
+          pref: SettingsService.showControlsOnMouseMove,
+          icon: Symbols.mouse_rounded,
+          title: t.settings.showControlsOnMouseMove,
+          subtitle: t.settings.showControlsOnMouseMoveDescription,
+        ),
     ],
   );
 

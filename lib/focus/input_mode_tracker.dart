@@ -71,20 +71,21 @@ class _InputModeTrackerState extends State<InputModeTracker> {
     // Listen to hardware keyboard events globally
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
 
-    // Register callback for gamepad input to switch to keyboard mode
-    GamepadService.onGamepadInput = () => _setMode(InputMode.keyboard);
-
-    // Register callback for companion remote input to switch to keyboard mode
-    CompanionRemoteReceiver.onRemoteInput = () => _setMode(InputMode.keyboard);
+    // Register listeners for gamepad / companion remote input to switch to
+    // keyboard mode.
+    GamepadService.addGamepadInputListener(_handleExternalInput);
+    CompanionRemoteReceiver.addRemoteInputListener(_handleExternalInput);
   }
 
   @override
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
-    GamepadService.onGamepadInput = null;
-    CompanionRemoteReceiver.onRemoteInput = null;
+    GamepadService.removeGamepadInputListener(_handleExternalInput);
+    CompanionRemoteReceiver.removeRemoteInputListener(_handleExternalInput);
     super.dispose();
   }
+
+  void _handleExternalInput() => _setMode(InputMode.keyboard);
 
   bool _handleKeyEvent(KeyEvent event) {
     // Track back key press state for automatic suppression of stray KeyUp

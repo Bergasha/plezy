@@ -155,9 +155,24 @@ class GamepadService with WindowListener {
   StreamSubscription<GamepadEvent>? _subscription;
   final GamepadDuplicateInputGuard _duplicateInputGuard;
 
-  /// Callback to switch InputModeTracker to keyboard mode.
-  /// Set by InputModeTracker when it initializes.
-  static VoidCallback? onGamepadInput;
+  /// Notified on every gamepad button press or significant axis movement.
+  /// A listener list (not a single settable callback) so independent
+  /// consumers — InputModeTracker, idle-activity tracking — can coexist
+  /// without clobbering each other's registration.
+  static final List<VoidCallback> _gamepadInputListeners = [];
+
+  static void addGamepadInputListener(VoidCallback listener) => _gamepadInputListeners.add(listener);
+
+  static void removeGamepadInputListener(VoidCallback listener) => _gamepadInputListeners.remove(listener);
+
+  static void _notifyGamepadInput() {
+    for (final listener in List<VoidCallback>.of(_gamepadInputListeners)) {
+      listener();
+    }
+  }
+
+  @visibleForTesting
+  static void debugNotifyGamepadInput() => _notifyGamepadInput();
 
   static final Map<Object, ({VoidCallback previous, VoidCallback next, bool Function() isActive})>
   _tabNavigationHandlers = {};
@@ -403,7 +418,7 @@ class GamepadService with WindowListener {
 
     // Switch to keyboard mode on any button press
     if (event.pressed) {
-      onGamepadInput?.call();
+      _notifyGamepadInput();
       _setTraditionalFocusHighlight();
     }
     // Ensure a frame is scheduled so addPostFrameCallback-based key
@@ -506,7 +521,7 @@ class GamepadService with WindowListener {
     // Switch to keyboard mode on significant axis input. Navigation itself
     // schedules frames only when the stick crosses the real deadzone.
     if (event.value.abs() > 0.3) {
-      onGamepadInput?.call();
+      _notifyGamepadInput();
       _setTraditionalFocusHighlight();
     }
 

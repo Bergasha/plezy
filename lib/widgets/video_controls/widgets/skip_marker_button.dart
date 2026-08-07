@@ -9,8 +9,6 @@ import '../../app_icon.dart';
 
 class SkipMarkerButton extends StatelessWidget {
   final MediaMarker marker;
-  final Duration playerDuration;
-  final bool hasNextEpisode;
   final bool isAutoSkipActive;
   final bool shouldShowAutoSkip;
   final int autoSkipDelay;
@@ -22,8 +20,6 @@ class SkipMarkerButton extends StatelessWidget {
   const SkipMarkerButton({
     super.key,
     required this.marker,
-    required this.playerDuration,
-    required this.hasNextEpisode,
     required this.isAutoSkipActive,
     required this.shouldShowAutoSkip,
     required this.autoSkipDelay,
@@ -36,17 +32,7 @@ class SkipMarkerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCredits = marker.isCredits;
-    final creditsAtEnd =
-        isCredits && playerDuration > Duration.zero && (playerDuration - marker.endTime).inMilliseconds <= 1000;
-    final showNextEpisode = creditsAtEnd && hasNextEpisode;
-    String baseButtonText;
-    if (showNextEpisode) {
-      baseButtonText = 'Next Episode';
-    } else if (isCredits) {
-      baseButtonText = 'Skip Credits';
-    } else {
-      baseButtonText = 'Skip Intro';
-    }
+    final baseButtonText = isCredits ? 'Skip Credits' : 'Skip Intro';
 
     final remainingSeconds = isAutoSkipActive && shouldShowAutoSkip
         ? (autoSkipDelay - (autoSkipProgress * autoSkipDelay)).ceil().clamp(0, autoSkipDelay)
@@ -56,7 +42,7 @@ class SkipMarkerButton extends StatelessWidget {
     final buttonText = showAutoSkipCountdown && remainingSeconds > 0
         ? '$baseButtonText ($remainingSeconds)'
         : baseButtonText;
-    final buttonIcon = showNextEpisode ? Symbols.skip_next_rounded : Symbols.fast_forward_rounded;
+    const buttonIcon = Symbols.fast_forward_rounded;
 
     return FocusableWrapper(
       focusNode: focusNode,

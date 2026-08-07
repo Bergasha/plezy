@@ -107,6 +107,8 @@ class AppearanceSettingsScreen extends StatelessWidget {
           ],
         ),
 
+        _screensaverGroup(),
+
         SettingsGroup(
           title: t.settings.navigation,
           children: [
@@ -320,6 +322,35 @@ class AppearanceSettingsScreen extends StatelessWidget {
       ButtonSegment(value: ContinueWatchingAction.play, label: Text(t.settings.continueWatchingPlay)),
       ButtonSegment(value: ContinueWatchingAction.details, label: Text(t.settings.continueWatchingDetails)),
     ],
+  );
+
+  Widget _screensaverGroup() => SettingsBuilder(
+    prefs: const [SettingsService.screensaverEnabled],
+    builder: (_) {
+      final enabled = SettingsService.instance.read(SettingsService.screensaverEnabled);
+      return SettingsGroup(
+        title: t.settings.screensaver,
+        children: [
+          SettingSwitchTile(
+            pref: SettingsService.screensaverEnabled,
+            icon: Symbols.wallpaper_rounded,
+            title: t.settings.screensaverEnabled,
+            subtitle: t.settings.screensaverEnabledDescription,
+          ),
+          if (enabled)
+            SettingNumberTile(
+              pref: SettingsService.screensaverIdleMinutes,
+              icon: Symbols.timer_rounded,
+              title: t.settings.screensaverIdleTimeout,
+              subtitleBuilder: (v) => t.settings.minutesUnit(minutes: v.toString()),
+              labelText: t.settings.minutesLabel,
+              suffixText: t.settings.minutesShort,
+              min: 1,
+              max: 60,
+            ),
+        ],
+      );
+    },
   );
 
   Widget _episodeActionSelector() => SettingSegmentedTile<EpisodeAction>(

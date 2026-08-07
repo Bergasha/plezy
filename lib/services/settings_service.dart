@@ -320,6 +320,8 @@ class SettingsService extends BaseSharedPreferencesService {
   static const seekTimeLarge = IntPref('seek_time_large', defaultValue: 30);
   static const rewindOnResume = IntPref('rewind_on_resume');
   static const showHeroSection = BoolPref('show_hero_section', defaultValue: true);
+  static const screensaverEnabled = BoolPref('screensaver_enabled');
+  static const screensaverIdleMinutes = IntPref('screensaver_idle_minutes', defaultValue: 5);
   static const tvFullCardLayout = BoolPref('tv_full_card_layout', defaultValue: false);
   static const focusGlow = BoolPref('focus_glow', defaultValue: true);
   static const useGlobalHubs = BoolPref('use_global_hubs', defaultValue: true);
@@ -357,6 +359,7 @@ class SettingsService extends BaseSharedPreferencesService {
   static const followServerTrackSelections = BoolPref('follow_server_track_selections');
   static const showChapterMarkersOnTimeline = BoolPref('show_chapter_markers_on_timeline', defaultValue: true);
   static const clickVideoTogglesPlayback = BoolPref('click_video_toggles_playback');
+  static const showControlsOnMouseMove = BoolPref('show_controls_on_mouse_move', defaultValue: true);
   static const autoSkipIntro = BoolPref('auto_skip_intro');
   static const autoSkipCredits = BoolPref('auto_skip_credits');
   static const forceSkipMarkerFallback = BoolPref('force_skip_marker_fallback');
@@ -934,6 +937,9 @@ class SettingsService extends BaseSharedPreferencesService {
     subtitleItalic,
     showChapterMarkersOnTimeline,
     clickVideoTogglesPlayback,
+    showControlsOnMouseMove,
+    screensaverEnabled,
+    screensaverIdleMinutes,
     autoSkipIntro,
     autoSkipCredits,
     forceSkipMarkerFallback,

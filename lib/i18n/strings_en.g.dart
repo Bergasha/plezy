@@ -640,6 +640,12 @@ class Translations$settings$en {
 	/// en: 'Click video to play/pause instead of showing controls.'
 	String get clickVideoTogglesPlaybackDescription => 'Click video to play/pause instead of showing controls.';
 
+	/// en: 'Show controls on mouse movement'
+	String get showControlsOnMouseMove => 'Show controls on mouse movement';
+
+	/// en: 'Turn off to keep controls hidden while the mouse moves over the video; they still appear on click, scroll, or keyboard input.'
+	String get showControlsOnMouseMoveDescription => 'Turn off to keep controls hidden while the mouse moves over the video; they still appear on click, scroll, or keyboard input.';
+
 	/// en: 'Video Player Controls'
 	String get videoPlayerControls => 'Video Player Controls';
 
@@ -1173,6 +1179,21 @@ class Translations$settings$en {
 
 	/// en: 'Home Screen'
 	String get homeScreen => 'Home Screen';
+
+	/// en: 'Screensaver'
+	String get screensaver => 'Screensaver';
+
+	/// en: 'Enable screensaver'
+	String get screensaverEnabled => 'Enable screensaver';
+
+	/// en: 'Show cycling backdrop art after a period of inactivity'
+	String get screensaverEnabledDescription => 'Show cycling backdrop art after a period of inactivity';
+
+	/// en: 'Start after'
+	String get screensaverIdleTimeout => 'Start after';
+
+	/// en: 'How long to wait for inactivity before the screensaver starts'
+	String get screensaverIdleTimeoutDescription => 'How long to wait for inactivity before the screensaver starts';
 
 	/// en: 'Navigation'
 	String get navigation => 'Navigation';
@@ -6294,6 +6315,8 @@ extension on Translations {
 			'settings.showChapterMarkersOnTimelineDescription' => 'Segment the seek bar at chapter boundaries',
 			'settings.clickVideoTogglesPlayback' => 'Click on video to toggle play/pause',
 			'settings.clickVideoTogglesPlaybackDescription' => 'Click video to play/pause instead of showing controls.',
+			'settings.showControlsOnMouseMove' => 'Show controls on mouse movement',
+			'settings.showControlsOnMouseMoveDescription' => 'Turn off to keep controls hidden while the mouse moves over the video; they still appear on click, scroll, or keyboard input.',
 			'settings.videoPlayerControls' => 'Video Player Controls',
 			'settings.keyboardShortcuts' => 'Keyboard Shortcuts',
 			'settings.keyboardShortcutsDescription' => 'Customize keyboard shortcuts',
@@ -6472,6 +6495,11 @@ extension on Translations {
 			'settings.liveTvDefaultFavoritesDescription' => 'Show only favorite channels when opening Live TV',
 			'settings.display' => 'Display',
 			'settings.homeScreen' => 'Home Screen',
+			'settings.screensaver' => 'Screensaver',
+			'settings.screensaverEnabled' => 'Enable screensaver',
+			'settings.screensaverEnabledDescription' => 'Show cycling backdrop art after a period of inactivity',
+			'settings.screensaverIdleTimeout' => 'Start after',
+			'settings.screensaverIdleTimeoutDescription' => 'How long to wait for inactivity before the screensaver starts',
 			'settings.navigation' => 'Navigation',
 			'settings.window' => 'Window',
 			'settings.content' => 'Content',
@@ -6624,6 +6652,8 @@ extension on Translations {
 			'fileInfo.subtitlesOff' => 'Off',
 			'fileInfo.flagDefault' => 'Default',
 			'fileInfo.flagForced' => 'Forced',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.flagSelected' => 'Selected',
 			'fileInfo.flagExternal' => 'External',
 			'fileInfo.flagHearingImpaired' => 'Hearing impaired',
@@ -6631,8 +6661,6 @@ extension on Translations {
 			'fileInfo.flagOriginal' => 'Original',
 			'mediaMenu.markAsWatched' => 'Mark as Watched',
 			'mediaMenu.markAsUnwatched' => 'Mark as Unwatched',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.removeFromContinueWatching' => 'Remove from Continue Watching',
 			'mediaMenu.viewDetails' => 'View details',
 			'mediaMenu.goToSeries' => 'Go to series',
@@ -7138,6 +7166,8 @@ extension on Translations {
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} trending',
 			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} in ${season}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n} watching',
+			_ => null,
+		} ?? switch (path) {
 			'explore.badge.available' => 'Available',
 			'explore.badge.partiallyAvailable' => 'Partly available',
 			'explore.badge.availableIn4k' => '4K available',
@@ -7145,8 +7175,6 @@ extension on Translations {
 			'explore.badge.pendingApproval' => 'Pending approval',
 			'explore.badge.processing' => 'Processing',
 			'explore.badge.declined' => 'Declined',
-			_ => null,
-		} ?? switch (path) {
 			'explore.badge.requestFailed' => 'Request failed',
 			'explore.badge.requested4k' => '4K requested',
 			'explore.badge.seasonsAvailable' => ({required Object available, required Object total}) => '${available}/${total} seasons',
@@ -7652,6 +7680,8 @@ extension on Translations {
 			'performanceOverlay.hwFormat' => 'HW Fmt',
 			'performanceOverlay.matrix' => 'Matrix',
 			'performanceOverlay.primaries' => 'Primaries',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.transfer' => 'Transfer',
 			'performanceOverlay.renderFps' => 'Render FPS',
 			'performanceOverlay.displayFps' => 'Display FPS',
@@ -7659,8 +7689,6 @@ extension on Translations {
 			'performanceOverlay.dropped' => 'Dropped',
 			'performanceOverlay.dvRpus' => 'DV RPUs',
 			'performanceOverlay.dvRpuAverage' => 'DV RPU Avg',
-			_ => null,
-		} ?? switch (path) {
 			'performanceOverlay.dvSampleAverage' => 'DV Sample Avg',
 			'performanceOverlay.maxLuma' => 'Max Luma',
 			'performanceOverlay.minLuma' => 'Min Luma',

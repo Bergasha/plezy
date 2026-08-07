@@ -1967,8 +1967,6 @@ Future<void> _pumpSkipMarkerButton(
         body: Center(
           child: SkipMarkerButton(
             marker: MediaMarker(id: 1, type: 'intro', startTimeOffset: 10000, endTimeOffset: 45000),
-            playerDuration: const Duration(minutes: 20),
-            hasNextEpisode: false,
             isAutoSkipActive: isAutoSkipActive,
             shouldShowAutoSkip: true,
             autoSkipDelay: 5,

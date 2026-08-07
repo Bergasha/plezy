@@ -44,7 +44,7 @@ void main() {
     expect(listeningBuilds, 1);
     expect(oneShotBuilds, 1);
 
-    GamepadService.onGamepadInput!.call();
+    GamepadService.debugNotifyGamepadInput();
     await tester.pump();
 
     expect(listeningMode, InputMode.keyboard);
@@ -70,7 +70,7 @@ void main() {
       ),
     );
 
-    GamepadService.onGamepadInput!.call();
+    GamepadService.debugNotifyGamepadInput();
     await tester.pump();
 
     expect(tester.widget<MouseRegion>(find.byType(MouseRegion)).cursor, SystemMouseCursors.none);
@@ -105,7 +105,7 @@ void main() {
       ),
     );
 
-    GamepadService.onGamepadInput!.call();
+    GamepadService.debugNotifyGamepadInput();
     await tester.pump();
 
     expect(find.byType(MouseRegion), findsNothing);

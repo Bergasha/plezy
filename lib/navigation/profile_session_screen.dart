@@ -33,6 +33,7 @@ import '../services/storage_service.dart';
 import '../services/system_shelf_service.dart';
 import '../utils/app_logger.dart';
 import '../watch_together/providers/watch_together_provider.dart';
+import '../widgets/idle_screensaver_overlay.dart';
 import '../widgets/music/mini_player.dart';
 import 'profile_navigation_scope.dart';
 
@@ -340,6 +341,9 @@ class _ProfileSessionNavigatorState extends State<_ProfileSessionNavigator> {
                 onGenerateRoute: _onGenerateRoute,
               ),
               const Positioned.fill(child: MusicMiniPlayerOverlay()),
+              // Topmost: must cover every content route, including the mini
+              // player, once idle.
+              const Positioned.fill(child: IdleScreensaverOverlay()),
             ],
           ),
         ),

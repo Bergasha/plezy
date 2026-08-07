@@ -1,6 +1,24 @@
 part of '../../video_player_screen.dart';
 
 extension _VideoPlayerPlaybackPromptMethods on VideoPlayerScreenState {
+  /// Manual Skip Credits press at the very end of an episode (credits extend
+  /// to EOF). Marks the episode watched — as if it played to completion —
+  /// then exits back to the caller instead of continuing playback in place
+  /// or putting up the Play Next / Still Watching prompt. Latching first
+  /// keeps a concurrent EOF signal from opening that prompt underneath us,
+  /// which would turn the exit into a dismiss instead.
+  Future<void> _skipCreditsAndExit() async {
+    if (_completionLatch.triggered) return;
+    _completionLatch.latch();
+    final duration = player?.state.duration;
+    unawaited(
+      duration != null && duration.inMilliseconds > 0
+          ? _sendStoppedProgressOnce(positionOverride: duration)
+          : _sendStoppedProgressOnce(),
+    );
+    await _handleBackButton();
+  }
+
   void _onVideoCompleted(bool completed, {bool skipAutoPlayCountdown = false}) async {
     // Live TV streams are continuous — ignore transient EOF events while an
     // HLS playlist refreshes or crosses a discontinuity.

@@ -15,9 +15,21 @@ class CompanionRemoteReceiver {
     return _instance!;
   }
 
-  /// Called on any remote input so InputModeTracker can switch to keyboard mode.
-  /// Same pattern as [GamepadService.onGamepadInput].
-  static VoidCallback? onRemoteInput;
+  /// Notified on any remote input. A listener list (not a single settable
+  /// callback) so independent consumers — InputModeTracker, idle-activity
+  /// tracking — can coexist without clobbering each other's registration.
+  /// Same pattern as [GamepadService.addGamepadInputListener].
+  static final List<VoidCallback> _remoteInputListeners = [];
+
+  static void addRemoteInputListener(VoidCallback listener) => _remoteInputListeners.add(listener);
+
+  static void removeRemoteInputListener(VoidCallback listener) => _remoteInputListeners.remove(listener);
+
+  static void _notifyRemoteInput() {
+    for (final listener in List<VoidCallback>.of(_remoteInputListeners)) {
+      listener();
+    }
+  }
 
   /// Owners prevent a disposed screen from clearing callbacks installed by a
   /// replacement screen later in the same frame.
@@ -50,7 +62,7 @@ class CompanionRemoteReceiver {
     appLogger.d('CompanionRemoteReceiver: Handling command: ${command.type}');
 
     // Switch to keyboard mode so focus visuals render
-    onRemoteInput?.call();
+    _notifyRemoteInput();
     _setTraditionalFocusHighlight();
     scheduleFrameIfIdle();
 
