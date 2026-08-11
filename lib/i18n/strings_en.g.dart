@@ -2741,6 +2741,12 @@ class Translations$discover$en {
 	/// en: 'Trailers & Extras'
 	String get extras => 'Trailers & Extras';
 
+	/// en: 'Ratings & Reviews'
+	String get ratingsAndReviews => 'Ratings & Reviews';
+
+	/// en: 'Plex User'
+	String get plexCommunityUser => 'Plex User';
+
 	/// en: 'Studio'
 	String get studio => 'Studio';
 
@@ -6736,13 +6742,13 @@ extension on Translations {
 			'fileInfo.transcoding' => 'Transcoding',
 			'fileInfo.etag' => 'ETag',
 			'fileInfo.versionId' => 'Version ID',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.fileId' => 'File ID',
 			'fileInfo.defaultAudioTrack' => 'Default Audio Track',
 			'fileInfo.defaultSubtitleTrack' => 'Default Subtitle Track',
 			'fileInfo.subtitlesOff' => 'Off',
 			'fileInfo.flagDefault' => 'Default',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.flagForced' => 'Forced',
 			'fileInfo.flagSelected' => 'Selected',
 			'fileInfo.flagExternal' => 'External',
@@ -6767,8 +6773,6 @@ extension on Translations {
 			'mediaMenu.deleteMovieTitle' => 'Delete this movie?',
 			'mediaMenu.deleteEpisodeConfirm' => 'Delete episode',
 			'mediaMenu.deleteSeasonConfirm' => 'Delete season',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => 'Delete show',
 			'mediaMenu.deleteMovieConfirm' => 'Delete movie',
 			'mediaMenu.deleteAnyway' => 'Delete anyway',
@@ -7080,6 +7084,8 @@ extension on Translations {
 			'discover.overview' => 'Overview',
 			'discover.cast' => 'Cast',
 			'discover.extras' => 'Trailers & Extras',
+			'discover.ratingsAndReviews' => 'Ratings & Reviews',
+			'discover.plexCommunityUser' => 'Plex User',
 			'discover.studio' => 'Studio',
 			'discover.rating' => 'Rating',
 			'discover.director' => 'Director',
@@ -7250,6 +7256,8 @@ extension on Translations {
 			'explore.rows.popularAnime' => 'Most Popular Anime',
 			'explore.rows.trending' => 'Trending',
 			'explore.rows.upcomingMovies' => 'Upcoming Movies',
+			_ => null,
+		} ?? switch (path) {
 			'explore.rows.upcomingShows' => 'Upcoming Shows',
 			'explore.status.airing' => 'Airing',
 			'explore.status.ended' => 'Ended',
@@ -7257,8 +7265,6 @@ extension on Translations {
 			'explore.status.upcoming' => 'Upcoming',
 			'explore.episodeCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} episode', other: '${n} episodes', ), 
 			'explore.cast' => 'Cast',
-			_ => null,
-		} ?? switch (path) {
 			'explore.characters' => 'Characters',
 			'explore.addToWatchlist' => 'Add to Watchlist',
 			'explore.removeFromWatchlist' => 'Remove from Watchlist',
@@ -7286,8 +7292,6 @@ extension on Translations {
 			'explore.badge.pendingApproval' => 'Pending approval',
 			'explore.badge.processing' => 'Processing',
 			'explore.badge.declined' => 'Declined',
-			_ => null,
-		} ?? switch (path) {
 			'explore.badge.requestFailed' => 'Request failed',
 			'explore.badge.requested4k' => '4K requested',
 			'explore.badge.seasonsAvailable' => ({required Object available, required Object total}) => '${available}/${total} seasons',
@@ -7766,6 +7770,8 @@ extension on Translations {
 			'videoSettings.audioSync' => 'Audio Sync',
 			'videoSettings.subtitleSync' => 'Subtitle Sync',
 			'videoSettings.hdr' => 'HDR',
+			_ => null,
+		} ?? switch (path) {
 			'videoSettings.audioOutput' => 'Audio Output',
 			'videoSettings.performanceOverlay' => 'Performance Overlay',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
@@ -7773,8 +7779,6 @@ extension on Translations {
 			'videoSettings.audioOutputSurround' => 'Surround',
 			'videoSettings.audioOutputSpatial' => 'Spatial Audio',
 			'videoSettings.audioOutputStereo' => 'Stereo',
-			_ => null,
-		} ?? switch (path) {
 			'videoSettings.audioNormalization' => 'Normalize Loudness',
 			'videoSettings.audioDownmix' => 'Downmix to Stereo',
 			'performanceOverlay.color' => 'Color',
@@ -7802,8 +7806,6 @@ extension on Translations {
 			'performanceOverlay.dvRpus' => 'DV RPUs',
 			'performanceOverlay.dvRpuAverage' => 'DV RPU Avg',
 			'performanceOverlay.dvSampleAverage' => 'DV Sample Avg',
-			_ => null,
-		} ?? switch (path) {
 			'performanceOverlay.maxLuma' => 'Max Luma',
 			'performanceOverlay.minLuma' => 'Min Luma',
 			'performanceOverlay.maxCll' => 'MaxCLL',

@@ -24,7 +24,7 @@ import 'home_clock.dart';
 import 'settings_builder.dart';
 
 /// One rotation entry — just enough to paint a backdrop and its title.
-typedef _ScreensaverEntry = ({String title, String artPath});
+typedef _ScreensaverEntry = ({String title, String artPath, int? year});
 
 /// Shows a full-screen slideshow of random backdrop art from the user's
 /// libraries after a period of app-wide inactivity — each backdrop's title
@@ -191,7 +191,7 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
           final title = item.title;
           if (path == null || path.isEmpty || title == null || title.isEmpty) continue;
           if (!seenArt.add(path)) continue;
-          entries.add((title: title, artPath: path));
+          entries.add((title: title, artPath: path, year: item.year));
         }
       }
       if (entries.isEmpty) return;
@@ -365,7 +365,11 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
                             ),
                           ),
                           child: _showTitle
-                              ? _ScreensaverTitle(key: ValueKey(_currentIndex), title: _current.title)
+                              ? _ScreensaverTitle(
+                                  key: ValueKey(_currentIndex),
+                                  title: _current.title,
+                                  year: _current.year,
+                                )
                               : const SizedBox.shrink(key: ValueKey('hidden')),
                         ),
                       ),
@@ -381,12 +385,12 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
   }
 }
 
-/// Bottom-left title card: a thin accent bar beside the title, matching the
-/// vertical-rule treatment common in premium media UIs.
+/// Bottom-left title card, embossed against the backdrop art.
 class _ScreensaverTitle extends StatelessWidget {
-  const _ScreensaverTitle({super.key, required this.title});
+  const _ScreensaverTitle({super.key, required this.title, this.year});
 
   final String title;
+  final int? year;
 
   /// Warm champagne tone — reads as "premium cinema" rather than flat white,
   /// and holds up against backdrop art of any brightness.
@@ -394,38 +398,29 @@ class _ScreensaverTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayTitle = year == null ? title : '$title ($year)';
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 720),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(height: 40, width: 4, color: _titleColor.withValues(alpha: 0.9)),
-          const SizedBox(width: 16),
-          Flexible(
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _titleColor,
-                fontSize: 38,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.4,
-                height: 1.1,
-                // Layered shadows fake an embossed/engraved look: a tight
-                // dark shadow for edge definition, a soft wide one for
-                // depth, and a faint highlight above for the "raised" edge —
-                // rather than a single flat drop shadow.
-                shadows: [
-                  Shadow(color: Colors.black87, blurRadius: 3, offset: Offset(0, 1)),
-                  Shadow(color: Colors.black54, blurRadius: 24, offset: Offset(0, 6)),
-                  Shadow(color: Colors.white24, blurRadius: 1, offset: Offset(0, -1)),
-                ],
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        displayTitle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: _titleColor,
+          fontSize: 38,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+          height: 1.1,
+          // Layered shadows fake an embossed/engraved look: a tight
+          // dark shadow for edge definition, a soft wide one for
+          // depth, and a faint highlight above for the "raised" edge —
+          // rather than a single flat drop shadow.
+          shadows: [
+            Shadow(color: Colors.black87, blurRadius: 3, offset: Offset(0, 1)),
+            Shadow(color: Colors.black54, blurRadius: 24, offset: Offset(0, 6)),
+            Shadow(color: Colors.white24, blurRadius: 1, offset: Offset(0, -1)),
+          ],
+        ),
       ),
     );
   }

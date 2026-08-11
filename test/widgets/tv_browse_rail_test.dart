@@ -2091,6 +2091,60 @@ void main() {
     expect(FocusManager.instance.primaryFocus?.debugLabel, 'tv_browse_rail');
   });
 
+  testWidgets('onNavigateUp/onNavigateDown fire only at the first/last hub boundary', (tester) async {
+    final serverManager = MultiServerManager();
+    final itemA = testMediaItem(id: 'item_a', backend: MediaBackend.plex, kind: MediaKind.movie, title: 'A');
+    final itemB = testMediaItem(id: 'item_b', backend: MediaBackend.plex, kind: MediaKind.movie, title: 'B');
+    final hubs = [
+      MediaHub(id: 'hub_1', title: 'Hub 1', type: 'movie', items: [itemA], size: 1),
+      MediaHub(id: 'hub_2', title: 'Hub 2', type: 'movie', items: [itemB], size: 1),
+    ];
+    var navigatedUp = 0;
+    var navigatedDown = 0;
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider<MultiServerProvider>(
+        create: (_) => testMultiServerProvider(serverManager),
+        child: MaterialApp(
+          theme: monoTheme(dark: true),
+          home: Scaffold(
+            body: SizedBox(
+              width: 1280,
+              height: 720,
+              child: TvBrowseRail(
+                focusMemory: focusMemory,
+                hubs: hubs,
+                autofocus: true,
+                iconForHub: (_, _) => Icons.tv_rounded,
+                onNavigateUp: () => navigatedUp++,
+                onNavigateDown: () => navigatedDown++,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Already at the first (and only-loaded) hub: UP escapes immediately.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump();
+    expect(navigatedUp, 1);
+    expect(navigatedDown, 0);
+
+    // DOWN moves within the rail to the second hub — handled internally, no callback.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    expect(navigatedUp, 1);
+    expect(navigatedDown, 0);
+
+    // Now at the last hub: DOWN escapes to the callback instead of clamping silently.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    expect(navigatedUp, 1);
+    expect(navigatedDown, 1);
+  });
+
   testWidgets('lays out when bottom-positioned in a stack', (tester) async {
     final serverManager = MultiServerManager();
     final item = testMediaItem(id: 'movie_1', backend: MediaBackend.plex, kind: MediaKind.movie, title: 'Movie');

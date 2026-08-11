@@ -332,6 +332,12 @@ class TvBrowseRail extends StatefulWidget {
   final void Function(MediaHub hub)? onRetryHub;
   final void Function(MediaHub hub, int index)? onActiveHubChanged;
   final VoidCallback? onNavigateUp;
+
+  /// Invoked when DOWN is pressed while the last hub is active — the
+  /// symmetric counterpart to [onNavigateUp], which fires at the first hub.
+  /// Null (the default) preserves the rail's original behavior of simply
+  /// clamping at the last hub.
+  final VoidCallback? onNavigateDown;
   final VoidCallback? onNavigateToSidebar;
   final VoidCallback? onBack;
   final FutureOr<bool> Function(MediaHub hub, MediaItem item)? onActivateItem;
@@ -365,6 +371,7 @@ class TvBrowseRail extends StatefulWidget {
     this.onRetryHub,
     this.onActiveHubChanged,
     this.onNavigateUp,
+    this.onNavigateDown,
     this.onNavigateToSidebar,
     this.onBack,
     this.onActivateItem,
@@ -704,7 +711,11 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     }
 
     if (key.isDownKey) {
-      _moveHub(1);
+      if (_hubIndex >= widget.hubs.length - 1) {
+        widget.onNavigateDown?.call();
+      } else {
+        _moveHub(1);
+      }
       return KeyEventResult.handled;
     }
 

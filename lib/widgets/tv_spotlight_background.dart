@@ -109,7 +109,11 @@ class TvSpotlightBackground extends StatelessWidget {
             if (media != null && showInfo)
               Positioned(
                 left: contentLeft ?? TvLayoutConstants.horizontalInset,
-                right: MediaQuery.sizeOf(context).width * 0.43,
+                // Widened from 0.43 — the metadata line (year, resolution,
+                // audio codec/channels, Atmos/DTS:X, ratings, etc.) kept
+                // growing longer than the reserved text column and was
+                // clipping mid-word.
+                right: MediaQuery.sizeOf(context).width * 0.28,
                 top: contentTop,
                 bottom: contentBottom,
                 // The info block still cross-fades via AnimatedSwitcher, but its
