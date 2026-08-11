@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../focus/focusable_wrapper.dart';
+import '../../../i18n/strings.g.dart';
 import '../../../media/media_source_info.dart';
 import '../../../theme/mono_tokens.dart';
 import '../../app_icon.dart';
@@ -32,7 +33,7 @@ class SkipMarkerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCredits = marker.isCredits;
-    final baseButtonText = isCredits ? 'Skip Credits' : 'Skip Intro';
+    final baseButtonText = isCredits ? t.videoControls.skipCredits : t.videoControls.skipIntro;
 
     final remainingSeconds = isAutoSkipActive && shouldShowAutoSkip
         ? (autoSkipDelay - (autoSkipProgress * autoSkipDelay)).ceil().clamp(0, autoSkipDelay)

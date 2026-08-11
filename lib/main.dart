@@ -166,8 +166,28 @@ void _bootstrapApp() {
       onCommitted: (dependencies) => _startNonessentialInitialization(dependencies.settings),
       lightTheme: monoTheme(dark: false),
       darkTheme: monoTheme(dark: true),
+      resolveTheme: _resolveStartupTheme,
+      // Android runs the Flutter surface in transparent mode over a window
+      // whose background MainActivity already restored, so the loading frame
+      // can leave the launch screen on display. Every other platform composites
+      // opaquely and has nothing behind Flutter worth showing.
+      transparentWhileLoading: Platform.isAndroid,
     ),
   );
+}
+
+/// Resolves the theme the app will settle on, for the frames that precede it.
+///
+/// Both singletons are memoised and awaited again by the gate, so this costs
+/// one preference load and one platform-channel round trip, shared. TV
+/// detection has to come first: the `themeMode` default is TV-aware and
+/// [TvDetectionService.isTVSync] answers false until its singleton exists,
+/// which would make a fresh Android TV install resolve the light theme.
+Future<StartupThemeResolution> _resolveStartupTheme() async {
+  final settings = await SettingsService.getInstance();
+  await TvDetectionService.getInstance(forceTv: settings.read(SettingsService.forceTvMode));
+  final mode = settings.read(SettingsService.themeMode);
+  return (themeMode: ThemeProvider.materialThemeModeFor(mode), darkTheme: ThemeProvider.darkThemeFor(mode));
 }
 
 /// Wraps [step] so a failure names the gate phase it came from.
@@ -329,9 +349,6 @@ StartupFailureRecord describeStartupFailure(Object error, StackTrace stackTrace)
 /// an empty id *without throwing*, so "the send did not throw" is not evidence
 /// that anything was sent.
 var _crashReporterReady = false;
-
-@visibleForTesting
-void debugSetCrashReporterReady(bool ready) => _crashReporterReady = ready;
 
 /// Sends a persisted startup failure to the crash reporter, once.
 ///
@@ -562,6 +579,9 @@ Future<void> showRepairOutcomeDialog(
   );
 }
 
+/// Theme the startup frames adopt once the persisted preference is readable.
+typedef StartupThemeResolution = ({material.ThemeMode themeMode, ThemeData darkTheme});
+
 /// Mounts a Flutter-owned startup frame before invoking the asynchronous
 /// initialization gate. The generic seam keeps frame ordering, failure, and
 /// retry behavior testable without constructing platform services.
@@ -578,6 +598,8 @@ class StartupBootstrap<T> extends StatefulWidget {
     this.lightTheme,
     this.darkTheme,
     this.themeMode = material.ThemeMode.system,
+    this.resolveTheme,
+    this.transparentWhileLoading = false,
   });
 
   final Future<T> Function() initialize;
@@ -598,6 +620,20 @@ class StartupBootstrap<T> extends StatefulWidget {
   final ThemeData? lightTheme;
   final ThemeData? darkTheme;
   final material.ThemeMode themeMode;
+
+  /// Reads the persisted theme so the startup frames match the one the app
+  /// settles on. Until it answers, [themeMode] resolves from platform
+  /// brightness, which disagrees with the app's own default on every device
+  /// that reports light while running the dark or OLED theme (#1833).
+  final Future<StartupThemeResolution> Function()? resolveTheme;
+
+  /// Whether the platform window behind Flutter already paints the launch
+  /// background, so the loading frame must not cover it.
+  ///
+  /// True only on Android, where `TransparencyMode.transparent` lets the
+  /// window decor show through and `MainActivity` has already restored the
+  /// persisted launch colour.
+  final bool transparentWhileLoading;
 
   @override
   State<StartupBootstrap<T>> createState() => _StartupBootstrapState<T>();
@@ -620,13 +656,35 @@ class _StartupBootstrapState<T> extends State<StartupBootstrap<T>> {
   bool _restartRequired = false;
   int _generation = 0;
 
+  /// Persisted theme for the startup frames, null until [StartupBootstrap.resolveTheme] answers.
+  StartupThemeResolution? _resolvedTheme;
+
   @override
   void initState() {
     super.initState();
+    unawaited(_resolveTheme());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AndroidExitDiagnostics.markStartupPhase(AndroidStartupPhase.firstFrame);
       if (mounted) unawaited(_initialize());
     });
+  }
+
+  /// Adopts the persisted theme for the startup frames.
+  ///
+  /// Deliberately best-effort and unbounded: on Android the loading frame is
+  /// transparent, so a slow answer costs spinner contrast rather than the
+  /// launch, and a store this cannot read is the gate's failure to report —
+  /// reporting it twice would race the diagnostic record.
+  Future<void> _resolveTheme() async {
+    final resolve = widget.resolveTheme;
+    if (resolve == null) return;
+    try {
+      final resolved = await resolve();
+      if (!mounted) return;
+      setState(() => _resolvedTheme = resolved);
+    } catch (error, stackTrace) {
+      appLogger.d('Could not resolve the persisted startup theme', error: error, stackTrace: stackTrace);
+    }
   }
 
   Future<void> _initialize() async {
@@ -717,14 +775,15 @@ class _StartupBootstrapState<T> extends State<StartupBootstrap<T>> {
   Widget build(BuildContext context) {
     if (_completed) return widget.buildApp(context, _value as T);
 
+    final resolved = _resolvedTheme;
     return TranslationProvider(
       child: Builder(
         builder: (context) => InputModeTracker(
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: widget.lightTheme,
-            darkTheme: widget.darkTheme,
-            themeMode: widget.themeMode,
+            darkTheme: resolved?.darkTheme ?? widget.darkTheme,
+            themeMode: resolved?.themeMode ?? widget.themeMode,
             home: Builder(builder: _buildBootstrapHome),
           ),
         ),
@@ -734,16 +793,25 @@ class _StartupBootstrapState<T> extends State<StartupBootstrap<T>> {
 
   Widget _buildBootstrapHome(BuildContext context) {
     final failure = _failure;
+    if (failure != null) {
+      return Scaffold(
+        body: StartupFailureView(
+          failure: failure,
+          busy: _initializing || _repairing,
+          restartRequired: _restartRequired,
+          onRetry: () => unawaited(_initialize()),
+          onRepair: failure.repairable && widget.repair != null ? () => _repair(failure) : null,
+        ),
+      );
+    }
+
+    // Nothing here is worth covering the launch screen for. The platform
+    // window already holds the user's launch colour, and this frame outlives
+    // the whole gate, so painting a theme guessed from platform brightness is
+    // what turned a black Android TV splash into a flashbang (#1833).
     return Scaffold(
-      body: failure == null
-          ? const Center(child: CircularProgressIndicator(key: startupBootstrapProgressKey))
-          : StartupFailureView(
-              failure: failure,
-              busy: _initializing || _repairing,
-              restartRequired: _restartRequired,
-              onRetry: () => unawaited(_initialize()),
-              onRepair: failure.repairable && widget.repair != null ? () => _repair(failure) : null,
-            ),
+      backgroundColor: widget.transparentWhileLoading ? Colors.transparent : null,
+      body: const Center(child: CircularProgressIndicator(key: startupBootstrapProgressKey)),
     );
   }
 }
@@ -1368,7 +1436,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
           if (!downloadProvider.hasSyncRule(key)) continue;
           final result = await downloadProvider.executeSyncRuleFor(key, _serverManager);
           if (result != null && result.queuedCount > 0) {
-            final title = result.title ?? 'Unknown';
+            final title = result.title ?? t.common.unknown;
             showMainSnackBar(t.downloads.syncedNewEpisodes(count: '1', title: '$title (${result.queuedCount})'));
           }
         }
@@ -1678,7 +1746,7 @@ class _AppShell extends StatelessWidget {
                       const SingleActivator(LogicalKeyboardKey.browserBack): const DismissIntent(),
                       const SingleActivator(LogicalKeyboardKey.gameButtonB): const DismissIntent(),
                     },
-                    builder: (context, child) => _rootShell(child),
+                    builder: (context, child) => rootShell(child),
                   ),
                 ),
               );
@@ -1696,8 +1764,8 @@ class _AppShell extends StatelessWidget {
 /// Flutter presents a messenger's snackbars on the rootmost registered scaffold, so anything
 /// below would leave global snackbars at the car's native density while the rest of the
 /// interface grew.
-Widget _rootShell(Widget? child) {
-  return _FormFactorScale(
+Widget rootShell(Widget? child) {
+  return FormFactorScale(
     child: ScaffoldMessenger(
       key: rootScaffoldMessengerKey,
       child: Scaffold(backgroundColor: Colors.transparent, body: child),
@@ -1709,9 +1777,9 @@ Widget _rootShell(Widget? child) {
 /// report a very low display density. Both make otherwise comfortable controls
 /// physically too small, so render through a smaller, self-consistent logical
 /// viewport and scale the result back to the physical surface.
-class _FormFactorScale extends StatelessWidget {
+class FormFactorScale extends StatelessWidget {
   final Widget? child;
-  const _FormFactorScale({required this.child});
+  const FormFactorScale({super.key, required this.child});
 
   static const double _appleTvScale = 2.0;
 
@@ -1776,13 +1844,6 @@ class _FormFactorScale extends StatelessWidget {
     );
   }
 }
-
-@visibleForTesting
-Widget formFactorScaleForTesting({required Widget? child}) => _FormFactorScale(child: child);
-
-/// The real root shell, so a test can assert what the scale actually encloses.
-@visibleForTesting
-Widget rootShellForTesting({required Widget? child}) => _rootShell(child);
 
 @visibleForTesting
 bool shouldBypassSetupForDatabaseRecovery(TvosDatabaseRecoveryOutcome outcome) {

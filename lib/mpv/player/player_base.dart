@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart' show ValueListenable, ValueNotifier, protected, visibleForTesting;
+import 'package:flutter/foundation.dart' show protected, visibleForTesting;
 import 'package:flutter/services.dart';
 
 import '../../media/media_display_criteria.dart';
@@ -48,18 +48,6 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
 
   @override
   PlayerStreams get streams => _streams;
-
-  final ValueNotifier<int?> _textureId = ValueNotifier<int?>(null);
-
-  @override
-  int? get textureId => _textureId.value;
-
-  ValueListenable<int?> get textureIdListenable => _textureId;
-
-  @protected
-  void setTextureId(int? value) {
-    if (!_disposed) _textureId.value = value;
-  }
 
   StreamSubscription? _eventSubscription;
   StreamSubscription? _logSubscription;
@@ -556,6 +544,10 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
 
       case 'playback-restart':
         playbackRestartController.add(null);
+        break;
+
+      case 'hdr-output-changed':
+        hdrOutputChangedController.add(null);
         break;
 
       case 'log-message':
@@ -1073,6 +1065,9 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
   Future<void> updateFrame() async {}
 
   @override
+  Future<bool> isHdrOutputSupported() async => false;
+
+  @override
   Future<bool> setVideoFrameRate(
     double fps,
     int durationMs, {
@@ -1097,6 +1092,7 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
     int subtitlePosition = 100,
     bool bold = false,
     bool italic = false,
+    bool anchorToScreen = false,
   }) async {}
 
   @override
@@ -1104,7 +1100,7 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
   Future<void> setBoxFitMode(int mode) async {}
 
   @override
-  // ignore: no-empty-block - base no-op, mpv zooms via the video-zoom property
+  // ignore: no-empty-block - base no-op, non-Apple mpv zooms via the video-zoom property
   Future<void> setVideoZoom(double scale) async {}
 
   @override
@@ -1344,8 +1340,10 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
   /// stream with [status]. Used by the in-player debug buttons to preview the
   /// end-to-end detection path without needing a real misbehaving server: 500
   /// is a shared-user bandwidth/transcoding limit, 404 a file the server can no
-  /// longer read. The warn-level log mirrors ffmpeg's real wording, which is
-  /// what [PlayerError.httpStatusFromLog] parses.
+  /// longer read, 503 a server that keeps refusing the stream (the error event
+  /// stands in for the open-phase watchdog, which cannot arm once playback has
+  /// a frame). The warn-level log mirrors ffmpeg's real wording, which is what
+  /// [PlayerError.httpStatusFromLog] parses.
   void debugSimulateServerHttpError(int status) {
     if (_disposed) return;
     logController.add(
@@ -1354,6 +1352,7 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
     final cause = switch (status) {
       500 => PlayerError.serverHttp500,
       404 => PlayerError.serverHttp404,
+      503 => PlayerError.serverHttp503,
       _ => null,
     };
     errorController.add(PlayerError('HTTP $status', cause: cause));
@@ -1380,7 +1379,6 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
   Future<void> dispose({bool preserveDisplayMode = false}) async {
     if (_disposed) return;
     _disposed = true;
-    _textureId.value = null;
 
     final channelName = eventChannel.name;
     if (identical(_eventChannelOwners[channelName], this)) {
@@ -1430,7 +1428,6 @@ abstract class PlayerBase with PlayerStreamControllersMixin implements Player {
       );
     }
     await closeStreamControllers();
-    _textureId.dispose();
   }
 }
 

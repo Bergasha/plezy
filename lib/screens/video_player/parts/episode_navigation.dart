@@ -324,7 +324,10 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
       if ((isSubtitleChange && isPlexBacked) || (isAudioChange && isPlexBacked)) {
         final partId = _currentMediaInfo?.partId;
         if (streamSelectClient == null || partId == null) {
-          throw StateError('No Plex part available for stream selection');
+          throw PlaybackException(
+            t.messages.streamSelectionUnavailable,
+            reason: PlaybackFailureReason.invalidPlaybackData,
+          );
         }
         final saved = await streamSelectClient.selectStreams(
           partId,
@@ -339,7 +342,7 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
           allParts: true,
         );
         if (!saved) {
-          throw StateError('Failed to select streams');
+          throw PlaybackException(t.messages.streamSelectionFailed);
         }
         if (!isCurrentSourceSwitch()) return PlaybackSourceChangeOutcome.superseded;
       }
@@ -387,6 +390,38 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
     PlaybackSourceSubtitleChoice choice, {
     required bool Function() shouldContinue,
   }) async {
+    // On a transcode the server owns the picture: a burned subtitle cannot be removed or covered
+    // locally, and an embedded target can only arrive by being burned in. Either way the change
+    // goes back to the server rather than being applied to the running player.
+    final burnSession = _playbackSession;
+    final burnedSourceStreamId = burnSession?.subtitleSelection.primarySourceStreamId;
+    final targetSourceStreamId = choice.sourceStreamId;
+    if (PlaybackSubtitleResolver.burnRequiresRenegotiation(
+      isTranscoding: _isTranscoding,
+      currentSourceStreamId: burnedSourceStreamId,
+      currentSelectionHasSidecar:
+          burnSession != null &&
+          burnedSourceStreamId != null &&
+          _sidecarForSourceStreamId(burnSession, burnedSourceStreamId) != null,
+      targetIsOff: choice.isOff,
+      // "A file the client fetches for itself", which the two backends mark differently: Jellyfin
+      // flags the row `IsExternal`, while Plex never sets that and instead gives a real external
+      // subtitle a `/library/streams/{id}` key - the same test `_selectedInternalSubtitleForHls`
+      // uses to decide what it must not burn. Reading only `isExternalFile` classified every Plex
+      // external file as an embedded target and sent an already-loaded track switch to the server.
+      targetIsExternalFile:
+          targetSourceStreamId != null &&
+          (_currentMediaInfo?.subtitleTracks.any(
+                (track) =>
+                    track.id == targetSourceStreamId &&
+                    (track.isExternalFile ||
+                        (_currentMetadata.backend == MediaBackend.plex && (track.key?.isNotEmpty ?? false))),
+              ) ??
+              false),
+    )) {
+      return false;
+    }
+
     if (choice.isOff) {
       await currentPlayer.selectSecondarySubtitleTrack(SubtitleTrack.off);
       if (!shouldContinue()) return false;
@@ -632,11 +667,22 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
         }
         if (!isCurrentReload()) return _MediaReloadOutcome.superseded;
 
-        // Overlap the old item's stop report with the resolve round-trip; it
-        // is awaited again right before the open below.
+        // Local resume lookup can overlap the old stop, but source resolution
+        // below must not: Plex can use that stop to terminate any new
+        // transcode sharing this playback session identifier.
         final stoppedProgressFuture = _sendStoppedProgressOnce();
 
+        var openResumePosition = await _resolveOpenResumePosition(
+          metadata: metadata,
+          isOffline: _offlineLibraryMode,
+          offlineWatchService: offlineWatchService,
+          requested: resumePosition,
+        );
+        if (!isCurrentReload()) return _MediaReloadOutcome.superseded;
+
         final playbackResolver = PlaybackSourceResolver(serverManager: serverManager, database: database);
+        await stoppedProgressFuture;
+        if (!isCurrentReload()) return _MediaReloadOutcome.superseded;
         final playbackContext = await playbackResolver.resolve(
           PlaybackInitializationOptions(
             metadata: metadata,
@@ -659,9 +705,19 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
         final streamHeaders = playbackContext.streamHeaders;
 
         if (result.videoUrl == null) {
-          throw PlaybackException('No video URL available');
+          throw PlaybackException(t.messages.noVideoUrl, reason: PlaybackFailureReason.noPlayableSource);
         }
-
+        if (result.isOffline && !_offlineLibraryMode) {
+          // The pre-resolve lookup assumed an online source; a download won
+          // instead, so consult locally tracked progress after all.
+          openResumePosition = await _resolveOpenResumePosition(
+            metadata: metadata,
+            isOffline: true,
+            offlineWatchService: offlineWatchService,
+            requested: resumePosition,
+          );
+          if (!isCurrentReload()) return _MediaReloadOutcome.superseded;
+        }
         var subtitleSelection = await _resolveSubtitleSelectionForOpen(
           metadata: metadata,
           result: result,
@@ -687,14 +743,6 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
         if (result.fallbackReason != null && !targetQualityPreset.isOriginal && mounted) {
           showErrorSnackBar(context, t.videoControls.transcodeUnavailableFallback);
         }
-
-        final openResumePosition = await _resolveOpenResumePosition(
-          metadata: metadata,
-          isOffline: _offlineLibraryMode || result.isOffline,
-          offlineWatchService: offlineWatchService,
-          requested: resumePosition,
-        );
-        if (!isCurrentReload()) return _MediaReloadOutcome.superseded;
 
         final displayCriteria = result.mediaInfo?.displayCriteria;
         final settingsService = await SettingsService.getInstance();
@@ -731,7 +779,6 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
           resumePosition: openResumePosition,
           durationMs: metadata.durationMs,
         );
-        await stoppedProgressFuture;
         _progressTracker?.stopTracking();
         _progressTracker?.dispose();
         _progressTracker = null;
@@ -771,6 +818,8 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
           shouldContinue: isCurrentReload,
           onOpening: () {
             _hasRenderedFirstFrame = false;
+            // 503s observed from here on belong to the replacement open.
+            _http503Watchdog.disarm();
           },
           onOpened: () {
             // The player now owns the new file — publish the session at the
@@ -829,6 +878,12 @@ extension _VideoPlayerEpisodeNavigationMethods on VideoPlayerScreenState {
           preferredSubtitleTrack:
               subtitleSelection.declinedPreference ?? SubtitlePreference.trackOrNull(subtitleSelection.primaryTrack),
           preferredSecondarySubtitleTrack: SubtitlePreference.trackOrNull(subtitleSelection.secondaryTrack),
+          // A source-backed primary with no sidecar on a transcode is one the server burned into
+          // the picture: it is already visible, and no native track will ever arrive to match it.
+          primarySubtitleIsServerRendered:
+              result.isTranscoding &&
+              subtitleSelection.primarySourceStreamId != null &&
+              subtitleSelection.primarySidecar == null,
         );
         _trackManager = trackManager;
         trackManager.cacheExternalSubtitles(subtitleSelection.sidecarsAtOpen);

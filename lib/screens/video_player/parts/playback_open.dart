@@ -99,6 +99,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
       preferredSubtitleTrack: preferredSubtitleTrack,
       preferredSecondarySubtitleTrack: preferredSecondarySubtitleTrack,
       preserveSourceIdentity: preserveSubtitleSourceIdentity,
+      isTranscoding: result.isTranscoding,
     );
   }
 
@@ -431,6 +432,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
       subtitlePosition: settingsService.read(SettingsService.subtitlePosition),
       bold: settingsService.read(SettingsService.subtitleBold),
       italic: settingsService.read(SettingsService.subtitleItalic),
+      anchorToScreen: settingsService.read(SettingsService.subtitleAnchorToScreen),
     );
   }
 
@@ -467,6 +469,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
     AudioTrack? preferredAudioTrack,
     SubtitlePreference? preferredSubtitleTrack,
     SubtitlePreference? preferredSecondarySubtitleTrack,
+    bool primarySubtitleIsServerRendered = false,
   }) {
     return TrackManager(
       player: forPlayer,
@@ -481,6 +484,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
       preferredAudioTrack: preferredAudioTrack,
       preferredSubtitleTrack: preferredSubtitleTrack,
       preferredSecondarySubtitleTrack: preferredSecondarySubtitleTrack,
+      primarySubtitleIsServerRendered: primarySubtitleIsServerRendered,
       showMessage: (message, {duration}) {
         if (mounted) showAppSnackBar(context, message, duration: duration);
       },
@@ -544,7 +548,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
   /// mpv stream ring buffer for poorly interleaved MP4/MOV direct play (the
   /// ring absorbs the demuxer's audio↔video byte ping-pong so HTTP reads stay
   /// linear instead of dropping the connection on every byte seek — see
-  /// [networkStreamRingBytes]). Both properties are always written, set or
+  /// [networkStreamRingBytes]). Every property is always written, set or
   /// reset, so a reused player never carries one item's tuning into the next
   /// open. On Android with ExoPlayer active they are stashed natively and
   /// replayed on the exo→mpv fallback, so keep them unconditional.
@@ -573,6 +577,25 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
       );
     } else {
       await player.setProperty('stream-lavf-o', '');
+    }
+
+    // Transcode (HLS) segment fetches happen inside ffmpeg's hls demuxer, not
+    // mpv's stream layer, so the reconnect options above never reach them and
+    // mpv's default network-timeout is inert there: a segment response PMS
+    // leaves open without data or error — observed when the request races a
+    // transcoder seek/restart — buffers forever (#1859). An explicit
+    // network-timeout bounds each stalled read and the demuxer-level
+    // reconnect options re-request the same segment instead of skipping its
+    // content. 20s sits above the segment-serve latency of a struggling
+    // transcode (reads that deliver any bytes reset the clock) and a false
+    // trip is a Range-resumed reconnect, not an error.
+    if (isNetworkVod && isTranscoding) {
+      await player.setProperty('network-timeout', '20');
+      await player.setProperty('demuxer-lavf-o', 'reconnect=1,reconnect_streamed=1,reconnect_on_network_error=1');
+    } else {
+      // mpv's documented default network-timeout.
+      await player.setProperty('network-timeout', '60');
+      await player.setProperty('demuxer-lavf-o', '');
     }
 
     int? ringBytes;

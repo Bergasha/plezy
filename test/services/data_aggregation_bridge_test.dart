@@ -126,6 +126,7 @@ class _GatedHubsClient implements MediaServerClient {
     int limit = defaultHubPreviewLimit,
     bool includePlaybackHubs = true,
     MediaKind? libraryKind,
+    HubFetchDiagnostics? diagnostics,
   }) {
     started.add(libraryId);
     return (_gates[libraryId] = Completer<List<MediaHub>>()).future;
@@ -138,11 +139,8 @@ class _GatedHubsClient implements MediaServerClient {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Smoke tests for the surviving cross-server aggregation surface on
-/// [DataAggregationService]. Single-server passthroughs were removed in
-/// favour of `context.tryGetMediaClientForServer(...).<method>()`; what's
-/// left here is the multi-client fan-out, which is testable without a
-/// real backend by simply asserting the empty-state behaviour.
+/// Covers the remaining cross-server [DataAggregationService] fan-out surface;
+/// single-server calls now go through the per-server client context.
 void main() {
   late AppDatabase db;
   late MultiServerManager manager;

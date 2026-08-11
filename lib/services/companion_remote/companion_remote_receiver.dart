@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../focus/input_mode_tracker.dart';
 import '../../models/companion_remote/remote_command.dart';
 import '../../utils/app_logger.dart';
 import '../../utils/key_event_simulator.dart';
@@ -15,10 +16,12 @@ class CompanionRemoteReceiver {
     return _instance!;
   }
 
-  /// Notified on any remote input. A listener list (not a single settable
-  /// callback) so independent consumers — InputModeTracker, idle-activity
-  /// tracking — can coexist without clobbering each other's registration.
-  /// Same pattern as [GamepadService.addGamepadInputListener].
+  /// Notified on viewer remote input (see [_isViewerInput]). A listener list
+  /// (not a single settable callback) so independent consumers — idle-activity
+  /// tracking (InputModeTracker now uses
+  /// [InputModeTracker.reportNonPointerInput] directly instead) — can coexist
+  /// without clobbering each other's registration. Same pattern as
+  /// [GamepadService.addGamepadInputListener].
   static final List<VoidCallback> _remoteInputListeners = [];
 
   static void addRemoteInputListener(VoidCallback listener) => _remoteInputListeners.add(listener);
@@ -61,10 +64,16 @@ class CompanionRemoteReceiver {
   void handleCommand(RemoteCommand command, BuildContext? _) {
     appLogger.d('CompanionRemoteReceiver: Handling command: ${command.type}');
 
-    // Switch to keyboard mode so focus visuals render
-    _notifyRemoteInput();
-    _setTraditionalFocusHighlight();
-    scheduleFrameIfIdle();
+    // A paired phone cannot point, so any viewer command is evidence of a
+    // pointerless device. Protocol frames are not viewer input: promoting on the
+    // periodic ping would flip an idle desktop host into keyboard mode — and hide
+    // its cursor — on every heartbeat. Same filter gates idle-activity listeners
+    // (e.g. the screensaver) so a background ping can't wake/dismiss it either.
+    if (_isViewerInput(command.type)) {
+      _notifyRemoteInput();
+      InputModeTracker.reportNonPointerInput();
+      scheduleFrameIfIdle();
+    }
 
     switch (command.type) {
       case RemoteCommandType.dpadUp:
@@ -152,10 +161,49 @@ class CompanionRemoteReceiver {
         appLogger.w('CompanionRemoteReceiver: Unhandled command type: ${command.type}');
     }
   }
-
-  void _setTraditionalFocusHighlight() {
-    if (FocusManager.instance.highlightStrategy != FocusHighlightStrategy.alwaysTraditional) {
-      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
-    }
-  }
 }
+
+/// Exhaustive by design: no default clause, so adding a [RemoteCommandType]
+/// is a compile error until someone decides whether it counts as viewer input.
+bool _isViewerInput(RemoteCommandType type) => switch (type) {
+  RemoteCommandType.ping ||
+  RemoteCommandType.pong ||
+  RemoteCommandType.ack ||
+  RemoteCommandType.deviceInfo ||
+  RemoteCommandType.disconnect ||
+  RemoteCommandType.syncState => false,
+  RemoteCommandType.dpadUp ||
+  RemoteCommandType.dpadDown ||
+  RemoteCommandType.dpadLeft ||
+  RemoteCommandType.dpadRight ||
+  RemoteCommandType.select ||
+  RemoteCommandType.back ||
+  RemoteCommandType.contextMenu ||
+  RemoteCommandType.play ||
+  RemoteCommandType.pause ||
+  RemoteCommandType.playPause ||
+  RemoteCommandType.stop ||
+  RemoteCommandType.seekForward ||
+  RemoteCommandType.seekBackward ||
+  RemoteCommandType.nextTrack ||
+  RemoteCommandType.previousTrack ||
+  RemoteCommandType.skipIntro ||
+  RemoteCommandType.skipCredits ||
+  RemoteCommandType.volumeUp ||
+  RemoteCommandType.volumeDown ||
+  RemoteCommandType.volumeMute ||
+  RemoteCommandType.volumeSet ||
+  RemoteCommandType.tabNext ||
+  RemoteCommandType.tabPrevious ||
+  RemoteCommandType.tabDiscover ||
+  RemoteCommandType.tabLibraries ||
+  RemoteCommandType.tabSearch ||
+  RemoteCommandType.tabDownloads ||
+  RemoteCommandType.tabSettings ||
+  RemoteCommandType.home ||
+  RemoteCommandType.search ||
+  RemoteCommandType.subtitles ||
+  RemoteCommandType.audioTracks ||
+  RemoteCommandType.qualitySettings ||
+  RemoteCommandType.fullscreen => true,
+};

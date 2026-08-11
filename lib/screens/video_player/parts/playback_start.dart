@@ -7,6 +7,8 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
     final attempt = _beginPlaybackAttempt(currentPlayer);
     _hasRenderedFirstFrame = false;
     _hasFatalPlaybackError = false;
+    // 503s observed from here on belong to this attempt's open.
+    _http503Watchdog.disarm();
 
     // Live TV mode: bypass standard playback initialization
     if (widget.isLive) {
@@ -20,7 +22,9 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         // spinner covers Plex's tune / Jellyfin's stream negotiation).
         final channel = widget.live!.channel;
         final session = await _startLiveSession(channel);
-        if (session == null) throw Exception('Failed to start live channel');
+        if (session == null) {
+          throw PlaybackException(t.liveTv.failedToStartChannel, reason: PlaybackFailureReason.serverUnavailable);
+        }
         if (!mounted || !attempt.isCurrent) {
           _abandonLiveSession(session);
           return;
@@ -57,7 +61,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         // Build the stream URL (with optional offset for time-shift)
         final streamUrl = await session.streamUrlAt(offsetSeconds: offsetSeconds);
         if (streamUrl == null || !mounted) {
-          throw Exception('Failed to build stream path');
+          throw PlaybackException(t.liveTv.failedToBuildStreamUrl, reason: PlaybackFailureReason.noPlayableSource);
         }
 
         // Track stream start epoch for position calculations
@@ -139,7 +143,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         // headers were resolved there too. Just await the result.
         final playbackDataFuture = _playbackDataFuture;
         if (playbackDataFuture == null) {
-          throw StateError('Playback data was not prepared before playback start');
+          throw PlaybackException(t.messages.playbackDataNotPrepared);
         }
         playbackContext = await playbackDataFuture;
         if (!mounted || player != currentPlayer) return;
@@ -257,6 +261,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
           resumePosition: resumePosition,
           durationMs: _currentMetadata.durationMs,
         );
+        if (!attempt.isCurrent) return;
         final openResult = await _openMediaOnPlayer(
           player: currentPlayer,
           settingsService: settingsService,
@@ -353,6 +358,12 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
           preferredSubtitleTrack:
               subtitleSelection.declinedPreference ?? SubtitlePreference.trackOrNull(subtitleSelection.primaryTrack),
           preferredSecondarySubtitleTrack: SubtitlePreference.trackOrNull(subtitleSelection.secondaryTrack),
+          // Same rule as the reload flow: a source-backed primary with no sidecar on a transcode is
+          // burned into the picture, so nothing native is coming for it.
+          primarySubtitleIsServerRendered:
+              _isTranscoding &&
+              subtitleSelection.primarySourceStreamId != null &&
+              subtitleSelection.primarySidecar == null,
         );
 
         // Store only the active sidecars for re-use after backend fallback.

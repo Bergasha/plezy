@@ -157,6 +157,9 @@ class Translations$auth$en {
 
 	/// en: 'Plezy could not safely recover local sign-in and pending playback data. Please sign in again.'
 	String get localDataRecoveryRequired => 'Plezy could not safely recover local sign-in and pending playback data. Please sign in again.';
+
+	/// en: 'The Plex PIN check was rejected'
+	String get pinCheckRejected => 'The Plex PIN check was rejected';
 }
 
 // Path: common
@@ -303,6 +306,15 @@ class Translations$common$en {
 	String get pressBackAgainToExit => 'Press back again to exit';
 
 	late final Translations$common$ratingSource$en ratingSource = Translations$common$ratingSource$en.internal(_root);
+
+	/// en: 'N/A'
+	String get notAvailable => 'N/A';
+
+	/// en: 'URL'
+	String get url => 'URL';
+
+	/// en: 'ABC'
+	String get letterKeys => 'ABC';
 }
 
 // Path: screens
@@ -1045,78 +1057,6 @@ class Translations$settings$en {
 	/// en: 'Lower the mix to prevent clipping. Turn off to keep the original volume (may distort loud scenes).'
 	String get audioDownmixNormalizeDescription => 'Lower the mix to prevent clipping. Turn off to keep the original volume (may distort loud scenes).';
 
-	/// en: 'Atmos Output Test'
-	String get atmosDiagnostics => 'Atmos Output Test';
-
-	/// en: 'Diagnose Dolby Atmos output by playing test signals through the system player'
-	String get atmosDiagnosticsDescription => 'Diagnose Dolby Atmos output by playing test signals through the system player';
-
-	/// en: 'Apple Atmos stream'
-	String get atmosTestHlsAtmos => 'Apple Atmos stream';
-
-	/// en: 'Known-good Dolby Atmos stream. The receiver should show Dolby Atmos.'
-	String get atmosTestHlsAtmosDescription => 'Known-good Dolby Atmos stream. The receiver should show Dolby Atmos.';
-
-	/// en: 'Apple surround stream'
-	String get atmosTestHlsControl => 'Apple surround stream';
-
-	/// en: 'Non-Atmos control stream. The receiver should show surround without Atmos.'
-	String get atmosTestHlsControlDescription => 'Non-Atmos control stream. The receiver should show surround without Atmos.';
-
-	/// en: 'Raw EAC3 stream'
-	String get atmosTestRawStream => 'Raw EAC3 stream';
-
-	/// en: 'Streams the test file exactly like in-player Atmos playback. Needs the test file URL.'
-	String get atmosTestRawStreamDescription => 'Streams the test file exactly like in-player Atmos playback. Needs the test file URL.';
-
-	/// en: 'Raw EAC3 file'
-	String get atmosTestRawFile => 'Raw EAC3 file';
-
-	/// en: 'Plays the test file with a known length. Needs the test file URL.'
-	String get atmosTestRawFileDescription => 'Plays the test file with a known length. Needs the test file URL.';
-
-	/// en: 'Sample-buffer renderer (native)'
-	String get atmosTestAsbarNative => 'Sample-buffer renderer (native)';
-
-	/// en: 'Feeds the file's untouched compressed audio straight to the system renderer. Needs the test file URL.'
-	String get atmosTestAsbarNativeDescription => 'Feeds the file\'s untouched compressed audio straight to the system renderer. Needs the test file URL.';
-
-	/// en: 'Sample-buffer renderer (rebuilt)'
-	String get atmosTestAsbarGenerated => 'Sample-buffer renderer (rebuilt)';
-
-	/// en: 'Same, but with the audio description rebuilt the way playback builds it. Needs the test file URL.'
-	String get atmosTestAsbarGeneratedDescription => 'Same, but with the audio description rebuilt the way playback builds it. Needs the test file URL.';
-
-	/// en: 'Use movie playback session mode'
-	String get atmosTestSessionMode => 'Use movie playback session mode';
-
-	/// en: 'Off uses the mode Dolby documents. On uses the mode playback used previously.'
-	String get atmosTestSessionModeDescription => 'Off uses the mode Dolby documents. On uses the mode playback used previously.';
-
-	/// en: 'Choose AirPlay output'
-	String get atmosTestShowRoutePicker => 'Choose AirPlay output';
-
-	/// en: 'Hide AirPlay output picker'
-	String get atmosTestHideRoutePicker => 'Hide AirPlay output picker';
-
-	/// en: 'Send the test to an AirPlay receiver. Only AirPlay reports the resolved audio mode.'
-	String get atmosTestRoutePickerDescription => 'Send the test to an AirPlay receiver. Only AirPlay reports the resolved audio mode.';
-
-	/// en: 'Stop test'
-	String get atmosTestStop => 'Stop test';
-
-	/// en: 'Test file URL'
-	String get atmosTestUrl => 'Test file URL';
-
-	/// en: 'HTTP URL of a raw .ec3 Dolby Atmos file (e.g. extracted with ffmpeg)'
-	String get atmosTestUrlDescription => 'HTTP URL of a raw .ec3 Dolby Atmos file (e.g. extracted with ffmpeg)';
-
-	/// en: 'Set the test file URL first'
-	String get atmosTestUrlMissing => 'Set the test file URL first';
-
-	/// en: 'Status'
-	String get atmosTestStatus => 'Status';
-
 	/// en: 'Dolby Vision Conversion'
 	String get dvConversionMode => 'Dolby Vision Conversion';
 
@@ -1186,6 +1126,12 @@ class Translations$settings$en {
 	/// en: 'Startup Section'
 	String get startupSection => 'Startup Section';
 
+	/// en: 'Show Explore Tab'
+	String get showExploreTab => 'Show Explore Tab';
+
+	/// en: 'Display the Explore tab with content from Plex Discover and connected trackers'
+	String get showExploreTabDescription => 'Display the Explore tab with content from Plex Discover and connected trackers';
+
 	/// en: 'Default to Favorite Channels'
 	String get liveTvDefaultFavorites => 'Default to Favorite Channels';
 
@@ -1233,6 +1179,9 @@ class Translations$settings$en {
 
 	/// en: 'Behavior'
 	String get behavior => 'Behavior';
+
+	/// en: 'Export Plezy settings'
+	String get exportDialogTitle => 'Export Plezy settings';
 }
 
 // Path: actor
@@ -1643,6 +1592,12 @@ class Translations$fileInfo$en {
 
 	/// en: 'Original'
 	String get flagOriginal => 'Original';
+
+	/// en: 'Mono'
+	String get channelsMono => 'Mono';
+
+	/// en: 'Profile ${profile}'
+	String dolbyVisionProfile({required Object profile}) => 'Profile ${profile}';
 }
 
 // Path: mediaMenu
@@ -1865,6 +1820,21 @@ class Translations$accessibility$en {
 
 	/// en: 'Row ${row} of ${rowCount}'
 	String rowPosition({required Object row, required Object rowCount}) => 'Row ${row} of ${rowCount}';
+
+	/// en: 'Play auto-scroll'
+	String get autoScrollPlay => 'Play auto-scroll';
+
+	/// en: 'Pause auto-scroll'
+	String get autoScrollPause => 'Pause auto-scroll';
+
+	/// en: 'H'
+	String get hueShort => 'H';
+
+	/// en: 'S'
+	String get saturationShort => 'S';
+
+	/// en: 'V'
+	String get valueShort => 'V';
 }
 
 // Path: tooltips
@@ -2129,6 +2099,9 @@ class Translations$videoControls$en {
 	/// en: 'No items in queue'
 	String get noQueueItems => 'No items in queue';
 
+	/// en: 'No audio devices available'
+	String get noAudioDevicesAvailable => 'No audio devices available';
+
 	/// en: 'Search Subtitles'
 	String get searchSubtitles => 'Search Subtitles';
 
@@ -2149,6 +2122,33 @@ class Translations$videoControls$en {
 
 	/// en: 'Search languages...'
 	String get searchLanguages => 'Search languages...';
+
+	/// en: 'Skip Intro'
+	String get skipIntro => 'Skip Intro';
+
+	/// en: 'Skip Credits'
+	String get skipCredits => 'Skip Credits';
+
+	/// en: 'Next Episode'
+	String get nextEpisode => 'Next Episode';
+
+	/// en: 'Track ${n}'
+	String subtitleTrack({required Object n}) => 'Track ${n}';
+
+	/// en: 'Subtitle ${name}'
+	String subtitleFile({required Object name}) => 'Subtitle ${name}';
+
+	/// en: '${label} (Forced)'
+	String forcedTrack({required Object label}) => '${label} (Forced)';
+
+	/// en: 'Subtitles: Off'
+	String get osdSubtitlesOff => 'Subtitles: Off';
+
+	/// en: 'Subtitles: ${track}'
+	String osdSubtitles({required Object track}) => 'Subtitles: ${track}';
+
+	/// en: 'Audio: ${track}'
+	String osdAudio({required Object track}) => 'Audio: ${track}';
 }
 
 // Path: messages
@@ -2309,6 +2309,12 @@ class Translations$messages$en {
 	/// en: 'The server found this item but could not read its file (HTTP 404). The file was probably moved, deleted, or its storage is offline. Ask the server owner to check the file and rescan the library.'
 	String get mediaUnreadableBody => 'The server found this item but could not read its file (HTTP 404). The file was probably moved, deleted, or its storage is offline. Ask the server owner to check the file and rescan the library.';
 
+	/// en: 'Stream unavailable'
+	String get serverBusyTitle => 'Stream unavailable';
+
+	/// en: 'The server kept refusing to stream this file (HTTP 503). It may be restarting, busy, or the file's storage may be offline. Try again in a moment — if it keeps happening, ask the server owner to check the server and the file's storage.'
+	String get serverBusyBody => 'The server kept refusing to stream this file (HTTP 503). It may be restarting, busy, or the file\'s storage may be offline. Try again in a moment — if it keeps happening, ask the server owner to check the server and the file\'s storage.';
+
 	/// en: 'Logs uploaded'
 	String get logsUploaded => 'Logs uploaded';
 
@@ -2317,6 +2323,27 @@ class Translations$messages$en {
 
 	/// en: 'Log ID'
 	String get logId => 'Log ID';
+
+	/// en: 'Subtitles are burned into this stream. Change them from the subtitle menu.'
+	String get burnedSubtitlesUseMenu => 'Subtitles are burned into this stream. Change them from the subtitle menu.';
+
+	/// en: 'No video URL available'
+	String get noVideoUrl => 'No video URL available';
+
+	/// en: 'The server returned no playable media sources'
+	String get playbackNoMediaSources => 'The server returned no playable media sources';
+
+	/// en: 'Playback was started before its data was ready'
+	String get playbackDataNotPrepared => 'Playback was started before its data was ready';
+
+	/// en: 'Stream selection is not available for this source'
+	String get streamSelectionUnavailable => 'Stream selection is not available for this source';
+
+	/// en: 'Could not apply the selected streams'
+	String get streamSelectionFailed => 'Could not apply the selected streams';
+
+	/// en: 'No server is available for the active profile'
+	String get serverUnavailableForProfile => 'No server is available for the active profile';
 }
 
 // Path: subtitlingStyling
@@ -2374,6 +2401,12 @@ class Translations$subtitlingStyling$en {
 
 	/// en: 'Bottom'
 	String get positionBottom => 'Bottom';
+
+	/// en: 'Anchor to Screen'
+	String get anchorToScreen => 'Anchor to Screen';
+
+	/// en: 'Show text subtitles in the black bars below widescreen video'
+	String get anchorToScreenDescription => 'Show text subtitles in the black bars below widescreen video';
 
 	/// en: 'Bold'
 	String get bold => 'Bold';
@@ -2647,6 +2680,9 @@ class Translations$profiles$en {
 
 	/// en: 'PINs don't match'
 	String get pinsDontMatch => 'PINs don\'t match';
+
+	/// en: 'The Plex profile token resolved to an unexpected server'
+	String get tokenIdentityMismatch => 'The Plex profile token resolved to an unexpected server';
 }
 
 // Path: connections
@@ -2770,6 +2806,12 @@ class Translations$discover$en {
 
 	/// en: 'More Like This'
 	String get moreLikeThis => 'More Like This';
+
+	/// en: '(one) {${n} title} (other) {${n} titles}'
+	String titleCount({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} title',
+		other: '${n} titles',
+	);
 }
 
 // Path: errors
@@ -3211,8 +3253,17 @@ class Translations$explore$en {
 	/// en: 'Remove from Watchlist'
 	String get removeFromWatchlist => 'Remove from Watchlist';
 
+	/// en: 'Added to watchlist'
+	String get addedToWatchlist => 'Added to watchlist';
+
+	/// en: 'Removed from watchlist'
+	String get removedFromWatchlist => 'Removed from watchlist';
+
 	/// en: 'Couldn't update watchlist'
 	String get watchlistUpdateFailed => 'Couldn\'t update watchlist';
+
+	/// en: 'Couldn't match this item to a watchlist'
+	String get watchlistNoMatch => 'Couldn\'t match this item to a watchlist';
 
 	/// en: 'Not in your library'
 	String get notInLibrary => 'Not in your library';
@@ -3356,6 +3407,15 @@ class Translations$liveTv$en {
 	/// en: 'Reorder Favorites'
 	String get reorderFavorites => 'Reorder Favorites';
 
+	/// en: 'No favorite channels'
+	String get noFavoriteChannels => 'No favorite channels';
+
+	/// en: 'Show all channels, then long-press a channel to add it to your favorites.'
+	String get noFavoriteChannelsHint => 'Show all channels, then long-press a channel to add it to your favorites.';
+
+	/// en: 'Show All Channels'
+	String get showAllChannels => 'Show All Channels';
+
 	/// en: 'Could not load favorites. Check your connection and try again.'
 	String get favoritesLoadFailed => 'Could not load favorites. Check your connection and try again.';
 
@@ -3472,6 +3532,21 @@ class Translations$liveTv$en {
 
 	/// en: 'Record show'
 	String get recordShow => 'Record show';
+
+	/// en: 'Starting in ${minutes} min'
+	String startingInMinutes({required Object minutes}) => 'Starting in ${minutes} min';
+
+	/// en: '${day} at ${time}'
+	String dayAtTime({required Object day, required Object time}) => '${day} at ${time}';
+
+	/// en: '${product} returned invalid Live TV playback data'
+	String invalidPlaybackData({required Object product}) => '${product} returned invalid Live TV playback data';
+
+	/// en: 'Could not start the live channel'
+	String get failedToStartChannel => 'Could not start the live channel';
+
+	/// en: 'Could not build the stream URL'
+	String get failedToBuildStreamUrl => 'Could not build the stream URL';
 }
 
 // Path: collections
@@ -3706,6 +3781,12 @@ class Translations$music$en {
 
 	/// en: 'Repeat one'
 	String get repeatOne => 'Repeat one';
+
+	/// en: 'No server is available for an instant mix'
+	String get instantMixNoServer => 'No server is available for an instant mix';
+
+	/// en: 'No audio URL is available for ${track}'
+	String noAudioUrl({required Object track}) => 'No audio URL is available for ${track}';
 }
 
 // Path: watchTogether
@@ -3910,6 +3991,9 @@ class Translations$watchTogether$en {
 
 	/// en: 'Couldn't switch — content not found on this server'
 	String get guestSwitchFailed => 'Couldn\'t switch — content not found on this server';
+
+	/// en: 'User'
+	String get defaultDisplayName => 'User';
 }
 
 // Path: downloads
@@ -4143,6 +4227,36 @@ class Translations$downloads$en {
 	String get syncRuleListCreated => 'Sync rule created';
 
 	late final Translations$downloads$backgroundWarning$en backgroundWarning = Translations$downloads$backgroundWarning$en.internal(_root);
+
+	/// en: 'Unknown Show'
+	String get unknownShow => 'Unknown Show';
+
+	/// en: 'Unknown Season'
+	String get unknownSeason => 'Unknown Season';
+
+	/// en: 'Unknown Album'
+	String get unknownAlbum => 'Unknown Album';
+
+	/// en: '${completed}/${total} completed'
+	String completedOfTotal({required Object completed, required Object total}) => '${completed}/${total} completed';
+
+	/// en: 'File not found (404)'
+	String get errorFileNotFound => 'File not found (404)';
+
+	/// en: 'Download failed'
+	String get errorDownloadFailed => 'Download failed';
+
+	/// en: 'Post-processing failed: ${error}'
+	String errorPostProcessing({required Object error}) => 'Post-processing failed: ${error}';
+
+	/// en: 'Downloading...'
+	String get notificationDownloading => 'Downloading...';
+
+	/// en: 'Download complete'
+	String get notificationComplete => 'Download complete';
+
+	/// en: 'Download paused'
+	String get notificationPaused => 'Download paused';
 }
 
 // Path: shaders
@@ -4220,6 +4334,9 @@ class Translations$companionRemote$en {
 	late final Translations$companionRemote$pairing$en pairing = Translations$companionRemote$pairing$en.internal(_root);
 	late final Translations$companionRemote$remote$en remote = Translations$companionRemote$remote$en.internal(_root);
 	late final Translations$companionRemote$errors$en errors = Translations$companionRemote$errors$en.internal(_root);
+
+	/// en: 'The connection closed before authentication'
+	String get closedBeforeAuth => 'The connection closed before authentication';
 }
 
 // Path: videoSettings
@@ -4253,6 +4370,27 @@ class Translations$videoSettings$en {
 
 	/// en: 'HDR'
 	String get hdr => 'HDR';
+
+	/// en: 'HDR isn't available here — this desktop compositor or video output can't carry it.'
+	String get hdrUnsupported => 'HDR isn\'t available here — this desktop compositor or video output can\'t carry it.';
+
+	/// en: 'HDR Tone Mapping'
+	String get hdrToneMapping => 'HDR Tone Mapping';
+
+	/// en: 'Compositor'
+	String get hdrToneMappingCompositor => 'Compositor';
+
+	/// en: 'Pass the source's HDR metadata through and let the desktop compositor map it.'
+	String get hdrToneMappingCompositorDescription => 'Pass the source\'s HDR metadata through and let the desktop compositor map it.';
+
+	/// en: 'Player'
+	String get hdrToneMappingPlayer => 'Player';
+
+	/// en: 'Map to the display's peak brightness in the player, then tell the compositor the result.'
+	String get hdrToneMappingPlayerDescription => 'Map to the display\'s peak brightness in the player, then tell the compositor the result.';
+
+	/// en: 'Couldn't change HDR tone mapping — the previous mode is still active.'
+	String get hdrToneMappingFailed => 'Couldn\'t change HDR tone mapping — the previous mode is still active.';
 
 	/// en: 'Audio Output'
 	String get audioOutput => 'Audio Output';
@@ -4394,6 +4532,36 @@ class Translations$performanceOverlay$en {
 
 	/// en: 'UI FPS'
 	String get uiFps => 'UI FPS';
+
+	/// en: 'FPS'
+	String get fps => 'FPS';
+
+	/// en: 'Android HW'
+	String get decoderAndroidHw => 'Android HW';
+
+	/// en: 'NVIDIA HW'
+	String get decoderNvidiaHw => 'NVIDIA HW';
+
+	/// en: 'Qualcomm HW'
+	String get decoderQualcommHw => 'Qualcomm HW';
+
+	/// en: 'MediaTek HW'
+	String get decoderMediatekHw => 'MediaTek HW';
+
+	/// en: 'Exynos HW'
+	String get decoderExynosHw => 'Exynos HW';
+
+	/// en: 'Software'
+	String get decoderSoftware => 'Software';
+
+	/// en: 'Hardware'
+	String get decoderHardware => 'Hardware';
+
+	/// en: 'Active'
+	String get tunnelingActive => 'Active';
+
+	/// en: '${converted} (${failures} failed)'
+	String dvRpuFailed({required Object converted, required Object failures}) => '${converted} (${failures} failed)';
 }
 
 // Path: externalPlayer
@@ -4886,6 +5054,36 @@ class Translations$seerr$en {
 
 	/// en: 'Processing'
 	String get statusProcessing => 'Processing';
+
+	/// en: 'Could not reach ${url}: ${error}'
+	String couldNotReach({required Object url, required Object error}) => 'Could not reach ${url}: ${error}';
+
+	/// en: 'No Seerr instance at ${url} (HTTP ${status})'
+	String noInstanceAtUrl({required Object url, required Object status}) => 'No Seerr instance at ${url} (HTTP ${status})';
+
+	/// en: 'This Seerr instance has not completed first-run setup'
+	String get notInitialized => 'This Seerr instance has not completed first-run setup';
+
+	/// en: 'No Plex token is available to sign in again'
+	String get noPlexTokenForReauth => 'No Plex token is available to sign in again';
+
+	/// en: 'No stored credentials are available to sign in again'
+	String get noStoredCredentials => 'No stored credentials are available to sign in again';
+
+	/// en: 'Sign-in was rejected'
+	String get signInRejected => 'Sign-in was rejected';
+
+	/// en: 'Seerr did not issue a session cookie'
+	String get noSessionCookie => 'Seerr did not issue a session cookie';
+
+	/// en: 'Seerr rejected the new session cookie'
+	String get freshCookieRejected => 'Seerr rejected the new session cookie';
+
+	/// en: 'Seerr did not return user information'
+	String get noUserInformation => 'Seerr did not return user information';
+
+	/// en: 'The session was rejected after signing in again'
+	String get sessionRejectedAfterReauth => 'The session was rejected after signing in again';
 }
 
 // Path: services
@@ -4926,6 +5124,7 @@ class Translations$services$en {
 	late final Translations$services$names$en names = Translations$services$names$en.internal(_root);
 	late final Translations$services$deviceCode$en deviceCode = Translations$services$deviceCode$en.internal(_root);
 	late final Translations$services$oauthProxy$en oauthProxy = Translations$services$oauthProxy$en.internal(_root);
+	late final Translations$services$pendingAuth$en pendingAuth = Translations$services$pendingAuth$en.internal(_root);
 	late final Translations$services$libraryFilter$en libraryFilter = Translations$services$libraryFilter$en.internal(_root);
 }
 
@@ -5020,6 +5219,60 @@ class Translations$addServer$en {
 
 	/// en: 'Reuse another profile's connection. PIN-protected profiles require a PIN.'
 	String get borrowFromAnotherProfileSubtitle => 'Reuse another profile\'s connection. PIN-protected profiles require a PIN.';
+
+	/// en: 'Invalid username or password'
+	String get invalidCredentials => 'Invalid username or password';
+
+	/// en: 'The authentication response was not valid JSON'
+	String get authResponseNotJson => 'The authentication response was not valid JSON';
+
+	/// en: 'Quick Connect was rejected by the server'
+	String get quickConnectRejected => 'Quick Connect was rejected by the server';
+
+	/// en: 'The Quick Connect response was not valid JSON'
+	String get quickConnectNotJson => 'The Quick Connect response was not valid JSON';
+
+	/// en: 'The Quick Connect response is missing a code or secret'
+	String get quickConnectMissingFields => 'The Quick Connect response is missing a code or secret';
+
+	/// en: 'Quick Connect polling was rejected by the server'
+	String get quickConnectPollRejected => 'Quick Connect polling was rejected by the server';
+
+	/// en: 'The server did not respond in time'
+	String get serverTimedOut => 'The server did not respond in time';
+
+	/// en: 'The server response was not valid JSON'
+	String get responseNotJson => 'The server response was not valid JSON';
+
+	/// en: 'The response is missing an ID or server name — is this a ${product} server?'
+	String responseMissingIdentity({required Object product}) => 'The response is missing an ID or server name — is this a ${product} server?';
+
+	/// en: 'Could not reach the server: ${error}'
+	String probeFailed({required Object error}) => 'Could not reach the server: ${error}';
+
+	/// en: 'Enter at least one ${product} server URL'
+	String enterAtLeastOneUrl({required Object product}) => 'Enter at least one ${product} server URL';
+
+	/// en: 'No reachable ${product} server was found'
+	String noReachableServer({required Object product}) => 'No reachable ${product} server was found';
+
+	/// en: 'These URLs point to different ${product} servers'
+	String urlsPointToDifferentServers({required Object product}) => 'These URLs point to different ${product} servers';
+
+	/// en: 'This URL does not match the ${product} server'
+	String urlDoesNotMatchServer({required Object product}) => 'This URL does not match the ${product} server';
+
+	/// en: 'The server redirected to an unsupported URL'
+	String get redirectUnsupported => 'The server redirected to an unsupported URL';
+
+	/// en: 'The server redirected to a different host. Enter the final ${product} URL directly.'
+	String redirectDifferentHost({required Object product}) => 'The server redirected to a different host. Enter the final ${product} URL directly.';
+
+	/// en: 'The server redirected from HTTPS to an insecure URL'
+	String get redirectInsecure => 'The server redirected from HTTPS to an insecure URL';
+
+	/// en: 'The server redirected to an unsupported URL. Enter the final ${product} URL directly.'
+	String redirectUnsupportedEnterFinal({required Object product}) => 'The server redirected to an unsupported URL. Enter the final ${product} URL directly.';
 }
 
 // Path: common.ratingSource
@@ -6137,8 +6390,8 @@ class Translations$services$deviceCode$en {
 	/// en: 'Activate Plezy on ${service}'
 	String title({required Object service}) => 'Activate Plezy on ${service}';
 
-	/// en: 'Visit ${url} and enter this code:'
-	String body({required Object url}) => 'Visit ${url} and enter this code:';
+	/// en: 'Scan the QR code, or visit the address below and enter this code:'
+	String get instructions => 'Scan the QR code, or visit the address below and enter this code:';
 
 	/// en: 'Open ${service} to activate'
 	String openToActivate({required Object service}) => 'Open ${service} to activate';
@@ -6169,6 +6422,15 @@ class Translations$services$oauthProxy$en {
 
 	/// en: 'Open ${service} to sign in'
 	String openToSignIn({required Object service}) => 'Open ${service} to sign in';
+}
+
+// Path: services.pendingAuth
+class Translations$services$pendingAuth$en {
+	Translations$services$pendingAuth$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
 
 	/// en: 'Copy sign-in URL'
 	String get copyUrl => 'Copy sign-in URL';
@@ -6246,6 +6508,7 @@ extension on Translations {
 			'auth.quickConnectCancel' => 'Cancel',
 			'auth.quickConnectExpired' => 'Quick Connect expired. Try again.',
 			'auth.localDataRecoveryRequired' => 'Plezy could not safely recover local sign-in and pending playback data. Please sign in again.',
+			'auth.pinCheckRejected' => 'The Plex PIN check was rejected',
 			'common.cancel' => 'Cancel',
 			'common.save' => 'Save',
 			'common.close' => 'Close',
@@ -6302,6 +6565,9 @@ extension on Translations {
 			'common.ratingSource.trakt' => 'Trakt',
 			'common.ratingSource.rottenTomatoesCritic' => 'Rotten Tomatoes critics',
 			'common.ratingSource.rottenTomatoesAudience' => 'Rotten Tomatoes audience',
+			'common.notAvailable' => 'N/A',
+			'common.url' => 'URL',
+			'common.letterKeys' => 'ABC',
 			'screens.licenses' => 'Licenses',
 			'screens.switchProfile' => 'Switch Profile',
 			'screens.subtitleStyling' => 'Subtitle Styling',
@@ -6540,30 +6806,6 @@ extension on Translations {
 			'settings.downmixCenterBoostShort' => 'dB',
 			'settings.audioDownmixNormalize' => 'Normalize Volume on Downmix',
 			'settings.audioDownmixNormalizeDescription' => 'Lower the mix to prevent clipping. Turn off to keep the original volume (may distort loud scenes).',
-			'settings.atmosDiagnostics' => 'Atmos Output Test',
-			'settings.atmosDiagnosticsDescription' => 'Diagnose Dolby Atmos output by playing test signals through the system player',
-			'settings.atmosTestHlsAtmos' => 'Apple Atmos stream',
-			'settings.atmosTestHlsAtmosDescription' => 'Known-good Dolby Atmos stream. The receiver should show Dolby Atmos.',
-			'settings.atmosTestHlsControl' => 'Apple surround stream',
-			'settings.atmosTestHlsControlDescription' => 'Non-Atmos control stream. The receiver should show surround without Atmos.',
-			'settings.atmosTestRawStream' => 'Raw EAC3 stream',
-			'settings.atmosTestRawStreamDescription' => 'Streams the test file exactly like in-player Atmos playback. Needs the test file URL.',
-			'settings.atmosTestRawFile' => 'Raw EAC3 file',
-			'settings.atmosTestRawFileDescription' => 'Plays the test file with a known length. Needs the test file URL.',
-			'settings.atmosTestAsbarNative' => 'Sample-buffer renderer (native)',
-			'settings.atmosTestAsbarNativeDescription' => 'Feeds the file\'s untouched compressed audio straight to the system renderer. Needs the test file URL.',
-			'settings.atmosTestAsbarGenerated' => 'Sample-buffer renderer (rebuilt)',
-			'settings.atmosTestAsbarGeneratedDescription' => 'Same, but with the audio description rebuilt the way playback builds it. Needs the test file URL.',
-			'settings.atmosTestSessionMode' => 'Use movie playback session mode',
-			'settings.atmosTestSessionModeDescription' => 'Off uses the mode Dolby documents. On uses the mode playback used previously.',
-			'settings.atmosTestShowRoutePicker' => 'Choose AirPlay output',
-			'settings.atmosTestHideRoutePicker' => 'Hide AirPlay output picker',
-			'settings.atmosTestRoutePickerDescription' => 'Send the test to an AirPlay receiver. Only AirPlay reports the resolved audio mode.',
-			'settings.atmosTestStop' => 'Stop test',
-			'settings.atmosTestUrl' => 'Test file URL',
-			'settings.atmosTestUrlDescription' => 'HTTP URL of a raw .ec3 Dolby Atmos file (e.g. extracted with ffmpeg)',
-			'settings.atmosTestUrlMissing' => 'Set the test file URL first',
-			'settings.atmosTestStatus' => 'Status',
 			'settings.dvConversionMode' => 'Dolby Vision Conversion',
 			'settings.dvConversionModeDescription' => 'Choose how ExoPlayer handles Dolby Vision Profile 7 files.',
 			'settings.dvConversionAuto' => 'Auto',
@@ -6587,6 +6829,8 @@ extension on Translations {
 			'settings.showNavBarLabels' => 'Show Navigation Bar Labels',
 			'settings.showNavBarLabelsDescription' => 'Display text labels under navigation bar icons',
 			'settings.startupSection' => 'Startup Section',
+			'settings.showExploreTab' => 'Show Explore Tab',
+			'settings.showExploreTabDescription' => 'Display the Explore tab with content from Plex Discover and connected trackers',
 			'settings.liveTvDefaultFavorites' => 'Default to Favorite Channels',
 			'settings.liveTvDefaultFavoritesDescription' => 'Show only favorite channels when opening Live TV',
 			'settings.display' => 'Display',
@@ -6603,6 +6847,7 @@ extension on Translations {
 			'settings.subtitlesAndConfig' => 'Subtitles & Configuration',
 			'settings.seekAndTiming' => 'Seek & Timing',
 			'settings.behavior' => 'Behavior',
+			'settings.exportDialogTitle' => 'Export Plezy settings',
 			'actor.filmography' => 'Filmography',
 			'search.hint' => 'Search movies, shows, music...',
 			'search.tryDifferentTerm' => 'Try a different search term',
@@ -6742,8 +6987,6 @@ extension on Translations {
 			'fileInfo.transcoding' => 'Transcoding',
 			'fileInfo.etag' => 'ETag',
 			'fileInfo.versionId' => 'Version ID',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.fileId' => 'File ID',
 			'fileInfo.defaultAudioTrack' => 'Default Audio Track',
 			'fileInfo.defaultSubtitleTrack' => 'Default Subtitle Track',
@@ -6755,10 +6998,14 @@ extension on Translations {
 			'fileInfo.flagHearingImpaired' => 'Hearing impaired',
 			'fileInfo.flagDub' => 'Dub',
 			'fileInfo.flagOriginal' => 'Original',
+			'fileInfo.channelsMono' => 'Mono',
+			'fileInfo.dolbyVisionProfile' => ({required Object profile}) => 'Profile ${profile}',
 			'mediaMenu.markAsWatched' => 'Mark as Watched',
 			'mediaMenu.markAsUnwatched' => 'Mark as Unwatched',
 			'mediaMenu.removeFromContinueWatching' => 'Remove from Continue Watching',
 			'mediaMenu.viewDetails' => 'View details',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.goToSeries' => 'Go to series',
 			'mediaMenu.shufflePlay' => 'Shuffle Play',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Shuffle not available offline',
@@ -6817,6 +7064,11 @@ extension on Translations {
 			'accessibility.alphabetScrollHint' => 'Swipe up or down to move by letter',
 			'accessibility.rowColumnPosition' => ({required Object row, required Object rowCount, required Object column, required Object columnCount}) => 'Row ${row} of ${rowCount}, column ${column} of ${columnCount}',
 			'accessibility.rowPosition' => ({required Object row, required Object rowCount}) => 'Row ${row} of ${rowCount}',
+			'accessibility.autoScrollPlay' => 'Play auto-scroll',
+			'accessibility.autoScrollPause' => 'Pause auto-scroll',
+			'accessibility.hueShort' => 'H',
+			'accessibility.saturationShort' => 'S',
+			'accessibility.valueShort' => 'V',
 			'tooltips.shufflePlay' => 'Shuffle play',
 			'tooltips.playTrailer' => 'Play trailer',
 			'tooltips.markAsWatched' => 'Mark as watched',
@@ -6902,6 +7154,7 @@ extension on Translations {
 			'videoControls.noChaptersAvailable' => 'No chapters available',
 			'videoControls.queue' => 'Queue',
 			'videoControls.noQueueItems' => 'No items in queue',
+			'videoControls.noAudioDevicesAvailable' => 'No audio devices available',
 			'videoControls.searchSubtitles' => 'Search Subtitles',
 			'videoControls.language' => 'Language',
 			'videoControls.noSubtitlesFound' => 'No subtitles found',
@@ -6909,6 +7162,15 @@ extension on Translations {
 			'videoControls.subtitleDownloadedNotApplied' => 'Subtitle downloaded, but it could not be selected',
 			'videoControls.subtitleDownloadFailed' => 'Failed to download subtitle',
 			'videoControls.searchLanguages' => 'Search languages...',
+			'videoControls.skipIntro' => 'Skip Intro',
+			'videoControls.skipCredits' => 'Skip Credits',
+			'videoControls.nextEpisode' => 'Next Episode',
+			'videoControls.subtitleTrack' => ({required Object n}) => 'Track ${n}',
+			'videoControls.subtitleFile' => ({required Object name}) => 'Subtitle ${name}',
+			'videoControls.forcedTrack' => ({required Object label}) => '${label} (Forced)',
+			'videoControls.osdSubtitlesOff' => 'Subtitles: Off',
+			'videoControls.osdSubtitles' => ({required Object track}) => 'Subtitles: ${track}',
+			'videoControls.osdAudio' => ({required Object track}) => 'Audio: ${track}',
 			'messages.markedAsWatched' => 'Marked as watched',
 			'messages.markedAsUnwatched' => 'Marked as unwatched',
 			'messages.markedAsWatchedOffline' => 'Marked as watched (will sync when online)',
@@ -6958,9 +7220,18 @@ extension on Translations {
 			'messages.serverLimitBody' => 'Server error (HTTP 500). A bandwidth/transcoding limit likely rejected this session. Ask the owner to adjust it.',
 			'messages.mediaUnreadableTitle' => 'File unavailable',
 			'messages.mediaUnreadableBody' => 'The server found this item but could not read its file (HTTP 404). The file was probably moved, deleted, or its storage is offline. Ask the server owner to check the file and rescan the library.',
+			'messages.serverBusyTitle' => 'Stream unavailable',
+			'messages.serverBusyBody' => 'The server kept refusing to stream this file (HTTP 503). It may be restarting, busy, or the file\'s storage may be offline. Try again in a moment — if it keeps happening, ask the server owner to check the server and the file\'s storage.',
 			'messages.logsUploaded' => 'Logs uploaded',
 			'messages.logsUploadFailed' => 'Failed to upload logs',
 			'messages.logId' => 'Log ID',
+			'messages.burnedSubtitlesUseMenu' => 'Subtitles are burned into this stream. Change them from the subtitle menu.',
+			'messages.noVideoUrl' => 'No video URL available',
+			'messages.playbackNoMediaSources' => 'The server returned no playable media sources',
+			'messages.playbackDataNotPrepared' => 'Playback was started before its data was ready',
+			'messages.streamSelectionUnavailable' => 'Stream selection is not available for this source',
+			'messages.streamSelectionFailed' => 'Could not apply the selected streams',
+			'messages.serverUnavailableForProfile' => 'No server is available for the active profile',
 			'subtitlingStyling.text' => 'Text',
 			'subtitlingStyling.border' => 'Border',
 			'subtitlingStyling.background' => 'Background',
@@ -6977,6 +7248,8 @@ extension on Translations {
 			'subtitlingStyling.overrideStrip' => 'Remove styling',
 			'subtitlingStyling.positionTop' => 'Top',
 			'subtitlingStyling.positionBottom' => 'Bottom',
+			'subtitlingStyling.anchorToScreen' => 'Anchor to Screen',
+			'subtitlingStyling.anchorToScreenDescription' => 'Show text subtitles in the black bars below widescreen video',
 			'subtitlingStyling.bold' => 'Bold',
 			'subtitlingStyling.italic' => 'Italic',
 			'subtitlingStyling.renderResolution' => 'Render Resolution',
@@ -7059,6 +7332,7 @@ extension on Translations {
 			'profiles.pinExplain' => '4-digit PIN required to switch profiles.',
 			'profiles.continueButton' => 'Continue',
 			'profiles.pinsDontMatch' => 'PINs don\'t match',
+			'profiles.tokenIdentityMismatch' => 'The Plex profile token resolved to an unexpected server',
 			'connections.sectionTitle' => 'Connections',
 			'connections.addConnection' => 'Add connection',
 			'connections.addConnectionSubtitleNoProfile' => 'Sign in with Plex or connect a Jellyfin or Emby server',
@@ -7094,6 +7368,7 @@ extension on Translations {
 			'discover.tvShow' => 'TV Show',
 			'discover.minutesLeft' => ({required Object minutes}) => '${minutes} min left',
 			'discover.moreLikeThis' => 'More Like This',
+			'discover.titleCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} title', other: '${n} titles', ), 
 			'errors.searchFailed' => ({required Object error}) => 'Search failed: ${error}',
 			'errors.searchUnavailable' => 'Search could not reach any media server.',
 			'errors.connectionTimeout' => ({required Object context}) => 'Connection timeout while loading ${context}',
@@ -7243,6 +7518,8 @@ extension on Translations {
 			'navigation.explore' => 'Explore',
 			'explore.title' => 'Explore',
 			'explore.selectSource' => 'Select source',
+			_ => null,
+		} ?? switch (path) {
 			'explore.rows.watchlist' => 'Watchlist',
 			'explore.rows.recommendedMovies' => 'Recommended Movies',
 			'explore.rows.recommendedShows' => 'Recommended Shows',
@@ -7256,8 +7533,6 @@ extension on Translations {
 			'explore.rows.popularAnime' => 'Most Popular Anime',
 			'explore.rows.trending' => 'Trending',
 			'explore.rows.upcomingMovies' => 'Upcoming Movies',
-			_ => null,
-		} ?? switch (path) {
 			'explore.rows.upcomingShows' => 'Upcoming Shows',
 			'explore.status.airing' => 'Airing',
 			'explore.status.ended' => 'Ended',
@@ -7268,7 +7543,10 @@ extension on Translations {
 			'explore.characters' => 'Characters',
 			'explore.addToWatchlist' => 'Add to Watchlist',
 			'explore.removeFromWatchlist' => 'Remove from Watchlist',
+			'explore.addedToWatchlist' => 'Added to watchlist',
+			'explore.removedFromWatchlist' => 'Removed from watchlist',
 			'explore.watchlistUpdateFailed' => 'Couldn\'t update watchlist',
+			'explore.watchlistNoMatch' => 'Couldn\'t match this item to a watchlist',
 			'explore.notInLibrary' => 'Not in your library',
 			'explore.inTheseLibraries' => 'In these libraries',
 			'explore.checkingLibrary' => 'Checking your library...',
@@ -7411,6 +7689,9 @@ extension on Translations {
 			'liveTv.watchChannel' => 'Watch Channel',
 			'liveTv.favorites' => 'Favorites',
 			'liveTv.reorderFavorites' => 'Reorder Favorites',
+			'liveTv.noFavoriteChannels' => 'No favorite channels',
+			'liveTv.noFavoriteChannelsHint' => 'Show all channels, then long-press a channel to add it to your favorites.',
+			'liveTv.showAllChannels' => 'Show All Channels',
 			'liveTv.favoritesLoadFailed' => 'Could not load favorites. Check your connection and try again.',
 			'liveTv.favoritesUpdateFailed' => 'Could not update favorites. Check your connection and try again.',
 			'liveTv.joinSession' => 'Join Session in Progress',
@@ -7450,6 +7731,11 @@ extension on Translations {
 			'liveTv.guideReloadRequested' => 'Guide refresh requested',
 			'liveTv.rulesProcessRequested' => 'Rule re-evaluation requested',
 			'liveTv.recordShow' => 'Record show',
+			'liveTv.startingInMinutes' => ({required Object minutes}) => 'Starting in ${minutes} min',
+			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} at ${time}',
+			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} returned invalid Live TV playback data',
+			'liveTv.failedToStartChannel' => 'Could not start the live channel',
+			'liveTv.failedToBuildStreamUrl' => 'Could not build the stream URL',
 			'collections.title' => 'Collections',
 			'collections.collection' => 'Collection',
 			'collections.empty' => 'Collection is empty',
@@ -7518,6 +7804,8 @@ extension on Translations {
 			'music.repeat' => 'Repeat',
 			'music.repeatAll' => 'Repeat all',
 			'music.repeatOne' => 'Repeat one',
+			'music.instantMixNoServer' => 'No server is available for an instant mix',
+			'music.noAudioUrl' => ({required Object track}) => 'No audio URL is available for ${track}',
 			'watchTogether.title' => 'Watch Together',
 			'watchTogether.description' => 'Watch content in sync with friends and family',
 			'watchTogether.createSession' => 'Create Session',
@@ -7583,6 +7871,7 @@ extension on Translations {
 			'watchTogether.removeRoom' => 'Remove',
 			'watchTogether.guestSwitchUnavailable' => 'Couldn\'t switch — server unavailable for sync',
 			'watchTogether.guestSwitchFailed' => 'Couldn\'t switch — content not found on this server',
+			'watchTogether.defaultDisplayName' => 'User',
 			'downloads.title' => 'Downloads',
 			'downloads.manage' => 'Manage',
 			'downloads.tvShows' => 'TV Shows',
@@ -7683,6 +7972,16 @@ extension on Translations {
 			'downloads.backgroundWarning.statusUnknown' => 'Not checked yet',
 			'downloads.backgroundWarning.settingsUnavailable' => 'Couldn\'t open system settings on this device',
 			'downloads.backgroundWarning.linkUnavailable' => 'Couldn\'t open dontkillmyapp.com on this device',
+			'downloads.unknownShow' => 'Unknown Show',
+			'downloads.unknownSeason' => 'Unknown Season',
+			'downloads.unknownAlbum' => 'Unknown Album',
+			'downloads.completedOfTotal' => ({required Object completed, required Object total}) => '${completed}/${total} completed',
+			'downloads.errorFileNotFound' => 'File not found (404)',
+			'downloads.errorDownloadFailed' => 'Download failed',
+			'downloads.errorPostProcessing' => ({required Object error}) => 'Post-processing failed: ${error}',
+			'downloads.notificationDownloading' => 'Downloading...',
+			'downloads.notificationComplete' => 'Download complete',
+			'downloads.notificationPaused' => 'Download paused',
 			'shaders.title' => 'Shaders',
 			'shaders.noShaderDescription' => 'No video enhancement',
 			'shaders.nvscalerDescription' => 'NVIDIA image scaling for sharper video',
@@ -7733,6 +8032,8 @@ extension on Translations {
 			'companionRemote.remote.retryNow' => 'Retry Now',
 			'companionRemote.remote.tabRemote' => 'Remote',
 			'companionRemote.remote.tabPlay' => 'Play',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.remote.tabMore' => 'More',
 			'companionRemote.remote.menu' => 'Menu',
 			'companionRemote.remote.tabNavigation' => 'Tab Navigation',
@@ -7762,6 +8063,7 @@ extension on Translations {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Failed to connect to any address',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => 'Connection lost after ${attempts} attempts',
 			'companionRemote.errors.connectionLost' => 'Connection lost',
+			'companionRemote.closedBeforeAuth' => 'The connection closed before authentication',
 			'videoSettings.playbackSpeed' => 'Playback Speed',
 			'videoSettings.normalSpeed' => 'Normal',
 			'videoSettings.sleepTimerActive' => ({required Object duration}) => 'Active (${duration})',
@@ -7770,8 +8072,13 @@ extension on Translations {
 			'videoSettings.audioSync' => 'Audio Sync',
 			'videoSettings.subtitleSync' => 'Subtitle Sync',
 			'videoSettings.hdr' => 'HDR',
-			_ => null,
-		} ?? switch (path) {
+			'videoSettings.hdrUnsupported' => 'HDR isn\'t available here — this desktop compositor or video output can\'t carry it.',
+			'videoSettings.hdrToneMapping' => 'HDR Tone Mapping',
+			'videoSettings.hdrToneMappingCompositor' => 'Compositor',
+			'videoSettings.hdrToneMappingCompositorDescription' => 'Pass the source\'s HDR metadata through and let the desktop compositor map it.',
+			'videoSettings.hdrToneMappingPlayer' => 'Player',
+			'videoSettings.hdrToneMappingPlayerDescription' => 'Map to the display\'s peak brightness in the player, then tell the compositor the result.',
+			'videoSettings.hdrToneMappingFailed' => 'Couldn\'t change HDR tone mapping — the previous mode is still active.',
 			'videoSettings.audioOutput' => 'Audio Output',
 			'videoSettings.performanceOverlay' => 'Performance Overlay',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
@@ -7816,6 +8123,16 @@ extension on Translations {
 			'performanceOverlay.player' => 'Player',
 			'performanceOverlay.memory' => 'Memory',
 			'performanceOverlay.uiFps' => 'UI FPS',
+			'performanceOverlay.fps' => 'FPS',
+			'performanceOverlay.decoderAndroidHw' => 'Android HW',
+			'performanceOverlay.decoderNvidiaHw' => 'NVIDIA HW',
+			'performanceOverlay.decoderQualcommHw' => 'Qualcomm HW',
+			'performanceOverlay.decoderMediatekHw' => 'MediaTek HW',
+			'performanceOverlay.decoderExynosHw' => 'Exynos HW',
+			'performanceOverlay.decoderSoftware' => 'Software',
+			'performanceOverlay.decoderHardware' => 'Hardware',
+			'performanceOverlay.tunnelingActive' => 'Active',
+			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (${failures} failed)',
 			'externalPlayer.title' => 'External Player',
 			'externalPlayer.useExternalPlayer' => 'Use External Player',
 			'externalPlayer.useExternalPlayerDescription' => 'Open videos in another app',
@@ -7962,6 +8279,16 @@ extension on Translations {
 			'seerr.statusPartiallyAvailable' => 'Partially available',
 			'seerr.statusRequested' => 'Requested',
 			'seerr.statusProcessing' => 'Processing',
+			'seerr.couldNotReach' => ({required Object url, required Object error}) => 'Could not reach ${url}: ${error}',
+			'seerr.noInstanceAtUrl' => ({required Object url, required Object status}) => 'No Seerr instance at ${url} (HTTP ${status})',
+			'seerr.notInitialized' => 'This Seerr instance has not completed first-run setup',
+			'seerr.noPlexTokenForReauth' => 'No Plex token is available to sign in again',
+			'seerr.noStoredCredentials' => 'No stored credentials are available to sign in again',
+			'seerr.signInRejected' => 'Sign-in was rejected',
+			'seerr.noSessionCookie' => 'Seerr did not issue a session cookie',
+			'seerr.freshCookieRejected' => 'Seerr rejected the new session cookie',
+			'seerr.noUserInformation' => 'Seerr did not return user information',
+			'seerr.sessionRejectedAfterReauth' => 'The session was rejected after signing in again',
 			'services.title' => 'Services',
 			'services.hubSubtitle' => 'Sync watch progress and request new titles.',
 			'services.notConnected' => 'Not connected',
@@ -7977,7 +8304,7 @@ extension on Translations {
 			'services.names.seerr' => 'Seerr',
 			'services.names.mdblist' => 'MDBList',
 			'services.deviceCode.title' => ({required Object service}) => 'Activate Plezy on ${service}',
-			'services.deviceCode.body' => ({required Object url}) => 'Visit ${url} and enter this code:',
+			'services.deviceCode.instructions' => 'Scan the QR code, or visit the address below and enter this code:',
 			'services.deviceCode.openToActivate' => ({required Object service}) => 'Open ${service} to activate',
 			'services.deviceCode.copyCode' => 'Copy activation code',
 			'services.deviceCode.waitingForAuthorization' => 'Waiting for authorization…',
@@ -7985,8 +8312,8 @@ extension on Translations {
 			'services.oauthProxy.title' => ({required Object service}) => 'Sign in to ${service}',
 			'services.oauthProxy.body' => 'Scan this QR code or open the URL on any device.',
 			'services.oauthProxy.openToSignIn' => ({required Object service}) => 'Open ${service} to sign in',
-			'services.oauthProxy.copyUrl' => 'Copy sign-in URL',
-			'services.oauthProxy.urlCopied' => 'URL copied',
+			'services.pendingAuth.copyUrl' => 'Copy sign-in URL',
+			'services.pendingAuth.urlCopied' => 'URL copied',
 			'services.libraryFilter.title' => 'Library filter',
 			'services.libraryFilter.subtitleAllSyncing' => 'Syncing all libraries',
 			'services.libraryFilter.subtitleNoneSyncing' => 'Nothing syncing',
@@ -8027,6 +8354,24 @@ extension on Translations {
 			'addServer.connectToMediaBrowserCardSubtitleScoped' => ({required Object product, required Object name}) => 'Sign in to your ${product} server. Binds to ${name}.',
 			'addServer.borrowFromAnotherProfile' => 'Borrow from another profile',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Reuse another profile\'s connection. PIN-protected profiles require a PIN.',
+			'addServer.invalidCredentials' => 'Invalid username or password',
+			'addServer.authResponseNotJson' => 'The authentication response was not valid JSON',
+			'addServer.quickConnectRejected' => 'Quick Connect was rejected by the server',
+			'addServer.quickConnectNotJson' => 'The Quick Connect response was not valid JSON',
+			'addServer.quickConnectMissingFields' => 'The Quick Connect response is missing a code or secret',
+			'addServer.quickConnectPollRejected' => 'Quick Connect polling was rejected by the server',
+			'addServer.serverTimedOut' => 'The server did not respond in time',
+			'addServer.responseNotJson' => 'The server response was not valid JSON',
+			'addServer.responseMissingIdentity' => ({required Object product}) => 'The response is missing an ID or server name — is this a ${product} server?',
+			'addServer.probeFailed' => ({required Object error}) => 'Could not reach the server: ${error}',
+			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Enter at least one ${product} server URL',
+			'addServer.noReachableServer' => ({required Object product}) => 'No reachable ${product} server was found',
+			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'These URLs point to different ${product} servers',
+			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'This URL does not match the ${product} server',
+			'addServer.redirectUnsupported' => 'The server redirected to an unsupported URL',
+			'addServer.redirectDifferentHost' => ({required Object product}) => 'The server redirected to a different host. Enter the final ${product} URL directly.',
+			'addServer.redirectInsecure' => 'The server redirected from HTTPS to an insecure URL',
+			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'The server redirected to an unsupported URL. Enter the final ${product} URL directly.',
 			_ => null,
 		};
 	}

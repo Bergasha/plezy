@@ -239,7 +239,7 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
         return autoStart;
       },
       errorMapper: (e) =>
-          e is MediaServerUrlException ? e.message : t.addServer.couldNotReachServer(error: e.toString()),
+          e is MediaServerUrlException ? e.display ?? e.message : t.addServer.couldNotReachServer(error: e.toString()),
     );
     // Sequenced after the probe's runAsync so busy stays set straight through
     // /QuickConnect/Initiate. Started from inside the probe body, the probe's
@@ -276,7 +276,7 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
         await _persistAndExit(connection);
       },
       errorMapper: (e) {
-        if (e is MediaServerAuthException) return e.message;
+        if (e is MediaServerAuthException) return e.display ?? e.message;
         appLogger.e('Add ${widget.dialect.productName} failed', error: e);
         return t.addServer.signInFailed(error: e.toString());
       },
@@ -324,7 +324,7 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
         await _persistAndExit(connection);
       },
       errorMapper: (e) {
-        if (e is MediaServerAuthException) return e.message;
+        if (e is MediaServerAuthException) return e.display ?? e.message;
         appLogger.e('Jellyfin Quick Connect failed', error: e);
         return t.addServer.quickConnectFailed(error: e.toString());
       },
@@ -499,9 +499,10 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
       FocusableTextFormField(
         controller: _urlController,
         focusNode: _urlFocus,
-        tvTextInputPresentation: PlatformDetector.isAppleTV()
-            ? TvTextInputPresentation.platform
-            : TvTextInputPresentation.automatic,
+        // Native on every TV: on Apple TV `automatic` would route this
+        // wrap-to-4-lines field to the Flutter overlay, but it is logically
+        // single-line URL input the system keyboard handles (#1051, #1079).
+        tvTextInputPresentation: TvTextInputPresentation.platform,
         autofocus: true,
         tvTextInputAutoOpenBehavior: deferredUrlFieldAutoOpen,
         keyboardType: TextInputType.url,

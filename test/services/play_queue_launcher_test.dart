@@ -73,22 +73,13 @@ PlayQueueResponse _queueWith(MediaItem item) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  // ============================================================
-  // PlayQueueResult sealed hierarchy
-  // ============================================================
-
   group('PlayQueueResult', () {
-
     test('PlayQueueCancelled is a distinct re-exported result', () {
       const PlayQueueResult result = PlayQueueCancelled();
       expect(result, isA<PlayQueueCancelled>());
       expect(result, isNot(isA<PlayQueueError>()));
     });
   });
-
-  // ============================================================
-  // Pre-flight branches that don't touch the network
-  // ============================================================
 
   group('launchShuffledShow pre-flight guard', () {
     testWidgets('returns PlayQueueError when metadata is not a show or season', (tester) async {
