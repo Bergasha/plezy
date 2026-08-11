@@ -32,7 +32,12 @@ class _FakeAggregationService extends DataAggregationService {
 
   @override
   Future<LibraryAggregationResult> getMediaLibrariesFromAllServers({Set<String>? serverIds}) async {
-    return (libraries: libraryResult, succeededServerIds: const {'server_1'}, cancelledServerIds: const <String>{});
+    return (
+      libraries: libraryResult,
+      succeededServerIds: const {'server_1'},
+      cancelledServerIds: const <String>{},
+      failedServerIds: const <String>{},
+    );
   }
 }
 
