@@ -61,6 +61,7 @@ import '../focus/dpad_navigator.dart';
 import '../focus/key_event_utils.dart';
 import 'discover_screen.dart';
 import 'explore_screen.dart';
+import 'watchlist_screen.dart';
 import 'libraries/library_quick_picker_sheet.dart';
 import 'libraries/libraries_screen.dart';
 import 'livetv/live_tv_screen.dart';
@@ -131,6 +132,21 @@ List<NavigationTab> mainScreenBottomNavigationTabs({
     if (tab.id != NavigationTabId.settings) return true;
     return isOffline || currentTab == NavigationTabId.settings;
   }).toList();
+}
+
+/// Above Material's comfortable destination count, `alwaysShow` forces every
+/// label into a column too narrow for its text and wraps (e.g. "Downloads"
+/// breaking onto two lines) — `onlyShowSelected` keeps a label for context
+/// without every destination needing to fit one at once. Below that count,
+/// honour the user's showNavBarLabels preference as-is.
+@visibleForTesting
+const int comfortableBottomNavigationTabCount = 5;
+
+@visibleForTesting
+NavigationDestinationLabelBehavior bottomNavigationLabelBehavior({required bool hideLabels, required int tabCount}) {
+  if (hideLabels) return NavigationDestinationLabelBehavior.alwaysHide;
+  if (tabCount > comfortableBottomNavigationTabCount) return NavigationDestinationLabelBehavior.onlyShowSelected;
+  return NavigationDestinationLabelBehavior.alwaysShow;
 }
 
 @visibleForTesting
@@ -251,6 +267,7 @@ class _MainScreenState extends State<MainScreen>
   RouteObserver<PageRoute<dynamic>>? _profileRouteObserver;
   bool _lastHasLiveTv = false;
   bool _lastHasExplore = false;
+  bool _lastHasWatchlist = false;
 
   /// Whether a reconnection attempt is in progress
   bool _isReconnecting = false;
@@ -352,6 +369,11 @@ class _MainScreenState extends State<MainScreen>
       _lastHasExplore = context.read<CatalogSourcesProvider>().hasAnySource && _showExploreTabSetting;
     } catch (_) {
       _lastHasExplore = false;
+    }
+    try {
+      _lastHasWatchlist = context.read<CatalogSourcesProvider>().activeSource?.supportsWatchlist ?? false;
+    } catch (_) {
+      _lastHasWatchlist = false;
     }
     // Re-evaluate Explore tab visibility when the appearance toggle flips
     // mid-session; the catalog-sources listener covers source changes.
@@ -995,6 +1017,7 @@ class _MainScreenState extends State<MainScreen>
       for (final tab in _getVisibleTabs(offline))
         switch (tab.id) {
           NavigationTabId.discover => DiscoverScreen(key: _screenKeys[tab.id]),
+          NavigationTabId.watchlist => WatchlistScreen(key: _screenKeys[tab.id]),
           NavigationTabId.explore => ExploreScreen(key: _screenKeys[tab.id]),
           NavigationTabId.libraries => LibrariesScreen(
             key: _screenKeys[tab.id],
@@ -1021,6 +1044,7 @@ class _MainScreenState extends State<MainScreen>
     isOffline: isOffline,
     hasLiveTv: _hasLiveTv,
     hasExplore: _lastHasExplore,
+    hasWatchlist: _lastHasWatchlist,
     preferredStartup: SettingsService.instanceOrNull?.read(SettingsService.startupSection),
   );
 
@@ -1089,8 +1113,10 @@ class _MainScreenState extends State<MainScreen>
 
   void _handleCatalogSourcesChanged() {
     final hasExplore = (_catalogSourcesProvider?.hasAnySource ?? false) && _showExploreTabSetting;
-    if (hasExplore == _lastHasExplore) return;
+    final hasWatchlist = _catalogSourcesProvider?.activeSource?.supportsWatchlist ?? false;
+    if (hasExplore == _lastHasExplore && hasWatchlist == _lastHasWatchlist) return;
     _lastHasExplore = hasExplore;
+    _lastHasWatchlist = hasWatchlist;
 
     _handleTabAvailabilityChanged();
   }
@@ -1644,7 +1670,12 @@ class _MainScreenState extends State<MainScreen>
 
   /// Get navigation tabs filtered by offline mode
   List<NavigationTab> _getVisibleTabs(bool isOffline) {
-    return NavigationTab.getVisibleTabs(isOffline: isOffline, hasLiveTv: _hasLiveTv, hasExplore: _lastHasExplore);
+    return NavigationTab.getVisibleTabs(
+      isOffline: isOffline,
+      hasLiveTv: _hasLiveTv,
+      hasExplore: _lastHasExplore,
+      hasWatchlist: _lastHasWatchlist,
+    );
   }
 
   List<NavigationTab> _getBottomNavigationTabs(BuildContext context) {
@@ -1691,9 +1722,7 @@ class _MainScreenState extends State<MainScreen>
       onDestinationSelected: (i) {
         if (i >= 0 && i < tabs.length) _selectTab(tabs[i].id);
       },
-      labelBehavior: hideLabels
-          ? NavigationDestinationLabelBehavior.alwaysHide
-          : NavigationDestinationLabelBehavior.alwaysShow,
+      labelBehavior: bottomNavigationLabelBehavior(hideLabels: hideLabels, tabCount: tabs.length),
       destinations: tabs.map((tab) => tab.toDestination()).toList(),
     );
 

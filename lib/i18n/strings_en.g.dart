@@ -3216,6 +3216,9 @@ class Translations$navigation$en {
 
 	/// en: 'Explore'
 	String get explore => 'Explore';
+
+	/// en: 'Watchlist'
+	String get watchlist => 'Watchlist';
 }
 
 // Path: explore
@@ -3264,6 +3267,12 @@ class Translations$explore$en {
 
 	/// en: 'Couldn't match this item to a watchlist'
 	String get watchlistNoMatch => 'Couldn\'t match this item to a watchlist';
+
+	/// en: 'Your watchlist is empty'
+	String get watchlistEmptyTitle => 'Your watchlist is empty';
+
+	/// en: 'Add movies and shows from their detail page to see them here.'
+	String get watchlistEmptyMessage => 'Add movies and shows from their detail page to see them here.';
 
 	/// en: 'Not in your library'
 	String get notInLibrary => 'Not in your library';
@@ -7516,10 +7525,11 @@ extension on Translations {
 			'navigation.downloads' => 'Downloads',
 			'navigation.liveTv' => 'Live TV',
 			'navigation.explore' => 'Explore',
+			'navigation.watchlist' => 'Watchlist',
 			'explore.title' => 'Explore',
-			'explore.selectSource' => 'Select source',
 			_ => null,
 		} ?? switch (path) {
+			'explore.selectSource' => 'Select source',
 			'explore.rows.watchlist' => 'Watchlist',
 			'explore.rows.recommendedMovies' => 'Recommended Movies',
 			'explore.rows.recommendedShows' => 'Recommended Shows',
@@ -7547,6 +7557,8 @@ extension on Translations {
 			'explore.removedFromWatchlist' => 'Removed from watchlist',
 			'explore.watchlistUpdateFailed' => 'Couldn\'t update watchlist',
 			'explore.watchlistNoMatch' => 'Couldn\'t match this item to a watchlist',
+			'explore.watchlistEmptyTitle' => 'Your watchlist is empty',
+			'explore.watchlistEmptyMessage' => 'Add movies and shows from their detail page to see them here.',
 			'explore.notInLibrary' => 'Not in your library',
 			'explore.inTheseLibraries' => 'In these libraries',
 			'explore.checkingLibrary' => 'Checking your library...',
@@ -8029,11 +8041,11 @@ extension on Translations {
 			'companionRemote.remote.disconnectConfirm' => 'Do you want to disconnect from the remote session?',
 			'companionRemote.remote.reconnecting' => 'Reconnecting...',
 			'companionRemote.remote.attemptOf' => ({required Object current}) => 'Attempt ${current} of 5',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.remote.retryNow' => 'Retry Now',
 			'companionRemote.remote.tabRemote' => 'Remote',
 			'companionRemote.remote.tabPlay' => 'Play',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.remote.tabMore' => 'More',
 			'companionRemote.remote.menu' => 'Menu',
 			'companionRemote.remote.tabNavigation' => 'Tab Navigation',

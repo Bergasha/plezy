@@ -265,6 +265,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
   }
 
   static const _kHome = 'home';
+  static const _kWatchlist = 'watchlist';
   static const _kExplore = 'explore';
   static const _kNowPlaying = 'nowPlaying';
   static const _kLibraries = 'libraries';
@@ -401,6 +402,8 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     switch (widget.selectedTab) {
       case NavigationTabId.discover:
         return _kHome;
+      case NavigationTabId.watchlist:
+        return _kWatchlist;
       case NavigationTabId.explore:
         return _kExplore;
       case NavigationTabId.libraries:
@@ -454,9 +457,11 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     required bool hasLiveTv,
     required bool hasNowPlaying,
     required bool hasExplore,
+    required bool hasWatchlist,
   }) {
     return {
       _kHome,
+      if (hasWatchlist) _kWatchlist,
       if (hasNowPlaying) _kNowPlaying,
       _kLibraries,
       if (hasExplore) _kExplore,
@@ -535,11 +540,13 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     required bool hasLiveTv,
     required bool hasNowPlaying,
     required bool hasExplore,
+    required bool hasWatchlist,
   }) {
     return [
       if (widget.isOfflineMode && widget.onReconnect != null) _kReconnect,
       if (!widget.isOfflineMode) ...[
         _kHome,
+        if (hasWatchlist) _kWatchlist,
         if (hasNowPlaying) _kNowPlaying,
         _kLibraries,
         if (_librariesExpanded) ...[
@@ -654,6 +661,9 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     // scope) simply never show the Explore item.
     final hasExploreSource = context.watch<CatalogSourcesProvider?>()?.hasAnySource ?? false;
     // Nullable watch: rail tests (and any host without the profile session
+    // scope) simply never show the Watchlist item.
+    final hasWatchlist = context.watch<CatalogSourcesProvider?>()?.activeSource?.supportsWatchlist ?? false;
+    // Nullable watch: rail tests (and any host without the profile session
     // scope) simply never show the Now Playing item. TV-only — it is the
     // way back into the now-playing screen there; desktop already has the
     // mini-player for that.
@@ -694,6 +704,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
             hasLiveTv: hasLiveTv,
             hasNowPlaying: nowPlayingTrack != null,
             hasExplore: hasExplore,
+            hasWatchlist: hasWatchlist,
           ),
         );
         final focusOrder = _buildFocusOrder(
@@ -703,6 +714,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           hasLiveTv: hasLiveTv,
           hasNowPlaying: nowPlayingTrack != null,
           hasExplore: hasExplore,
+          hasWatchlist: hasWatchlist,
         );
         _debugAssertUniqueFocusOrder(focusOrder);
         return TapRegion(
@@ -764,6 +776,18 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
                                       isCollapsed: isCollapsed,
                                     ),
                                     const SizedBox(height: 8),
+                                    if (hasWatchlist) ...[
+                                      _buildNavItem(
+                                        icon: Symbols.bookmark_rounded,
+                                        selectedIcon: Symbols.bookmark_rounded,
+                                        label: Translations.of(context).navigation.watchlist,
+                                        isSelected: widget.selectedTab == NavigationTabId.watchlist,
+                                        onTap: () => widget.onDestinationSelected(NavigationTabId.watchlist),
+                                        focusNode: _focusTracker.get(_kWatchlist),
+                                        isCollapsed: isCollapsed,
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
                                     // Now Playing — only while a music session is live.
                                     if (nowPlayingTrack != null && musicService != null) ...[
                                       _buildNowPlayingItem(nowPlayingTrack, musicService, isCollapsed: isCollapsed),

@@ -209,15 +209,18 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
     // candidates the press opens a source chooser.
     // Not in the compact tiers: on narrow screens it drops away first and
     // stays reachable through the ⋮ menu's watchlist entry.
+    // A null _watchlistCandidates means resolution hasn't finished yet: show
+    // the button (matching the ⋮ menu's optimistic-until-proven-empty entry)
+    // rather than hiding it until an async fetch happens to land first.
     final watchlistStates = [
-      for (final candidate in _watchlistCandidates) candidate.source.isOnWatchlist(metadata.kind, candidate.ids),
+      for (final candidate in _watchlistCandidates ?? const []) candidate.source.isOnWatchlist(metadata.kind, candidate.ids),
     ];
     final bool? onWatchlist = watchlistStates.contains(true)
         ? true
         : watchlistStates.contains(false)
         ? false
         : null;
-    final watchlistAction = _watchlistCandidates.isEmpty
+    final watchlistAction = (_watchlistCandidates?.isEmpty ?? false)
         ? null
         : FocusableAction(
             debugLabel: 'detail_watchlist',
@@ -325,7 +328,7 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
 
   Future<void> _handleWatchlistTogglePressed(MediaItem metadata) async {
     final candidates = _watchlistCandidates;
-    if (candidates.isEmpty || _watchlistMutationInFlight) return;
+    if (candidates == null || candidates.isEmpty || _watchlistMutationInFlight) return;
     // Parity with the disabled pointer button: while every membership is
     // still unknown, a dpad press kicks the snapshot loads instead of
     // opening a chooser whose selection would silently no-op.

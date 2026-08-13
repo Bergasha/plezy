@@ -103,6 +103,14 @@ class PlexCatalogSource with CatalogWatchlistMachinery implements CatalogSource,
 
   @override
   Future<CatalogItemIds?> resolveItemIds(MediaKind kind, ExternalIds external) async {
+    // A modern-agent item already carries Plex's own global metadata id
+    // (see ExternalIds.plex) — identical to the ratingKey Discover expects,
+    // straight from our own server with no Discover round-trip. It also
+    // sidesteps Discover's imdb/tmdb/tvdb match lookup missing on one id
+    // form even when the title exists in its catalog under another.
+    if (external.plex case final String plexId when plexId.isNotEmpty) {
+      return CatalogItemIds(plex: plexId, imdb: external.imdb, tmdb: external.tmdb, tvdb: external.tvdb);
+    }
     // Plex Discover matches on imdb/tmdb/tvdb only; an AniDB-only item has
     // nothing to send it.
     if (!external.hasCatalogIds) return null;

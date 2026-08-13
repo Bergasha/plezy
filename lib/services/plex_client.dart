@@ -4156,7 +4156,9 @@ class PlexClient
       if (first is! Map) return const ExternalIds();
       final guids = first['Guid'];
       final modern = guids is List ? ExternalIds.fromGuids(guids) : const ExternalIds();
-      return modern.fillFrom(ExternalIds.fromLegacyPlexGuid(first['guid']));
+      final combined = modern.fillFrom(ExternalIds.fromLegacyPlexGuid(first['guid']));
+      final plexId = ExternalIds.plexMetadataIdFromGuid(first['guid']);
+      return plexId == null ? combined : combined.fillFrom(ExternalIds(plex: plexId));
     } catch (e) {
       appLogger.d('fetchExternalIds failed for $itemId', error: e);
       return const ExternalIds();

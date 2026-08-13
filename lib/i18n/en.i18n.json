@@ -1113,7 +1113,8 @@
     "libraries": "Libraries",
     "downloads": "Downloads",
     "liveTv": "Live TV",
-    "explore": "Explore"
+    "explore": "Explore",
+    "watchlist": "Watchlist"
   },
   "explore": {
     "title": "Explore",
@@ -1152,6 +1153,8 @@
     "removedFromWatchlist": "Removed from watchlist",
     "watchlistUpdateFailed": "Couldn't update watchlist",
     "watchlistNoMatch": "Couldn't match this item to a watchlist",
+    "watchlistEmptyTitle": "Your watchlist is empty",
+    "watchlistEmptyMessage": "Add movies and shows from their detail page to see them here.",
     "notInLibrary": "Not in your library",
     "inTheseLibraries": "In these libraries",
     "checkingLibrary": "Checking your library...",

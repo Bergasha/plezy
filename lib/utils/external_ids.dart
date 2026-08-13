@@ -65,9 +65,15 @@ class ExternalIds {
   /// the Anime-Lists episode mappings are all keyed the other way.
   final int? anidb;
 
-  const ExternalIds({this.imdb, this.tmdb, this.tvdb, this.anidb});
+  /// Plex's own global metadata id (from a modern-agent item's scalar
+  /// `guid`, e.g. `plex://movie/5d776b59ad5437001f79c6f8`) — identical to
+  /// the `ratingKey` Plex Discover expects for watchlist mutations. See
+  /// [ExternalIds.plexMetadataIdFromGuid].
+  final String? plex;
 
-  bool get hasAny => hasCatalogIds || anidb != null;
+  const ExternalIds({this.imdb, this.tmdb, this.tvdb, this.anidb, this.plex});
+
+  bool get hasAny => hasCatalogIds || anidb != null || plex != null;
 
   /// The ids a title database can be queried with. Callers that can only search
   /// IMDb/TMDB/TVDB gate on this rather than [hasAny], so an AniDB-only item
@@ -92,6 +98,7 @@ class ExternalIds {
     tmdb: tmdb ?? other.tmdb,
     tvdb: tvdb ?? other.tvdb,
     anidb: anidb ?? other.anidb,
+    plex: plex ?? other.plex,
   );
 
   /// Round-trips through the persisted tracker write queue. Absent ids stay
@@ -169,6 +176,22 @@ class ExternalIds {
         }
     }
     return const ExternalIds();
+  }
+
+  /// Extract Plex's own global metadata id from a modern-agent item's scalar
+  /// `guid` (`plex://movie/<id>`, `plex://show/<id>`, ...).
+  ///
+  /// The Plex Movie / Plex TV Series agent writes this scheme; it is the same
+  /// id Plex Discover calls `ratingKey`, so reading it here lets watchlist
+  /// mutations skip Discover's imdb/tmdb/tvdb match lookup — a lookup that can
+  /// miss on one id form even when the title exists in Discover's catalog
+  /// under another. Legacy agents (`com.plexapp.agents.*`) never write this
+  /// scheme; see [fromLegacyPlexGuid] for those instead.
+  static String? plexMetadataIdFromGuid(Object? guid) {
+    if (guid is! String || guid.isEmpty) return null;
+    final uri = Uri.tryParse(guid);
+    if (uri == null || uri.scheme.toLowerCase() != 'plex' || !uri.hasAuthority || uri.path.length < 2) return null;
+    return uri.path.substring(1);
   }
 
   static final RegExp _decimalId = RegExp(r'^[0-9]+$');

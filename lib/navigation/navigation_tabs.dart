@@ -6,7 +6,7 @@ import '../i18n/strings.g.dart';
 import '../utils/platform_detector.dart';
 
 /// Navigation tab identifiers
-enum NavigationTabId { discover, explore, libraries, liveTv, search, downloads, settings }
+enum NavigationTabId { discover, watchlist, explore, libraries, liveTv, search, downloads, settings }
 
 /// Represents a navigation tab with its configuration
 class NavigationTab {
@@ -26,11 +26,13 @@ class NavigationTab {
     required bool isOffline,
     bool hasLiveTv = false,
     bool hasExplore = false,
+    bool hasWatchlist = false,
   }) {
     return allNavigationTabs.where((tab) {
       if (isOffline && tab.onlineOnly) return false;
       if (tab.id == NavigationTabId.liveTv && !hasLiveTv) return false;
       if (tab.id == NavigationTabId.explore && !hasExplore) return false;
+      if (tab.id == NavigationTabId.watchlist && !hasWatchlist) return false;
       if (tab.id == NavigationTabId.downloads && PlatformDetector.isAppleTV()) return false;
       return true;
     }).toList();
@@ -45,9 +47,15 @@ class NavigationTab {
     required bool isOffline,
     required bool hasLiveTv,
     bool hasExplore = false,
+    bool hasWatchlist = false,
     required NavigationTabId? preferredStartup,
   }) {
-    final tabs = getVisibleTabs(isOffline: isOffline, hasLiveTv: hasLiveTv, hasExplore: hasExplore);
+    final tabs = getVisibleTabs(
+      isOffline: isOffline,
+      hasLiveTv: hasLiveTv,
+      hasExplore: hasExplore,
+      hasWatchlist: hasWatchlist,
+    );
     if (isOffline && tabs.any((t) => t.id == NavigationTabId.downloads)) {
       return NavigationTabId.downloads;
     }
@@ -60,6 +68,7 @@ class NavigationTab {
 
 // Label getters (must be top-level for const constructor)
 String _getHomeLabel() => t.common.home;
+String _getWatchlistLabel() => t.navigation.watchlist;
 String _getExploreLabel() => t.navigation.explore;
 String _getLibrariesLabel() => t.navigation.libraries;
 String _getLiveTvLabel() => t.navigation.liveTv;
@@ -70,6 +79,12 @@ String _getSettingsLabel() => t.common.settings;
 /// All navigation tabs in display order
 const allNavigationTabs = [
   NavigationTab(id: NavigationTabId.discover, onlineOnly: true, icon: Symbols.home_rounded, getLabel: _getHomeLabel),
+  NavigationTab(
+    id: NavigationTabId.watchlist,
+    onlineOnly: true,
+    icon: Symbols.bookmark_rounded,
+    getLabel: _getWatchlistLabel,
+  ),
   NavigationTab(
     id: NavigationTabId.libraries,
     onlineOnly: true,

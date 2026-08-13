@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plezy/main.dart';
 import 'package:plezy/navigation/navigation_tabs.dart';
@@ -135,6 +136,33 @@ void main() {
       );
 
       expect(tabs, same(allNavigationTabs));
+    });
+  });
+
+  group('bottomNavigationLabelBehavior', () {
+    test('honours the hide-labels preference regardless of tab count', () {
+      expect(
+        bottomNavigationLabelBehavior(hideLabels: true, tabCount: 3),
+        NavigationDestinationLabelBehavior.alwaysHide,
+      );
+      expect(
+        bottomNavigationLabelBehavior(hideLabels: true, tabCount: 6),
+        NavigationDestinationLabelBehavior.alwaysHide,
+      );
+    });
+
+    test('shows every label up to the comfortable tab count', () {
+      expect(
+        bottomNavigationLabelBehavior(hideLabels: false, tabCount: comfortableBottomNavigationTabCount),
+        NavigationDestinationLabelBehavior.alwaysShow,
+      );
+    });
+
+    test('collapses to only the selected label once tabs exceed the comfortable count', () {
+      expect(
+        bottomNavigationLabelBehavior(hideLabels: false, tabCount: comfortableBottomNavigationTabCount + 1),
+        NavigationDestinationLabelBehavior.onlyShowSelected,
+      );
     });
   });
 }

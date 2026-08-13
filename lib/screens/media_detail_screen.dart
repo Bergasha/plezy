@@ -338,7 +338,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   // resolve once via the owning server, then per capable source; membership
   // comes from each source's session snapshot, so opening details never
   // costs a provider call. Multiple candidates → the toggle opens a chooser.
-  List<WatchlistCandidate> _watchlistCandidates = const [];
+  // Null means resolution hasn't finished yet (the button still shows,
+  // matching the ⋮ menu's optimistic-until-proven-empty watchlist entry);
+  // an empty list means it genuinely resolved to nothing.
+  List<WatchlistCandidate>? _watchlistCandidates;
   List<CatalogSource> _watchlistListenedSources = const [];
   final GlobalKey _watchlistButtonKey = GlobalKey();
   bool _watchlistMutationInFlight = false;
@@ -715,10 +718,18 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// source this item resolves in, with its per-source ids. No-ops offline
   /// and for non-movie/show kinds.
   void _initWatchlistState() {
-    if (widget.isOffline || (!_metadata.isMovie && !_metadata.isShow)) return;
+    // No resolution will ever run for these cases — null would otherwise
+    // read as "still resolving" and show the button optimistically forever.
+    if (widget.isOffline || (!_metadata.isMovie && !_metadata.isShow)) {
+      _watchlistCandidates = const [];
+      return;
+    }
     final catalogSources = Provider.of<CatalogSourcesProvider?>(context, listen: false);
     final sources = catalogSources?.watchlistCapableSources ?? const <CatalogSource>[];
-    if (catalogSources == null || sources.isEmpty) return;
+    if (catalogSources == null || sources.isEmpty) {
+      _watchlistCandidates = const [];
+      return;
+    }
     _watchlistListenedSources = sources;
     for (final source in sources) {
       source.watchlistChanges.addListener(_onWatchlistSourceChanged);
@@ -729,17 +740,20 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   Future<void> _resolveWatchlistIds(CatalogSourcesProvider catalogSources) async {
     try {
-      // Session-cached on the provider and shared with the card context
-      // menus; null means the item is outside a source's domain and the
-      // action shows for the sources that resolved.
+      // Session-cached on the provider and shared with the card context menus.
       final candidates = await catalogSources.watchlistCandidatesFor(
         _metadata,
         client: _getMediaClientForMetadata(context),
       );
-      if (!mounted || candidates.isEmpty) return;
+      appLogger.d(
+        'Watchlist candidates resolved for ${_metadata.title}: '
+        '${candidates.map((c) => c.source.id.name).join(', ')}',
+      );
+      if (!mounted) return;
       setState(() => _watchlistCandidates = candidates);
     } catch (e) {
       appLogger.d('Watchlist external-id resolution failed', error: e);
+      if (mounted) setState(() => _watchlistCandidates = const []);
     }
   }
 

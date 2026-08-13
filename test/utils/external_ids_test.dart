@@ -100,6 +100,30 @@ void main() {
     });
   });
 
+  group('ExternalIds.plexMetadataIdFromGuid', () {
+    test('extracts the id from a modern-agent scalar guid', () {
+      expect(
+        ExternalIds.plexMetadataIdFromGuid('plex://movie/5d776b59ad5437001f79c6f8'),
+        '5d776b59ad5437001f79c6f8',
+      );
+      expect(ExternalIds.plexMetadataIdFromGuid('plex://show/5d9c08594de0ee001f8f2b6b'), '5d9c08594de0ee001f8f2b6b');
+    });
+
+    test('rejects legacy agent schemes and malformed input', () {
+      final invalid = <Object?>[
+        null,
+        '',
+        'com.plexapp.agents.imdb://tt29768334?lang=en',
+        'plex://',
+        'plex:///',
+        'not a uri',
+      ];
+      for (final guid in invalid) {
+        expect(ExternalIds.plexMetadataIdFromGuid(guid), isNull, reason: '$guid');
+      }
+    });
+  });
+
   group('ExternalIds.fillFrom', () {
     test('keeps its own ids and only fills the ones it is missing', () {
       const modern = ExternalIds(tvdb: 315500);

@@ -22,7 +22,6 @@ import '../utils/content_utils.dart';
 import '../widgets/cycling_media_backdrop.dart';
 import '../widgets/optimized_media_image.dart' show ClearLogoImage, blurArtwork;
 import '../widgets/toolbar_scrim.dart';
-import '../widgets/system_clock.dart';
 import '../providers/discover_provider.dart';
 import '../providers/multi_server_provider.dart';
 import '../providers/watch_state_store.dart';
@@ -746,14 +745,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               style: Theme.of(context).textTheme.titleLarge?.copyWith(color: foregroundColor, fontWeight: .bold),
             ),
           const Spacer(),
-          // TV only: a fullscreen leanback app hides the system clock, while a
-          // phone status bar and a desktop menu bar already show one.
-          if (PlatformDetector.isTV()) ...[
-            SystemClock(
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: foregroundColor, fontWeight: .w500),
-            ),
-            const SizedBox(width: 12),
-          ],
           Consumer2<WatchTogetherProvider, CompanionRemoteProvider>(
             builder: (context, watchTogether, companionRemote, _) {
               final isDesktop = PlatformDetector.shouldActAsRemoteHost(context);

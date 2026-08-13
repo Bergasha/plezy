@@ -252,12 +252,34 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
   static const _titleRevealDelay = Duration(seconds: 4);
 
   final _random = Random();
-  late int _currentIndex = _random.nextInt(widget.entries.length);
+  // A shuffled permutation consumed in order, not a fresh random pick each
+  // cycle — picking independently every time is only guaranteed to avoid an
+  // *immediate* repeat, so with a modest-size pool the same handful of
+  // entries kept resurfacing within a few cycles (birthday-paradox effect).
+  late List<int> _order = _shuffledOrder();
+  int _orderPos = 0;
   Timer? _rotationTimer;
   Timer? _titleRevealTimer;
   bool _showTitle = false;
 
+  int get _currentIndex => _order[_orderPos];
+
   _ScreensaverEntry get _current => widget.entries[_currentIndex];
+
+  /// A shuffled permutation of every entry index. When [avoidFirst] is given
+  /// (the last entry shown from the previous permutation), its first slot is
+  /// swapped away so the wrap-around seam between permutations can't repeat
+  /// the entry that was just on screen.
+  List<int> _shuffledOrder({int? avoidFirst}) {
+    final indices = List<int>.generate(widget.entries.length, (i) => i)..shuffle(_random);
+    if (avoidFirst != null && indices.length > 1 && indices.first == avoidFirst) {
+      final swapIndex = 1 + _random.nextInt(indices.length - 1);
+      final first = indices[0];
+      indices[0] = indices[swapIndex];
+      indices[swapIndex] = first;
+    }
+    return indices;
+  }
 
   @override
   void initState() {
@@ -288,13 +310,14 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
   }
 
   void _advance() {
-    if (!mounted) return;
-    // Pick a different random entry rather than a fixed sequence, so a
-    // dismissed-and-reopened screensaver doesn't always restart the same way.
-    final next = widget.entries.length < 2
-        ? _currentIndex
-        : (_currentIndex + 1 + _random.nextInt(widget.entries.length - 1)) % widget.entries.length;
-    setState(() => _currentIndex = next);
+    if (!mounted || widget.entries.length < 2) return;
+    setState(() {
+      _orderPos++;
+      if (_orderPos >= _order.length) {
+        _order = _shuffledOrder(avoidFirst: _order.last);
+        _orderPos = 0;
+      }
+    });
     _scheduleTitleReveal();
     _scheduleNextBackdrop();
   }
