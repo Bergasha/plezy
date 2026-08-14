@@ -452,6 +452,16 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
 
   static bool isNavigationActive(VideoPlayerLaunchIdentity identity) => _activeRouteGuard.blocks(identity);
 
+  /// Whether the active player is actually playing right now, as opposed to
+  /// merely mounted — [activeGlobalKey] alone doesn't distinguish a paused
+  /// player from a playing one, so callers that only want to avoid
+  /// interrupting *active* playback (e.g. the idle screensaver) should check
+  /// this too. Mirrors the player's own `streams.playing`, so it reflects a
+  /// pause however it happened (user, sleep timer, lifecycle, audio focus).
+  static bool _isActivelyPlaying = false;
+
+  static bool get isActivelyPlaying => activeGlobalKey != null && _isActivelyPlaying;
+
   Player? player;
   VideoVolumeController? _volumeController;
   bool _isPlayerInitialized = false;
@@ -1990,7 +2000,13 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       // player→player handoff; the replacement screen primes its own.
       unawaited(playerToDispose.dispose(preserveDisplayMode: isReplacingWithVideo));
     }
-    _activeRouteGuard.clear(this);
+    // A player→player handoff (e.g. episode transition) pushes a replacement
+    // screen that activates and starts playing before this one disposes — an
+    // unconditional reset here would stomp the replacement's already-correct
+    // _isActivelyPlaying with this instance's stale false. clear(this) only
+    // succeeds (and only then should the flag reset) when this instance is
+    // still the current owner, exactly like activeGlobalKey already handles.
+    if (_activeRouteGuard.clear(this)) _isActivelyPlaying = false;
     super.dispose();
   }
 

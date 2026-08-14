@@ -129,9 +129,11 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
 
   Future<void> _tryShowScreensaver() async {
     if (!mounted || _showing) return;
-    // Never interrupt active playback — VideoPlayerScreenState clears this
-    // the moment its route is gone, so this check needs no route plumbing.
-    if (VideoPlayerScreenState.activeGlobalKey != null) return;
+    // Never interrupt active playback, but a paused player behind the
+    // screensaver is exactly the idle case this overlay exists for —
+    // activeGlobalKey alone can't tell playing from paused, so it only
+    // blocks while the player is actually playing.
+    if (VideoPlayerScreenState.isActivelyPlaying) return;
 
     if (!_artLoadAttempted) {
       await _loadRandomArt();

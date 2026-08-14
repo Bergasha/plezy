@@ -95,16 +95,16 @@ void main() {
     expect(published, [true]);
   });
 
-  test('desktop physical Escape is reserved for window fullscreen only at root Home', () {
+  test('macOS physical Escape is reserved for native fullscreen only at root Home', () {
     bool shouldHandle({
-      bool isDesktop = true,
+      bool isMacOS = true,
       bool isPhysicalKeyboardEvent = true,
       LogicalKeyboardKey logicalKey = LogicalKeyboardKey.escape,
       bool isCurrentRoute = true,
       bool isHomeTab = true,
     }) {
-      return shouldHandleDesktopRootEscape(
-        isDesktop: isDesktop,
+      return shouldHandleMacOsRootEscape(
+        isMacOS: isMacOS,
         isPhysicalKeyboardEvent: isPhysicalKeyboardEvent,
         logicalKey: logicalKey,
         isCurrentRoute: isCurrentRoute,
@@ -115,10 +115,8 @@ void main() {
     expect(shouldHandle(), isTrue);
     expect(shouldHandle(isHomeTab: false), isFalse);
     expect(shouldHandle(isCurrentRoute: false), isFalse);
-    // A remote/gamepad-synthesized escape is not a physical keyboard Escape;
-    // it keeps the press-back-again exit path.
     expect(shouldHandle(isPhysicalKeyboardEvent: false), isFalse);
-    expect(shouldHandle(isDesktop: false), isFalse);
+    expect(shouldHandle(isMacOS: false), isFalse);
     expect(shouldHandle(logicalKey: LogicalKeyboardKey.gameButtonB), isFalse);
   });
 
