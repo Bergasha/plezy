@@ -340,7 +340,11 @@
     "subtitlesAndConfig": "字幕と設定",
     "seekAndTiming": "シークとタイミング",
     "behavior": "動作",
-    "exportDialogTitle": "Plezyの設定をエクスポート"
+    "exportDialogTitle": "Plezyの設定をエクスポート",
+    "linuxVideoRenderMode": "動画レンダリングモード",
+    "linuxVideoRenderModeDescription": "自動はネイティブの Wayland プレーン（HDR 対応）を優先し、Texture は SDR フォールバック経路を強制します。",
+    "linuxVideoRenderModeAuto": "自動",
+    "linuxVideoRenderModeTexture": "Texture（SDR）"
   },
   "search": {
     "hint": "映画、番組、音楽を検索…",
@@ -791,7 +795,8 @@
     "presetLoaded": "プリセットを読み込みました",
     "presetDeleted": "プリセットを削除しました",
     "confirmDeletePreset": "このプリセットを削除してもよろしいですか？",
-    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment"
+    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment",
+    "embeddedVoHint": "Linux では vo、gpu-context、gpu-api は無視されます。埋め込み動画は常にビデオプレーン上で vo=libmpv を通してレンダリングされ、gpu-next（ArtCNN のようなコンピュートシェーダーに必要）は埋め込みでは実行できません。"
   },
   "dialog": {
     "confirmAction": "操作の確認"

@@ -7,10 +7,16 @@
 #include <new>
 #include <optional>
 
+#include "mpv_texture.h"
 #include "wayland_video_surface.h"
 
 using PlayerPtr = std::unique_ptr<mpv::MpvPlayer>;
 using VideoSurfacePtr = std::unique_ptr<mpv::WaylandVideoSurface>;
+
+// Texture-bootstrap state machine (the SDR fallback path). kIdle means no
+// texture session exists; kPending means a texture is registered and Flutter
+// has been asked to populate it; kReady/kFailed are terminal for the session.
+enum class VideoBootstrapState { kIdle, kPending, kReady, kFailed };
 
 // One queued HDR transaction: what to apply, and who to tell when it settles.
 //
@@ -36,9 +42,24 @@ struct _MpvPlugin {
 
   PlayerPtr player;
   // The native Wayland plane every video instance renders into. Non-null once
-  // initialize() has brought it up; there is no second render path, so a null
-  // here on a video instance means initialization refused.
+  // initialize() has brought it up. Where the plane cannot be brought up -
+  // X11/XWayland sessions, a failed EGL bootstrap - the Flutter-texture path
+  // (2.11.0's renderer) takes over as the SDR fallback, and a null plane with
+  // a non-null texture means texture mode.
   VideoSurfacePtr video_surface;
+  FlTextureRegistrar* texture_registrar;
+  // The fallback render path: an FlTextureGL whose populate renders mpv into
+  // an offscreen FBO sampled by Flutter. Owned via GObject ref; the plugin
+  // keeps the player alive for it. Non-null only when a texture session has
+  // been bootstrapped.
+  MpvTexture* texture;  // owned via GObject ref
+  gboolean texture_registered;
+  VideoBootstrapState bootstrap_state;
+  gchar* bootstrap_error;
+  // The one waitForVideoReady method call outstanding, answered when the
+  // texture's GPU bootstrap settles or the 5 s deadline expires.
+  FlMethodCall* ready_call;
+  guint ready_timeout_source_id;
   // Set when the plane must be redrawn even though mpv has no new frame -
   // after a resize or after becoming visible, where the buffer on screen is
   // stale or absent. Sticky, because the render it asks for may first have to
@@ -85,6 +106,11 @@ struct _MpvPlugin {
   // Same purpose for hdr-enabled: a refused request must only hand hdr_wanted
   // back if no newer one has claimed it since.
   uint64_t hdr_enable_request_serial = 0;
+  // Bounds the mpv leg of the in-flight HDR transaction (see apply_hdr_state):
+  // zero when no transaction is waiting on a SetHdrOutput reply. A wedged core
+  // must cost one transaction, not the whole queue. Zero-initialised like every
+  // other scalar here; release_video_resources cancels a live source.
+  guint hdr_mpv_leg_timeout_source_ = 0;
   // Exactly one HDR transaction runs at a time, end to end.
   //
   // A transaction spans staging and validating the image description, switching
@@ -131,6 +157,8 @@ G_DEFINE_TYPE(MpvPlugin, mpv_plugin, G_TYPE_OBJECT)
 
 // Forward declarations
 static void mpv_plugin_handle_method_call(FlMethodChannel* channel, FlMethodCall* method_call, gpointer user_data);
+// The texture bootstrap's failure arms call this; it is defined below.
+static void release_video_resources(MpvPlugin* self);
 
 static mpv::HdrMetadata read_source_hdr_metadata(MpvPlugin* self);
 static void apply_hdr_state(MpvPlugin* self, bool allow, mpv::HdrToneMapping mode, std::function<void(int)> done);
@@ -155,6 +183,15 @@ static void observe_event_for_hdr(MpvPlugin* self, FlValue* event) {
   FlValue* name = fl_value_lookup_string(event, "name");
   if (name == nullptr || fl_value_get_type(name) != FL_VALUE_TYPE_STRING) return;
   if (g_strcmp0(fl_value_get_string(name), "playback-restart") != 0) return;
+  // A new source is a fresh chance to name the output. The quarantine from a
+  // previous source must not outlive it: one file that broke the colour
+  // transaction would otherwise keep the plane hidden (or undescribed-and-
+  // quarantined) for every later one. Lifted before the re-apply, so the
+  // transaction that follows can restore visibility in the same pass.
+  if (self->hdr_output_unnameable) {
+    self->hdr_output_unnameable = false;
+    if (self->visible != FALSE) self->video_surface->SetVisible(true);
+  }
   request_hdr_reapply(self);
 }
 
@@ -178,9 +215,107 @@ static void send_named_event(MpvPlugin* self, const char* name) {
   send_event(self, event);
 }
 
+static gboolean handle_ready_timeout(gpointer user_data);
+static void complete_ready_call(MpvPlugin* self, gboolean success, const char* message) {
+  if (self->ready_timeout_source_id != 0) {
+    g_source_remove(self->ready_timeout_source_id);
+    self->ready_timeout_source_id = 0;
+  }
+  if (!self->ready_call) return;
+  g_autoptr(FlMethodResponse) response =
+      success ? FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr))
+              : FL_METHOD_RESPONSE(fl_method_error_response_new(
+                    "INIT_FAILED", message ? message : "Video initialization failed", nullptr));
+  fl_method_call_respond(self->ready_call, response, nullptr);
+  g_object_unref(self->ready_call);
+  self->ready_call = nullptr;
+}
+
+// The texture's populate callback runs on Flutter's raster thread, so the
+// outcome is bounced to the GTK main context before touching the plugin's
+// state.
+struct TextureReadyContext {
+  MpvPlugin* plugin;  // g_object_ref'd
+  guint64 generation;
+};
+
+struct TextureReadyResult {
+  MpvPlugin* plugin;  // owns a ref
+  guint64 generation;
+  gboolean success;
+  gchar* message;
+};
+
+static gboolean handle_texture_ready_result(gpointer data) {
+  auto* result = static_cast<TextureReadyResult*>(data);
+  MpvPlugin* self = result->plugin;
+  if (result->generation != self->generation || self->bootstrap_state != VideoBootstrapState::kPending) {
+    return G_SOURCE_REMOVE;
+  }
+
+  if (result->success) {
+    self->bootstrap_state = VideoBootstrapState::kReady;
+    self->initialized = TRUE;
+    complete_ready_call(self, TRUE, nullptr);
+  } else {
+    self->bootstrap_state = VideoBootstrapState::kFailed;
+    g_free(self->bootstrap_error);
+    self->bootstrap_error = g_strdup(result->message ? result->message : "Video initialization failed");
+    complete_ready_call(self, FALSE, self->bootstrap_error);
+    release_video_resources(self);
+  }
+  return G_SOURCE_REMOVE;
+}
+
+static void destroy_texture_ready_result(gpointer data) {
+  auto* result = static_cast<TextureReadyResult*>(data);
+  g_object_unref(result->plugin);
+  g_free(result->message);
+  delete result;
+}
+
+static void on_texture_ready(gboolean success, const gchar* message, gpointer user_data) {
+  auto* context = static_cast<TextureReadyContext*>(user_data);
+  auto* result = new TextureReadyResult{
+      MPV_PLUGIN(g_object_ref(context->plugin)),
+      context->generation,
+      success,
+      g_strdup(message),
+  };
+  g_main_context_invoke_full(
+      nullptr, G_PRIORITY_DEFAULT, handle_texture_ready_result, result, destroy_texture_ready_result);
+}
+
+static void destroy_texture_ready_context(gpointer data) {
+  auto* context = static_cast<TextureReadyContext*>(data);
+  g_object_unref(context->plugin);
+  delete context;
+}
+
+static gboolean handle_ready_timeout(gpointer user_data) {
+  MpvPlugin* self = MPV_PLUGIN(user_data);
+  self->ready_timeout_source_id = 0;
+  if (self->bootstrap_state != VideoBootstrapState::kPending || !self->ready_call) {
+    return G_SOURCE_REMOVE;
+  }
+  self->bootstrap_state = VideoBootstrapState::kFailed;
+  g_free(self->bootstrap_error);
+  self->bootstrap_error = g_strdup("Video texture did not become ready before the initialization deadline");
+  complete_ready_call(self, FALSE, self->bootstrap_error);
+  release_video_resources(self);
+  return G_SOURCE_REMOVE;
+}
+
 static void release_video_resources(MpvPlugin* self) {
   // Anything still in flight is now answering for a plane that is going away.
   ++self->generation;
+  // The timeout closure holds a raw `this`; without this it would fire into
+  // the torn-down plugin. The destroy-notify frees its context.
+  if (self->hdr_mpv_leg_timeout_source_ != 0) {
+    g_source_remove(self->hdr_mpv_leg_timeout_source_);
+    self->hdr_mpv_leg_timeout_source_ = 0;
+  }
+  complete_ready_call(self, FALSE, "Video initialization was cancelled");
   // Queued transactions will never run, and each may be holding a reference to a
   // Dart method call that has to be answered or it is leaked along with its
   // response.
@@ -192,12 +327,25 @@ static void release_video_resources(MpvPlugin* self) {
     if (request.done) request.done(MPV_ERROR_UNINITIALIZED);
   }
   if (self->player) {
-    // The plane is a raw callback target. Revoke every callback path before
-    // tearing it down; Dispose then drains any callback already holding a
-    // native lease.
+    // The plane and the texture are raw callback targets. Revoke every
+    // callback path before tearing either down; Dispose then drains any
+    // callback already holding a native lease.
     self->player->SetRedrawCallback(nullptr);
     self->player->SetSourceMetadataCallback(nullptr);
     self->player->SetEventCallback(nullptr);
+  }
+  if (self->texture) {
+    // Texture must be disposed BEFORE the player — mpv_texture_dispose needs
+    // the player's EGL context to clean up GL resources.
+    if (self->texture_registered && self->texture_registrar) {
+      fl_texture_registrar_unregister_texture(self->texture_registrar, FL_TEXTURE(self->texture));
+      self->texture_registered = FALSE;
+    }
+    mpv_texture_dispose(self->texture);
+    g_object_unref(self->texture);
+    self->texture = nullptr;
+  }
+  if (self->player) {
     self->player->Dispose();
     self->player.reset();
   }
@@ -211,6 +359,8 @@ static void release_video_resources(MpvPlugin* self) {
   self->initialized = FALSE;
   self->visible = FALSE;
   self->plane_needs_render = FALSE;
+  self->bootstrap_state = VideoBootstrapState::kIdle;
+  g_clear_pointer(&self->bootstrap_error, g_free);
   // All of these describe a plane and an mpv instance that no longer exist, and
   // initialize() builds both fresh: a new MpvPlayer whose applied target
   // properties are back to "auto", and a new surface with no description
@@ -264,6 +414,17 @@ static void render_video_plane(MpvPlugin* self, gboolean force) {
   // be discarded. The forced render after CommitHdrTransition is what resumes;
   // plane_needs_render stays set meanwhile, so nothing is lost.
   if (self->video_surface->hdr_transition_staged()) return;
+  // Never present an empty buffer as the very first frame. The first commit is
+  // the one a compositor that skips frame callbacks for occluded surfaces is
+  // entitled to ignore forever - the plane's frame-pending latch would then
+  // stall every later render, exactly the black-screen report - and it would
+  // be empty anyway: the first forced render happens at setVideoRect time,
+  // before mpv has decoded anything. Refuse it until mpv actually has a frame
+  // (its redraw latch, which is set when a frame is ready and cleared only by
+  // a render). The sticky plane_needs_render flag keeps the resize/visibility
+  // refresh owed by this call pending, so the first present still happens at
+  // the right size the moment content exists.
+  if (!self->video_surface->first_frame_presented() && !self->player->NeedsRedraw()) return;
   // Skip entirely while the compositor has not acknowledged the last frame:
   // an occluded plane is never acknowledged, and rendering into it anyway
   // would burn GPU work on frames that can never be shown.
@@ -428,13 +589,45 @@ static void apply_hdr_state(MpvPlugin* self, bool allow, mpv::HdrToneMapping mod
           if (done) done(MPV_ERROR_UNSUPPORTED);
           return;
         }
+        // The mpv leg is the one wait this file does not bound: the surface
+        // watchdog re-arms while it runs, but nothing answers the HDR method
+        // call when mpv never replies, so the transaction queue stays in
+        // flight behind a ghost forever - every later hdr-enabled or
+        // hdr-tone-mapping request queues behind it. A wedged core must cost
+        // one transaction, not the session. The shared latch makes whichever
+        // of the timeout or the late reply fires first the single caller of
+        // `done`; the loser sees a stale token and self-heals through
+        // request_hdr_reapply.
+        auto leg_finished = std::make_shared<bool>(false);
+        auto finish_leg = [done, leg_finished](int error) {
+          if (*leg_finished) return;
+          *leg_finished = true;
+          if (done) done(error);
+        };
         self->player->SetHdrOutput(
             transfer, decision.target_peak_nits,
-            [self, decision, mode, generation, token, done](mpv::MpvPlayer::HdrOutputResult result, int error) {
+            [self, decision, mode, generation, token, leg_finished, finish_leg](
+                mpv::MpvPlayer::HdrOutputResult result, int error) {
               using Result = mpv::MpvPlayer::HdrOutputResult;
+              // Whatever this reply says, the timeout (if any) has no more
+              // work to do. Both run on the GTK main context, so touching the
+              // source id here is single-threaded.
+              if (self->hdr_mpv_leg_timeout_source_ != 0) {
+                g_source_remove(self->hdr_mpv_leg_timeout_source_);
+                self->hdr_mpv_leg_timeout_source_ = 0;
+              }
               // The plane may have been torn down while the property was in flight.
               if (self->generation != generation || self->video_surface == nullptr || self->player == nullptr) {
-                if (done) done(error);
+                finish_leg(error);
+                return;
+              }
+              // The timeout already abandoned this transaction. mpv's colour
+              // state is unknowable; the timeout withdrew the description and
+              // resumed presentation, so the plane shows SDR-claimed pixels
+              // and nothing further may be committed against this token.
+              if (*leg_finished) {
+                self->video_surface->ForceUndescribed();
+                self->applied_target_peak = 0;
                 return;
               }
               // An earlier kUnknown hid the plane rather than show pixels it could
@@ -521,23 +714,78 @@ static void apply_hdr_state(MpvPlugin* self, bool allow, mpv::HdrToneMapping mod
                       mpv_error_string(error));
                   break;
                 case Result::kUnknown:
-                  // Nothing can be said truthfully about these pixels, so nothing is
-                  // said and nothing is shown. A later transaction can recover.
-                  // Recorded, so that a setVisible arriving in between - the app
-                  // going off screen and back, which has nothing to do with colour -
-                  // cannot quietly put the mislabelled plane back on screen.
+                  // Nothing can be said truthfully about these pixels, so no
+                  // description is attached. Whether anything is shown is a
+                  // product decision with two sides: hiding is honest (an
+                  // undescribed plane is sRGB by protocol, so PQ pixels read
+                  // as sRGB are washed out), showing is useful (visible-wrong
+                  // beats invisible — the AV1-transparent report was a plane
+                  // hidden this way while sound kept playing). Hiding is now
+                  // reserved for a core that is genuinely going away; a live
+                  // one presents undescribed instead.
+                  //
+                  // Recorded either way, so that a setVisible arriving in
+                  // between - the app going off screen and back, which has
+                  // nothing to do with colour - cannot quietly put the
+                  // mislabelled plane back on screen without asking mpv
+                  // again; observe_event_for_hdr clears it on the next
+                  // playback-restart so one poisoned source cannot hide
+                  // every later one.
                   self->hdr_output_unnameable = true;
                   self->video_surface->ForceUndescribed();
-                  self->video_surface->SetVisible(false);
+                  if (self->player->IsDisposed() || !self->player->CanCommandOutputProperties()) {
+                    self->video_surface->SetVisible(false);
+                  } else {
+                    render_video_plane(self, TRUE);
+                  }
                   self->applied_target_peak = 0;
                   g_warning(
                       "MPV video plane: mpv's output colour space is no longer commandable; the "
-                      "plane is hidden rather than shown mislabelled: %s",
+                      "plane is shown undescribed rather than hidden: %s",
                       mpv_error_string(error));
                   break;
               }
-              if (done) done(error);
+              finish_leg(error);
             });
+        // The surface's own watchdog bounds this leg too, but it only unstages
+        // the plane - the plugin's transaction state and the queued HDR
+        // method calls stay stuck behind the unanswered reply. This timeout
+        // answers them. Armed after SetHdrOutput so a synchronous reply (the
+        // no-op short-circuit) cannot race it, and removed by the reply
+        // callback above.
+        struct MpvLegTimeout {
+          MpvPlugin* self;
+          guint64 generation;
+          uint64_t token;
+          std::function<void(int)> finish_leg;
+        };
+        auto* timeout_ctx = new MpvLegTimeout{self, generation, token, finish_leg};
+        self->hdr_mpv_leg_timeout_source_ = g_timeout_add_seconds_full(
+            G_PRIORITY_DEFAULT, mpv::WaylandVideoSurface::kTransitionTimeoutSeconds,
+            +[](gpointer data) -> gboolean {
+              auto* ctx = static_cast<MpvLegTimeout*>(data);
+              MpvPlugin* self = ctx->self;
+              self->hdr_mpv_leg_timeout_source_ = 0;
+              if (self->generation == ctx->generation && self->video_surface != nullptr) {
+                g_warning(
+                    "MPV video plane: mpv never answered the output colour-space switch within %d "
+                    "seconds; abandoning the transaction and resuming presentation",
+                    mpv::WaylandVideoSurface::kTransitionTimeoutSeconds);
+                // Unstage and drop any description: mpv's state is unknown, so
+                // no claim may stand. The plane resumes presenting
+                // undescribed (sRGB by protocol) rather than staying held.
+                self->video_surface->AbortHdrTransition(ctx->token);
+                self->video_surface->ForceUndescribed();
+                render_video_plane(self, TRUE);
+              }
+              // Answers the transaction (and with it the queued HDR method
+              // calls) exactly once; a late reply from mpv is swallowed by the
+              // shared latch in the callback above. The error code is any
+              // non-success - the timeout's log line is what names the reason.
+              ctx->finish_leg(MPV_ERROR_UNSUPPORTED);
+              return G_SOURCE_REMOVE;
+            },
+            timeout_ctx, +[](gpointer data) { delete static_cast<MpvLegTimeout*>(data); });
       });
 }
 
@@ -753,6 +1001,13 @@ static void mpv_plugin_init(MpvPlugin* self) {
   self->initialized = FALSE;
   self->audio_only = FALSE;
   self->generation = 0;
+  self->texture = nullptr;
+  self->texture_registered = FALSE;
+  self->texture_registrar = nullptr;
+  self->bootstrap_state = VideoBootstrapState::kIdle;
+  self->bootstrap_error = nullptr;
+  self->ready_call = nullptr;
+  self->ready_timeout_source_id = 0;
 }
 
 MpvPlugin* mpv_plugin_new(FlPluginRegistrar* registrar, const gchar* channel_name, gboolean audio_only) {
@@ -760,6 +1015,9 @@ MpvPlugin* mpv_plugin_new(FlPluginRegistrar* registrar, const gchar* channel_nam
 
   self->registrar = FL_PLUGIN_REGISTRAR(g_object_ref(registrar));
   self->audio_only = audio_only;
+  // The audio-only core never renders; leaving the texture registrar unset
+  // makes the GL/texture path structurally unreachable for it.
+  self->texture_registrar = audio_only ? nullptr : fl_plugin_registrar_get_texture_registrar(registrar);
 
   self->player = std::make_unique<mpv::MpvPlayer>(audio_only);
 
@@ -818,7 +1076,20 @@ static void mpv_plugin_handle_method_call(FlMethodChannel* channel, FlMethodCall
       }
     } else if (self->video_surface && self->video_surface->valid()) {
       response = FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_bool(TRUE)));
+    } else if (
+        self->texture && (self->bootstrap_state == VideoBootstrapState::kPending ||
+                          self->bootstrap_state == VideoBootstrapState::kReady)) {
+      response =
+          FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_int(mpv_texture_get_id(self->texture))));
     } else {
+      // Optional 'renderMode' argument: "texture" forces the SDR
+      // Flutter-texture fallback (the user-visible workaround for plane-only
+      // trouble); anything else prefers the Wayland plane and falls back only
+      // when it cannot be brought up.
+      FlValue* render_mode_value = args != nullptr ? fl_value_lookup_string(args, "renderMode") : nullptr;
+      const bool force_texture = render_mode_value != nullptr &&
+                                 fl_value_get_type(render_mode_value) == FL_VALUE_TYPE_STRING &&
+                                 g_strcmp0(fl_value_get_string(render_mode_value), "texture") == 0;
       if (!self->player || self->player->IsDisposed()) {
         self->player = std::make_unique<mpv::MpvPlayer>();
       }
@@ -828,22 +1099,88 @@ static void mpv_plugin_handle_method_call(FlMethodChannel* channel, FlMethodCall
         release_video_resources(self);
         response =
             FL_METHOD_RESPONSE(fl_method_error_response_new("INIT_FAILED", "Failed to initialize MPV player", nullptr));
-      } else if (start_video_plane(self, fl_plugin_registrar_get_view(self->registrar), &error)) {
-        ++self->generation;
-        self->player->SetEventCallback([self](FlValue* event) { send_event(self, event); });
-        self->initialized = TRUE;
-        response = FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_bool(TRUE)));
       } else {
-        // There is no second render path. Refuse with the reason rather than
-        // presenting into something the user cannot see.
-        g_warning("MPV: no video plane: %s", error.c_str());
-        release_video_resources(self);
-        response = FL_METHOD_RESPONSE(fl_method_error_response_new("VIDEO_PLANE_UNSUPPORTED", error.c_str(), nullptr));
+        bool plane_up = false;
+        if (!force_texture) {
+          plane_up = start_video_plane(self, fl_plugin_registrar_get_view(self->registrar), &error);
+        }
+        if (plane_up) {
+          ++self->generation;
+          self->player->SetEventCallback([self](FlValue* event) { send_event(self, event); });
+          self->initialized = TRUE;
+          response = FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_bool(TRUE)));
+        } else if (self->texture_registrar != nullptr) {
+          // The plane cannot host this session (X11/XWayland, or the plane
+          // bootstrap failed). Fall back to the 2.11.0 Flutter-texture path:
+          // display-agnostic, SDR only, and the exact environment hardware
+          // decode demonstrably worked in. The texture is registered
+          // immediately so Flutter can invoke FlTextureGL::populate; playback
+          // stays gated until the GPU bootstrap reports the texture usable
+          // (the Dart side awaits waitForVideoReady).
+          if (!force_texture) {
+            g_warning("MPV: no video plane (%s); falling back to the Flutter-texture path", error.c_str());
+          }
+          FlView* view = fl_plugin_registrar_get_view(self->registrar);
+          self->texture = mpv_texture_new(self->player.get(), self->texture_registrar, view);
+          ++self->generation;
+          self->bootstrap_state = VideoBootstrapState::kPending;
+          auto* ready_context = new TextureReadyContext{MPV_PLUGIN(g_object_ref(self)), self->generation};
+          mpv_texture_set_ready_callback(self->texture, on_texture_ready, ready_context, destroy_texture_ready_context);
+
+          if (!fl_texture_registrar_register_texture(self->texture_registrar, FL_TEXTURE(self->texture))) {
+            // Literal message: the response is encoded when the handler
+            // responds below, after release_video_resources has run, so
+            // nothing heap-allocated may back it.
+            response = FL_METHOD_RESPONSE(
+                fl_method_error_response_new("INIT_FAILED", "Failed to register video texture", nullptr));
+            release_video_resources(self);
+          } else {
+            self->texture_registered = TRUE;
+            MpvTexture* texture = self->texture;
+            self->player->SetRedrawCallback([texture]() { mpv_texture_mark_frame_available(texture); });
+            self->player->SetEventCallback([self](FlValue* event) { send_event(self, event); });
+            mpv_texture_mark_frame_available(self->texture);
+            response =
+                FL_METHOD_RESPONSE(fl_method_success_response_new(fl_value_new_int(mpv_texture_get_id(self->texture))));
+          }
+        } else {
+          // No texture registrar at all: refuse with the plane's reason
+          // rather than presenting into something the user cannot see.
+          g_warning("MPV: no video plane: %s", error.c_str());
+          release_video_resources(self);
+          response =
+              FL_METHOD_RESPONSE(fl_method_error_response_new("VIDEO_PLANE_UNSUPPORTED", error.c_str(), nullptr));
+        }
       }
     }
   } else if (strcmp(method, "dispose") == 0) {
     release_video_resources(self);
     response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (strcmp(method, "waitForVideoReady") == 0) {
+    // Texture-path only: initialize returns the texture id as soon as the
+    // texture is registered, but the GPU bootstrap (FlTextureGL::populate,
+    // which creates the render context and the shared EGL image) completes
+    // asynchronously. Playback must not start against an unusable texture.
+    if (self->audio_only) {
+      response = FL_METHOD_RESPONSE(
+          fl_method_error_response_new("INIT_FAILED", "Audio players have no video readiness state", nullptr));
+    } else if (self->bootstrap_state == VideoBootstrapState::kReady && self->initialized) {
+      response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    } else if (self->bootstrap_state == VideoBootstrapState::kFailed) {
+      response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+          "INIT_FAILED", self->bootstrap_error ? self->bootstrap_error : "Video initialization failed", nullptr));
+    } else if (self->bootstrap_state != VideoBootstrapState::kPending || !self->texture) {
+      response = FL_METHOD_RESPONSE(
+          fl_method_error_response_new("INIT_FAILED", "Video initialization is not pending", nullptr));
+    } else if (self->ready_call) {
+      response = FL_METHOD_RESPONSE(
+          fl_method_error_response_new("INIT_IN_PROGRESS", "Video readiness is already being awaited", nullptr));
+    } else {
+      self->ready_call = FL_METHOD_CALL(g_object_ref(method_call));
+      self->ready_timeout_source_id =
+          g_timeout_add_seconds_full(G_PRIORITY_DEFAULT, 5, handle_ready_timeout, g_object_ref(self), g_object_unref);
+      return;
+    }
   } else if (strcmp(method, "command") == 0) {
     if (!self->player || !self->initialized) {
       response = FL_METHOD_RESPONSE(fl_method_error_response_new("NOT_INITIALIZED", "Player not initialized", nullptr));
@@ -919,25 +1256,37 @@ static void mpv_plugin_handle_method_call(FlMethodChannel* channel, FlMethodCall
             // native and Dart - which does not persist on failure - in agreement.
             self->hdr_tone_mapping_desired = requested;
             const uint64_t serial = ++self->hdr_mode_request_serial;
+            // Owned copy: the transaction completes asynchronously, after the
+            // handler's FlValue args are gone.
+            const std::string mode_string = mode;
             g_object_ref(method_call);
-            submit_hdr_transaction(self, self->hdr_wanted != FALSE, requested, [self, method_call, serial](int error) {
-              g_autoptr(FlMethodResponse) async_response = nullptr;
-              if (plezy::mpv_common::SetPropertyStatusSucceeded(error)) {
-                async_response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
-              } else {
-                // Hand the desire back to whatever is actually in force, read
-                // live rather than captured: an intervening request may have
-                // committed since. Skipped if a newer request already claimed
-                // the desire.
-                if (self->hdr_mode_request_serial == serial) {
-                  self->hdr_tone_mapping_desired = self->hdr_tone_mapping;
-                }
-                async_response = FL_METHOD_RESPONSE(fl_method_error_response_new(
-                    plezy::mpv_common::kSetPropertyFailedCode, mpv_error_string(error), nullptr));
-              }
-              fl_method_call_respond(method_call, async_response, nullptr);
-              g_object_unref(method_call);
-            });
+            submit_hdr_transaction(
+                self, self->hdr_wanted != FALSE, requested, [self, method_call, serial, mode_string](int error) {
+                  g_autoptr(FlMethodResponse) async_response = nullptr;
+                  if (plezy::mpv_common::SetPropertyStatusSucceeded(error)) {
+                    async_response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+                  } else {
+                    // Hand the desire back to whatever is actually in force, read
+                    // live rather than captured: an intervening request may have
+                    // committed since. Skipped if a newer request already claimed
+                    // the desire.
+                    if (self->hdr_mode_request_serial == serial) {
+                      self->hdr_tone_mapping_desired = self->hdr_tone_mapping;
+                    }
+                    // The refused write is named so a failure lands in the log as
+                    // "hdr-tone-mapping=<mode> failed", not as an unattributable
+                    // error string. This transaction has no single property: it
+                    // moves mpv's whole output colour space. The name is still
+                    // worth having - it says which side of the plane refused.
+                    async_response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+                        plezy::mpv_common::kSetPropertyFailedCode,
+                        (std::string("hdr-tone-mapping='") + mode_string + "' failed: " + mpv_error_string(error))
+                            .c_str(),
+                        nullptr));
+                  }
+                  fl_method_call_respond(method_call, async_response, nullptr);
+                  g_object_unref(method_call);
+                });
             return;
           }
           response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
@@ -968,34 +1317,85 @@ static void mpv_plugin_handle_method_call(FlMethodChannel* channel, FlMethodCall
         } else {
           g_object_ref(method_call);
           const uint64_t serial = ++self->hdr_enable_request_serial;
-          submit_hdr_transaction(self, enabled, std::nullopt, [self, method_call, serial, previous_wanted](int error) {
-            g_autoptr(FlMethodResponse) async_response = nullptr;
-            if (plezy::mpv_common::SetPropertyStatusSucceeded(error)) {
-              async_response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
-            } else {
-              // Only if no newer request has claimed the field since, for the
-              // same reason the tone-mapping path checks its serial.
-              if (self->hdr_enable_request_serial == serial) self->hdr_wanted = previous_wanted;
-              async_response = FL_METHOD_RESPONSE(fl_method_error_response_new(
-                  plezy::mpv_common::kSetPropertyFailedCode, mpv_error_string(error), nullptr));
-            }
-            fl_method_call_respond(method_call, async_response, nullptr);
-            g_object_unref(method_call);
-          });
+          submit_hdr_transaction(
+              self, enabled, std::nullopt, [self, method_call, serial, previous_wanted, enabled](int error) {
+                g_autoptr(FlMethodResponse) async_response = nullptr;
+                if (plezy::mpv_common::SetPropertyStatusSucceeded(error)) {
+                  async_response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+                } else {
+                  // Only if no newer request has claimed the field since, for the
+                  // same reason the tone-mapping path checks its serial.
+                  if (self->hdr_enable_request_serial == serial) self->hdr_wanted = previous_wanted;
+                  // The requested value is named, not the restored one: the
+                  // refusal is about the request that failed.
+                  async_response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+                      plezy::mpv_common::kSetPropertyFailedCode,
+                      (std::string("hdr-enabled='") + (enabled ? "yes" : "no") + "' failed: " + mpv_error_string(error))
+                          .c_str(),
+                      nullptr));
+                }
+                fl_method_call_respond(method_call, async_response, nullptr);
+                g_object_unref(method_call);
+              });
           return;
         }
+      } else if (
+          !self->video_surface && !self->audio_only &&
+          g_strcmp0(fl_value_get_string(name_value), "hdr-tone-mapping") == 0) {
+        // Texture-fallback mode has no plane and no description machinery, so
+        // the tone-map owner is meaningless. Answered success so the startup
+        // preference push does not read a refusal.
+        response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+      } else if (
+          !self->video_surface && !self->audio_only && g_strcmp0(fl_value_get_string(name_value), "hdr-enabled") == 0) {
+        // No plane, no HDR. Honest refusal; Dart swallows it on Linux and
+        // reconciles the stored preference down, so the settings switch
+        // agrees with the session.
+        response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+            "HDR_UNSUPPORTED", "This session has no video plane and cannot carry HDR", nullptr));
+      } else if (
+          !self->audio_only && g_strcmp0(fl_value_get_string(name_value), "vo") == 0 &&
+          g_strcmp0(fl_value_get_string(value_value), "libmpv") != 0) {
+        // Embedded rendering is authoritative: the render context was created
+        // against vo=libmpv, and a runtime vo switch makes mpv re-create its
+        // output as a separate window, orphaning the plane. vo=gpu-next is
+        // windowed by construction - the libmpv render API is OpenGL-only -
+        // so there is no embedded alternative worth accepting. This guard is
+        // the native invariant beneath the Dart-side filter: it is the last
+        // line, and it names why.
+        response = FL_METHOD_RESPONSE(fl_method_error_response_new(
+            plezy::mpv_common::kSetPropertyFailedCode,
+            "vo is owned by Plezy: embedded video renders through vo=libmpv and a windowed VO "
+            "(gpu-next) cannot be used inside the app",
+            nullptr));
       } else {
+        // The property name and value travel with the error so a refusal is
+        // attributable: mpv's own text ("unsupported format for accessing
+        // property", MPV_ERROR_PROPERTY_FORMAT) names the failure mode, not
+        // the property, and without this every report of a refused write is
+        // a guessing game. The value is truncated the same way
+        // SetPropertyErrorDescription truncates the description, so a token
+        // or URL that sneaks into a property value is bounded in the log.
+        const std::string property_name = fl_value_get_string(name_value);
+        const std::string property_value = fl_value_get_string(value_value);
         g_object_ref(method_call);
         self->player->SetPropertyAsync(
-            fl_value_get_string(name_value), fl_value_get_string(value_value), [method_call](int error) {
+            property_name, property_value, [method_call, property_name, property_value](int error) {
               g_autoptr(FlMethodResponse) async_response = nullptr;
               if (plezy::mpv_common::SetPropertyStatusSucceeded(error)) {
                 async_response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
               } else {
                 const char* error_code = plezy::mpv_common::SetPropertyErrorCode(error);
-                const std::string description = error == MPV_ERROR_UNINITIALIZED
-                                                    ? std::string("Player not initialized")
-                                                    : plezy::mpv_common::SetPropertyErrorDescription(error);
+                std::string description;
+                if (error == MPV_ERROR_UNINITIALIZED) {
+                  description = "Player not initialized";
+                } else {
+                  description = "setProperty '" + property_name + "'='" + property_value +
+                                "' failed: " + plezy::mpv_common::SetPropertyErrorDescription(error);
+                  if (description.size() > plezy::mpv_common::kSetPropertyErrorDescriptionLimit) {
+                    description.resize(plezy::mpv_common::kSetPropertyErrorDescriptionLimit);
+                  }
+                }
                 async_response =
                     FL_METHOD_RESPONSE(fl_method_error_response_new(error_code, description.c_str(), nullptr));
               }
@@ -1089,6 +1489,10 @@ static void mpv_plugin_handle_method_call(FlMethodChannel* channel, FlMethodCall
           // consumed (or suppressed) while hidden, so no callback is pending.
           if (self->visible) render_video_plane(self, TRUE);
         }
+      } else if (self->visible && self->texture) {
+        // Texture path: becoming visible has to kick Flutter's populate, for
+        // the same reason the plane renders explicitly above.
+        mpv_texture_mark_frame_available(self->texture);
       }
 
       response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
@@ -1167,8 +1571,12 @@ static void mpv_plugin_handle_method_call(FlMethodChannel* channel, FlMethodCall
   } else if (strcmp(method, "updateFrame") == 0) {
     // The cross-platform "kick the video output" call. On the plane that means
     // forcing a render: mpv may have no new frame, but the caller is asking
-    // because what is on screen is stale.
-    if (self->visible) render_video_plane(self, TRUE);
+    // because what is on screen is stale. On the texture path the same kick
+    // marks the texture available.
+    if (self->visible) {
+      if (self->video_surface) render_video_plane(self, TRUE);
+      if (self->texture) mpv_texture_mark_frame_available(self->texture);
+    }
     response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
   } else if (strcmp(method, "isInitialized") == 0) {
     gboolean initialized = self->player && self->initialized;

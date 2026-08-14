@@ -462,6 +462,10 @@ class _Translations$settings$ru extends Translations$settings$en {
 	@override String get seekAndTiming => 'Перемотка и время';
 	@override String get behavior => 'Поведение';
 	@override String get exportDialogTitle => 'Экспорт настроек Plezy';
+	@override String get linuxVideoRenderMode => 'Режим рендеринга видео';
+	@override String get linuxVideoRenderModeDescription => 'Автоматический режим предпочитает нативную плоскость Wayland (поддержка HDR); Texture принудительно использует запасной путь SDR.';
+	@override String get linuxVideoRenderModeAuto => 'Автоматически';
+	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -974,6 +978,7 @@ class _Translations$mpvConfig$ru extends Translations$mpvConfig$en {
 	@override String get presetDeleted => 'Пресет удалён';
 	@override String get confirmDeletePreset => 'Вы уверены, что хотите удалить этот пресет?';
 	@override String get configPlaceholder => 'gpu-api=vulkan\nhwdec=auto\n# comment';
+	@override String get embeddedVoHint => 'vo, gpu-context и gpu-api игнорируются в Linux: встроенное видео всегда отображается через vo=libmpv на видеоплоскости, а gpu-next (нужный для compute-шейдеров вроде ArtCNN) не может работать во встроенном режиме.';
 }
 
 // Path: dialog
@@ -3038,6 +3043,10 @@ extension on TranslationsRu {
 			'settings.seekAndTiming' => 'Перемотка и время',
 			'settings.behavior' => 'Поведение',
 			'settings.exportDialogTitle' => 'Экспорт настроек Plezy',
+			'settings.linuxVideoRenderMode' => 'Режим рендеринга видео',
+			'settings.linuxVideoRenderModeDescription' => 'Автоматический режим предпочитает нативную плоскость Wayland (поддержка HDR); Texture принудительно использует запасной путь SDR.',
+			'settings.linuxVideoRenderModeAuto' => 'Автоматически',
+			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Поиск фильмов, сериалов, музыки...',
 			'search.tryDifferentTerm' => 'Попробуйте другой запрос',
 			'search.searchYourMedia' => 'Поиск в вашей медиатеке',
@@ -3217,12 +3226,12 @@ extension on TranslationsRu {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy не смог проверить, какие файлы будут удалены, поэтому может быть удалено больше, чем указанный выше элемент. Отмените и попробуйте снова либо удалите в любом случае.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Ваш сервер не предоставил сведения о файлах для этого элемента, поэтому Plezy не может проверить, какие файлы будут удалены. Может быть удалено больше, чем указанный выше элемент.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Медиаэлемент успешно удалён',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Не удалось удалить медиаэлемент',
 			'mediaMenu.rate' => 'Оценить',
 			'mediaMenu.playFromBeginning' => 'Воспроизвести сначала',
 			'mediaMenu.playVersion' => 'Воспроизвести версию...',
-			_ => null,
-		} ?? switch (path) {
 			'rateSheet.title' => 'Оценить',
 			'rateSheet.server' => 'Сервер',
 			'rateSheet.favorite' => 'Добавить в избранное',
@@ -3454,6 +3463,7 @@ extension on TranslationsRu {
 			'mpvConfig.presetDeleted' => 'Пресет удалён',
 			'mpvConfig.confirmDeletePreset' => 'Вы уверены, что хотите удалить этот пресет?',
 			'mpvConfig.configPlaceholder' => 'gpu-api=vulkan\nhwdec=auto\n# comment',
+			'mpvConfig.embeddedVoHint' => 'vo, gpu-context и gpu-api игнорируются в Linux: встроенное видео всегда отображается через vo=libmpv на видеоплоскости, а gpu-next (нужный для compute-шейдеров вроде ArtCNN) не может работать во встроенном режиме.',
 			'dialog.confirmAction' => 'Подтвердить действие',
 			'profiles.addPlezyProfile' => 'Добавить профиль Plezy',
 			'profiles.switchingProfile' => 'Переключение профиля…',
@@ -3730,13 +3740,13 @@ extension on TranslationsRu {
 			'explore.watchlistNoMatch' => 'Не удалось сопоставить этот элемент со списком просмотра',
 			'explore.notInLibrary' => 'Нет в вашей библиотеке',
 			'explore.inTheseLibraries' => 'В этих библиотеках',
+			_ => null,
+		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Проверка вашей библиотеки...',
 			'explore.emptyTitle' => 'Здесь пока ничего нет',
 			'explore.emptyMessage' => ({required Object source}) => 'Разделы из ${source} появятся здесь, когда в них появится контент.',
 			'explore.searchHint' => ({required Object source}) => 'Поиск в ${source}',
 			'explore.searchEmpty' => ({required Object query}) => 'Нет результатов по запросу "${query}"',
-			_ => null,
-		} ?? switch (path) {
 			'explore.searchPrompt' => ({required Object source}) => 'Ищите фильмы и сериалы в ${source}.',
 			'explore.searchFailed' => 'Ошибка поиска. Проверьте подключение и повторите попытку.',
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} по популярности',
@@ -4244,13 +4254,13 @@ extension on TranslationsRu {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Не удалось подключиться ни к одному адресу',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => 'Соединение потеряно после ${attempts} попыток',
 			'companionRemote.errors.connectionLost' => 'Соединение потеряно',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Соединение было закрыто до аутентификации',
 			'videoSettings.playbackSpeed' => 'Скорость воспроизведения',
 			'videoSettings.normalSpeed' => 'Обычная',
 			'videoSettings.sleepTimerActive' => ({required Object duration}) => 'Активен (${duration})',
 			'videoSettings.zoom' => 'Масштаб',
-			_ => null,
-		} ?? switch (path) {
 			'videoSettings.sleepTimer' => 'Таймер сна',
 			'videoSettings.audioSync' => 'Синхронизация аудио',
 			'videoSettings.subtitleSync' => 'Синхронизация субтитров',

@@ -462,6 +462,10 @@ class _Translations$settings$kk extends Translations$settings$en {
 	@override String get seekAndTiming => 'Айналдыру және уақытты реттеу';
 	@override String get behavior => 'Мінез-құлық';
 	@override String get exportDialogTitle => 'Plezy параметрлерін экспорттау';
+	@override String get linuxVideoRenderMode => 'Бейнені көрсету режимі';
+	@override String get linuxVideoRenderModeDescription => 'Автоматты режим жергілікті Wayland жазықтығын қалайды (HDR қолдайды); Texture SDR резервтік жолды мәжбүрлейді.';
+	@override String get linuxVideoRenderModeAuto => 'Автоматты';
+	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -966,6 +970,7 @@ class _Translations$mpvConfig$kk extends Translations$mpvConfig$en {
 	@override String get presetDeleted => 'Баптау өшірілді';
 	@override String get confirmDeletePreset => 'Осы баптауды өшіргіңіз келетініне сенімдісіз бе?';
 	@override String get configPlaceholder => 'gpu-api=vulkan\nhwdec=auto\n# түсініктеме';
+	@override String get embeddedVoHint => 'vo, gpu-context және gpu-api Linux-те еленбейді: ендірілген бейне әрқашан бейне жазықтығында vo=libmpv арқылы көрсетіледі, ал gpu-next (ArtCNN сияқты compute шейдерлеріне қажет) ендірілген режимде жұмыс істей алмайды.';
 }
 
 // Path: dialog
@@ -3018,6 +3023,10 @@ extension on TranslationsKk {
 			'settings.seekAndTiming' => 'Айналдыру және уақытты реттеу',
 			'settings.behavior' => 'Мінез-құлық',
 			'settings.exportDialogTitle' => 'Plezy параметрлерін экспорттау',
+			'settings.linuxVideoRenderMode' => 'Бейнені көрсету режимі',
+			'settings.linuxVideoRenderModeDescription' => 'Автоматты режим жергілікті Wayland жазықтығын қалайды (HDR қолдайды); Texture SDR резервтік жолды мәжбүрлейді.',
+			'settings.linuxVideoRenderModeAuto' => 'Автоматты',
+			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Фильмдер, сериалдар, музыка іздеу...',
 			'search.tryDifferentTerm' => 'Басқа іздеу сөзін байқап көріңіз',
 			'search.searchYourMedia' => 'Медиафайлдардан іздеу',
@@ -3197,12 +3206,12 @@ extension on TranslationsKk {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy қандай файлдар өшірілетінін тексере алмады, сондықтан ол жоғарыда аталған элементтен артық өшіруі мүмкін. Бас тартып, қайталап көріңіз немесе бәрібір өшіріңіз.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Серверіңіз бұл элемент үшін файл мәліметтерін ұсынбады, сондықтан Plezy қандай файлдар өшірілетінін тексере алмайды. Ол жоғарыда аталған элементтен артық өшіруі мүмкін.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Медиа элементі сәтті өшірілді',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Медиа элементін өшіру мүмкін болмады',
 			'mediaMenu.rate' => 'Бағалау',
 			'mediaMenu.playFromBeginning' => 'Басынан бастап ойнату',
 			'mediaMenu.playVersion' => 'Нұсқаны ойнату...',
-			_ => null,
-		} ?? switch (path) {
 			'rateSheet.title' => 'Бағалау',
 			'rateSheet.server' => 'Сервер',
 			'rateSheet.favorite' => 'Таңдаулы',
@@ -3434,6 +3443,7 @@ extension on TranslationsKk {
 			'mpvConfig.presetDeleted' => 'Баптау өшірілді',
 			'mpvConfig.confirmDeletePreset' => 'Осы баптауды өшіргіңіз келетініне сенімдісіз бе?',
 			'mpvConfig.configPlaceholder' => 'gpu-api=vulkan\nhwdec=auto\n# түсініктеме',
+			'mpvConfig.embeddedVoHint' => 'vo, gpu-context және gpu-api Linux-те еленбейді: ендірілген бейне әрқашан бейне жазықтығында vo=libmpv арқылы көрсетіледі, ал gpu-next (ArtCNN сияқты compute шейдерлеріне қажет) ендірілген режимде жұмыс істей алмайды.',
 			'dialog.confirmAction' => 'Әрекетті растау',
 			'profiles.addPlezyProfile' => 'Plezy профилін қосу',
 			'profiles.switchingProfile' => 'Профильді ауыстыру…',
@@ -3710,13 +3720,13 @@ extension on TranslationsKk {
 			'explore.watchlistNoMatch' => 'Бұл элементті көру тізімімен сәйкестендіру мүмкін болмады',
 			'explore.notInLibrary' => 'Кітапханаңызда жоқ',
 			'explore.inTheseLibraries' => 'Осы кітапханаларда бар',
+			_ => null,
+		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Кітапхана тексерілуде...',
 			'explore.emptyTitle' => 'Әлі де мұнда ештеңе жоқ',
 			'explore.emptyMessage' => ({required Object source}) => '${source} дереккөзінен алынған қатарлар мұнда көрінеді.',
 			'explore.searchHint' => ({required Object source}) => '${source} ішінен іздеу',
 			'explore.searchEmpty' => ({required Object query}) => '"${query}" бойынша нәтиже табылмады',
-			_ => null,
-		} ?? switch (path) {
 			'explore.searchPrompt' => ({required Object source}) => '${source} арқылы фильмдер мен сериалдарды іздеңіз.',
 			'explore.searchFailed' => 'Іздеу қатесі. Қосылымды тексеріңіз.',
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} танымал',
@@ -4224,13 +4234,13 @@ extension on TranslationsKk {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Ешбір мекенжайға қосылу мүмкін болмады',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => '${attempts} әрекеттен кейін байланыс үзілді',
 			'companionRemote.errors.connectionLost' => 'Байланыс үзілді',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Аутентификациядан бұрын байланыс жабылды',
 			'videoSettings.playbackSpeed' => 'Ойнату жылдамдығы',
 			'videoSettings.normalSpeed' => 'Қалыпты',
 			'videoSettings.sleepTimerActive' => ({required Object duration}) => 'Белсенді (${duration})',
 			'videoSettings.zoom' => 'Масштаб',
-			_ => null,
-		} ?? switch (path) {
 			'videoSettings.sleepTimer' => 'Ұйқы таймері',
 			'videoSettings.audioSync' => 'Аудио синхрондау',
 			'videoSettings.subtitleSync' => 'Субтитр синхрондау',

@@ -40,6 +40,7 @@ import '../media/media_role.dart';
 import '../media/paged_media_list_state.dart';
 import '../widgets/media_card.dart';
 import '../widgets/media_rating_badge.dart';
+import '../widgets/fitted_metadata_line.dart';
 import '../i18n/strings.g.dart';
 import '../theme/mono_tokens.dart';
 import '../widgets/cycling_media_backdrop.dart';
@@ -4030,14 +4031,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         final desiredLogoHeight = 220 * scale;
         final minLogoHeight = 60 * scale;
         final desiredLogoWidth = 790 * scale;
-        final metadataLineRowHeight = 22 * scale;
-        final metadataLineRowGap = 6 * scale;
-        // Extra margin on the two-line case only: the rating badge icons
-        // (sized to the text's fontSize) render a touch taller than a plain
-        // text line, so a bare doubled estimate clipped by a few pixels.
-        final metadataLineHeight = _tvDetailMetadataHasSecondLine(metadata)
-            ? (metadataLineRowHeight * 2) + metadataLineRowGap + (10 * scale)
-            : metadataLineRowHeight;
+        final metadataLineHeight = 22 * scale;
         final genreLineHeight = 22 * scale;
         final genreGap = 6 * scale;
         final logoMetadataGap = 10 * scale;
@@ -4177,62 +4171,35 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     );
   }
 
-  /// The ordered metadata fields the TV detail line renders and its announcement reads,
-  /// built through [text] for plain fields and [rating] for the rating slot.
-  /// [secondLineStart] is the index in [parts] where the TV detail screen's
-  /// two-line metadata treatment breaks to a new line (duration onward) —
-  /// see [_buildTvDetailMetadataLine]. Callers that just want the flat,
-  /// single-line semantic content (e.g. the accessibility label) use [parts]
-  /// directly and ignore the split point.
-  ({List<T> parts, int secondLineStart}) _tvDetailMetadataParts<T extends Object>(
-    MediaItem metadata, {
-    required T Function(String value) text,
-    required T? Function(MediaItem item) rating,
-  }) {
+  /// The ordered metadata fields the TV detail line renders and its announcement
+  /// reads: year first (the desktop hero's chip order) and every score in one
+  /// trailing slot. Drop priorities let the fitted line shed surplus rating
+  /// badges, then quality labels, before the fields that identify the item
+  /// (#1893).
+  List<MetadataLinePart> _tvDetailMetadataParts(MediaItem metadata) {
     final lineMetadata = _tvDetailFocusedEpisode.value ?? metadata;
-    final parts = <T>[];
-
-    void add(T? part) {
-      if (part != null) parts.add(part);
-    }
+    final parts = <MetadataLinePart>[];
 
     final episodeLabel = formatSeasonEpisodeLabel(lineMetadata.parentIndex, lineMetadata.index);
-    if (lineMetadata.isEpisode && episodeLabel != null) add(text(episodeLabel));
-    if (lineMetadata.isMovie) {
-      add(text(t.discover.movie));
-    } else if (lineMetadata.isShow) {
-      add(text(t.discover.tvShow));
-    }
-    add(rating(lineMetadata));
-    if (lineMetadata.contentRating != null) add(text(formatContentRating(lineMetadata.contentRating!)));
-
-    final secondLineStart = parts.length;
-
-    if (lineMetadata.durationMs != null) add(text(formatDurationTextual(lineMetadata.durationMs!)));
+    if (lineMetadata.isEpisode && episodeLabel != null) parts.add(MetadataLineText(episodeLabel, dropPriority: 0));
     if (lineMetadata.isEpisode && lineMetadata.originallyAvailableAt != null) {
-      add(text(formatAbbreviatedDate(lineMetadata.originallyAvailableAt!)));
+      parts.add(MetadataLineText(formatAbbreviatedDate(lineMetadata.originallyAvailableAt!), dropPriority: 0));
     } else if (lineMetadata.year != null) {
-      add(text(lineMetadata.year.toString()));
+      parts.add(MetadataLineText(lineMetadata.year.toString(), dropPriority: 0));
+    }
+    if (lineMetadata.contentRating != null) {
+      parts.add(MetadataLineText(formatContentRating(lineMetadata.contentRating!), dropPriority: 2));
+    }
+    if (lineMetadata.durationMs != null) {
+      parts.add(MetadataLineText(formatDurationTextual(lineMetadata.durationMs!), dropPriority: 1));
     }
     for (final label in buildMediaQualityLabels(lineMetadata)) {
-      add(text(label));
+      parts.add(MetadataLineText(label, dropPriority: 3));
     }
+    final ratings = mediaRatingsFor(lineMetadata, fallbackItem: metadata);
+    if (ratings.isNotEmpty) parts.add(MetadataLineRatings(ratings, dropPriority: 4));
 
-    return (parts: parts, secondLineStart: secondLineStart);
-  }
-
-  /// Whether [_buildTvDetailMetadataLine] will actually render two lines for
-  /// [metadata] (both the type/ratings/content-rating half and the
-  /// duration-onward half are non-empty) — used to size the reserved layout
-  /// height in [_buildTvDetailForeground] to match, since a fixed one-line
-  /// budget overflows into genres/summary once a second line appears.
-  bool _tvDetailMetadataHasSecondLine(MediaItem metadata) {
-    final (:parts, :secondLineStart) = _tvDetailMetadataParts<String>(
-      metadata,
-      text: (value) => value,
-      rating: (item) => MediaRatingBadgeGroup.semanticLabelForMedia(item, fallbackItem: metadata),
-    );
-    return secondLineStart > 0 && secondLineStart < parts.length;
+    return parts;
   }
 
   String _tvDetailInformationSemanticLabel(
@@ -4251,13 +4218,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     add(metadata.displayTitle);
     if (!identical(lineMetadata, metadata)) add(lineMetadata.displayTitle);
 
-    final fields = _tvDetailMetadataParts<String>(
-      metadata,
-      text: (value) => value,
-      rating: (item) => MediaRatingBadgeGroup.semanticLabelForMedia(item, fallbackItem: metadata),
-    ).parts;
-    for (final field in fields) {
-      add(field);
+    for (final part in _tvDetailMetadataParts(metadata)) {
+      add(switch (part) {
+        MetadataLineText(:final text) => text,
+        MetadataLineRatings(:final ratings) => ratingsSemanticLabel(ratings),
+      });
     }
     if (genres.isNotEmpty) add(genres.join(', '));
     add(description);
@@ -4320,52 +4285,15 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       fontWeight: .w700,
       letterSpacing: 0.1,
     );
-    final (:parts, :secondLineStart) = _tvDetailMetadataParts<Widget>(
-      metadata,
-      text: (value) => Text(value, maxLines: 1, style: textStyle),
-      // Every score shares the one metadata slot, so the bullet separators
-      // don't multiply with the number of sources.
-      rating: (item) => MediaRatingBadgeGroup.inlineForMedia(
-        item: item,
-        fallbackItem: metadata,
-        foregroundColor: textStyle.color,
-        iconSize: textStyle.fontSize,
-        spacing: 4 * scale,
-        entrySpacing: 12 * scale,
-        textStyle: textStyle,
-      ),
-    );
-
+    final parts = _tvDetailMetadataParts(metadata);
     if (parts.isEmpty) return const SizedBox.shrink();
 
-    // Two lines: type/ratings/content-rating on the first, duration onward
-    // (year, resolution, audio codec/channels, Atmos/DTS:X, ...) on the
-    // second — the full line kept growing past the available width as more
-    // quality-label chips were added.
-    Widget buildLine(List<Widget> lineFields) {
-      final children = <Widget>[];
-      for (final field in lineFields) {
-        if (children.isNotEmpty) children.add(Text('  •  ', maxLines: 1, style: textStyle));
-        children.add(field);
-      }
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const NeverScrollableScrollPhysics(),
-        child: Row(mainAxisSize: MainAxisSize.min, children: children),
-      );
-    }
-
-    final firstLine = parts.sublist(0, secondLineStart);
-    final secondLine = parts.sublist(secondLineStart);
-
-    if (firstLine.isEmpty || secondLine.isEmpty) {
-      return buildLine(parts);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [buildLine(firstLine), SizedBox(height: 6 * scale), buildLine(secondLine)],
+    return FittedMetadataLine(
+      textStyle: textStyle,
+      parts: parts,
+      ratingIconSize: textStyle.fontSize,
+      ratingSpacing: 4 * scale,
+      ratingEntrySpacing: 12 * scale,
     );
   }
 

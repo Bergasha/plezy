@@ -340,7 +340,11 @@
     "subtitlesAndConfig": "Субтитри и конфигурация",
     "seekAndTiming": "Търсене и време",
     "behavior": "Поведение",
-    "exportDialogTitle": "Експортиране на настройките на Plezy"
+    "exportDialogTitle": "Експортиране на настройките на Plezy",
+    "linuxVideoRenderMode": "Режим на видеото",
+    "linuxVideoRenderModeDescription": "Автоматично предпочита родната Wayland равнина (HDR-съвместима); Texture принуждава SDR резервния път.",
+    "linuxVideoRenderModeAuto": "Автоматично",
+    "linuxVideoRenderModeTexture": "Texture (SDR)"
   },
   "search": {
     "hint": "Търсене на филми, сериали, музика...",
@@ -795,7 +799,8 @@
     "presetLoaded": "Пресетът е зареден",
     "presetDeleted": "Пресетът е изтрит",
     "confirmDeletePreset": "Сигурни ли сте, че искате да изтриете този пресет?",
-    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment"
+    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment",
+    "embeddedVoHint": "vo, gpu-context и gpu-api се игнорират на Linux: вграденото видео винаги се рендерира през vo=libmpv върху видео равнината, а gpu-next (който е нужен за compute шейдъри като ArtCNN) не може да работи вградено."
   },
   "dialog": {
     "confirmAction": "Потвърждение на действие"

@@ -340,7 +340,11 @@
     "subtitlesAndConfig": "Feliratok és konfiguráció",
     "seekAndTiming": "Tekerés és időzítés",
     "behavior": "Viselkedés",
-    "exportDialogTitle": "Plezy-beállítások exportálása"
+    "exportDialogTitle": "Plezy-beállítások exportálása",
+    "linuxVideoRenderMode": "Videó megjelenítési mód",
+    "linuxVideoRenderModeDescription": "Az Automatikus a natív Wayland síkot részesíti előnyben (HDR-képes); a Texture az SDR tartalék utat kényszeríti ki.",
+    "linuxVideoRenderModeAuto": "Automatikus",
+    "linuxVideoRenderModeTexture": "Texture (SDR)"
   },
   "search": {
     "hint": "Keresés filmek, sorozatok és zenék között...",
@@ -795,7 +799,8 @@
     "presetLoaded": "Előbeállítás betöltve",
     "presetDeleted": "Előbeállítás törölve",
     "confirmDeletePreset": "Biztosan törölni szeretnéd ezt az előbeállítást?",
-    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# megjegyzés"
+    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# megjegyzés",
+    "embeddedVoHint": "A vo, gpu-context és gpu-api beállítások Linuxon figyelmen kívül maradnak: a beágyazott videó mindig a vo=libmpv-n keresztül jelenik meg a videósíkon, a gpu-next (amelyre az ArtCNN-hez hasonló compute shadereknek szükségük van) pedig nem futhat beágyazva."
   },
   "dialog": {
     "confirmAction": "Művelet megerősítése"

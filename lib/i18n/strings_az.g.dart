@@ -462,6 +462,10 @@ class _Translations$settings$az extends Translations$settings$en {
 	@override String get seekAndTiming => 'Sarğı və vaxt tənzimləməsi';
 	@override String get behavior => 'Davranış';
 	@override String get exportDialogTitle => 'Plezy tənzimləmələrini ixrac et';
+	@override String get linuxVideoRenderMode => 'Video göstərmə rejimi';
+	@override String get linuxVideoRenderModeDescription => 'Avtomatik yerli Wayland müstəvisinə üstünlük verir (HDR dəstəkləyir); Texture SDR ehtiyat yolunu məcbur edir.';
+	@override String get linuxVideoRenderModeAuto => 'Avtomatik';
+	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -966,6 +970,7 @@ class _Translations$mpvConfig$az extends Translations$mpvConfig$en {
 	@override String get presetDeleted => 'Ön ayar silindi';
 	@override String get confirmDeletePreset => 'Bu ön ayarı silmək istədiyinizə əminsiniz?';
 	@override String get configPlaceholder => 'gpu-api=vulkan\nhwdec=auto\n# şərh';
+	@override String get embeddedVoHint => 'vo, gpu-context və gpu-api Linux-da nəzərə alınmır: daxili video həmişə video müstəvisində vo=libmpv vasitəsilə göstərilir və gpu-next (ArtCNN kimi hesablama şeyderlərinə lazımdır) daxili işləyə bilməz.';
 }
 
 // Path: dialog
@@ -3018,6 +3023,10 @@ extension on TranslationsAz {
 			'settings.seekAndTiming' => 'Sarğı və vaxt tənzimləməsi',
 			'settings.behavior' => 'Davranış',
 			'settings.exportDialogTitle' => 'Plezy tənzimləmələrini ixrac et',
+			'settings.linuxVideoRenderMode' => 'Video göstərmə rejimi',
+			'settings.linuxVideoRenderModeDescription' => 'Avtomatik yerli Wayland müstəvisinə üstünlük verir (HDR dəstəkləyir); Texture SDR ehtiyat yolunu məcbur edir.',
+			'settings.linuxVideoRenderModeAuto' => 'Avtomatik',
+			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Kino, serial, musiqi axtar...',
 			'search.tryDifferentTerm' => 'Fərqli axtarış sözü cəhd edin',
 			'search.searchYourMedia' => 'Mediyanızda axtarın',
@@ -3197,12 +3206,12 @@ extension on TranslationsAz {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy bunun hansı faylları siləcəyini yoxlaya bilmədi, ona görə də yuxarıda adı çəkilən elementdən daha çoxunu silə bilər. Ləğv edib təzədən cəhd edin və ya yenə də silin.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Serveriniz bu element üçün fayl təfərrüatlarını təqdim etmədi, ona görə Plezy bunun hansı faylları siləcəyini yoxlaya bilmir. Yuxarıda adı çəkilən elementdən daha çoxunu silə bilər.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Media elementi uğurla silindi',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Media elementi silinə bilmədi',
 			'mediaMenu.rate' => 'Qiymətləndir',
 			'mediaMenu.playFromBeginning' => 'Əvvəldən oynat',
 			'mediaMenu.playVersion' => 'Versiyanı oynat...',
-			_ => null,
-		} ?? switch (path) {
 			'rateSheet.title' => 'Qiymətləndir',
 			'rateSheet.server' => 'Server',
 			'rateSheet.favorite' => 'Sevimli',
@@ -3434,6 +3443,7 @@ extension on TranslationsAz {
 			'mpvConfig.presetDeleted' => 'Ön ayar silindi',
 			'mpvConfig.confirmDeletePreset' => 'Bu ön ayarı silmək istədiyinizə əminsiniz?',
 			'mpvConfig.configPlaceholder' => 'gpu-api=vulkan\nhwdec=auto\n# şərh',
+			'mpvConfig.embeddedVoHint' => 'vo, gpu-context və gpu-api Linux-da nəzərə alınmır: daxili video həmişə video müstəvisində vo=libmpv vasitəsilə göstərilir və gpu-next (ArtCNN kimi hesablama şeyderlərinə lazımdır) daxili işləyə bilməz.',
 			'dialog.confirmAction' => 'Əməliyyatı təsdiqlə',
 			'profiles.addPlezyProfile' => 'Plezy profili əlavə et',
 			'profiles.switchingProfile' => 'Profil dəyişdirilir…',
@@ -3710,13 +3720,13 @@ extension on TranslationsAz {
 			'explore.watchlistNoMatch' => 'Bu elementi heç bir baxış siyahısı ilə uyğunlaşdırmaq olmadı',
 			'explore.notInLibrary' => 'Kitabxananızda yoxdur',
 			'explore.inTheseLibraries' => 'Bu kitabxanalarda var',
+			_ => null,
+		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Kitabxananız yoxlanılır...',
 			'explore.emptyTitle' => 'Hələlik burada heç nə yoxdur',
 			'explore.emptyMessage' => ({required Object source}) => '${source} mənbəsindən olan sətirlər burada görünəcək.',
 			'explore.searchHint' => ({required Object source}) => '${source} daxilində axtar',
 			'explore.searchEmpty' => ({required Object query}) => '"${query}" üçün nəticə tapılmadı',
-			_ => null,
-		} ?? switch (path) {
 			'explore.searchPrompt' => ({required Object source}) => '${source} vasitəsilə kino və seriallar axtarın.',
 			'explore.searchFailed' => 'Axtarış uğursuz oldu. Bağlantınızı yoxlayın.',
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} populyar',
@@ -4224,13 +4234,13 @@ extension on TranslationsAz {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Heç bir ünvana qoşuluna bilmədi',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => '${attempts} cəhddən sonra əlaqə kəsildi',
 			'companionRemote.errors.connectionLost' => 'Əlaqə kəsildi',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Bağlantı autentifikasiyadan əvvəl bağlandı',
 			'videoSettings.playbackSpeed' => 'Oynatma sürəti',
 			'videoSettings.normalSpeed' => 'Normal',
 			'videoSettings.sleepTimerActive' => ({required Object duration}) => 'Aktivdir (${duration})',
 			'videoSettings.zoom' => 'Miqyas',
-			_ => null,
-		} ?? switch (path) {
 			'videoSettings.sleepTimer' => 'Yuxu taymeri',
 			'videoSettings.audioSync' => 'Səs sinxronizasiyası',
 			'videoSettings.subtitleSync' => 'Altyazı sinxronizasiyası',

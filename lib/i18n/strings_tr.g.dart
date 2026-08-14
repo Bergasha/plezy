@@ -462,6 +462,10 @@ class _Translations$settings$tr extends Translations$settings$en {
 	@override String get seekAndTiming => 'Sarılma ve Zamanlama';
 	@override String get behavior => 'Davranış';
 	@override String get exportDialogTitle => 'Plezy ayarlarını dışa aktar';
+	@override String get linuxVideoRenderMode => 'Video işleme modu';
+	@override String get linuxVideoRenderModeDescription => 'Otomatik, yerel Wayland düzlemini tercih eder (HDR destekli); Texture, SDR yedek yolunu zorlar.';
+	@override String get linuxVideoRenderModeAuto => 'Otomatik';
+	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -966,6 +970,7 @@ class _Translations$mpvConfig$tr extends Translations$mpvConfig$en {
 	@override String get presetDeleted => 'Önayar silindi';
 	@override String get confirmDeletePreset => 'Bu önayarı silmek istediğinizden emin misiniz?';
 	@override String get configPlaceholder => 'gpu-api=vulkan\nhwdec=auto\n# yorum';
+	@override String get embeddedVoHint => 'vo, gpu-context ve gpu-api Linux\'ta yok sayılır: gömülü video her zaman video düzleminde vo=libmpv üzerinden işlenir ve gpu-next (ArtCNN gibi compute shader\'ların ihtiyaç duyduğu) gömülü olarak çalışamaz.';
 }
 
 // Path: dialog
@@ -3018,6 +3023,10 @@ extension on TranslationsTr {
 			'settings.seekAndTiming' => 'Sarılma ve Zamanlama',
 			'settings.behavior' => 'Davranış',
 			'settings.exportDialogTitle' => 'Plezy ayarlarını dışa aktar',
+			'settings.linuxVideoRenderMode' => 'Video işleme modu',
+			'settings.linuxVideoRenderModeDescription' => 'Otomatik, yerel Wayland düzlemini tercih eder (HDR destekli); Texture, SDR yedek yolunu zorlar.',
+			'settings.linuxVideoRenderModeAuto' => 'Otomatik',
+			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Film, dizi, müzik ara...',
 			'search.tryDifferentTerm' => 'Farklı bir arama terimi deneyin',
 			'search.searchYourMedia' => 'Medyanızda arayın',
@@ -3197,12 +3206,12 @@ extension on TranslationsTr {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy bunun hangi dosyaları sileceğini kontrol edemedi, bu yüzden yukarıda adı geçen ögeden daha fazlasını silebilir. İptal edip tekrar deneyin veya yine de silin.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Sunucunuz bu öge için dosya ayrıntıları sağlamadı, bu yüzden Plezy bunun hangi dosyaları sileceğini kontrol edemiyor. Yukarıda adı geçen ögeden daha fazlasını silebilir.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Medya ögesi başarıyla silindi',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Medya ögesi silinemedi',
 			'mediaMenu.rate' => 'Oyla',
 			'mediaMenu.playFromBeginning' => 'Baştan Oynat',
 			'mediaMenu.playVersion' => 'Sürümü Oynat...',
-			_ => null,
-		} ?? switch (path) {
 			'rateSheet.title' => 'Oyla',
 			'rateSheet.server' => 'Sunucu',
 			'rateSheet.favorite' => 'Favori',
@@ -3434,6 +3443,7 @@ extension on TranslationsTr {
 			'mpvConfig.presetDeleted' => 'Önayar silindi',
 			'mpvConfig.confirmDeletePreset' => 'Bu önayarı silmek istediğinizden emin misiniz?',
 			'mpvConfig.configPlaceholder' => 'gpu-api=vulkan\nhwdec=auto\n# yorum',
+			'mpvConfig.embeddedVoHint' => 'vo, gpu-context ve gpu-api Linux\'ta yok sayılır: gömülü video her zaman video düzleminde vo=libmpv üzerinden işlenir ve gpu-next (ArtCNN gibi compute shader\'ların ihtiyaç duyduğu) gömülü olarak çalışamaz.',
 			'dialog.confirmAction' => 'Eylemi Onayla',
 			'profiles.addPlezyProfile' => 'Plezy profili ekle',
 			'profiles.switchingProfile' => 'Profil değiştiriliyor…',
@@ -3710,13 +3720,13 @@ extension on TranslationsTr {
 			'explore.watchlistNoMatch' => 'Bu öğe bir izleme listesiyle eşleştirilemedi',
 			'explore.notInLibrary' => 'Kitaplığınızda yok',
 			'explore.inTheseLibraries' => 'Bu kitaplıklarda var',
+			_ => null,
+		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Kitaplığınız kontrol ediliyor...',
 			'explore.emptyTitle' => 'Henüz burada bir şey yok',
 			'explore.emptyMessage' => ({required Object source}) => '${source} kaynağındaki satırlar içerik bulunduğunda burada görünecektir.',
 			'explore.searchHint' => ({required Object source}) => '${source} üzerinde ara',
 			'explore.searchEmpty' => ({required Object query}) => '"${query}" için sonuç bulunamadı',
-			_ => null,
-		} ?? switch (path) {
 			'explore.searchPrompt' => ({required Object source}) => '${source} üzerinde film ve dizileri arayın.',
 			'explore.searchFailed' => 'Arama başarısız. Bağlantınızı kontrol edip tekrar deneyin.',
 			'explore.badge.rankPopular' => ({required Object n}) => 'Popülerde #${n}',
@@ -4224,13 +4234,13 @@ extension on TranslationsTr {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Hiçbir adrese bağlanılamadı',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => '${attempts} denemeden sonra bağlantı kesildi',
 			'companionRemote.errors.connectionLost' => 'Bağlantı kesildi',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Bağlantı, kimlik doğrulamadan önce kapandı',
 			'videoSettings.playbackSpeed' => 'Oynatma Hızı',
 			'videoSettings.normalSpeed' => 'Normal',
 			'videoSettings.sleepTimerActive' => ({required Object duration}) => 'Aktif (${duration})',
 			'videoSettings.zoom' => 'Yakınlaştırma',
-			_ => null,
-		} ?? switch (path) {
 			'videoSettings.sleepTimer' => 'Uyku Zamanlayıcısı',
 			'videoSettings.audioSync' => 'Ses Senkronizasyonu',
 			'videoSettings.subtitleSync' => 'Altyazı Senkronizasyonu',

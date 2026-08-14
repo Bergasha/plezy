@@ -340,7 +340,11 @@
     "subtitlesAndConfig": "Sottotitoli e impostazioni",
     "seekAndTiming": "Avanzamento e tempi",
     "behavior": "Comportamento",
-    "exportDialogTitle": "Esporta le impostazioni di Plezy"
+    "exportDialogTitle": "Esporta le impostazioni di Plezy",
+    "linuxVideoRenderMode": "Modalità di rendering video",
+    "linuxVideoRenderModeDescription": "Automatico preferisce il piano Wayland nativo (compatibile HDR); Texture forza il percorso di riserva SDR.",
+    "linuxVideoRenderModeAuto": "Automatico",
+    "linuxVideoRenderModeTexture": "Texture (SDR)"
   },
   "search": {
     "hint": "Cerca film, serie TV e musica...",
@@ -795,7 +799,8 @@
     "presetLoaded": "Preset caricato",
     "presetDeleted": "Preset eliminato",
     "confirmDeletePreset": "Sei sicuro di voler eliminare questo preset?",
-    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment"
+    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment",
+    "embeddedVoHint": "vo, gpu-context e gpu-api vengono ignorati su Linux: il video incorporato viene sempre renderizzato tramite vo=libmpv sul piano video e gpu-next (che gli shader di calcolo come ArtCNN richiedono) non può essere eseguito in modalità incorporata."
   },
   "dialog": {
     "confirmAction": "Conferma azione"

@@ -1182,6 +1182,18 @@ class Translations$settings$en {
 
 	/// en: 'Export Plezy settings'
 	String get exportDialogTitle => 'Export Plezy settings';
+
+	/// en: 'Video rendering mode'
+	String get linuxVideoRenderMode => 'Video rendering mode';
+
+	/// en: 'Automatic prefers the native Wayland plane (HDR-capable); Texture forces the SDR fallback path.'
+	String get linuxVideoRenderModeDescription => 'Automatic prefers the native Wayland plane (HDR-capable); Texture forces the SDR fallback path.';
+
+	/// en: 'Automatic'
+	String get linuxVideoRenderModeAuto => 'Automatic';
+
+	/// en: 'Texture (SDR)'
+	String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: actor
@@ -2473,6 +2485,9 @@ class Translations$mpvConfig$en {
 
 	/// en: 'gpu-api=vulkan hwdec=auto # comment'
 	String get configPlaceholder => 'gpu-api=vulkan\nhwdec=auto\n# comment';
+
+	/// en: 'vo, gpu-context and gpu-api are ignored on Linux: embedded video always renders through vo=libmpv on the video plane, and gpu-next (which compute shaders like ArtCNN need) cannot run embedded.'
+	String get embeddedVoHint => 'vo, gpu-context and gpu-api are ignored on Linux: embedded video always renders through vo=libmpv on the video plane, and gpu-next (which compute shaders like ArtCNN need) cannot run embedded.';
 }
 
 // Path: dialog
@@ -6857,6 +6872,10 @@ extension on Translations {
 			'settings.seekAndTiming' => 'Seek & Timing',
 			'settings.behavior' => 'Behavior',
 			'settings.exportDialogTitle' => 'Export Plezy settings',
+			'settings.linuxVideoRenderMode' => 'Video rendering mode',
+			'settings.linuxVideoRenderModeDescription' => 'Automatic prefers the native Wayland plane (HDR-capable); Texture forces the SDR fallback path.',
+			'settings.linuxVideoRenderModeAuto' => 'Automatic',
+			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'actor.filmography' => 'Filmography',
 			'search.hint' => 'Search movies, shows, music...',
 			'search.tryDifferentTerm' => 'Try a different search term',
@@ -7009,12 +7028,12 @@ extension on Translations {
 			'fileInfo.flagOriginal' => 'Original',
 			'fileInfo.channelsMono' => 'Mono',
 			'fileInfo.dolbyVisionProfile' => ({required Object profile}) => 'Profile ${profile}',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.markAsWatched' => 'Mark as Watched',
 			'mediaMenu.markAsUnwatched' => 'Mark as Unwatched',
 			'mediaMenu.removeFromContinueWatching' => 'Remove from Continue Watching',
 			'mediaMenu.viewDetails' => 'View details',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.goToSeries' => 'Go to series',
 			'mediaMenu.shufflePlay' => 'Shuffle Play',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Shuffle not available offline',
@@ -7278,6 +7297,7 @@ extension on Translations {
 			'mpvConfig.presetDeleted' => 'Preset deleted',
 			'mpvConfig.confirmDeletePreset' => 'Are you sure you want to delete this preset?',
 			'mpvConfig.configPlaceholder' => 'gpu-api=vulkan\nhwdec=auto\n# comment',
+			'mpvConfig.embeddedVoHint' => 'vo, gpu-context and gpu-api are ignored on Linux: embedded video always renders through vo=libmpv on the video plane, and gpu-next (which compute shaders like ArtCNN need) cannot run embedded.',
 			'dialog.confirmAction' => 'Confirm Action',
 			'profiles.addPlezyProfile' => 'Add Plezy profile',
 			'profiles.switchingProfile' => 'Switching profile…',
@@ -7522,13 +7542,13 @@ extension on Translations {
 			'licenses.licenseNumber' => ({required Object number}) => 'License ${number}',
 			'licenses.licensesCount' => ({required Object count}) => '${count} licenses',
 			'navigation.libraries' => 'Libraries',
+			_ => null,
+		} ?? switch (path) {
 			'navigation.downloads' => 'Downloads',
 			'navigation.liveTv' => 'Live TV',
 			'navigation.explore' => 'Explore',
 			'navigation.watchlist' => 'Watchlist',
 			'explore.title' => 'Explore',
-			_ => null,
-		} ?? switch (path) {
 			'explore.selectSource' => 'Select source',
 			'explore.rows.watchlist' => 'Watchlist',
 			'explore.rows.recommendedMovies' => 'Recommended Movies',
@@ -8036,13 +8056,13 @@ extension on Translations {
 			'companionRemote.pairing.validationHostFormat' => 'Format must be IP:port (e.g., 192.168.1.100:48632)',
 			'companionRemote.pairing.connectionTimedOut' => 'Connection timed out. Use the same network on both devices.',
 			'companionRemote.pairing.sessionNotFound' => 'Device not found. Make sure Plezy is running on the host.',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.pairing.authFailed' => 'Authentication failed. Both devices need the same Plex account.',
 			'companionRemote.pairing.failedToConnect' => ({required Object error}) => 'Failed to connect: ${error}',
 			'companionRemote.remote.disconnectConfirm' => 'Do you want to disconnect from the remote session?',
 			'companionRemote.remote.reconnecting' => 'Reconnecting...',
 			'companionRemote.remote.attemptOf' => ({required Object current}) => 'Attempt ${current} of 5',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.remote.retryNow' => 'Retry Now',
 			'companionRemote.remote.tabRemote' => 'Remote',
 			'companionRemote.remote.tabPlay' => 'Play',

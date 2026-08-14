@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
 import '../../media/media_display_criteria.dart';
+import '../../services/settings_service.dart';
 import '../../utils/app_logger.dart';
 import '../models.dart';
 import 'audio_rendering_mode.dart';
@@ -215,8 +216,24 @@ class PlayerNative extends PlayerBase {
 
   Future<void> _doInitialize() async {
     try {
-      final result = await invoke<Object>('initialize');
-      if (result != true) {
+      // Linux render-mode preference: 'texture' forces the SDR Flutter-texture
+      // fallback (the user-visible workaround for plane-only trouble);
+      // anything else prefers the Wayland plane and falls back when the plane
+      // cannot be brought up.
+      final initArgs = usesLinuxVideoPlane
+          ? <String, Object?>{'renderMode': SettingsService.instance.read(SettingsService.linuxVideoRenderMode)}
+          : null;
+      final result = await invoke<Object>('initialize', initArgs);
+      if (result is int) {
+        // Linux texture path: the native side registers the texture and
+        // returns its id immediately, but the GPU bootstrap (Flutter invoking
+        // FlTextureGL::populate, which creates the render context and the
+        // shared EGL image) completes asynchronously. Playback must not start
+        // against an unusable texture, so initialization stays gated until
+        // waitForVideoReady reports the texture usable.
+        setTextureId(result);
+        await invoke('waitForVideoReady');
+      } else if (result != true) {
         throw Exception('Failed to initialize player');
       }
       if (_nativeCoreUnavailable) throw StateError('Player was disposed during initialization');
@@ -245,6 +262,10 @@ class PlayerNative extends PlayerBase {
       if (_nativeCoreUnavailable) throw StateError('Player was disposed during initialization');
       initialized = true;
     } catch (e) {
+      // A texture published provisionally (Linux fallback) is not usable if
+      // initialization aborted; drop it so the Video widget stops keying off
+      // it and falls back to its other surface path.
+      setTextureId(null);
       _initFuture = null;
       if (!_nativeCoreUnavailable) {
         errorController.add(PlayerError('Initialization failed: $e'));
@@ -330,22 +351,31 @@ class PlayerNative extends PlayerBase {
       }
     }
 
-    // 'start' must be set before loadfile.
-    if (startPosition.inSeconds > 0) {
-      await setProperty('start', (startPosition.inMilliseconds / 1000.0).toString());
-    } else {
-      await setProperty('start', 'none');
-    }
+    // 'start' must be set before loadfile. These are playback defaults, not
+    // user track selection, and mpv refuses a property write with
+    // MPV_ERROR_PROPERTY_FORMAT when the value fails its option parser — the
+    // same refusal that surfaces as SET_PROPERTY_FAILED on the channel. A
+    // refused default must degrade to mpv's own behaviour, not abort the
+    // open: the loadfile below is what actually starts playback.
+    try {
+      if (startPosition.inSeconds > 0) {
+        await setProperty('start', (startPosition.inMilliseconds / 1000.0).toString());
+      } else {
+        await setProperty('start', 'none');
+      }
 
-    // Prevents race condition that can freeze the video decoder on Android (issue #226).
-    if (!play) {
-      await setProperty('pause', 'yes');
-    }
+      // Prevents race condition that can freeze the video decoder on Android (issue #226).
+      if (!play) {
+        await setProperty('pause', 'yes');
+      }
 
-    // Prevent mpv's own default subtitle selection from racing the
-    // server-backed TrackManager decision applied after tracks are discovered.
-    await setProperty('sid', 'no');
-    await setProperty('secondary-sid', 'no');
+      // Prevent mpv's own default subtitle selection from racing the
+      // server-backed TrackManager decision applied after tracks are discovered.
+      await setProperty('sid', 'no');
+      await setProperty('secondary-sid', 'no');
+    } catch (e) {
+      appLogger.w('MPV: pre-open playback defaults not applied', error: e);
+    }
 
     // Convert content:// URIs to fdclose:// for MPV on Android (SAF SD card
     // downloads). The immediate `loadfile replace` consumes the fd, so no

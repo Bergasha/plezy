@@ -340,7 +340,11 @@
     "subtitlesAndConfig": "Untertitel und Konfiguration",
     "seekAndTiming": "Spulen & Timing",
     "behavior": "Verhalten",
-    "exportDialogTitle": "Plezy-Einstellungen exportieren"
+    "exportDialogTitle": "Plezy-Einstellungen exportieren",
+    "linuxVideoRenderMode": "Video-Rendermodus",
+    "linuxVideoRenderModeDescription": "Automatisch bevorzugt die native Wayland-Ebene (HDR-fähig); Texture erzwingt den SDR-Fallback-Pfad.",
+    "linuxVideoRenderModeAuto": "Automatisch",
+    "linuxVideoRenderModeTexture": "Texture (SDR)"
   },
   "search": {
     "hint": "Filme, Serien und Musik suchen …",
@@ -795,7 +799,8 @@
     "presetLoaded": "Voreinstellung geladen",
     "presetDeleted": "Voreinstellung gelöscht",
     "confirmDeletePreset": "Diese Voreinstellung wirklich löschen?",
-    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment"
+    "configPlaceholder": "gpu-api=vulkan\nhwdec=auto\n# comment",
+    "embeddedVoHint": "vo, gpu-context und gpu-api werden unter Linux ignoriert: eingebettetes Video wird immer über vo=libmpv auf der Videoebene gerendert, und gpu-next (das Compute-Shader wie ArtCNN benötigen) kann nicht eingebettet ausgeführt werden."
   },
   "dialog": {
     "confirmAction": "Aktion bestätigen"

@@ -462,6 +462,10 @@ class _Translations$settings$da extends Translations$settings$en {
 	@override String get seekAndTiming => 'Søgning og timing';
 	@override String get behavior => 'Adfærd';
 	@override String get exportDialogTitle => 'Eksportér Plezy-indstillinger';
+	@override String get linuxVideoRenderMode => 'Video-gengivelsestilstand';
+	@override String get linuxVideoRenderModeDescription => 'Automatisk foretrækker det native Wayland-plan (HDR-kompatibelt); Texture tvinger SDR-fallback-stien.';
+	@override String get linuxVideoRenderModeAuto => 'Automatisk';
+	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -966,6 +970,7 @@ class _Translations$mpvConfig$da extends Translations$mpvConfig$en {
 	@override String get presetDeleted => 'Forudindstilling slettet';
 	@override String get confirmDeletePreset => 'Er du sikker på, at du vil slette denne forudindstilling?';
 	@override String get configPlaceholder => 'gpu-api=vulkan\nhwdec=auto\n# comment';
+	@override String get embeddedVoHint => 'vo, gpu-context og gpu-api ignoreres på Linux: indlejret video renderes altid via vo=libmpv på videoplanen, og gpu-next (som compute-shaders som ArtCNN kræver) kan ikke køre indlejret.';
 }
 
 // Path: dialog
@@ -3018,6 +3023,10 @@ extension on TranslationsDa {
 			'settings.seekAndTiming' => 'Søgning og timing',
 			'settings.behavior' => 'Adfærd',
 			'settings.exportDialogTitle' => 'Eksportér Plezy-indstillinger',
+			'settings.linuxVideoRenderMode' => 'Video-gengivelsestilstand',
+			'settings.linuxVideoRenderModeDescription' => 'Automatisk foretrækker det native Wayland-plan (HDR-kompatibelt); Texture tvinger SDR-fallback-stien.',
+			'settings.linuxVideoRenderModeAuto' => 'Automatisk',
+			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Søg film, serier, musik...',
 			'search.tryDifferentTerm' => 'Prøv en anden søgning',
 			'search.searchYourMedia' => 'Søg i dine medier',
@@ -3197,12 +3206,12 @@ extension on TranslationsDa {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy kunne ikke kontrollere, hvilke filer dette vil fjerne, så det kan slette mere end det ovennævnte emne. Annuller og prøv igen, eller slet alligevel.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Din server leverede ikke filoplysninger for dette emne, så Plezy kan ikke kontrollere, hvilke filer dette vil fjerne. Det kan slette mere end det ovennævnte emne.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Mediet blev slettet',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Mediet kunne ikke slettes',
 			'mediaMenu.rate' => 'Bedøm',
 			'mediaMenu.playFromBeginning' => 'Afspil fra begyndelsen',
 			'mediaMenu.playVersion' => 'Afspil version...',
-			_ => null,
-		} ?? switch (path) {
 			'rateSheet.title' => 'Bedøm',
 			'rateSheet.server' => 'Server',
 			'rateSheet.favorite' => 'Favorit',
@@ -3434,6 +3443,7 @@ extension on TranslationsDa {
 			'mpvConfig.presetDeleted' => 'Forudindstilling slettet',
 			'mpvConfig.confirmDeletePreset' => 'Er du sikker på, at du vil slette denne forudindstilling?',
 			'mpvConfig.configPlaceholder' => 'gpu-api=vulkan\nhwdec=auto\n# comment',
+			'mpvConfig.embeddedVoHint' => 'vo, gpu-context og gpu-api ignoreres på Linux: indlejret video renderes altid via vo=libmpv på videoplanen, og gpu-next (som compute-shaders som ArtCNN kræver) kan ikke køre indlejret.',
 			'dialog.confirmAction' => 'Bekræft handling',
 			'profiles.addPlezyProfile' => 'Tilføj Plezy-profil',
 			'profiles.switchingProfile' => 'Skifter profil…',
@@ -3710,13 +3720,13 @@ extension on TranslationsDa {
 			'explore.watchlistNoMatch' => 'Kunne ikke knytte dette element til en overvågningsliste',
 			'explore.notInLibrary' => 'Ikke i dit bibliotek',
 			'explore.inTheseLibraries' => 'I disse biblioteker',
+			_ => null,
+		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Tjekker dit bibliotek...',
 			'explore.emptyTitle' => 'Der er ikke noget her endnu',
 			'explore.emptyMessage' => ({required Object source}) => 'Indholdsrækker fra ${source} vises her, når de har indhold.',
 			'explore.searchHint' => ({required Object source}) => 'Søg i ${source}',
 			'explore.searchEmpty' => ({required Object query}) => 'Ingen resultater for "${query}"',
-			_ => null,
-		} ?? switch (path) {
 			'explore.searchPrompt' => ({required Object source}) => 'Søg efter film og serier på ${source}.',
 			'explore.searchFailed' => 'Søgningen mislykkedes. Tjek din forbindelse, og prøv igen.',
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} populær',
@@ -4224,13 +4234,13 @@ extension on TranslationsDa {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Kunne ikke oprette forbindelse til nogen adresse',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => 'Forbindelse mistet efter ${attempts} forsøg',
 			'companionRemote.errors.connectionLost' => 'Forbindelse mistet',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Forbindelsen blev lukket før godkendelsen',
 			'videoSettings.playbackSpeed' => 'Afspilningshastighed',
 			'videoSettings.normalSpeed' => 'Normal',
 			'videoSettings.sleepTimerActive' => ({required Object duration}) => 'Aktiv (${duration})',
 			'videoSettings.zoom' => 'Zoom',
-			_ => null,
-		} ?? switch (path) {
 			'videoSettings.sleepTimer' => 'Sove-timer',
 			'videoSettings.audioSync' => 'Lydsynkronisering',
 			'videoSettings.subtitleSync' => 'Undertekstsynkronisering',

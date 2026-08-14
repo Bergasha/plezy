@@ -462,6 +462,10 @@ class _Translations$settings$es extends Translations$settings$en {
 	@override String get seekAndTiming => 'Desplazamiento y tiempos';
 	@override String get behavior => 'Comportamiento';
 	@override String get exportDialogTitle => 'Exportar ajustes de Plezy';
+	@override String get linuxVideoRenderMode => 'Modo de renderizado de vídeo';
+	@override String get linuxVideoRenderModeDescription => 'Automático prefiere el plano Wayland nativo (compatible con HDR); Texture fuerza la ruta de reserva SDR.';
+	@override String get linuxVideoRenderModeAuto => 'Automático';
+	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -966,6 +970,7 @@ class _Translations$mpvConfig$es extends Translations$mpvConfig$en {
 	@override String get presetDeleted => 'Preajuste eliminado';
 	@override String get confirmDeletePreset => '¿Estás seguro de que quieres eliminar este preajuste?';
 	@override String get configPlaceholder => 'gpu-api=vulkan\nhwdec=auto\n# comment';
+	@override String get embeddedVoHint => 'vo, gpu-context y gpu-api se ignoran en Linux: el vídeo integrado siempre se renderiza mediante vo=libmpv en el plano de vídeo, y gpu-next (que los shaders de cómputo como ArtCNN necesitan) no puede ejecutarse integrado.';
 }
 
 // Path: dialog
@@ -3018,6 +3023,10 @@ extension on TranslationsEs {
 			'settings.seekAndTiming' => 'Desplazamiento y tiempos',
 			'settings.behavior' => 'Comportamiento',
 			'settings.exportDialogTitle' => 'Exportar ajustes de Plezy',
+			'settings.linuxVideoRenderMode' => 'Modo de renderizado de vídeo',
+			'settings.linuxVideoRenderModeDescription' => 'Automático prefiere el plano Wayland nativo (compatible con HDR); Texture fuerza la ruta de reserva SDR.',
+			'settings.linuxVideoRenderModeAuto' => 'Automático',
+			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Buscar películas, series, música...',
 			'search.tryDifferentTerm' => 'Prueba con un término de búsqueda diferente',
 			'search.searchYourMedia' => 'Busca en tu contenido',
@@ -3197,12 +3206,12 @@ extension on TranslationsEs {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy no pudo comprobar qué archivos se eliminarán, por lo que podría borrar más de lo indicado arriba. Cancela y vuelve a intentarlo, o elimina de todos modos.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Tu servidor no proporcionó los detalles del archivo de este elemento, por lo que Plezy no puede comprobar qué archivos se eliminarán. Podría borrar más de lo indicado arriba.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Elemento multimedia eliminado con éxito',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Error al eliminar el elemento multimedia',
 			'mediaMenu.rate' => 'Calificar',
 			'mediaMenu.playFromBeginning' => 'Reproducir desde el inicio',
 			'mediaMenu.playVersion' => 'Reproducir versión...',
-			_ => null,
-		} ?? switch (path) {
 			'rateSheet.title' => 'Calificar',
 			'rateSheet.server' => 'Servidor',
 			'rateSheet.favorite' => 'Favorito',
@@ -3434,6 +3443,7 @@ extension on TranslationsEs {
 			'mpvConfig.presetDeleted' => 'Preajuste eliminado',
 			'mpvConfig.confirmDeletePreset' => '¿Estás seguro de que quieres eliminar este preajuste?',
 			'mpvConfig.configPlaceholder' => 'gpu-api=vulkan\nhwdec=auto\n# comment',
+			'mpvConfig.embeddedVoHint' => 'vo, gpu-context y gpu-api se ignoran en Linux: el vídeo integrado siempre se renderiza mediante vo=libmpv en el plano de vídeo, y gpu-next (que los shaders de cómputo como ArtCNN necesitan) no puede ejecutarse integrado.',
 			'dialog.confirmAction' => 'Confirmar acción',
 			'profiles.addPlezyProfile' => 'Añadir perfil de Plezy',
 			'profiles.switchingProfile' => 'Cambiando de perfil…',
@@ -3710,13 +3720,13 @@ extension on TranslationsEs {
 			'explore.watchlistNoMatch' => 'No se pudo asociar este elemento con una lista de seguimiento',
 			'explore.notInLibrary' => 'No está en tu biblioteca',
 			'explore.inTheseLibraries' => 'En estas bibliotecas',
+			_ => null,
+		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Comprobando tu biblioteca...',
 			'explore.emptyTitle' => 'Aquí no hay nada todavía',
 			'explore.emptyMessage' => ({required Object source}) => 'Las filas de ${source} aparecerán aquí cuando tengan contenido.',
 			'explore.searchHint' => ({required Object source}) => 'Buscar en ${source}',
 			'explore.searchEmpty' => ({required Object query}) => 'Sin resultados para "${query}"',
-			_ => null,
-		} ?? switch (path) {
 			'explore.searchPrompt' => ({required Object source}) => 'Busca películas y series en ${source}.',
 			'explore.searchFailed' => 'La búsqueda falló. Comprueba tu conexión e inténtalo de nuevo.',
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} popular',
@@ -4224,13 +4234,13 @@ extension on TranslationsEs {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'No se pudo conectar a ninguna dirección',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => 'Conexión perdida tras ${attempts} intentos',
 			'companionRemote.errors.connectionLost' => 'Conexión perdida',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'La conexión se cerró antes de la autenticación',
 			'videoSettings.playbackSpeed' => 'Velocidad de reproducción',
 			'videoSettings.normalSpeed' => 'Normal',
 			'videoSettings.sleepTimerActive' => ({required Object duration}) => 'Activo (${duration})',
 			'videoSettings.zoom' => 'Zoom',
-			_ => null,
-		} ?? switch (path) {
 			'videoSettings.sleepTimer' => 'Temporizador de apagado',
 			'videoSettings.audioSync' => 'Sincronización de audio',
 			'videoSettings.subtitleSync' => 'Sincronización de subtítulos',
