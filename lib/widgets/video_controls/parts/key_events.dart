@@ -112,9 +112,13 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
       _activateSkipMarker();
       return;
     }
-    // Raise the chrome *before* toggling: Select is the deliberate "show me the
-    // controls" affordance, and the visible chrome suppresses the transient
-    // transport disc that would otherwise flash underneath it.
+    // With the chrome hidden, Select's only job is revealing it — the first
+    // press just shows the overlay without touching playback. Only a second
+    // press, with the chrome already up, toggles play/pause.
+    if (!_showControls) {
+      _showControlsWithFocus(requestFocus: requestFocus);
+      return;
+    }
     _showControlsWithFocus(requestFocus: requestFocus);
     unawaited(_playOrPause());
   }
