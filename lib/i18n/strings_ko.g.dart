@@ -316,6 +316,11 @@ class _Translations$settings$ko extends Translations$settings$en {
 	@override String get followServerTrackSelectionsDescription => '에피소드 전환 시 현재 선택을 유지하는 대신 서버에서 선택된 오디오와 자막을 적용합니다';
 	@override String get showChapterMarkersOnTimeline => '탐색 막대에 챕터 마커 표시';
 	@override String get showChapterMarkersOnTimelineDescription => '챕터 경계에서 탐색 막대 구분';
+	@override String get specialsOrdering => '에피소드 순서로 스페셜 표시';
+	@override String get specialsOrderingDescription => '시리즈 시청 순서에서 스페셜이 재생되는 위치';
+	@override String get specialsOrderingServer => '서버 순서 따르기';
+	@override String get specialsOrderingAirDate => '방영일 순서로 삽입';
+	@override String get specialsOrderingLast => '일반 시즌 뒤';
 	@override String get clickVideoTogglesPlayback => '동영상 클릭으로 재생/일시정지 전환';
 	@override String get clickVideoTogglesPlaybackDescription => '컨트롤을 표시하는 대신 동영상을 클릭하여 재생하거나 일시정지합니다.';
 	@override String get videoPlayerControls => '비디오 플레이어 컨트롤';
@@ -461,11 +466,17 @@ class _Translations$settings$ko extends Translations$settings$en {
 	@override String get subtitlesAndConfig => '자막 및 구성';
 	@override String get seekAndTiming => '탐색 및 타이밍';
 	@override String get behavior => '동작';
+	@override String get rememberPlayerChanges => '플레이어 변경 사항 기억';
+	@override String get rememberPlayerChangesDescription => '재생 중 변경한 사항을 저장하고 다시 적용할 위치';
+	@override String get scopePlaybackSpeed => '재생 속도';
+	@override String get scopeShaderPreset => '셰이더 프리셋';
+	@override String get scopeAspectRatio => '화면 비율';
+	@override String get scopeSyncOffsets => '오디오 및 자막 동기화';
+	@override String get playerScopeOff => '저장하지 않음';
+	@override String get playerScopeGlobal => '모든 곳';
+	@override String get playerScopeLibrary => '라이브러리별';
+	@override String get playerScopeTitle => '시리즈 또는 영화별';
 	@override String get exportDialogTitle => 'Plezy 설정 내보내기';
-	@override String get linuxVideoRenderMode => '동영상 렌더링 모드';
-	@override String get linuxVideoRenderModeDescription => '자동은 네이티브 Wayland 평면(HDR 지원)을 선호하고, Texture는 SDR 대체 경로를 강제합니다.';
-	@override String get linuxVideoRenderModeAuto => '자동';
-	@override String get linuxVideoRenderModeTexture => 'Texture(SDR)';
 }
 
 // Path: search
@@ -753,12 +764,7 @@ class _Translations$videoControls$ko extends Translations$videoControls$en {
 	// Translations
 	@override String get audioLabel => '오디오';
 	@override String get subtitlesLabel => '자막';
-	@override String get resetToZero => '0ms로 재설정';
 	@override String addTime({required Object amount, required Object unit}) => '+${amount}${unit}';
-	@override String minusTime({required Object amount, required Object unit}) => '-${amount}${unit}';
-	@override String playsLater({required Object label}) => '${label} 나중에 재생됨';
-	@override String playsEarlier({required Object label}) => '${label} 더 먼저 재생됨';
-	@override String get noOffset => '오프셋 없음';
 	@override String get letterbox => '레터박스 모드';
 	@override String get fillScreen => '화면 채우기';
 	@override String get stretch => '확장';
@@ -1523,6 +1529,7 @@ class _Translations$music$ko extends Translations$music$en {
 	@override String get repeatOne => '한 곡 반복';
 	@override String get instantMixNoServer => '즉석 믹스에 사용할 수 있는 서버가 없습니다';
 	@override String noAudioUrl({required Object track}) => '${track}에 사용할 수 있는 오디오 URL이 없습니다';
+	@override late final _Translations$music$discography$ko discography = _Translations$music$discography$ko._(_root);
 }
 
 // Path: watchTogether
@@ -1782,6 +1789,7 @@ class _Translations$performanceOverlay$ko extends Translations$performanceOverla
 	@override String get decoder => '디코더';
 	@override String get rawDecoder => '원본 디코더';
 	@override String get tunneling => '터널링';
+	@override String get passthrough => '패스스루';
 	@override String get aspect => '화면비';
 	@override String get rotation => '회전';
 	@override String get dvSource => 'DV 소스';
@@ -1928,8 +1936,6 @@ class _Translations$metadataEdit$ko extends Translations$metadataEdit$en {
 	@override String get country => '국가';
 	@override String get collection => '컬렉션';
 	@override String get label => '라벨';
-	@override String get style => '스타일';
-	@override String get mood => '분위기';
 }
 
 // Path: matchScreen
@@ -2303,7 +2309,6 @@ class _Translations$explore$badge$ko extends Translations$explore$badge$en {
 	@override String rankPopular({required Object n}) => '#${n} 인기';
 	@override String rankAiring({required Object n}) => '#${n} 방영 중';
 	@override String rankRated({required Object n}) => '#${n} 평가';
-	@override String rankFavorited({required Object n}) => '#${n} 즐겨찾기';
 	@override String rankTrending({required Object n}) => '#${n} 트렌드';
 	@override String rankSeasonal({required Object n, required Object season}) => '#${n} ${season}';
 	@override String watchingNow({required Object n}) => '${n}명 시청 중';
@@ -2469,6 +2474,18 @@ class _Translations$explore$detail$ko extends Translations$explore$detail$en {
 	@override String recommendedByPercent({required Object percent}) => '시청자의 ${percent} 추천';
 	@override String get relatedTitles => '관련 작품';
 	@override String get background => '배경';
+}
+
+// Path: music.discography
+class _Translations$music$discography$ko extends Translations$music$discography$en {
+	_Translations$music$discography$ko._(TranslationsKo root) : this._root = root, super.internal(root);
+
+	final TranslationsKo _root; // ignore: unused_field
+
+	// Translations
+	@override String get singlesAndEps => '싱글 및 EP';
+	@override String get live => '라이브';
+	@override String get compilations => '컴필레이션';
 }
 
 // Path: downloads.backgroundWarning
@@ -2867,6 +2884,11 @@ extension on TranslationsKo {
 			'settings.followServerTrackSelectionsDescription' => '에피소드 전환 시 현재 선택을 유지하는 대신 서버에서 선택된 오디오와 자막을 적용합니다',
 			'settings.showChapterMarkersOnTimeline' => '탐색 막대에 챕터 마커 표시',
 			'settings.showChapterMarkersOnTimelineDescription' => '챕터 경계에서 탐색 막대 구분',
+			'settings.specialsOrdering' => '에피소드 순서로 스페셜 표시',
+			'settings.specialsOrderingDescription' => '시리즈 시청 순서에서 스페셜이 재생되는 위치',
+			'settings.specialsOrderingServer' => '서버 순서 따르기',
+			'settings.specialsOrderingAirDate' => '방영일 순서로 삽입',
+			'settings.specialsOrderingLast' => '일반 시즌 뒤',
 			'settings.clickVideoTogglesPlayback' => '동영상 클릭으로 재생/일시정지 전환',
 			'settings.clickVideoTogglesPlaybackDescription' => '컨트롤을 표시하는 대신 동영상을 클릭하여 재생하거나 일시정지합니다.',
 			'settings.videoPlayerControls' => '비디오 플레이어 컨트롤',
@@ -3012,11 +3034,17 @@ extension on TranslationsKo {
 			'settings.subtitlesAndConfig' => '자막 및 구성',
 			'settings.seekAndTiming' => '탐색 및 타이밍',
 			'settings.behavior' => '동작',
+			'settings.rememberPlayerChanges' => '플레이어 변경 사항 기억',
+			'settings.rememberPlayerChangesDescription' => '재생 중 변경한 사항을 저장하고 다시 적용할 위치',
+			'settings.scopePlaybackSpeed' => '재생 속도',
+			'settings.scopeShaderPreset' => '셰이더 프리셋',
+			'settings.scopeAspectRatio' => '화면 비율',
+			'settings.scopeSyncOffsets' => '오디오 및 자막 동기화',
+			'settings.playerScopeOff' => '저장하지 않음',
+			'settings.playerScopeGlobal' => '모든 곳',
+			'settings.playerScopeLibrary' => '라이브러리별',
+			'settings.playerScopeTitle' => '시리즈 또는 영화별',
 			'settings.exportDialogTitle' => 'Plezy 설정 내보내기',
-			'settings.linuxVideoRenderMode' => '동영상 렌더링 모드',
-			'settings.linuxVideoRenderModeDescription' => '자동은 네이티브 Wayland 평면(HDR 지원)을 선호하고, Texture는 SDR 대체 경로를 강제합니다.',
-			'settings.linuxVideoRenderModeAuto' => '자동',
-			'settings.linuxVideoRenderModeTexture' => 'Texture(SDR)',
 			'search.hint' => '영화, 시리즈, 음악 등을 검색하세요...',
 			'search.tryDifferentTerm' => '다른 검색어를 시도해 보세요',
 			'search.searchYourMedia' => '미디어 검색',
@@ -3185,6 +3213,8 @@ extension on TranslationsKo {
 			'mediaMenu.deleteMovieTitle' => '이 영화를 삭제할까요?',
 			'mediaMenu.deleteEpisodeConfirm' => '에피소드 삭제',
 			'mediaMenu.deleteSeasonConfirm' => '시즌 삭제',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => '프로그램 삭제',
 			'mediaMenu.deleteMovieConfirm' => '영화 삭제',
 			'mediaMenu.deleteAnyway' => '그래도 삭제',
@@ -3196,8 +3226,6 @@ extension on TranslationsKo {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy가 어떤 파일이 삭제될지 확인하지 못해 위 항목보다 더 많은 파일이 삭제될 수 있습니다. 취소하고 다시 시도하거나 그래도 삭제하세요.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => '서버가 이 항목의 파일 정보를 제공하지 않아 Plezy가 어떤 파일이 삭제될지 확인할 수 없습니다. 위 항목보다 더 많은 파일이 삭제될 수 있습니다.',
 			'mediaMenu.mediaDeletedSuccessfully' => '미디어 항목이 성공적으로 삭제되었습니다',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => '미디어 항목 삭제 실패',
 			'mediaMenu.rate' => '평가',
 			'mediaMenu.playFromBeginning' => '처음부터 재생',
@@ -3243,12 +3271,7 @@ extension on TranslationsKo {
 			'audioTracks.track' => ({required Object n}) => '오디오 트랙 ${n}',
 			'videoControls.audioLabel' => '오디오',
 			'videoControls.subtitlesLabel' => '자막',
-			'videoControls.resetToZero' => '0ms로 재설정',
 			'videoControls.addTime' => ({required Object amount, required Object unit}) => '+${amount}${unit}',
-			'videoControls.minusTime' => ({required Object amount, required Object unit}) => '-${amount}${unit}',
-			'videoControls.playsLater' => ({required Object label}) => '${label} 나중에 재생됨',
-			'videoControls.playsEarlier' => ({required Object label}) => '${label} 더 먼저 재생됨',
-			'videoControls.noOffset' => '오프셋 없음',
 			'videoControls.letterbox' => '레터박스 모드',
 			'videoControls.fillScreen' => '화면 채우기',
 			'videoControls.stretch' => '확장',
@@ -3704,14 +3727,14 @@ extension on TranslationsKo {
 			'explore.characters' => '캐릭터',
 			'explore.addToWatchlist' => '관심 목록에 추가',
 			'explore.removeFromWatchlist' => '관심 목록에서 제거',
+			_ => null,
+		} ?? switch (path) {
 			'explore.addedToWatchlist' => '관심 목록에 추가했습니다',
 			'explore.removedFromWatchlist' => '관심 목록에서 삭제했습니다',
 			'explore.watchlistUpdateFailed' => '관심 목록을 업데이트하지 못했습니다',
 			'explore.watchlistNoMatch' => '이 항목을 관심 목록과 연결할 수 없습니다',
 			'explore.notInLibrary' => '라이브러리에 없음',
 			'explore.inTheseLibraries' => '이 라이브러리에 있음',
-			_ => null,
-		} ?? switch (path) {
 			'explore.checkingLibrary' => '라이브러리 확인 중...',
 			'explore.emptyTitle' => '아직 아무것도 없습니다',
 			'explore.emptyMessage' => ({required Object source}) => '${source}에 콘텐츠가 추가되면 여기에 표시됩니다.',
@@ -3722,7 +3745,6 @@ extension on TranslationsKo {
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} 인기',
 			'explore.badge.rankAiring' => ({required Object n}) => '#${n} 방영 중',
 			'explore.badge.rankRated' => ({required Object n}) => '#${n} 평가',
-			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} 즐겨찾기',
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} 트렌드',
 			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} ${season}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n}명 시청 중',
@@ -3969,6 +3991,9 @@ extension on TranslationsKo {
 			'music.repeatOne' => '한 곡 반복',
 			'music.instantMixNoServer' => '즉석 믹스에 사용할 수 있는 서버가 없습니다',
 			'music.noAudioUrl' => ({required Object track}) => '${track}에 사용할 수 있는 오디오 URL이 없습니다',
+			'music.discography.singlesAndEps' => '싱글 및 EP',
+			'music.discography.live' => '라이브',
+			'music.discography.compilations' => '컴필레이션',
 			'watchTogether.title' => '함께 보기',
 			'watchTogether.description' => '친구 및 가족과 콘텐츠를 동시에 시청하세요',
 			'watchTogether.createSession' => '세션 생성',
@@ -4216,6 +4241,8 @@ extension on TranslationsKo {
 			'companionRemote.remote.subtitles' => '자막',
 			'companionRemote.remote.audio' => '오디오',
 			'companionRemote.remote.searchHint' => '데스크톱에서 검색...',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.errors.noNetworkInterface' => '네트워크 인터페이스를 찾을 수 없습니다',
 			'companionRemote.errors.authenticationFailed' => '인증 실패',
 			'companionRemote.errors.serverStartFailed' => ({required Object error}) => '원격 서버를 시작하지 못했습니다: ${error}',
@@ -4224,8 +4251,6 @@ extension on TranslationsKo {
 			'companionRemote.errors.failedToConnectAnyAddress' => '어떤 주소에도 연결하지 못했습니다',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => '${attempts}회 시도 후 연결이 끊어졌습니다',
 			'companionRemote.errors.connectionLost' => '연결이 끊어졌습니다',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => '인증 전에 연결이 종료되었습니다',
 			'videoSettings.playbackSpeed' => '재생 속도',
 			'videoSettings.normalSpeed' => '보통',
@@ -4258,6 +4283,7 @@ extension on TranslationsKo {
 			'performanceOverlay.decoder' => '디코더',
 			'performanceOverlay.rawDecoder' => '원본 디코더',
 			'performanceOverlay.tunneling' => '터널링',
+			'performanceOverlay.passthrough' => '패스스루',
 			'performanceOverlay.aspect' => '화면비',
 			'performanceOverlay.rotation' => '회전',
 			'performanceOverlay.dvSource' => 'DV 소스',
@@ -4386,8 +4412,6 @@ extension on TranslationsKo {
 			'metadataEdit.country' => '국가',
 			'metadataEdit.collection' => '컬렉션',
 			'metadataEdit.label' => '라벨',
-			'metadataEdit.style' => '스타일',
-			'metadataEdit.mood' => '분위기',
 			'matchScreen.match' => '일치...',
 			'matchScreen.fixMatch' => '일치 수정...',
 			'matchScreen.unmatch' => '일치 해제',

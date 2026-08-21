@@ -12,6 +12,7 @@ import 'package:plezy/utils/app_logger.dart';
 import '../i18n/app_locale_utils.dart';
 import '../i18n/strings.g.dart';
 import '../models/mpv_config_models.dart';
+import '../models/player_setting_scope.dart';
 import '../models/external_player_models.dart';
 import 'base_shared_preferences_service.dart';
 import 'sensitive_prefs.dart';
@@ -47,6 +48,26 @@ enum EpisodePosterMode { seriesPoster, seasonPoster, episodeThumbnail }
 enum ContinueWatchingAction { play, details }
 
 enum EpisodeAction { play, details }
+
+/// How Specials (season 0) are placed in the episode watch order — the
+/// sequence auto-advance, offline next/prev, and "download next N" walk.
+enum SpecialsOrdering {
+  /// Follow the backend's own ordering: Plex builds its server-side show
+  /// queue from `/allLeaves` (aired order, Specials interleaved); Jellyfin's
+  /// `/Shows/{id}/Episodes` order is preserved as returned (Specials placed
+  /// only by explicit `AirsBefore*` metadata, per the server-wide
+  /// `DisplaySpecialsWithinSeasons` setting). Client-side selections with no
+  /// server order (offline queue, downloads, offline OnDeck) fall back to
+  /// Specials-last.
+  respectServer,
+
+  /// Interleave Specials between regular episodes by air date on every
+  /// surface (#1416), the way Plex's own play queue orders a show.
+  airDate,
+
+  /// Specials strictly after the regular seasons on every surface (#1952).
+  specialsLast,
+}
 
 enum SubAssOverride { no, yes, scale, force, strip }
 
@@ -379,14 +400,6 @@ class SettingsService extends BaseSharedPreferencesService {
   static const audioSyncOffset = IntPref('audio_sync_offset');
   static const subtitleSyncOffset = IntPref('subtitle_sync_offset');
   static const subtitleSearchLanguage = NullableStringPref('subtitle_search_language');
-
-  /// Linux video rendering mode. 'auto' prefers the native Wayland plane and
-  /// falls back to the Flutter-texture path when the plane cannot be brought
-  /// up (X11/XWayland sessions, failed plane bootstrap); 'texture' forces the
-  /// texture path (SDR only) — the user-visible workaround for plane-only
-  /// trouble, and the exact environment hardware decode worked in before the
-  /// plane existed.
-  static const linuxVideoRenderMode = StringPref('linux_video_render_mode', defaultValue: 'auto');
   static const volume = DoublePref('volume', defaultValue: 100.0);
   static const rotationLocked = BoolPref('rotation_locked', defaultValue: true);
   static const subtitleFontSize = IntPref('subtitle_font_size', defaultValue: 38);
@@ -469,6 +482,16 @@ class SettingsService extends BaseSharedPreferencesService {
   /// around.
   static const musicVolume = DoublePref('music_volume', defaultValue: 100.0);
   static const autoPlayNextEpisode = BoolPref('auto_play_next_episode', defaultValue: true);
+
+  /// Where Specials (season 0) land in the episode watch order (#1416/#1952).
+  /// Consumed by [sortEpisodesByWatchOrder] (Jellyfin online queue, offline
+  /// next/prev, download/sync "next N", offline OnDeck, Plex fallback queue)
+  /// and by the Plex show play-queue source URI.
+  static const specialsOrdering = EnumPref<SpecialsOrdering>(
+    'specials_ordering',
+    values: SpecialsOrdering.values,
+    defaultValue: SpecialsOrdering.respectServer,
+  );
   static const useExoPlayer = BoolPref('use_exoplayer', defaultValue: true);
   static const startupSection = EnumPref<NavigationTabId>(
     'startup_section',
@@ -533,9 +556,36 @@ class SettingsService extends BaseSharedPreferencesService {
     transform: (v) => v.clamp(minimumPlaybackRate, maximumPlaybackRate),
   );
   static final defaultBoxFitMode = IntPref('default_box_fit_mode', transform: (v) => v.clamp(0, 2));
+
+  // Where a change made in the player's settings sheet persists (see
+  // [PlayerSettingScope]). Defaults preserve the pre-existing behavior:
+  // every change updates the global default.
+  static const playbackSpeedScope = EnumPref<PlayerSettingScope>(
+    'playback_speed_scope',
+    values: PlayerSettingScope.values,
+    defaultValue: PlayerSettingScope.global,
+  );
+  static const shaderPresetScope = EnumPref<PlayerSettingScope>(
+    'shader_preset_scope',
+    values: PlayerSettingScope.values,
+    defaultValue: PlayerSettingScope.global,
+  );
+  static const boxFitScope = EnumPref<PlayerSettingScope>(
+    'box_fit_scope',
+    values: PlayerSettingScope.values,
+    defaultValue: PlayerSettingScope.global,
+  );
+
+  /// One scope for both sync offsets: they are tuned together and a user who
+  /// wants per-title subtitle offsets wants per-title audio offsets too.
+  static const syncOffsetScope = EnumPref<PlayerSettingScope>(
+    'sync_offset_scope',
+    values: PlayerSettingScope.values,
+    defaultValue: PlayerSettingScope.global,
+  );
   static final displaySwitchDelay = IntPref('display_switch_delay', transform: (v) => v.clamp(0, 10));
 
-  static ThemeMode _tvAwareThemeModeDefault() => TvDetectionService.isTVSync() ? ThemeMode.oled : ThemeMode.system;
+  static ThemeMode _tvAwareThemeModeDefault() => PlatformDetector.isTV() ? ThemeMode.oled : ThemeMode.system;
   static const themeMode = EnumPref<ThemeMode>(
     'theme_mode',
     values: ThemeMode.values,
@@ -543,7 +593,7 @@ class SettingsService extends BaseSharedPreferencesService {
   );
   static const videoPlayerNavigationEnabled = BoolPref(
     'video_player_navigation_enabled',
-    defaultValueProvider: TvDetectionService.isTVSync,
+    defaultValueProvider: PlatformDetector.isTV,
   );
   static const enableCompanionRemoteServer = BoolPref(
     'enable_companion_remote_server',
@@ -589,6 +639,15 @@ class SettingsService extends BaseSharedPreferencesService {
     encode: (v) => json.encode(v.map((k, pref) => MapEntry(k, pref.toJson()))),
     // Legacy values were bare ints; MediaVersionPreference.fromJson accepts both.
     decode: (raw) => (raw as Map<String, dynamic>).map((k, v) => MapEntry(k, MediaVersionPreference.fromJson(v))),
+  );
+
+  /// Library-/title-scoped values for the player-sheet settings, managed by
+  /// [ScopedPlayerPrefs]: property id → scope key → `{'v': value, 't': ms}`.
+  static final scopedPlayerPrefValues = JsonPref<Map<String, dynamic>>(
+    'scoped_player_pref_values',
+    defaultValue: const {},
+    encode: json.encode,
+    decode: (raw) => Map<String, dynamic>.from(raw as Map),
   );
 
   /// Local record of when items were last played on this device
@@ -708,21 +767,6 @@ class SettingsService extends BaseSharedPreferencesService {
     for (final key in prefs.keys) {
       if (isSensitivePrefKey(key)) readTolerantString(prefs, key);
     }
-  }
-
-  /// Resolves a video mute toggle without replacing the saved volume with 0.
-  ///
-  /// `persistedVolume` is the non-zero value callers should keep in [volume],
-  /// while `playerVolume` is the value to apply to the active player.
-  ({double playerVolume, double persistedVolume}) resolveMuteToggle(double currentVolume) {
-    if (currentVolume.isFinite && currentVolume > 0) {
-      return (playerVolume: 0, persistedVolume: currentVolume);
-    }
-
-    final previousVolume = read(volume);
-    final candidate = previousVolume.isFinite && previousVolume > 0 ? previousVolume : volume.defaultValue;
-    final restoredVolume = candidate.clamp(0.0, read(maxVolume).toDouble()).toDouble();
-    return (playerVolume: restoredVolume, persistedVolume: restoredVolume);
   }
 
   static Map<String, HotKey> defaultKeyboardHotkeys() => _defaultKeyboardHotkeys();
@@ -960,6 +1004,7 @@ class SettingsService extends BaseSharedPreferencesService {
     dvConversionMode,
     musicVolume,
     autoPlayNextEpisode,
+    specialsOrdering,
     useExoPlayer,
     startupSection,
     showExploreTab,
@@ -980,7 +1025,6 @@ class SettingsService extends BaseSharedPreferencesService {
     audioNormalization,
     audioDownmix,
     audioDownmixNormalize,
-    linuxVideoRenderMode,
     appLocale,
     autoPip,
     maxVolume,
@@ -989,6 +1033,11 @@ class SettingsService extends BaseSharedPreferencesService {
     subtitleAnchorToScreen,
     defaultPlaybackSpeed,
     defaultBoxFitMode,
+    playbackSpeedScope,
+    shaderPresetScope,
+    boxFitScope,
+    syncOffsetScope,
+    scopedPlayerPrefValues,
     themeMode,
     videoPlayerNavigationEnabled,
     bufferSize,

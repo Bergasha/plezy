@@ -316,6 +316,11 @@ class _Translations$settings$fr extends Translations$settings$en {
 	@override String get followServerTrackSelectionsDescription => 'Au changement d\'épisode, appliquer l\'audio et les sous-titres sélectionnés sur le serveur au lieu de conserver le choix en cours';
 	@override String get showChapterMarkersOnTimeline => 'Afficher les marqueurs de chapitres sur la barre de lecture';
 	@override String get showChapterMarkersOnTimelineDescription => 'Segmenter la barre de lecture aux limites des chapitres';
+	@override String get specialsOrdering => 'Épisodes spéciaux dans l’ordre des épisodes';
+	@override String get specialsOrderingDescription => 'Position des épisodes spéciaux dans l’ordre de visionnage d’une série';
+	@override String get specialsOrderingServer => 'Suivre l’ordre du serveur';
+	@override String get specialsOrderingAirDate => 'Intercaler selon la date de diffusion';
+	@override String get specialsOrderingLast => 'Après les saisons normales';
 	@override String get clickVideoTogglesPlayback => 'Cliquer sur la vidéo pour alterner entre lecture et pause';
 	@override String get clickVideoTogglesPlaybackDescription => 'Cliquer sur la vidéo pour lire ou mettre en pause plutôt que d’afficher les commandes';
 	@override String get videoPlayerControls => 'Commandes du lecteur vidéo';
@@ -461,11 +466,17 @@ class _Translations$settings$fr extends Translations$settings$en {
 	@override String get subtitlesAndConfig => 'Sous-titres et configuration';
 	@override String get seekAndTiming => 'Déplacement et minutage';
 	@override String get behavior => 'Comportement';
+	@override String get rememberPlayerChanges => 'Mémoriser les modifications du lecteur';
+	@override String get rememberPlayerChangesDescription => 'Où une modification effectuée pendant la lecture est enregistrée et réappliquée';
+	@override String get scopePlaybackSpeed => 'Vitesse de lecture';
+	@override String get scopeShaderPreset => 'Préréglage du shader';
+	@override String get scopeAspectRatio => 'Format d’image';
+	@override String get scopeSyncOffsets => 'Synchronisation audio et sous-titres';
+	@override String get playerScopeOff => 'Ne pas enregistrer';
+	@override String get playerScopeGlobal => 'Partout';
+	@override String get playerScopeLibrary => 'Par bibliothèque';
+	@override String get playerScopeTitle => 'Par série ou film';
 	@override String get exportDialogTitle => 'Exporter les paramètres de Plezy';
-	@override String get linuxVideoRenderMode => 'Mode de rendu vidéo';
-	@override String get linuxVideoRenderModeDescription => 'Automatique préfère le plan Wayland natif (compatible HDR) ; Texture force le chemin de repli SDR.';
-	@override String get linuxVideoRenderModeAuto => 'Automatique';
-	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -756,12 +767,7 @@ class _Translations$videoControls$fr extends Translations$videoControls$en {
 	// Translations
 	@override String get audioLabel => 'Audio';
 	@override String get subtitlesLabel => 'Sous-titres';
-	@override String get resetToZero => 'Réinitialiser à 0 ms';
 	@override String addTime({required Object amount, required Object unit}) => '+${amount}${unit}';
-	@override String minusTime({required Object amount, required Object unit}) => '-${amount}${unit}';
-	@override String playsLater({required Object label}) => '${label} : lecture retardée';
-	@override String playsEarlier({required Object label}) => '${label} : lecture avancée';
-	@override String get noOffset => 'Pas de décalage';
 	@override String get letterbox => 'Format letterbox';
 	@override String get fillScreen => 'Remplir l’écran';
 	@override String get stretch => 'Étirer';
@@ -1531,6 +1537,7 @@ class _Translations$music$fr extends Translations$music$en {
 	@override String get repeatOne => 'Répéter le titre';
 	@override String get instantMixNoServer => 'Aucun serveur n’est disponible pour créer un mix instantané';
 	@override String noAudioUrl({required Object track}) => 'Aucune URL audio n’est disponible pour ${track}';
+	@override late final _Translations$music$discography$fr discography = _Translations$music$discography$fr._(_root);
 }
 
 // Path: watchTogether
@@ -1790,6 +1797,7 @@ class _Translations$performanceOverlay$fr extends Translations$performanceOverla
 	@override String get decoder => 'Décodeur';
 	@override String get rawDecoder => 'Décodeur brut';
 	@override String get tunneling => 'Tunnel';
+	@override String get passthrough => 'Transmission directe';
 	@override String get aspect => 'Format';
 	@override String get rotation => 'Rotation';
 	@override String get dvSource => 'Source DV';
@@ -1936,8 +1944,6 @@ class _Translations$metadataEdit$fr extends Translations$metadataEdit$en {
 	@override String get country => 'Pays';
 	@override String get collection => 'Collection';
 	@override String get label => 'Label';
-	@override String get style => 'Style';
-	@override String get mood => 'Ambiance';
 }
 
 // Path: matchScreen
@@ -2311,7 +2317,6 @@ class _Translations$explore$badge$fr extends Translations$explore$badge$en {
 	@override String rankPopular({required Object n}) => '#${n} populaire';
 	@override String rankAiring({required Object n}) => '#${n} en diffusion';
 	@override String rankRated({required Object n}) => '#${n} mieux noté';
-	@override String rankFavorited({required Object n}) => '#${n} favoris';
 	@override String rankTrending({required Object n}) => '#${n} tendance';
 	@override String rankSeasonal({required Object n, required Object season}) => '#${n} de ${season}';
 	@override String watchingNow({required Object n}) => '${n} regardent';
@@ -2479,6 +2484,18 @@ class _Translations$explore$detail$fr extends Translations$explore$detail$en {
 	@override String recommendedByPercent({required Object percent}) => 'Recommandé par ${percent} des spectateurs';
 	@override String get relatedTitles => 'Titres liés';
 	@override String get background => 'Contexte';
+}
+
+// Path: music.discography
+class _Translations$music$discography$fr extends Translations$music$discography$en {
+	_Translations$music$discography$fr._(TranslationsFr root) : this._root = root, super.internal(root);
+
+	final TranslationsFr _root; // ignore: unused_field
+
+	// Translations
+	@override String get singlesAndEps => 'Singles et EP';
+	@override String get live => 'Live';
+	@override String get compilations => 'Compilations';
 }
 
 // Path: downloads.backgroundWarning
@@ -2877,6 +2894,11 @@ extension on TranslationsFr {
 			'settings.followServerTrackSelectionsDescription' => 'Au changement d\'épisode, appliquer l\'audio et les sous-titres sélectionnés sur le serveur au lieu de conserver le choix en cours',
 			'settings.showChapterMarkersOnTimeline' => 'Afficher les marqueurs de chapitres sur la barre de lecture',
 			'settings.showChapterMarkersOnTimelineDescription' => 'Segmenter la barre de lecture aux limites des chapitres',
+			'settings.specialsOrdering' => 'Épisodes spéciaux dans l’ordre des épisodes',
+			'settings.specialsOrderingDescription' => 'Position des épisodes spéciaux dans l’ordre de visionnage d’une série',
+			'settings.specialsOrderingServer' => 'Suivre l’ordre du serveur',
+			'settings.specialsOrderingAirDate' => 'Intercaler selon la date de diffusion',
+			'settings.specialsOrderingLast' => 'Après les saisons normales',
 			'settings.clickVideoTogglesPlayback' => 'Cliquer sur la vidéo pour alterner entre lecture et pause',
 			'settings.clickVideoTogglesPlaybackDescription' => 'Cliquer sur la vidéo pour lire ou mettre en pause plutôt que d’afficher les commandes',
 			'settings.videoPlayerControls' => 'Commandes du lecteur vidéo',
@@ -3022,11 +3044,17 @@ extension on TranslationsFr {
 			'settings.subtitlesAndConfig' => 'Sous-titres et configuration',
 			'settings.seekAndTiming' => 'Déplacement et minutage',
 			'settings.behavior' => 'Comportement',
+			'settings.rememberPlayerChanges' => 'Mémoriser les modifications du lecteur',
+			'settings.rememberPlayerChangesDescription' => 'Où une modification effectuée pendant la lecture est enregistrée et réappliquée',
+			'settings.scopePlaybackSpeed' => 'Vitesse de lecture',
+			'settings.scopeShaderPreset' => 'Préréglage du shader',
+			'settings.scopeAspectRatio' => 'Format d’image',
+			'settings.scopeSyncOffsets' => 'Synchronisation audio et sous-titres',
+			'settings.playerScopeOff' => 'Ne pas enregistrer',
+			'settings.playerScopeGlobal' => 'Partout',
+			'settings.playerScopeLibrary' => 'Par bibliothèque',
+			'settings.playerScopeTitle' => 'Par série ou film',
 			'settings.exportDialogTitle' => 'Exporter les paramètres de Plezy',
-			'settings.linuxVideoRenderMode' => 'Mode de rendu vidéo',
-			'settings.linuxVideoRenderModeDescription' => 'Automatique préfère le plan Wayland natif (compatible HDR) ; Texture force le chemin de repli SDR.',
-			'settings.linuxVideoRenderModeAuto' => 'Automatique',
-			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Rechercher des films, des séries, de la musique...',
 			'search.tryDifferentTerm' => 'Essayez un autre terme de recherche',
 			'search.searchYourMedia' => 'Rechercher dans vos médias',
@@ -3195,6 +3223,8 @@ extension on TranslationsFr {
 			'mediaMenu.deleteMovieTitle' => 'Supprimer ce film ?',
 			'mediaMenu.deleteEpisodeConfirm' => 'Supprimer l\'épisode',
 			'mediaMenu.deleteSeasonConfirm' => 'Supprimer la saison',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => 'Supprimer la série',
 			'mediaMenu.deleteMovieConfirm' => 'Supprimer le film',
 			'mediaMenu.deleteAnyway' => 'Supprimer quand même',
@@ -3206,8 +3236,6 @@ extension on TranslationsFr {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy n\'a pas pu vérifier quels fichiers seront supprimés ; il risque donc d\'en supprimer plus que l\'élément nommé ci-dessus. Annulez et réessayez, ou supprimez quand même.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Votre serveur n\'a pas fourni les détails du fichier pour cet élément, Plezy ne peut donc pas vérifier quels fichiers seront supprimés. Il risque d\'en supprimer plus que l\'élément nommé ci-dessus.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Élément média supprimé avec succès',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Échec de la suppression de l\'élément média',
 			'mediaMenu.rate' => 'Noter',
 			'mediaMenu.playFromBeginning' => 'Lire depuis le début',
@@ -3253,12 +3281,7 @@ extension on TranslationsFr {
 			'audioTracks.track' => ({required Object n}) => 'Piste audio ${n}',
 			'videoControls.audioLabel' => 'Audio',
 			'videoControls.subtitlesLabel' => 'Sous-titres',
-			'videoControls.resetToZero' => 'Réinitialiser à 0 ms',
 			'videoControls.addTime' => ({required Object amount, required Object unit}) => '+${amount}${unit}',
-			'videoControls.minusTime' => ({required Object amount, required Object unit}) => '-${amount}${unit}',
-			'videoControls.playsLater' => ({required Object label}) => '${label} : lecture retardée',
-			'videoControls.playsEarlier' => ({required Object label}) => '${label} : lecture avancée',
-			'videoControls.noOffset' => 'Pas de décalage',
 			'videoControls.letterbox' => 'Format letterbox',
 			'videoControls.fillScreen' => 'Remplir l’écran',
 			'videoControls.stretch' => 'Étirer',
@@ -3714,14 +3737,14 @@ extension on TranslationsFr {
 			'explore.characters' => 'Personnages',
 			'explore.addToWatchlist' => 'Ajouter à la liste de suivi',
 			'explore.removeFromWatchlist' => 'Retirer de la liste de suivi',
+			_ => null,
+		} ?? switch (path) {
 			'explore.addedToWatchlist' => 'Ajouté à la liste de suivi',
 			'explore.removedFromWatchlist' => 'Retiré de la liste de suivi',
 			'explore.watchlistUpdateFailed' => 'Impossible de mettre à jour la liste de suivi',
 			'explore.watchlistNoMatch' => 'Impossible d’associer cet élément à une liste de suivi',
 			'explore.notInLibrary' => 'Absent de votre bibliothèque',
 			'explore.inTheseLibraries' => 'Dans ces bibliothèques',
-			_ => null,
-		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Vérification de votre bibliothèque...',
 			'explore.emptyTitle' => 'Rien ici pour l\'instant',
 			'explore.emptyMessage' => ({required Object source}) => 'Les lignes de ${source} apparaîtront ici dès qu’elles contiendront des éléments.',
@@ -3732,7 +3755,6 @@ extension on TranslationsFr {
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} populaire',
 			'explore.badge.rankAiring' => ({required Object n}) => '#${n} en diffusion',
 			'explore.badge.rankRated' => ({required Object n}) => '#${n} mieux noté',
-			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} favoris',
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} tendance',
 			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} de ${season}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n} regardent',
@@ -3979,6 +4001,9 @@ extension on TranslationsFr {
 			'music.repeatOne' => 'Répéter le titre',
 			'music.instantMixNoServer' => 'Aucun serveur n’est disponible pour créer un mix instantané',
 			'music.noAudioUrl' => ({required Object track}) => 'Aucune URL audio n’est disponible pour ${track}',
+			'music.discography.singlesAndEps' => 'Singles et EP',
+			'music.discography.live' => 'Live',
+			'music.discography.compilations' => 'Compilations',
 			'watchTogether.title' => 'Regarder ensemble',
 			'watchTogether.description' => 'Regarder du contenu en synchronisation avec vos proches',
 			'watchTogether.createSession' => 'Créer une session',
@@ -4226,6 +4251,8 @@ extension on TranslationsFr {
 			'companionRemote.remote.subtitles' => 'Sous-titres',
 			'companionRemote.remote.audio' => 'Audio',
 			'companionRemote.remote.searchHint' => 'Rechercher sur l’ordinateur…',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.errors.noNetworkInterface' => 'Aucune interface réseau trouvée',
 			'companionRemote.errors.authenticationFailed' => 'Échec de l’authentification',
 			'companionRemote.errors.serverStartFailed' => ({required Object error}) => 'Impossible de démarrer le serveur de télécommande : ${error}',
@@ -4234,8 +4261,6 @@ extension on TranslationsFr {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Impossible de se connecter à une adresse',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => 'Connexion perdue après ${attempts} tentatives',
 			'companionRemote.errors.connectionLost' => 'Connexion perdue',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'La connexion a été fermée avant l’authentification',
 			'videoSettings.playbackSpeed' => 'Vitesse de lecture',
 			'videoSettings.normalSpeed' => 'Normale',
@@ -4268,6 +4293,7 @@ extension on TranslationsFr {
 			'performanceOverlay.decoder' => 'Décodeur',
 			'performanceOverlay.rawDecoder' => 'Décodeur brut',
 			'performanceOverlay.tunneling' => 'Tunnel',
+			'performanceOverlay.passthrough' => 'Transmission directe',
 			'performanceOverlay.aspect' => 'Format',
 			'performanceOverlay.rotation' => 'Rotation',
 			'performanceOverlay.dvSource' => 'Source DV',
@@ -4396,8 +4422,6 @@ extension on TranslationsFr {
 			'metadataEdit.country' => 'Pays',
 			'metadataEdit.collection' => 'Collection',
 			'metadataEdit.label' => 'Label',
-			'metadataEdit.style' => 'Style',
-			'metadataEdit.mood' => 'Ambiance',
 			'matchScreen.match' => 'Associer...',
 			'matchScreen.fixMatch' => 'Corriger l\'association...',
 			'matchScreen.unmatch' => 'Dissocier',

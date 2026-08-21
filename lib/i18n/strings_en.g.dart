@@ -664,6 +664,21 @@ class Translations$settings$en {
 	/// en: 'Segment the seek bar at chapter boundaries'
 	String get showChapterMarkersOnTimelineDescription => 'Segment the seek bar at chapter boundaries';
 
+	/// en: 'Specials in episode order'
+	String get specialsOrdering => 'Specials in episode order';
+
+	/// en: 'Where specials play in a show's watch order'
+	String get specialsOrderingDescription => 'Where specials play in a show\'s watch order';
+
+	/// en: 'Follow server order'
+	String get specialsOrderingServer => 'Follow server order';
+
+	/// en: 'Interleave by air date'
+	String get specialsOrderingAirDate => 'Interleave by air date';
+
+	/// en: 'After regular seasons'
+	String get specialsOrderingLast => 'After regular seasons';
+
 	/// en: 'Click on video to toggle play/pause'
 	String get clickVideoTogglesPlayback => 'Click on video to toggle play/pause';
 
@@ -1180,20 +1195,38 @@ class Translations$settings$en {
 	/// en: 'Behavior'
 	String get behavior => 'Behavior';
 
+	/// en: 'Remember Player Changes'
+	String get rememberPlayerChanges => 'Remember Player Changes';
+
+	/// en: 'Where a change made during playback is saved and reapplied from'
+	String get rememberPlayerChangesDescription => 'Where a change made during playback is saved and reapplied from';
+
+	/// en: 'Playback Speed'
+	String get scopePlaybackSpeed => 'Playback Speed';
+
+	/// en: 'Shader Preset'
+	String get scopeShaderPreset => 'Shader Preset';
+
+	/// en: 'Aspect Ratio'
+	String get scopeAspectRatio => 'Aspect Ratio';
+
+	/// en: 'Audio & Subtitle Sync'
+	String get scopeSyncOffsets => 'Audio & Subtitle Sync';
+
+	/// en: 'Don't save'
+	String get playerScopeOff => 'Don\'t save';
+
+	/// en: 'Everywhere'
+	String get playerScopeGlobal => 'Everywhere';
+
+	/// en: 'Per library'
+	String get playerScopeLibrary => 'Per library';
+
+	/// en: 'Per show or movie'
+	String get playerScopeTitle => 'Per show or movie';
+
 	/// en: 'Export Plezy settings'
 	String get exportDialogTitle => 'Export Plezy settings';
-
-	/// en: 'Video rendering mode'
-	String get linuxVideoRenderMode => 'Video rendering mode';
-
-	/// en: 'Automatic prefers the native Wayland plane (HDR-capable); Texture forces the SDR fallback path.'
-	String get linuxVideoRenderModeDescription => 'Automatic prefers the native Wayland plane (HDR-capable); Texture forces the SDR fallback path.';
-
-	/// en: 'Automatic'
-	String get linuxVideoRenderModeAuto => 'Automatic';
-
-	/// en: 'Texture (SDR)'
-	String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: actor
@@ -1896,23 +1929,8 @@ class Translations$videoControls$en {
 	/// en: 'Subtitles'
 	String get subtitlesLabel => 'Subtitles';
 
-	/// en: 'Reset to 0ms'
-	String get resetToZero => 'Reset to 0ms';
-
 	/// en: '+${amount}${unit}'
 	String addTime({required Object amount, required Object unit}) => '+${amount}${unit}';
-
-	/// en: '-${amount}${unit}'
-	String minusTime({required Object amount, required Object unit}) => '-${amount}${unit}';
-
-	/// en: '${label} plays later'
-	String playsLater({required Object label}) => '${label} plays later';
-
-	/// en: '${label} plays earlier'
-	String playsEarlier({required Object label}) => '${label} plays earlier';
-
-	/// en: 'No offset'
-	String get noOffset => 'No offset';
 
 	/// en: 'Letterbox'
 	String get letterbox => 'Letterbox';
@@ -3817,6 +3835,8 @@ class Translations$music$en {
 
 	/// en: 'No audio URL is available for ${track}'
 	String noAudioUrl({required Object track}) => 'No audio URL is available for ${track}';
+
+	late final Translations$music$discography$en discography = Translations$music$discography$en.internal(_root);
 }
 
 // Path: watchTogether
@@ -4479,6 +4499,9 @@ class Translations$performanceOverlay$en {
 	/// en: 'Tunneling'
 	String get tunneling => 'Tunneling';
 
+	/// en: 'Passthrough'
+	String get passthrough => 'Passthrough';
+
 	/// en: 'Aspect'
 	String get aspect => 'Aspect';
 
@@ -4880,12 +4903,6 @@ class Translations$metadataEdit$en {
 
 	/// en: 'Label'
 	String get label => 'Label';
-
-	/// en: 'Style'
-	String get style => 'Style';
-
-	/// en: 'Mood'
-	String get mood => 'Mood';
 }
 
 // Path: matchScreen
@@ -5712,9 +5729,6 @@ class Translations$explore$badge$en {
 	/// en: '#${n} rated'
 	String rankRated({required Object n}) => '#${n} rated';
 
-	/// en: '#${n} favorited'
-	String rankFavorited({required Object n}) => '#${n} favorited';
-
 	/// en: '#${n} trending'
 	String rankTrending({required Object n}) => '#${n} trending';
 
@@ -6077,6 +6091,24 @@ class Translations$explore$detail$en {
 
 	/// en: 'Background'
 	String get background => 'Background';
+}
+
+// Path: music.discography
+class Translations$music$discography$en {
+	Translations$music$discography$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Singles & EPs'
+	String get singlesAndEps => 'Singles & EPs';
+
+	/// en: 'Live'
+	String get live => 'Live';
+
+	/// en: 'Compilations'
+	String get compilations => 'Compilations';
 }
 
 // Path: downloads.backgroundWarning
@@ -6705,6 +6737,11 @@ extension on Translations {
 			'settings.followServerTrackSelectionsDescription' => 'On episode change, apply the audio and subtitles selected on the server instead of carrying over the current choice',
 			'settings.showChapterMarkersOnTimeline' => 'Show chapter markers on seek bar',
 			'settings.showChapterMarkersOnTimelineDescription' => 'Segment the seek bar at chapter boundaries',
+			'settings.specialsOrdering' => 'Specials in episode order',
+			'settings.specialsOrderingDescription' => 'Where specials play in a show\'s watch order',
+			'settings.specialsOrderingServer' => 'Follow server order',
+			'settings.specialsOrderingAirDate' => 'Interleave by air date',
+			'settings.specialsOrderingLast' => 'After regular seasons',
 			'settings.clickVideoTogglesPlayback' => 'Click on video to toggle play/pause',
 			'settings.clickVideoTogglesPlaybackDescription' => 'Click video to play/pause instead of showing controls.',
 			'settings.showControlsOnMouseMove' => 'Show controls on mouse movement',
@@ -6877,11 +6914,17 @@ extension on Translations {
 			'settings.subtitlesAndConfig' => 'Subtitles & Configuration',
 			'settings.seekAndTiming' => 'Seek & Timing',
 			'settings.behavior' => 'Behavior',
+			'settings.rememberPlayerChanges' => 'Remember Player Changes',
+			'settings.rememberPlayerChangesDescription' => 'Where a change made during playback is saved and reapplied from',
+			'settings.scopePlaybackSpeed' => 'Playback Speed',
+			'settings.scopeShaderPreset' => 'Shader Preset',
+			'settings.scopeAspectRatio' => 'Aspect Ratio',
+			'settings.scopeSyncOffsets' => 'Audio & Subtitle Sync',
+			'settings.playerScopeOff' => 'Don\'t save',
+			'settings.playerScopeGlobal' => 'Everywhere',
+			'settings.playerScopeLibrary' => 'Per library',
+			'settings.playerScopeTitle' => 'Per show or movie',
 			'settings.exportDialogTitle' => 'Export Plezy settings',
-			'settings.linuxVideoRenderMode' => 'Video rendering mode',
-			'settings.linuxVideoRenderModeDescription' => 'Automatic prefers the native Wayland plane (HDR-capable); Texture forces the SDR fallback path.',
-			'settings.linuxVideoRenderModeAuto' => 'Automatic',
-			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'actor.filmography' => 'Filmography',
 			'search.hint' => 'Search movies, shows, music...',
 			'search.tryDifferentTerm' => 'Try a different search term',
@@ -7023,6 +7066,8 @@ extension on Translations {
 			'fileInfo.versionId' => 'Version ID',
 			'fileInfo.fileId' => 'File ID',
 			'fileInfo.defaultAudioTrack' => 'Default Audio Track',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.defaultSubtitleTrack' => 'Default Subtitle Track',
 			'fileInfo.subtitlesOff' => 'Off',
 			'fileInfo.flagDefault' => 'Default',
@@ -7034,8 +7079,6 @@ extension on Translations {
 			'fileInfo.flagOriginal' => 'Original',
 			'fileInfo.channelsMono' => 'Mono',
 			'fileInfo.dolbyVisionProfile' => ({required Object profile}) => 'Profile ${profile}',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.markAsWatched' => 'Mark as Watched',
 			'mediaMenu.markAsUnwatched' => 'Mark as Unwatched',
 			'mediaMenu.removeFromContinueWatching' => 'Remove from Continue Watching',
@@ -7110,12 +7153,7 @@ extension on Translations {
 			'audioTracks.track' => ({required Object n}) => 'Audio Track ${n}',
 			'videoControls.audioLabel' => 'Audio',
 			'videoControls.subtitlesLabel' => 'Subtitles',
-			'videoControls.resetToZero' => 'Reset to 0ms',
 			'videoControls.addTime' => ({required Object amount, required Object unit}) => '+${amount}${unit}',
-			'videoControls.minusTime' => ({required Object amount, required Object unit}) => '-${amount}${unit}',
-			'videoControls.playsLater' => ({required Object label}) => '${label} plays later',
-			'videoControls.playsEarlier' => ({required Object label}) => '${label} plays earlier',
-			'videoControls.noOffset' => 'No offset',
 			'videoControls.letterbox' => 'Letterbox',
 			'videoControls.fillScreen' => 'Fill screen',
 			'videoControls.stretch' => 'Stretch',
@@ -7542,14 +7580,14 @@ extension on Translations {
 			'startup.repairLostSessions' => 'At least one tracker or Seerr connection was lost and has to be reconnected.',
 			'startup.backupTitle' => 'A copy of the damaged file was kept',
 			'startup.backupWarning' => 'It contains your sign-in credentials. Do not upload or share it.',
+			_ => null,
+		} ?? switch (path) {
 			'startup.deleteBackup' => 'Delete copy',
 			'startup.backupDeleted' => 'Copy deleted.',
 			'startup.previousFailureTitle' => 'Plezy failed to start last time',
 			'licenses.relatedPackages' => 'Related Packages',
 			'licenses.license' => 'License',
 			'licenses.licenseNumber' => ({required Object number}) => 'License ${number}',
-			_ => null,
-		} ?? switch (path) {
 			'licenses.licensesCount' => ({required Object count}) => '${count} licenses',
 			'navigation.libraries' => 'Libraries',
 			'navigation.downloads' => 'Downloads',
@@ -7599,7 +7637,6 @@ extension on Translations {
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} popular',
 			'explore.badge.rankAiring' => ({required Object n}) => '#${n} airing',
 			'explore.badge.rankRated' => ({required Object n}) => '#${n} rated',
-			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} favorited',
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} trending',
 			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} in ${season}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n} watching',
@@ -7846,6 +7883,9 @@ extension on Translations {
 			'music.repeatOne' => 'Repeat one',
 			'music.instantMixNoServer' => 'No server is available for an instant mix',
 			'music.noAudioUrl' => ({required Object track}) => 'No audio URL is available for ${track}',
+			'music.discography.singlesAndEps' => 'Singles & EPs',
+			'music.discography.live' => 'Live',
+			'music.discography.compilations' => 'Compilations',
 			'watchTogether.title' => 'Watch Together',
 			'watchTogether.description' => 'Watch content in sync with friends and family',
 			'watchTogether.createSession' => 'Create Session',
@@ -8054,6 +8094,8 @@ extension on Translations {
 			'companionRemote.pairing.discoveryDescription' => 'Plezy devices with the same Plex account appear here',
 			'companionRemote.pairing.hostAddressHint' => '192.168.1.100:48632',
 			'companionRemote.pairing.connecting' => 'Connecting...',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.pairing.searchingForDevices' => 'Looking for devices...',
 			'companionRemote.pairing.noDevicesFound' => 'No devices found on your network',
 			'companionRemote.pairing.noDevicesHint' => 'Open Plezy on desktop and use the same Wi-Fi',
@@ -8062,8 +8104,6 @@ extension on Translations {
 			'companionRemote.pairing.cryptoInitFailed' => 'Couldn\'t start secure connection. Sign in to Plex first.',
 			'companionRemote.pairing.validationHostRequired' => 'Please enter host address',
 			'companionRemote.pairing.validationHostFormat' => 'Format must be IP:port (e.g., 192.168.1.100:48632)',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.pairing.connectionTimedOut' => 'Connection timed out. Use the same network on both devices.',
 			'companionRemote.pairing.sessionNotFound' => 'Device not found. Make sure Plezy is running on the host.',
 			'companionRemote.pairing.authFailed' => 'Authentication failed. Both devices need the same Plex account.',
@@ -8135,6 +8175,7 @@ extension on Translations {
 			'performanceOverlay.decoder' => 'Decoder',
 			'performanceOverlay.rawDecoder' => 'Raw Decoder',
 			'performanceOverlay.tunneling' => 'Tunneling',
+			'performanceOverlay.passthrough' => 'Passthrough',
 			'performanceOverlay.aspect' => 'Aspect',
 			'performanceOverlay.rotation' => 'Rotation',
 			'performanceOverlay.dvSource' => 'DV Source',
@@ -8263,8 +8304,6 @@ extension on Translations {
 			'metadataEdit.country' => 'Country',
 			'metadataEdit.collection' => 'Collection',
 			'metadataEdit.label' => 'Label',
-			'metadataEdit.style' => 'Style',
-			'metadataEdit.mood' => 'Mood',
 			'matchScreen.match' => 'Match...',
 			'matchScreen.fixMatch' => 'Fix Match...',
 			'matchScreen.unmatch' => 'Unmatch',

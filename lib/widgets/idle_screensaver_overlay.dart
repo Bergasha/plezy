@@ -175,7 +175,7 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
       const randomSort = LibrarySort(field: 'random');
       final fetches = sampled.map(
         (library) => client
-            .fetchLibraryContent(library.id, const LibraryQuery(sort: randomSort, limit: _itemsPerLibrary))
+            .fetchLibraryPagedContent(library.id, query: const LibraryQuery(sort: randomSort, limit: _itemsPerLibrary))
             .then((page) => page.items)
             .catchError((Object e, StackTrace st) {
               appLogger.w('Screensaver: failed to sample library ${library.id}', error: e, stackTrace: st);

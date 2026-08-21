@@ -316,6 +316,11 @@ class _Translations$settings$nb extends Translations$settings$en {
 	@override String get followServerTrackSelectionsDescription => 'Ved episodebytte brukes lyden og undertekstene som er valgt på serveren, i stedet for å videreføre gjeldende valg';
 	@override String get showChapterMarkersOnTimeline => 'Vis kapittelmarkører på tidslinjen';
 	@override String get showChapterMarkersOnTimelineDescription => 'Del tidslinjen ved kapittelgrenser';
+	@override String get specialsOrdering => 'Spesialepisoder i episoderekkefølge';
+	@override String get specialsOrderingDescription => 'Hvor spesialepisoder spilles av i seriens visningsrekkefølge';
+	@override String get specialsOrderingServer => 'Følg serverrekkefølgen';
+	@override String get specialsOrderingAirDate => 'Flett inn etter premieredato';
+	@override String get specialsOrderingLast => 'Etter vanlige sesonger';
 	@override String get clickVideoTogglesPlayback => 'Klikk på video for å veksle avspilling';
 	@override String get clickVideoTogglesPlaybackDescription => 'Klikk på video for å spille av/pause i stedet for å vise kontroller.';
 	@override String get videoPlayerControls => 'Videospillerkontroller';
@@ -461,11 +466,17 @@ class _Translations$settings$nb extends Translations$settings$en {
 	@override String get subtitlesAndConfig => 'Undertekster og konfigurasjon';
 	@override String get seekAndTiming => 'Spoling og tidsinnstillinger';
 	@override String get behavior => 'Oppførsel';
+	@override String get rememberPlayerChanges => 'Husk endringer i spilleren';
+	@override String get rememberPlayerChangesDescription => 'Hvor en endring under avspilling lagres og brukes på nytt';
+	@override String get scopePlaybackSpeed => 'Avspillingshastighet';
+	@override String get scopeShaderPreset => 'Forhåndsinnstilling for skyggelegging';
+	@override String get scopeAspectRatio => 'Sideforhold';
+	@override String get scopeSyncOffsets => 'Synkronisering av lyd og undertekster';
+	@override String get playerScopeOff => 'Ikke lagre';
+	@override String get playerScopeGlobal => 'Overalt';
+	@override String get playerScopeLibrary => 'Per bibliotek';
+	@override String get playerScopeTitle => 'Per serie eller film';
 	@override String get exportDialogTitle => 'Eksporter Plezy-innstillinger';
-	@override String get linuxVideoRenderMode => 'Video-gjengivelsesmodus';
-	@override String get linuxVideoRenderModeDescription => 'Automatisk foretrekker det native Wayland-planet (HDR-kompatibelt); Texture tvinger SDR-fallback-stien.';
-	@override String get linuxVideoRenderModeAuto => 'Automatisk';
-	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -756,12 +767,7 @@ class _Translations$videoControls$nb extends Translations$videoControls$en {
 	// Translations
 	@override String get audioLabel => 'Lyd';
 	@override String get subtitlesLabel => 'Undertekster';
-	@override String get resetToZero => 'Tilbakestill til 0ms';
 	@override String addTime({required Object amount, required Object unit}) => '+${amount}${unit}';
-	@override String minusTime({required Object amount, required Object unit}) => '-${amount}${unit}';
-	@override String playsLater({required Object label}) => '${label} spilles senere';
-	@override String playsEarlier({required Object label}) => '${label} spilles tidligere';
-	@override String get noOffset => 'Ingen forskyvning';
 	@override String get letterbox => 'Letterbox';
 	@override String get fillScreen => 'Fyll skjerm';
 	@override String get stretch => 'Strekk';
@@ -1531,6 +1537,7 @@ class _Translations$music$nb extends Translations$music$en {
 	@override String get repeatOne => 'Gjenta ett spor';
 	@override String get instantMixNoServer => 'Ingen server er tilgjengelig for en hurtigmiks';
 	@override String noAudioUrl({required Object track}) => 'Ingen lyd-URL er tilgjengelig for ${track}';
+	@override late final _Translations$music$discography$nb discography = _Translations$music$discography$nb._(_root);
 }
 
 // Path: watchTogether
@@ -1790,6 +1797,7 @@ class _Translations$performanceOverlay$nb extends Translations$performanceOverla
 	@override String get decoder => 'Dekoder';
 	@override String get rawDecoder => 'Rå dekoder';
 	@override String get tunneling => 'Tunneling';
+	@override String get passthrough => 'Direkte utgang';
 	@override String get aspect => 'Format';
 	@override String get rotation => 'Rotasjon';
 	@override String get dvSource => 'DV-kilde';
@@ -1936,8 +1944,6 @@ class _Translations$metadataEdit$nb extends Translations$metadataEdit$en {
 	@override String get country => 'Land';
 	@override String get collection => 'Samling';
 	@override String get label => 'Etikett';
-	@override String get style => 'Stil';
-	@override String get mood => 'Stemning';
 }
 
 // Path: matchScreen
@@ -2311,7 +2317,6 @@ class _Translations$explore$badge$nb extends Translations$explore$badge$en {
 	@override String rankPopular({required Object n}) => '#${n} populær';
 	@override String rankAiring({required Object n}) => '#${n} på lufta';
 	@override String rankRated({required Object n}) => '#${n} vurdert';
-	@override String rankFavorited({required Object n}) => '#${n} favorisert';
 	@override String rankTrending({required Object n}) => '#${n} trendende';
 	@override String rankSeasonal({required Object n, required Object season}) => '#${n} i ${season}';
 	@override String watchingNow({required Object n}) => '${n} ser på';
@@ -2479,6 +2484,18 @@ class _Translations$explore$detail$nb extends Translations$explore$detail$en {
 	@override String recommendedByPercent({required Object percent}) => 'Anbefalt av ${percent} av seerne';
 	@override String get relatedTitles => 'Relaterte titler';
 	@override String get background => 'Bakgrunn';
+}
+
+// Path: music.discography
+class _Translations$music$discography$nb extends Translations$music$discography$en {
+	_Translations$music$discography$nb._(TranslationsNb root) : this._root = root, super.internal(root);
+
+	final TranslationsNb _root; // ignore: unused_field
+
+	// Translations
+	@override String get singlesAndEps => 'Singler og EP-er';
+	@override String get live => 'Live';
+	@override String get compilations => 'Samlealbum';
 }
 
 // Path: downloads.backgroundWarning
@@ -2877,6 +2894,11 @@ extension on TranslationsNb {
 			'settings.followServerTrackSelectionsDescription' => 'Ved episodebytte brukes lyden og undertekstene som er valgt på serveren, i stedet for å videreføre gjeldende valg',
 			'settings.showChapterMarkersOnTimeline' => 'Vis kapittelmarkører på tidslinjen',
 			'settings.showChapterMarkersOnTimelineDescription' => 'Del tidslinjen ved kapittelgrenser',
+			'settings.specialsOrdering' => 'Spesialepisoder i episoderekkefølge',
+			'settings.specialsOrderingDescription' => 'Hvor spesialepisoder spilles av i seriens visningsrekkefølge',
+			'settings.specialsOrderingServer' => 'Følg serverrekkefølgen',
+			'settings.specialsOrderingAirDate' => 'Flett inn etter premieredato',
+			'settings.specialsOrderingLast' => 'Etter vanlige sesonger',
 			'settings.clickVideoTogglesPlayback' => 'Klikk på video for å veksle avspilling',
 			'settings.clickVideoTogglesPlaybackDescription' => 'Klikk på video for å spille av/pause i stedet for å vise kontroller.',
 			'settings.videoPlayerControls' => 'Videospillerkontroller',
@@ -3022,11 +3044,17 @@ extension on TranslationsNb {
 			'settings.subtitlesAndConfig' => 'Undertekster og konfigurasjon',
 			'settings.seekAndTiming' => 'Spoling og tidsinnstillinger',
 			'settings.behavior' => 'Oppførsel',
+			'settings.rememberPlayerChanges' => 'Husk endringer i spilleren',
+			'settings.rememberPlayerChangesDescription' => 'Hvor en endring under avspilling lagres og brukes på nytt',
+			'settings.scopePlaybackSpeed' => 'Avspillingshastighet',
+			'settings.scopeShaderPreset' => 'Forhåndsinnstilling for skyggelegging',
+			'settings.scopeAspectRatio' => 'Sideforhold',
+			'settings.scopeSyncOffsets' => 'Synkronisering av lyd og undertekster',
+			'settings.playerScopeOff' => 'Ikke lagre',
+			'settings.playerScopeGlobal' => 'Overalt',
+			'settings.playerScopeLibrary' => 'Per bibliotek',
+			'settings.playerScopeTitle' => 'Per serie eller film',
 			'settings.exportDialogTitle' => 'Eksporter Plezy-innstillinger',
-			'settings.linuxVideoRenderMode' => 'Video-gjengivelsesmodus',
-			'settings.linuxVideoRenderModeDescription' => 'Automatisk foretrekker det native Wayland-planet (HDR-kompatibelt); Texture tvinger SDR-fallback-stien.',
-			'settings.linuxVideoRenderModeAuto' => 'Automatisk',
-			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Søk i filmer, serier, musikk...',
 			'search.tryDifferentTerm' => 'Prøv et annet søkeord',
 			'search.searchYourMedia' => 'Søk i mediene dine',
@@ -3195,6 +3223,8 @@ extension on TranslationsNb {
 			'mediaMenu.deleteMovieTitle' => 'Slette denne filmen?',
 			'mediaMenu.deleteEpisodeConfirm' => 'Slett episode',
 			'mediaMenu.deleteSeasonConfirm' => 'Slett sesong',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => 'Slett serie',
 			'mediaMenu.deleteMovieConfirm' => 'Slett film',
 			'mediaMenu.deleteAnyway' => 'Slett likevel',
@@ -3206,8 +3236,6 @@ extension on TranslationsNb {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy kunne ikke sjekke hvilke filer dette vil fjerne, så det kan slette mer enn elementet som er nevnt ovenfor. Avbryt og prøv igjen, eller slett likevel.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Serveren din ga ikke fildetaljer for dette elementet, så Plezy kan ikke sjekke hvilke filer dette vil fjerne. Det kan slette mer enn elementet som er nevnt ovenfor.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Medieelement slettet',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Kunne ikke slette medieelement',
 			'mediaMenu.rate' => 'Vurder',
 			'mediaMenu.playFromBeginning' => 'Spill fra begynnelsen',
@@ -3253,12 +3281,7 @@ extension on TranslationsNb {
 			'audioTracks.track' => ({required Object n}) => 'Lydspor ${n}',
 			'videoControls.audioLabel' => 'Lyd',
 			'videoControls.subtitlesLabel' => 'Undertekster',
-			'videoControls.resetToZero' => 'Tilbakestill til 0ms',
 			'videoControls.addTime' => ({required Object amount, required Object unit}) => '+${amount}${unit}',
-			'videoControls.minusTime' => ({required Object amount, required Object unit}) => '-${amount}${unit}',
-			'videoControls.playsLater' => ({required Object label}) => '${label} spilles senere',
-			'videoControls.playsEarlier' => ({required Object label}) => '${label} spilles tidligere',
-			'videoControls.noOffset' => 'Ingen forskyvning',
 			'videoControls.letterbox' => 'Letterbox',
 			'videoControls.fillScreen' => 'Fyll skjerm',
 			'videoControls.stretch' => 'Strekk',
@@ -3714,14 +3737,14 @@ extension on TranslationsNb {
 			'explore.characters' => 'Figurer',
 			'explore.addToWatchlist' => 'Legg til i ønskeliste',
 			'explore.removeFromWatchlist' => 'Fjern fra ønskeliste',
+			_ => null,
+		} ?? switch (path) {
 			'explore.addedToWatchlist' => 'Lagt til i overvåkningslisten',
 			'explore.removedFromWatchlist' => 'Fjernet fra overvåkningslisten',
 			'explore.watchlistUpdateFailed' => 'Kunne ikke oppdatere ønskelisten',
 			'explore.watchlistNoMatch' => 'Kunne ikke koble dette elementet til en overvåkningsliste',
 			'explore.notInLibrary' => 'Ikke i biblioteket ditt',
 			'explore.inTheseLibraries' => 'I disse bibliotekene',
-			_ => null,
-		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Sjekker biblioteket ditt...',
 			'explore.emptyTitle' => 'Ingenting her ennå',
 			'explore.emptyMessage' => ({required Object source}) => 'Rader fra ${source} vises her når de har innhold.',
@@ -3732,7 +3755,6 @@ extension on TranslationsNb {
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} populær',
 			'explore.badge.rankAiring' => ({required Object n}) => '#${n} på lufta',
 			'explore.badge.rankRated' => ({required Object n}) => '#${n} vurdert',
-			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} favorisert',
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} trendende',
 			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} i ${season}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n} ser på',
@@ -3979,6 +4001,9 @@ extension on TranslationsNb {
 			'music.repeatOne' => 'Gjenta ett spor',
 			'music.instantMixNoServer' => 'Ingen server er tilgjengelig for en hurtigmiks',
 			'music.noAudioUrl' => ({required Object track}) => 'Ingen lyd-URL er tilgjengelig for ${track}',
+			'music.discography.singlesAndEps' => 'Singler og EP-er',
+			'music.discography.live' => 'Live',
+			'music.discography.compilations' => 'Samlealbum',
 			'watchTogether.title' => 'Se sammen',
 			'watchTogether.description' => 'Se innhold synkronisert med venner og familie',
 			'watchTogether.createSession' => 'Opprett økt',
@@ -4226,6 +4251,8 @@ extension on TranslationsNb {
 			'companionRemote.remote.subtitles' => 'Undertekster',
 			'companionRemote.remote.audio' => 'Lyd',
 			'companionRemote.remote.searchHint' => 'Søk på datamaskinen...',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.errors.noNetworkInterface' => 'Fant ingen nettverksgrensesnitt',
 			'companionRemote.errors.authenticationFailed' => 'Autentisering mislyktes',
 			'companionRemote.errors.serverStartFailed' => ({required Object error}) => 'Kunne ikke starte fjernserveren: ${error}',
@@ -4234,8 +4261,6 @@ extension on TranslationsNb {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Kunne ikke koble til noen adresse',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => 'Tilkobling mistet etter ${attempts} forsøk',
 			'companionRemote.errors.connectionLost' => 'Tilkobling mistet',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Tilkoblingen ble lukket før autentisering',
 			'videoSettings.playbackSpeed' => 'Avspillingshastighet',
 			'videoSettings.normalSpeed' => 'Normal',
@@ -4268,6 +4293,7 @@ extension on TranslationsNb {
 			'performanceOverlay.decoder' => 'Dekoder',
 			'performanceOverlay.rawDecoder' => 'Rå dekoder',
 			'performanceOverlay.tunneling' => 'Tunneling',
+			'performanceOverlay.passthrough' => 'Direkte utgang',
 			'performanceOverlay.aspect' => 'Format',
 			'performanceOverlay.rotation' => 'Rotasjon',
 			'performanceOverlay.dvSource' => 'DV-kilde',
@@ -4396,8 +4422,6 @@ extension on TranslationsNb {
 			'metadataEdit.country' => 'Land',
 			'metadataEdit.collection' => 'Samling',
 			'metadataEdit.label' => 'Etikett',
-			'metadataEdit.style' => 'Stil',
-			'metadataEdit.mood' => 'Stemning',
 			'matchScreen.match' => 'Finn treff...',
 			'matchScreen.fixMatch' => 'Korriger treff...',
 			'matchScreen.unmatch' => 'Fjern treff',

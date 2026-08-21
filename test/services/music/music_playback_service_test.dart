@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:os_media_controls/os_media_controls.dart';
 import 'package:plezy/media/ids.dart';
@@ -217,9 +218,6 @@ class FakePlayer implements Player {
 
   @override
   String get playerType => 'fake';
-
-  @override
-  int? get textureId => null;
 
   @override
   Future<void> open(
@@ -522,7 +520,10 @@ class FakeMediaControlsManager extends MediaControlsManager {
     bool force = false,
   }) async {}
 
-  final List<({bool canPlayPause, bool canGoNext, bool canStop, bool canSkip, bool canSetSpeed})> controlSyncs = [];
+  final List<
+    ({bool canPlayPause, bool canGoNext, bool canStop, bool canSkip, bool preferSkipOverTrackButtons, bool canSetSpeed})
+  >
+  controlSyncs = [];
 
   @override
   Future<void> setControlsEnabled({
@@ -533,12 +534,15 @@ class FakeMediaControlsManager extends MediaControlsManager {
     bool canStop = false,
     bool canSkip = false,
     bool canSetSpeed = false,
+    bool preferSkipOverTrackButtons = false,
+    Duration? skipInterval,
   }) async {
     controlSyncs.add((
       canPlayPause: canPlayPause,
       canGoNext: canGoNext,
       canStop: canStop,
       canSkip: canSkip,
+      preferSkipOverTrackButtons: preferSkipOverTrackButtons,
       canSetSpeed: canSetSpeed,
     ));
   }
@@ -660,6 +664,10 @@ class _Harness {
 }
 
 void main() {
+  // The impl registers a HardwareKeyboard handler for foreground media keys
+  // (#1948), which needs the services binding.
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final t1 = _track('t1');
   final t2 = _track('t2');
   final t3 = _track('t3');
@@ -1319,6 +1327,9 @@ void main() {
     expect(last.canPlayPause, isTrue);
     expect(last.canStop, isTrue);
     expect(last.canSkip, isTrue);
+    // Music never claims the Darwin lock-screen side slots for skip —
+    // next/previous stay the primary transport there.
+    expect(last.preferSkipOverTrackButtons, isFalse);
     expect(last.canSetSpeed, isFalse);
   });
 
@@ -1495,5 +1506,29 @@ void main() {
     await pumpEventQueue();
 
     expect(jumps, [const Duration(minutes: 2), isNull]);
+  });
+
+  group('foreground hardware media keys (#1948)', () {
+    test('transport keys drive the live session and stop unregisters the handler', () async {
+      await h.playTracks([t1, t2]);
+
+      // Consumed and routed: next advances the queue.
+      expect(await simulateKeyDownEvent(LogicalKeyboardKey.mediaTrackNext, platform: 'android'), isTrue);
+      expect(await simulateKeyUpEvent(LogicalKeyboardKey.mediaTrackNext, platform: 'android'), isTrue);
+      await pumpEventQueue();
+      expect(h.service.currentTrack?.id, 't2');
+
+      // A directed pause reaches the player.
+      expect(await simulateKeyDownEvent(LogicalKeyboardKey.mediaPause, platform: 'android'), isTrue);
+      expect(await simulateKeyUpEvent(LogicalKeyboardKey.mediaPause, platform: 'android'), isTrue);
+      await pumpEventQueue();
+      expect(h.player.pauseCalls, 1);
+
+      // No session, no claim on the keys: back to normal dispatch.
+      await h.service.stop();
+      await pumpEventQueue();
+      expect(await simulateKeyDownEvent(LogicalKeyboardKey.mediaPlayPause, platform: 'android'), isFalse);
+      expect(await simulateKeyUpEvent(LogicalKeyboardKey.mediaPlayPause, platform: 'android'), isFalse);
+    });
   });
 }

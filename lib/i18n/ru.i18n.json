@@ -195,6 +195,11 @@
     "followServerTrackSelectionsDescription": "При смене серии применять аудио и субтитры, выбранные на сервере, вместо переноса текущего выбора",
     "showChapterMarkersOnTimeline": "Показывать маркеры глав на шкале перемотки",
     "showChapterMarkersOnTimelineDescription": "Разделять шкалу перемотки по границам глав",
+    "specialsOrdering": "Спецвыпуски в порядке эпизодов",
+    "specialsOrderingDescription": "Место спецвыпусков в порядке просмотра сериала",
+    "specialsOrderingServer": "Следовать порядку сервера",
+    "specialsOrderingAirDate": "Чередовать по дате выхода",
+    "specialsOrderingLast": "После обычных сезонов",
     "clickVideoTogglesPlayback": "Нажатие на видео запускает или приостанавливает воспроизведение",
     "clickVideoTogglesPlaybackDescription": "Нажатие на видео запускает или приостанавливает воспроизведение вместо показа элементов управления.",
     "videoPlayerControls": "Элементы управления плеером",
@@ -340,11 +345,17 @@
     "subtitlesAndConfig": "Субтитры и конфигурация",
     "seekAndTiming": "Перемотка и время",
     "behavior": "Поведение",
-    "exportDialogTitle": "Экспорт настроек Plezy",
-    "linuxVideoRenderMode": "Режим рендеринга видео",
-    "linuxVideoRenderModeDescription": "Автоматический режим предпочитает нативную плоскость Wayland (поддержка HDR); Texture принудительно использует запасной путь SDR.",
-    "linuxVideoRenderModeAuto": "Автоматически",
-    "linuxVideoRenderModeTexture": "Texture (SDR)"
+    "rememberPlayerChanges": "Запоминать изменения плеера",
+    "rememberPlayerChangesDescription": "Где сохраняется и откуда повторно применяется изменение, сделанное во время воспроизведения",
+    "scopePlaybackSpeed": "Скорость воспроизведения",
+    "scopeShaderPreset": "Предустановка шейдера",
+    "scopeAspectRatio": "Соотношение сторон",
+    "scopeSyncOffsets": "Синхронизация аудио и субтитров",
+    "playerScopeOff": "Не сохранять",
+    "playerScopeGlobal": "Везде",
+    "playerScopeLibrary": "Для библиотеки",
+    "playerScopeTitle": "Для сериала или фильма",
+    "exportDialogTitle": "Экспорт настроек Plezy"
   },
   "search": {
     "hint": "Поиск фильмов, сериалов, музыки...",
@@ -604,12 +615,7 @@
   "videoControls": {
     "audioLabel": "Аудио",
     "subtitlesLabel": "Субтитры",
-    "resetToZero": "Сбросить до 0мс",
     "addTime": "+${amount}${unit}",
-    "minusTime": "-${amount}${unit}",
-    "playsLater": "${label} воспроизводится позже",
-    "playsEarlier": "${label} воспроизводится раньше",
-    "noOffset": "Без смещения",
     "letterbox": "Вписать в экран",
     "fillScreen": "Заполнить экран",
     "stretch": "Растянуть",
@@ -1146,7 +1152,6 @@
       "rankPopular": "#${n} по популярности",
       "rankAiring": "#${n} в эфире",
       "rankRated": "#${n} по оценкам",
-      "rankFavorited": "#${n} по избранному",
       "rankTrending": "#${n} в тренде",
       "rankSeasonal": "#${n} в сезоне ${season}",
       "watchingNow": "${n} смотрят",
@@ -1435,7 +1440,12 @@
     "repeatAll": "Повторять все",
     "repeatOne": "Повторять один",
     "instantMixNoServer": "Нет доступного сервера для мгновенного микса",
-    "noAudioUrl": "Для трека ${track} нет доступного URL аудио"
+    "noAudioUrl": "Для трека ${track} нет доступного URL аудио",
+    "discography": {
+      "singlesAndEps": "Синглы и EP",
+      "live": "Концертные",
+      "compilations": "Сборники"
+    }
   },
   "watchTogether": {
     "title": "Смотреть вместе",
@@ -1745,6 +1755,7 @@
     "decoder": "Декодер",
     "rawDecoder": "Raw-декодер",
     "tunneling": "Туннелирование",
+    "passthrough": "Сквозной вывод",
     "aspect": "Соотношение",
     "rotation": "Поворот",
     "dvSource": "Источник DV",
@@ -1876,9 +1887,7 @@
     "producer": "Продюсер",
     "country": "Страна",
     "collection": "Коллекция",
-    "label": "Метка",
-    "style": "Стиль",
-    "mood": "Настроение"
+    "label": "Метка"
   },
   "matchScreen": {
     "match": "Сопоставить...",

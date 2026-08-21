@@ -12,6 +12,7 @@ import '../../media/media_kind.dart';
 import '../../media/media_library.dart';
 import '../../models/audio_quality_preset.dart';
 import '../../models/transcode_quality_preset.dart';
+import '../../models/player_setting_scope.dart';
 import '../../mpv/player/platform/player_android.dart';
 import '../../providers/libraries_provider.dart';
 import '../../utils/app_logger.dart';
@@ -102,7 +103,6 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
                 if (Platform.isAndroid) _playerBackendSelector(),
                 if (PlatformDetector.supportsExternalPlayers()) _externalPlayerTile(),
                 _hardwareDecodingTile(),
-                if (Platform.isLinux) _linuxVideoRenderModeTile(),
                 if (PlatformDetector.supportsPictureInPicture()) _autoPipTile(),
                 if (Platform.isAndroid) _matchContentFrameRateTile(),
                 if (Platform.isWindows) _matchRefreshRateTile(),
@@ -136,6 +136,7 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
 
             _seekAndTimingGroup(),
             _behaviorGroup(context, isMobile),
+            _rememberPlayerChangesGroup(),
             _autoSkipGroup(),
             _prerollGroup(context),
             const SizedBox(height: 24),
@@ -203,6 +204,51 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     ],
   );
 
+  Widget _rememberPlayerChangesGroup() => SettingsGroup(
+    title: t.settings.rememberPlayerChanges,
+    children: [
+      _playerScopeTile(
+        pref: SettingsService.playbackSpeedScope,
+        icon: Symbols.speed_rounded,
+        title: t.settings.scopePlaybackSpeed,
+      ),
+      _playerScopeTile(
+        pref: SettingsService.shaderPresetScope,
+        icon: Symbols.auto_fix_high_rounded,
+        title: t.settings.scopeShaderPreset,
+      ),
+      _playerScopeTile(
+        pref: SettingsService.boxFitScope,
+        icon: Symbols.aspect_ratio_rounded,
+        title: t.settings.scopeAspectRatio,
+      ),
+      _playerScopeTile(
+        pref: SettingsService.syncOffsetScope,
+        icon: Symbols.sync_rounded,
+        title: t.settings.scopeSyncOffsets,
+      ),
+    ],
+  );
+
+  Widget _playerScopeTile({
+    required EnumPref<PlayerSettingScope> pref,
+    required IconData icon,
+    required String title,
+  }) => SettingSelectionTile<PlayerSettingScope>(
+    pref: pref,
+    icon: icon,
+    title: title,
+    subtitleBuilder: (scope) => '${_playerScopeLabel(scope)} · ${t.settings.rememberPlayerChangesDescription}',
+    options: PlayerSettingScope.values.map((s) => DialogOption(value: s, title: _playerScopeLabel(s))).toList(),
+  );
+
+  String _playerScopeLabel(PlayerSettingScope scope) => switch (scope) {
+    PlayerSettingScope.off => t.settings.playerScopeOff,
+    PlayerSettingScope.global => t.settings.playerScopeGlobal,
+    PlayerSettingScope.library => t.settings.playerScopeLibrary,
+    PlayerSettingScope.title => t.settings.playerScopeTitle,
+  };
+
   Widget _behaviorGroup(BuildContext context, bool isMobile) => SettingsGroup(
     title: t.settings.behavior,
     children: [
@@ -240,6 +286,13 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
         title: t.settings.showChapterMarkersOnTimeline,
         subtitle: t.settings.showChapterMarkersOnTimelineDescription,
       ),
+      SettingSelectionTile<SpecialsOrdering>(
+        pref: SettingsService.specialsOrdering,
+        icon: Symbols.low_priority_rounded,
+        title: t.settings.specialsOrdering,
+        subtitleBuilder: (mode) => '${_specialsOrderingLabel(mode)} · ${t.settings.specialsOrderingDescription}',
+        options: SpecialsOrdering.values.map((m) => DialogOption(value: m, title: _specialsOrderingLabel(m))).toList(),
+      ),
       if (!isMobile)
         SettingSwitchTile(
           pref: SettingsService.clickVideoTogglesPlayback,
@@ -256,6 +309,12 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
         ),
     ],
   );
+
+  String _specialsOrderingLabel(SpecialsOrdering mode) => switch (mode) {
+    SpecialsOrdering.respectServer => t.settings.specialsOrderingServer,
+    SpecialsOrdering.airDate => t.settings.specialsOrderingAirDate,
+    SpecialsOrdering.specialsLast => t.settings.specialsOrderingLast,
+  };
 
   Widget _autoSkipGroup() => SettingsGroup(
     title: t.settings.autoSkip,
@@ -518,19 +577,6 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     DvConversionModePreference.hevcStrip => t.settings.dvConversionHevcStrip,
   };
 
-  Widget _linuxVideoRenderModeTile() => SettingSelectionTile<String>(
-    pref: SettingsService.linuxVideoRenderMode,
-    icon: Symbols.video_settings_rounded,
-    title: t.settings.linuxVideoRenderMode,
-    subtitleBuilder: (mode) =>
-        '${mode == 'texture' ? t.settings.linuxVideoRenderModeTexture : t.settings.linuxVideoRenderModeAuto}'
-        ' · ${t.settings.linuxVideoRenderModeDescription}',
-    options: [
-      DialogOption(value: 'auto', title: t.settings.linuxVideoRenderModeAuto),
-      DialogOption(value: 'texture', title: t.settings.linuxVideoRenderModeTexture),
-    ],
-  );
-
   Widget _bufferSizeTile() {
     final bufferOptions = const [0, 64, 128, 256, 512, 1024];
     return SettingSelectionTile<int>(
@@ -622,7 +668,8 @@ class _PrerollItemPickerDialogState extends State<_PrerollItemPickerDialog> {
       final storage = await StorageService.getInstance();
       final client = context.getMediaClientForLibrary(widget.library);
       final items = await drainPages<MediaItem>(
-        (start, size) => client.fetchLibraryContent(widget.library.id, LibraryQuery(offset: start, limit: size)),
+        (start, size) =>
+            client.fetchLibraryPagedContent(widget.library.id, query: LibraryQuery(offset: start, limit: size)),
         pageSize: 200,
         stopOnShortPage: true,
       );

@@ -114,7 +114,7 @@ void main() {
     });
 
     test('formats Plex season child fallback metadata', () {
-      final item = PlexMappers.mediaItemFromJson({
+      final item = _mediaItemFromJson({
         'ratingKey': '6048',
         'type': 'episode',
         'title': 'Hello, Ms. Cobel',
@@ -142,7 +142,7 @@ void main() {
     });
 
     test('formats Plex movie full-detail stream metadata', () {
-      final item = PlexMappers.mediaItemFromJson({
+      final item = _mediaItemFromJson({
         'ratingKey': 'movie-1',
         'type': 'movie',
         'title': 'Movie',
@@ -294,6 +294,10 @@ void main() {
       expect(buildMediaSizeLabel(item, versionIndex: 1), '2.00 GB');
     });
   });
+}
+
+PlexMediaItem _mediaItemFromJson(Map<String, dynamic> json, {ServerId? serverId}) {
+  return PlexMappers.mediaItem(PlexMetadataDto.fromJsonWithImages(json).copyWith(serverId: serverId));
 }
 
 MediaItem _episodeWithVersion(MediaVersion? version) {

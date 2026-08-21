@@ -316,6 +316,11 @@ class _Translations$settings$az extends Translations$settings$en {
 	@override String get followServerTrackSelectionsDescription => 'Epizod dəyişəndə cari seçimi köçürmək əvəzinə serverdə seçilmiş səs və altyazını tətbiq et';
 	@override String get showChapterMarkersOnTimeline => 'Zaman çubuğunda hissə işarələrini göstər';
 	@override String get showChapterMarkersOnTimelineDescription => 'Zaman çubuğunu hissə sərhədlərinə böl';
+	@override String get specialsOrdering => 'Xüsusi bölmələr epizod sırasına görə';
+	@override String get specialsOrderingDescription => 'Xüsusi bölmələrin serialın izləmə sırasındakı yeri';
+	@override String get specialsOrderingServer => 'Server sırasını izlə';
+	@override String get specialsOrderingAirDate => 'Yayım tarixinə görə qarışdır';
+	@override String get specialsOrderingLast => 'Adi mövsümlərdən sonra';
 	@override String get clickVideoTogglesPlayback => 'Oynat/fasilə üçün videoya toxun';
 	@override String get clickVideoTogglesPlaybackDescription => 'İdarəetməni göstərmək əvəzinə oynatmaq/fasilə etmək üçün videoya toxun.';
 	@override String get videoPlayerControls => 'Video oynadıcı idarəetmələri';
@@ -461,11 +466,17 @@ class _Translations$settings$az extends Translations$settings$en {
 	@override String get subtitlesAndConfig => 'Altyazılar və konfiqurasiya';
 	@override String get seekAndTiming => 'Sarğı və vaxt tənzimləməsi';
 	@override String get behavior => 'Davranış';
+	@override String get rememberPlayerChanges => 'Pleyer dəyişikliklərini yadda saxla';
+	@override String get rememberPlayerChangesDescription => 'Oxutma zamanı edilən dəyişikliklərin harada saxlanacağı və yenidən tətbiq ediləcəyi';
+	@override String get scopePlaybackSpeed => 'Oxutma sürəti';
+	@override String get scopeShaderPreset => 'Şader ön ayarı';
+	@override String get scopeAspectRatio => 'Tərəf nisbəti';
+	@override String get scopeSyncOffsets => 'Audio və subtitr sinxronizasiyası';
+	@override String get playerScopeOff => 'Saxlama';
+	@override String get playerScopeGlobal => 'Hər yerdə';
+	@override String get playerScopeLibrary => 'Kitabxana üzrə';
+	@override String get playerScopeTitle => 'Serial və ya film üzrə';
 	@override String get exportDialogTitle => 'Plezy tənzimləmələrini ixrac et';
-	@override String get linuxVideoRenderMode => 'Video göstərmə rejimi';
-	@override String get linuxVideoRenderModeDescription => 'Avtomatik yerli Wayland müstəvisinə üstünlük verir (HDR dəstəkləyir); Texture SDR ehtiyat yolunu məcbur edir.';
-	@override String get linuxVideoRenderModeAuto => 'Avtomatik';
-	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -756,12 +767,7 @@ class _Translations$videoControls$az extends Translations$videoControls$en {
 	// Translations
 	@override String get audioLabel => 'Səs';
 	@override String get subtitlesLabel => 'Altyazı';
-	@override String get resetToZero => '0ms-yə sıfırla';
 	@override String addTime({required Object amount, required Object unit}) => '+${amount}${unit}';
-	@override String minusTime({required Object amount, required Object unit}) => '-${amount}${unit}';
-	@override String playsLater({required Object label}) => '${label} sonra oynadılır';
-	@override String playsEarlier({required Object label}) => '${label} əvvəl oynadılır';
-	@override String get noOffset => 'Ofset yoxdur';
 	@override String get letterbox => 'Geniş ekran (Letterbox)';
 	@override String get fillScreen => 'Ekrana doldur';
 	@override String get stretch => 'Gərmək';
@@ -1531,6 +1537,7 @@ class _Translations$music$az extends Translations$music$en {
 	@override String get repeatOne => 'Birini təkrarla';
 	@override String get instantMixNoServer => 'Ani miks üçün heç bir server mövcud deyil';
 	@override String noAudioUrl({required Object track}) => '${track} üçün səs URL-i mövcud deyil';
+	@override late final _Translations$music$discography$az discography = _Translations$music$discography$az._(_root);
 }
 
 // Path: watchTogether
@@ -1790,6 +1797,7 @@ class _Translations$performanceOverlay$az extends Translations$performanceOverla
 	@override String get decoder => 'Çözücü';
 	@override String get rawDecoder => 'Xam çözücü';
 	@override String get tunneling => 'Tünelləmə';
+	@override String get passthrough => 'Birbaşa ötürmə';
 	@override String get aspect => 'Nisbət';
 	@override String get rotation => 'Dönmə';
 	@override String get dvSource => 'DV mənbəyi';
@@ -1936,8 +1944,6 @@ class _Translations$metadataEdit$az extends Translations$metadataEdit$en {
 	@override String get country => 'Ölkə';
 	@override String get collection => 'Kolleksiya';
 	@override String get label => 'Etiket';
-	@override String get style => 'Stil';
-	@override String get mood => 'Əhval-ruhiyyə';
 }
 
 // Path: matchScreen
@@ -2311,7 +2317,6 @@ class _Translations$explore$badge$az extends Translations$explore$badge$en {
 	@override String rankPopular({required Object n}) => '#${n} populyar';
 	@override String rankAiring({required Object n}) => '#${n} yayımlanır';
 	@override String rankRated({required Object n}) => '#${n} qiymətləndirilib';
-	@override String rankFavorited({required Object n}) => '#${n} favorit';
 	@override String rankTrending({required Object n}) => '#${n} trenddə';
 	@override String rankSeasonal({required Object season, required Object n}) => '${season} üçün #${n}';
 	@override String watchingNow({required Object n}) => '${n} izləyir';
@@ -2479,6 +2484,18 @@ class _Translations$explore$detail$az extends Translations$explore$detail$en {
 	@override String recommendedByPercent({required Object percent}) => 'İzləyicilərin ${percent}-i tövsiyə edir';
 	@override String get relatedTitles => 'Əlaqəli başlıqlar';
 	@override String get background => 'Arxa fon';
+}
+
+// Path: music.discography
+class _Translations$music$discography$az extends Translations$music$discography$en {
+	_Translations$music$discography$az._(TranslationsAz root) : this._root = root, super.internal(root);
+
+	final TranslationsAz _root; // ignore: unused_field
+
+	// Translations
+	@override String get singlesAndEps => 'Single-lar və EP-lər';
+	@override String get live => 'Canlı';
+	@override String get compilations => 'Kompilyasiyalar';
 }
 
 // Path: downloads.backgroundWarning
@@ -2877,6 +2894,11 @@ extension on TranslationsAz {
 			'settings.followServerTrackSelectionsDescription' => 'Epizod dəyişəndə cari seçimi köçürmək əvəzinə serverdə seçilmiş səs və altyazını tətbiq et',
 			'settings.showChapterMarkersOnTimeline' => 'Zaman çubuğunda hissə işarələrini göstər',
 			'settings.showChapterMarkersOnTimelineDescription' => 'Zaman çubuğunu hissə sərhədlərinə böl',
+			'settings.specialsOrdering' => 'Xüsusi bölmələr epizod sırasına görə',
+			'settings.specialsOrderingDescription' => 'Xüsusi bölmələrin serialın izləmə sırasındakı yeri',
+			'settings.specialsOrderingServer' => 'Server sırasını izlə',
+			'settings.specialsOrderingAirDate' => 'Yayım tarixinə görə qarışdır',
+			'settings.specialsOrderingLast' => 'Adi mövsümlərdən sonra',
 			'settings.clickVideoTogglesPlayback' => 'Oynat/fasilə üçün videoya toxun',
 			'settings.clickVideoTogglesPlaybackDescription' => 'İdarəetməni göstərmək əvəzinə oynatmaq/fasilə etmək üçün videoya toxun.',
 			'settings.videoPlayerControls' => 'Video oynadıcı idarəetmələri',
@@ -3022,11 +3044,17 @@ extension on TranslationsAz {
 			'settings.subtitlesAndConfig' => 'Altyazılar və konfiqurasiya',
 			'settings.seekAndTiming' => 'Sarğı və vaxt tənzimləməsi',
 			'settings.behavior' => 'Davranış',
+			'settings.rememberPlayerChanges' => 'Pleyer dəyişikliklərini yadda saxla',
+			'settings.rememberPlayerChangesDescription' => 'Oxutma zamanı edilən dəyişikliklərin harada saxlanacağı və yenidən tətbiq ediləcəyi',
+			'settings.scopePlaybackSpeed' => 'Oxutma sürəti',
+			'settings.scopeShaderPreset' => 'Şader ön ayarı',
+			'settings.scopeAspectRatio' => 'Tərəf nisbəti',
+			'settings.scopeSyncOffsets' => 'Audio və subtitr sinxronizasiyası',
+			'settings.playerScopeOff' => 'Saxlama',
+			'settings.playerScopeGlobal' => 'Hər yerdə',
+			'settings.playerScopeLibrary' => 'Kitabxana üzrə',
+			'settings.playerScopeTitle' => 'Serial və ya film üzrə',
 			'settings.exportDialogTitle' => 'Plezy tənzimləmələrini ixrac et',
-			'settings.linuxVideoRenderMode' => 'Video göstərmə rejimi',
-			'settings.linuxVideoRenderModeDescription' => 'Avtomatik yerli Wayland müstəvisinə üstünlük verir (HDR dəstəkləyir); Texture SDR ehtiyat yolunu məcbur edir.',
-			'settings.linuxVideoRenderModeAuto' => 'Avtomatik',
-			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Kino, serial, musiqi axtar...',
 			'search.tryDifferentTerm' => 'Fərqli axtarış sözü cəhd edin',
 			'search.searchYourMedia' => 'Mediyanızda axtarın',
@@ -3195,6 +3223,8 @@ extension on TranslationsAz {
 			'mediaMenu.deleteMovieTitle' => 'Bu kino silinsin?',
 			'mediaMenu.deleteEpisodeConfirm' => 'Seriyanı sil',
 			'mediaMenu.deleteSeasonConfirm' => 'Mövsümü sil',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => 'Serialı sil',
 			'mediaMenu.deleteMovieConfirm' => 'Kinonu sil',
 			'mediaMenu.deleteAnyway' => 'Yenə də sil',
@@ -3206,8 +3236,6 @@ extension on TranslationsAz {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy bunun hansı faylları siləcəyini yoxlaya bilmədi, ona görə də yuxarıda adı çəkilən elementdən daha çoxunu silə bilər. Ləğv edib təzədən cəhd edin və ya yenə də silin.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Serveriniz bu element üçün fayl təfərrüatlarını təqdim etmədi, ona görə Plezy bunun hansı faylları siləcəyini yoxlaya bilmir. Yuxarıda adı çəkilən elementdən daha çoxunu silə bilər.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Media elementi uğurla silindi',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Media elementi silinə bilmədi',
 			'mediaMenu.rate' => 'Qiymətləndir',
 			'mediaMenu.playFromBeginning' => 'Əvvəldən oynat',
@@ -3253,12 +3281,7 @@ extension on TranslationsAz {
 			'audioTracks.track' => ({required Object n}) => 'Səs zolağı ${n}',
 			'videoControls.audioLabel' => 'Səs',
 			'videoControls.subtitlesLabel' => 'Altyazı',
-			'videoControls.resetToZero' => '0ms-yə sıfırla',
 			'videoControls.addTime' => ({required Object amount, required Object unit}) => '+${amount}${unit}',
-			'videoControls.minusTime' => ({required Object amount, required Object unit}) => '-${amount}${unit}',
-			'videoControls.playsLater' => ({required Object label}) => '${label} sonra oynadılır',
-			'videoControls.playsEarlier' => ({required Object label}) => '${label} əvvəl oynadılır',
-			'videoControls.noOffset' => 'Ofset yoxdur',
 			'videoControls.letterbox' => 'Geniş ekran (Letterbox)',
 			'videoControls.fillScreen' => 'Ekrana doldur',
 			'videoControls.stretch' => 'Gərmək',
@@ -3714,14 +3737,14 @@ extension on TranslationsAz {
 			'explore.characters' => 'Personajlar',
 			'explore.addToWatchlist' => 'İzləmə siyahısına əlavə et',
 			'explore.removeFromWatchlist' => 'İzləmə siyahısından sil',
+			_ => null,
+		} ?? switch (path) {
 			'explore.addedToWatchlist' => 'Baxış siyahısına əlavə edildi',
 			'explore.removedFromWatchlist' => 'Baxış siyahısından silindi',
 			'explore.watchlistUpdateFailed' => 'İzləmə siyahısı yenilənə bilmədi',
 			'explore.watchlistNoMatch' => 'Bu elementi heç bir baxış siyahısı ilə uyğunlaşdırmaq olmadı',
 			'explore.notInLibrary' => 'Kitabxananızda yoxdur',
 			'explore.inTheseLibraries' => 'Bu kitabxanalarda var',
-			_ => null,
-		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Kitabxananız yoxlanılır...',
 			'explore.emptyTitle' => 'Hələlik burada heç nə yoxdur',
 			'explore.emptyMessage' => ({required Object source}) => '${source} mənbəsindən olan sətirlər burada görünəcək.',
@@ -3732,7 +3755,6 @@ extension on TranslationsAz {
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} populyar',
 			'explore.badge.rankAiring' => ({required Object n}) => '#${n} yayımlanır',
 			'explore.badge.rankRated' => ({required Object n}) => '#${n} qiymətləndirilib',
-			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} favorit',
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} trenddə',
 			'explore.badge.rankSeasonal' => ({required Object season, required Object n}) => '${season} üçün #${n}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n} izləyir',
@@ -3979,6 +4001,9 @@ extension on TranslationsAz {
 			'music.repeatOne' => 'Birini təkrarla',
 			'music.instantMixNoServer' => 'Ani miks üçün heç bir server mövcud deyil',
 			'music.noAudioUrl' => ({required Object track}) => '${track} üçün səs URL-i mövcud deyil',
+			'music.discography.singlesAndEps' => 'Single-lar və EP-lər',
+			'music.discography.live' => 'Canlı',
+			'music.discography.compilations' => 'Kompilyasiyalar',
 			'watchTogether.title' => 'Birlikdə İzlə',
 			'watchTogether.description' => 'Dostlarınız və ailənizlə eyni vaxtda baxın',
 			'watchTogether.createSession' => 'Seans yarat',
@@ -4226,6 +4251,8 @@ extension on TranslationsAz {
 			'companionRemote.remote.subtitles' => 'Altyazılar',
 			'companionRemote.remote.audio' => 'Səs',
 			'companionRemote.remote.searchHint' => 'Masaüstündə axtar...',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.errors.noNetworkInterface' => 'Şəbəkə interfeysi tapılmadı',
 			'companionRemote.errors.authenticationFailed' => 'Kimlik doğrulanması uğursuz oldu',
 			'companionRemote.errors.serverStartFailed' => ({required Object error}) => 'Pult serveri başladıla bilmədi: ${error}',
@@ -4234,8 +4261,6 @@ extension on TranslationsAz {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Heç bir ünvana qoşuluna bilmədi',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => '${attempts} cəhddən sonra əlaqə kəsildi',
 			'companionRemote.errors.connectionLost' => 'Əlaqə kəsildi',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Bağlantı autentifikasiyadan əvvəl bağlandı',
 			'videoSettings.playbackSpeed' => 'Oynatma sürəti',
 			'videoSettings.normalSpeed' => 'Normal',
@@ -4268,6 +4293,7 @@ extension on TranslationsAz {
 			'performanceOverlay.decoder' => 'Çözücü',
 			'performanceOverlay.rawDecoder' => 'Xam çözücü',
 			'performanceOverlay.tunneling' => 'Tünelləmə',
+			'performanceOverlay.passthrough' => 'Birbaşa ötürmə',
 			'performanceOverlay.aspect' => 'Nisbət',
 			'performanceOverlay.rotation' => 'Dönmə',
 			'performanceOverlay.dvSource' => 'DV mənbəyi',
@@ -4396,8 +4422,6 @@ extension on TranslationsAz {
 			'metadataEdit.country' => 'Ölkə',
 			'metadataEdit.collection' => 'Kolleksiya',
 			'metadataEdit.label' => 'Etiket',
-			'metadataEdit.style' => 'Stil',
-			'metadataEdit.mood' => 'Əhval-ruhiyyə',
 			'matchScreen.match' => 'Uyğunlaşdır...',
 			'matchScreen.fixMatch' => 'Uyğunluğu düzəlt...',
 			'matchScreen.unmatch' => 'Uyğunluğu ləğv et',

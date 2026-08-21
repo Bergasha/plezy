@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 import 'package:plezy/database/app_database.dart';
+import 'package:plezy/media/artist_discography.dart';
 import 'package:plezy/exceptions/media_server_exceptions.dart';
 import 'package:plezy/media/ids.dart';
 import 'package:plezy/media/media_backend.dart';
@@ -13,11 +14,13 @@ import 'package:plezy/media/media_item.dart';
 import 'package:plezy/media/media_kind.dart';
 import 'package:plezy/services/plex_api_cache.dart';
 import 'package:plezy/services/plex_client.dart';
+import 'package:plezy/services/settings_service.dart';
 import 'package:plezy/utils/active_client_scope.dart';
 import 'package:plezy/utils/media_server_http_client.dart';
 
 import '../test_helpers/backend_client_fixtures.dart';
 import '../test_helpers/media_items.dart';
+import '../test_helpers/prefs.dart';
 
 void main() {
   late AppDatabase db;
@@ -440,7 +443,6 @@ void main() {
           'MediaContainer': {
             'playQueueID': '42',
             'playQueueSelectedItemID': '7',
-            'playQueueSelectedItemOffset': '1',
             'playQueueTotalCount': '3',
             'playQueueVersion': '5',
             'size': '3',
@@ -457,10 +459,49 @@ void main() {
 
     expect(queue?.playQueueID, 42);
     expect(queue?.playQueueSelectedItemID, 7);
-    expect(queue?.playQueueSelectedItemOffset, 1);
     expect(queue?.playQueueTotalCount, 3);
-    expect(queue?.playQueueVersion, 5);
     expect(queue?.size, 3);
+  });
+
+  test('show play queue source URI honors the specials-ordering preference', () async {
+    resetSharedPreferencesForTest();
+    await SettingsService.getInstance();
+
+    final uris = <String?>[];
+    final client = testPlexClient(
+      serverId: publicServerId,
+      profileScopeId: defaultProfileScopeId,
+      config: testPlexConfig(machineIdentifier: 'machine-1'),
+      handler: (request) async {
+        uris.add(request.url.queryParameters['uri']);
+        return http.Response(
+          jsonEncode({
+            'MediaContainer': {'playQueueID': '42', 'playQueueVersion': '5', 'Metadata': <dynamic>[]},
+          }),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      },
+    );
+    addTearDown(client.close);
+
+    // Default (respectServer) and explicit airDate: `/allLeaves` so Plex
+    // orders the queue by aired episode order with Specials interleaved
+    // (#1416).
+    final serverOrder = await client.createShowPlayQueue(showRatingKey: 'show-1');
+    expect(serverOrder, isNotNull);
+    expect(uris.single, 'server://machine-1/com.plexapp.plugins.library/library/metadata/show-1/allLeaves');
+
+    await SettingsService.instance.write(SettingsService.specialsOrdering, SpecialsOrdering.airDate);
+    await client.createShowPlayQueue(showRatingKey: 'show-1');
+    expect(uris.last, 'server://machine-1/com.plexapp.plugins.library/library/metadata/show-1/allLeaves');
+
+    // specialsLast: `/children` keeps the Specials folder out of the regular
+    // run (#1952).
+    await SettingsService.instance.write(SettingsService.specialsOrdering, SpecialsOrdering.specialsLast);
+    final specialsApart = await client.createShowPlayQueue(showRatingKey: 'show-1');
+    expect(specialsApart, isNotNull);
+    expect(uris.last, 'server://machine-1/com.plexapp.plugins.library/library/metadata/show-1/children');
   });
 
   test('activities tolerate scalar drift and skip only malformed rows', () async {
@@ -1026,6 +1067,191 @@ void main() {
     expect(albums.map((album) => album.id), ['album-1']);
   });
 
+  test('fetchArtistDiscography fetches tags in one batch and classifies per album', () async {
+    const baseKey = '/library/metadata/artist-1/children';
+    final requests = <Uri>[];
+    final client = makeClient((request) async {
+      requests.add(request.url);
+      if (request.url.path == '/library/sections/7/all') {
+        return http.Response(
+          jsonEncode({
+            'MediaContainer': {
+              'librarySectionID': 7,
+              'size': 5,
+              'totalSize': 5,
+              'Metadata': [
+                for (final id in ['album-1', 'album-2', 'album-ep', 'album-live', 'album-comp'])
+                  {'ratingKey': id, 'type': 'album', 'title': id},
+              ],
+            },
+          }),
+          200,
+          headers: const {'content-type': 'application/json'},
+        );
+      }
+      // Batched by-id metadata request: the only response shape that carries
+      // Format/Subformat. `album-ep` is deliberately dual-tagged to pin the
+      // singles-over-live precedence, and tag casing is mixed to pin
+      // case-insensitive matching.
+      return http.Response(
+        jsonEncode({
+          'MediaContainer': {
+            'size': 5,
+            'Metadata': [
+              {'ratingKey': 'album-1', 'type': 'album', 'title': 'album-1'},
+              {'ratingKey': 'album-2', 'type': 'album', 'title': 'album-2'},
+              {
+                'ratingKey': 'album-ep',
+                'type': 'album',
+                'title': 'album-ep',
+                'Format': [
+                  {'tag': 'EP'},
+                ],
+                'Subformat': [
+                  {'tag': 'Live'},
+                ],
+              },
+              {
+                'ratingKey': 'album-live',
+                'type': 'album',
+                'title': 'album-live',
+                'Subformat': [
+                  {'tag': 'Live'},
+                ],
+              },
+              {
+                'ratingKey': 'album-comp',
+                'type': 'album',
+                'title': 'album-comp',
+                'Subformat': [
+                  {'tag': 'compilation'},
+                ],
+              },
+            ],
+          },
+        }),
+        200,
+        headers: const {'content-type': 'application/json'},
+      );
+    });
+    addTearDown(client.close);
+
+    final groups = await client.fetchArtistDiscography(
+      testMediaItem(id: 'artist-1', kind: MediaKind.artist, libraryId: '7'),
+    );
+
+    // Exactly two requests: the unchanged album listing plus one batched
+    // by-id tag lookup with explicit container bounds.
+    expect(requests, hasLength(2));
+    expect(requests[0].path, '/library/sections/7/all');
+    expect(requests[0].queryParameters['type'], '9');
+    expect(requests[0].queryParameters['artist.id'], 'artist-1');
+    expect(requests[0].queryParameters['sort'], 'album.year:desc');
+    expect(Uri.decodeComponent(requests[1].path), '/library/metadata/album-1,album-2,album-ep,album-live,album-comp');
+    expect(requests[1].queryParameters['X-Plex-Container-Start'], '0');
+    expect(requests[1].queryParameters['X-Plex-Container-Size'], '5');
+
+    expect(groups.map((group) => group.kind), [
+      DiscographyGroupKind.albums,
+      DiscographyGroupKind.singlesAndEps,
+      DiscographyGroupKind.live,
+      DiscographyGroupKind.compilations,
+    ]);
+    expect(groups.map((group) => group.items.map((item) => item.id).toList()), [
+      ['album-1', 'album-2'],
+      ['album-ep'],
+      ['album-live'],
+      ['album-comp'],
+    ]);
+
+    // The listing keeps the fetchArtistAlbums cache identity; the tag batch
+    // gets its own row.
+    final cache = PlexApiCache.instance;
+    Future<List<String>> cachedRatingKeys(String key) async {
+      final cached = await cache.get(defaultProfileScopeId.cacheServerId, key);
+      final container = cached!['MediaContainer'] as Map<String, dynamic>;
+      return [
+        for (final item in container['Metadata'] as List<dynamic>)
+          (item as Map<String, dynamic>)['ratingKey'] as String,
+      ];
+    }
+
+    expect(await cachedRatingKeys(baseKey), ['album-1', 'album-2', 'album-ep', 'album-live', 'album-comp']);
+    expect(await cachedRatingKeys('/library/metadata/artist-1/discography-tags/0'), [
+      'album-1',
+      'album-2',
+      'album-ep',
+      'album-live',
+      'album-comp',
+    ]);
+  });
+
+  test('fetchArtistDiscography degrades to a flat albums group when the tag batch fails', () async {
+    final requests = <Uri>[];
+    final client = makeClient((request) async {
+      requests.add(request.url);
+      if (request.url.path != '/library/sections/7/all') {
+        return http.Response('boom', 500, headers: const {'content-type': 'application/json'});
+      }
+      return http.Response(
+        jsonEncode({
+          'MediaContainer': {
+            'librarySectionID': 7,
+            'size': 2,
+            'totalSize': 2,
+            'Metadata': [
+              {'ratingKey': 'album-1', 'type': 'album', 'title': 'Album 1'},
+              {'ratingKey': 'album-2', 'type': 'album', 'title': 'Album 2'},
+            ],
+          },
+        }),
+        200,
+        headers: const {'content-type': 'application/json'},
+      );
+    });
+    addTearDown(client.close);
+
+    final groups = await client.fetchArtistDiscography(
+      testMediaItem(id: 'artist-1', kind: MediaKind.artist, libraryId: '7'),
+    );
+
+    expect(groups, hasLength(1));
+    expect(groups.single.kind, DiscographyGroupKind.albums);
+    expect(groups.single.items.map((item) => item.id), ['album-1', 'album-2']);
+  });
+
+  test('fetchArtistDiscography skips the tag batch for a single-album artist', () async {
+    final requests = <Uri>[];
+    final client = makeClient((request) async {
+      requests.add(request.url);
+      return http.Response(
+        jsonEncode({
+          'MediaContainer': {
+            'librarySectionID': 7,
+            'size': 1,
+            'totalSize': 1,
+            'Metadata': [
+              {'ratingKey': 'album-1', 'type': 'album', 'title': 'Album 1'},
+            ],
+          },
+        }),
+        200,
+        headers: const {'content-type': 'application/json'},
+      );
+    });
+    addTearDown(client.close);
+
+    final groups = await client.fetchArtistDiscography(
+      testMediaItem(id: 'artist-1', kind: MediaKind.artist, libraryId: '7'),
+    );
+
+    // Grouping is invisible with one album, so no tag lookup is issued.
+    expect(requests, hasLength(1));
+    expect(requests.single.path, '/library/sections/7/all');
+    expect(groups.single.kind, DiscographyGroupKind.albums);
+    expect(groups.single.items.map((item) => item.id), ['album-1']);
+  });
+
   test('profile transition isolates metadata and every direct cache-only bypass', () async {
     final scopeA = buildPlexProfileScopeId(serverId: publicServerId, profileId: 'profile-a');
     final scopeB = buildPlexProfileScopeId(serverId: publicServerId, profileId: 'profile-b');
@@ -1250,6 +1476,89 @@ void main() {
     expect(requests.where((request) => request.path == endpoint).map((request) => request.token), [tokenA]);
     expect(await PlexApiCache.instance.get(scopeA.cacheServerId, endpoint), payload('Profile A response', 101));
     expect(await PlexApiCache.instance.get(scopeB.cacheServerId, endpoint), isNull);
+  });
+
+  group('Plex timeline termination contract', () {
+    // Response documented by the published PMS OpenAPI spec for /:/timeline
+    // (`adminTerminatedSession` example): the server signals a terminated
+    // session on the MediaContainer of the next timeline reply (#1916).
+    Map<String, dynamic> terminatedBody({Object code = 2006}) => {
+      'MediaContainer': {
+        'size': 0,
+        'terminationCode': code,
+        'terminationText': 'Admin terminated playback with reason: Go Away',
+      },
+    };
+
+    PlexClient timelineClient(Object? body, {void Function(http.Request request)? onRequest}) =>
+        makeClient((request) async {
+          expect(request.url.path, '/:/timeline');
+          onRequest?.call(request);
+          return http.Response(jsonEncode(body), 200, headers: const {'content-type': 'application/json'});
+        });
+
+    test('progress and started reports throw on a terminated session', () async {
+      final client = timelineClient(terminatedBody());
+      addTearDown(client.close);
+
+      await expectLater(
+        client.reportPlaybackProgress(
+          itemId: '42',
+          position: const Duration(minutes: 2),
+          duration: const Duration(minutes: 20),
+          isPaused: true,
+        ),
+        throwsA(
+          isA<PlaybackSessionTerminatedException>()
+              .having((e) => e.code, 'code', 2006)
+              .having((e) => e.reason, 'reason', 'Admin terminated playback with reason: Go Away'),
+        ),
+      );
+      await expectLater(
+        client.reportPlaybackStarted(itemId: '42', position: const Duration(minutes: 2)),
+        throwsA(isA<PlaybackSessionTerminatedException>()),
+      );
+    });
+
+    test('stopped report ignores termination: it is the cleanup call that clears the session', () async {
+      String? reportedState;
+      final client = timelineClient(
+        terminatedBody(),
+        onRequest: (request) => reportedState = request.url.queryParameters['state'],
+      );
+      addTearDown(client.close);
+
+      await client.reportPlaybackStopped(itemId: '42', position: const Duration(minutes: 2));
+      expect(reportedState, 'stopped');
+    });
+
+    test('tolerates a string terminationCode', () async {
+      final client = timelineClient(terminatedBody(code: '2006'));
+      addTearDown(client.close);
+
+      await expectLater(
+        client.reportPlaybackProgress(
+          itemId: '42',
+          position: const Duration(minutes: 2),
+          duration: const Duration(minutes: 20),
+        ),
+        throwsA(isA<PlaybackSessionTerminatedException>().having((e) => e.code, 'code', 2006)),
+      );
+    });
+
+    test('normal timeline reply does not throw', () async {
+      final client = timelineClient({
+        'MediaContainer': {'size': 0},
+      });
+      addTearDown(client.close);
+
+      await client.reportPlaybackProgress(
+        itemId: '42',
+        position: const Duration(minutes: 2),
+        duration: const Duration(minutes: 20),
+        isPaused: true,
+      );
+    });
   });
 }
 

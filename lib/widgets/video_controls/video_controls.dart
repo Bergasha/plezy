@@ -41,6 +41,7 @@ import '../../mpv/mpv.dart';
 import '../overlay_sheet.dart';
 import '../../focus/dpad_navigator.dart';
 import '../../focus/focus_navigation_intent.dart';
+import '../../focus/transport_keys.dart';
 
 import '../../database/app_database.dart';
 import '../../media/media_backend.dart';
@@ -56,12 +57,14 @@ import '../../focus/key_event_utils.dart';
 import '../../services/keyboard_shortcuts_service.dart';
 import '../../services/device_adjustment_service.dart';
 import '../../services/scrub_preview_source.dart';
+import '../../services/scoped_player_prefs.dart';
 import '../../services/settings_service.dart';
 import '../../services/video_volume_controller.dart';
 import '../../utils/codec_utils.dart';
 import '../../utils/formatters.dart';
 import '../../utils/platform_detector.dart';
 import '../../utils/player_utils.dart';
+import '../../utils/route_visibility.dart';
 import '../../theme/mono_tokens.dart';
 import '../../utils/provider_extensions.dart';
 import '../../utils/snackbar_helper.dart';
@@ -300,6 +303,7 @@ class PlayerNavigationCoordinator {
   final bool Function() isChromePresented;
   final Future<bool> Function() exitFullscreenIfActive;
   final bool Function() _physicalEscapeExitsFullscreen;
+  final bool Function() _exitPlayerBeforeChrome;
   final VoidCallback exitPlayer;
   final VoidCallback navigateHome;
   final bool Function() isActive;
@@ -313,14 +317,17 @@ class PlayerNavigationCoordinator {
     required this.isChromePresented,
     required this.exitFullscreenIfActive,
     bool Function()? physicalEscapeExitsFullscreen,
+    bool Function()? exitPlayerBeforeChrome,
     required this.exitPlayer,
     required this.navigateHome,
     bool Function()? isActive,
   }) : _physicalEscapeExitsFullscreen = physicalEscapeExitsFullscreen ?? _alwaysTrue,
+       _exitPlayerBeforeChrome = exitPlayerBeforeChrome ?? _alwaysFalse,
        isActive = isActive ?? _alwaysActive;
 
   static bool _alwaysActive() => true;
   static bool _alwaysTrue() => true;
+  static bool _alwaysFalse() => false;
 
   void handle(PlayerNavigationKey navigationKey) {
     if (navigationKey == PlayerNavigationKey.home) {
@@ -329,6 +336,12 @@ class PlayerNavigationCoordinator {
     }
     if (isPromptOpen()) {
       dismissPrompt();
+      return;
+    }
+    if (navigationKey == PlayerNavigationKey.back && _exitPlayerBeforeChrome()) {
+      // Mobile Back exits even with the chrome up (#1938); the staged
+      // strip/fullscreen/hide/exit chain is TV and desktop behavior.
+      exitPlayer();
       return;
     }
     final disposition = resolvePlayerBackDisposition(
@@ -477,20 +490,6 @@ KeyEventResult handlePlayerNavigationKeyAction(
 @visibleForTesting
 bool shouldSkipDuplicateTimelineSeek({required Duration? lastDispatchedSeek, required Duration finalSeek}) {
   return lastDispatchedSeek == finalSeek;
-}
-
-/// A user transport intent. `play`/`pause` are *directed* — a remote with
-/// dedicated buttons must not flip the state it explicitly asked for.
-enum TransportCommand { play, pause, toggle }
-
-/// Maps hardware media transport keys to their intent. Returns null for keys
-/// that are not transport keys (including the configured play/pause hotkey,
-/// which callers resolve to [TransportCommand.toggle] themselves).
-TransportCommand? classifyTransportKey(LogicalKeyboardKey key) {
-  if (key == LogicalKeyboardKey.mediaPlay) return TransportCommand.play;
-  if (key == LogicalKeyboardKey.mediaPause) return TransportCommand.pause;
-  if (key == LogicalKeyboardKey.mediaPlayPause) return TransportCommand.toggle;
-  return null;
 }
 
 /// Directional seeking with the chrome hidden owns the whole key burst —
@@ -1129,9 +1128,10 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
     // reclaim re-tests `hasFocus` when it runs, so once the surface holds the
     // remote the two no longer compete.
     if (!mounted || _focusNode.hasFocus) return;
-    // A route pushed above the player still leaves these controls mounted;
+    // A route pushed above the player still leaves these controls mounted —
+    // on this navigator or an ancestor one (root-navigator dialogs/picker);
     // re-activating the window must not pull the remote off the top route.
-    if (ModalRoute.of(context)?.isCurrent != true) return;
+    if (!isRouteChainCurrent(context)) return;
     _claimPlayerSurfaceFocus();
   }
 

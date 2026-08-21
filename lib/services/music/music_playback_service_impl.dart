@@ -26,6 +26,7 @@ import '../playback_coordinator.dart';
 import '../playback_initialization_service.dart';
 import '../playback_progress_tracker.dart';
 import '../settings_service.dart';
+import 'music_hardware_transport.dart';
 import 'music_playback_service.dart';
 import 'music_queue_controller.dart';
 import 'music_source_resolver.dart';
@@ -71,13 +72,12 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
     this._audioPlayerFactory = Player.audio,
     this._mediaControlsFactory = MediaControlsManager.new,
     this._completedConfirmDelay = const Duration(milliseconds: 400),
-    PlaybackCoordinator? coordinator,
     @visibleForTesting Future<void> Function(double)? volumePersistenceWriter,
     @visibleForTesting Random? queueRandom,
   }) : assert(resolver != null || database != null, 'database is required to build the default resolver'),
        _serverManager = serverManager,
        _resolver = resolver ?? ServerMusicSourceResolver(serverManager: serverManager, database: database!),
-       _coordinator = coordinator ?? PlaybackCoordinator.instance,
+       _coordinator = PlaybackCoordinator.instance,
        _queue = MusicQueueController(random: queueRandom),
        _volumePersistenceWriter = volumePersistenceWriter ?? _writePersistedVolume {
     _coordinator.registerMusicSession(stopAndDispose: _stopForVideoClaim);
@@ -132,6 +132,11 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
 
   MediaControlsManager? _mediaControls;
   StreamSubscription<MediaControlEvent>? _controlEventsSub;
+
+  /// Foreground hardware media keys (Android HID remotes, #1948). Same
+  /// lifecycle as [_mediaControls]; routes to the same methods as
+  /// [_mediaControlRouter].
+  MusicHardwareTransportHandler? _hardwareTransport;
 
   MusicPlaybackStatus _status = MusicPlaybackStatus.idle;
   MediaItem? _currentTrack;
@@ -199,7 +204,6 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
   bool get _carBackgroundAudioAvailable => CarUxRestrictionsService.instance.state != CarUxRestrictionState.unknown;
 
   Timer? _sleepTimer;
-  DateTime? _sleepTimerEndsAt;
   Duration? _sleepTimerDuration;
   bool _sleepTimerEndOfTrack = false;
 
@@ -255,9 +259,6 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
 
   @override
   bool get sleepTimerActive => _sleepTimer != null || _sleepTimerEndOfTrack;
-
-  @override
-  DateTime? get sleepTimerEndsAt => _sleepTimerEndsAt;
 
   @override
   Duration? get sleepTimerDuration => _sleepTimerDuration;
@@ -902,6 +903,17 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
     final controls = _mediaControlsFactory();
     _mediaControls = controls;
     _controlEventsSub = controls.controlEvents.listen(_onControlEvent);
+    _hardwareTransport ??= MusicHardwareTransportHandler(
+      hasActiveSession: () => !_disposed && _currentTrack != null,
+      onPlay: () => unawaited(play()),
+      onPause: () => unawaited(pause()),
+      onTogglePlayPause: () => unawaited(togglePlayPause()),
+      onNext: () => unawaited(next()),
+      onPrevious: () => unawaited(previous()),
+      onStop: () => unawaited(stop()),
+      onSkipForward: () => unawaited(_seekRelative(_defaultSkipInterval)),
+      onSkipBackward: () => unawaited(_seekRelative(-_defaultSkipInterval)),
+    )..register();
   }
 
   void _syncControlsAvailability() {
@@ -914,8 +926,10 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
         canSeek: true,
         canStop: true,
         // In-track skips: Bluetooth/steering-wheel fast-forward and rewind
-        // buttons map here on Android. (Never surfaced on iOS/macOS — see
-        // MediaControlsManager.setControlsEnabled.)
+        // buttons map here on Android. (Not surfaced on iOS/macOS — music
+        // keeps next/previous as its lock-screen transport; see
+        // MediaControlsManager.setControlsEnabled's preferSkipOverTrackButtons,
+        // which music deliberately leaves unset.)
         canSkip: true,
         // Music always plays at 1.0 — never advertise a speed control.
       ),
@@ -1425,12 +1439,10 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
   void setSleepTimer(Duration? duration, {bool endOfTrack = false}) {
     _sleepTimer?.cancel();
     _sleepTimer = null;
-    _sleepTimerEndsAt = null;
     _sleepTimerDuration = null;
     final hadEndOfTrack = _sleepTimerEndOfTrack;
     _sleepTimerEndOfTrack = endOfTrack;
     if (!endOfTrack && duration != null) {
-      _sleepTimerEndsAt = DateTime.now().add(duration);
       _sleepTimerDuration = duration;
       _sleepTimer = Timer(duration, _onSleepTimerFired);
     }
@@ -1444,7 +1456,6 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
 
   void _onSleepTimerFired() {
     _sleepTimer = null;
-    _sleepTimerEndsAt = null;
     _sleepTimerDuration = null;
     unawaited(pause());
     notifyListeners();
@@ -1453,7 +1464,6 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
   void _cancelSleepTimer() {
     _sleepTimer?.cancel();
     _sleepTimer = null;
-    _sleepTimerEndsAt = null;
     _sleepTimerDuration = null;
     _sleepTimerEndOfTrack = false;
   }
@@ -1507,6 +1517,11 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
   /// suspend: [dispose] is a synchronous override and needs the whole teardown
   /// to run in the caller's turn, before `super.dispose()`.
   Future<void> _teardownPlayerAndControls({required bool awaitStop}) async {
+    // Before any await: the session is already inert (guards check
+    // [_currentTrack]/[_disposed]), and the handler must not outlive the turn
+    // that tears the session down.
+    _hardwareTransport?.unregister();
+    _hardwareTransport = null;
     for (final sub in _playerSubs) {
       unawaited(sub.cancel());
     }

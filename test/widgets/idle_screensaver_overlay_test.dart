@@ -19,6 +19,7 @@ import 'package:plezy/services/data_aggregation_service.dart';
 import 'package:plezy/services/gamepad_service.dart';
 import 'package:plezy/services/multi_server_manager.dart';
 import 'package:plezy/services/settings_service.dart';
+import 'package:plezy/utils/media_server_http_client.dart';
 import 'package:plezy/widgets/cycling_media_backdrop.dart';
 import 'package:plezy/widgets/idle_screensaver_overlay.dart';
 
@@ -60,7 +61,12 @@ class _FakeClient implements MediaServerClient {
   String thumbnailUrl(String? path, {int? width, int? height, bool cover = true}) => 'https://test/$path';
 
   @override
-  Future<LibraryPage<MediaItem>> fetchLibraryContent(String libraryId, LibraryQuery query) async {
+  Future<LibraryPage<MediaItem>> fetchLibraryPagedContent(
+    String libraryId, {
+    required LibraryQuery query,
+    MediaKind? libraryKind,
+    AbortController? abort,
+  }) async {
     return LibraryPage(items: libraryContent, totalCount: libraryContent.length);
   }
 

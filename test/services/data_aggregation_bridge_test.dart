@@ -207,6 +207,7 @@ void main() {
     test('searchAcrossServers and getOnDeckFromAllServers return empty when no clients', () async {
       final search = await service.searchAcrossServers('hello');
       expect(search.items, isEmpty);
+      expect(search.candidates, isEmpty);
       expect(search.succeededServerIds, isEmpty);
       expect(search.cancelledServerIds, isEmpty);
       expect(search.failedServerIds, isEmpty);
@@ -340,6 +341,44 @@ void main() {
       expect(result.items.map((item) => item.id), ['visible-1']);
     });
 
+    test('candidates keeps rows the ranked limit dropped, minus hidden ones', () async {
+      // The search screen's kind filter re-ranks `candidates`, so a kind
+      // crowded out of the trimmed `items` must still be present there — but
+      // a hidden library's rows must not be.
+      final movie = testMediaItem(
+        id: 'movie-1',
+        backend: MediaBackend.plex,
+        kind: MediaKind.movie,
+        title: 'Target',
+        serverId: 'plex',
+        libraryId: '1',
+      );
+      final episode = testMediaItem(
+        id: 'episode-1',
+        backend: MediaBackend.plex,
+        kind: MediaKind.episode,
+        title: 'Target Sequel',
+        serverId: 'plex',
+        libraryId: '1',
+      );
+      final hidden = testMediaItem(
+        id: 'hidden-1',
+        backend: MediaBackend.plex,
+        kind: MediaKind.track,
+        title: 'Target',
+        serverId: 'plex',
+        libraryId: '2',
+      );
+      manager.debugRegisterClientForTesting(
+        _LibrariesClient(ServerId('plex'), searchResults: [movie, episode, hidden]),
+      );
+
+      final result = await service.searchAcrossServers('Target', limit: 1, hiddenLibraryKeys: {'plex:2'});
+
+      expect(result.items.map((item) => item.id), ['movie-1']);
+      expect(result.candidates.map((item) => item.id), unorderedEquals(['movie-1', 'episode-1']));
+    });
+
     test('each server is told only about its own hidden libraries', () async {
       // Global keys are cross-server; a backend that scopes its search needs
       // the bare library ids it actually owns, and none of its neighbour's.
@@ -401,6 +440,13 @@ void main() {
         connection: _conn(),
         httpClient: MockClient((req) async {
           jellyfinRequests.add(req.url);
+          if (req.url.path == '/Users/user-1/Views') {
+            return _json({
+              'Items': [
+                {'Id': 'shows', 'Name': 'Shows', 'CollectionType': 'tvshows'},
+              ],
+            });
+          }
           if (req.url.path == '/Items') {
             return _json({
               'Items': [
@@ -417,16 +463,22 @@ void main() {
       final results = await service.searchAcrossServers('Spider Man', limit: 1);
 
       expect(results.items.map((item) => item.id), ['jf-show']);
+      // The winning hit carries the library it was found in — a scoped
+      // request per visible library is the only way a Jellyfin search row
+      // ever learns its library (#1970).
+      expect(results.items.single.libraryId, 'shows');
+      expect(results.items.single.libraryTitle, 'Shows');
       expect(plexRequests.single.queryParameters['query'], 'Spider Man');
       expect(plexRequests.single.queryParameters['limit'], '100');
       expect(plexRequests.single.queryParameters['searchTypes'], 'movies,tv,music');
-      // Jellyfin search fans out to /Items plus a best-effort /Artists call
-      // (500 above → treated as empty).
+      // Jellyfin search is always library-scoped: each visible library gets
+      // its own /Items request with the full candidate budget, and a video
+      // library issues no /Artists leg.
       final jfItemsRequest = jellyfinRequests.singleWhere((url) => url.path == '/Items');
       expect(jfItemsRequest.queryParameters['Limit'], '100');
       expect(jfItemsRequest.queryParameters['SearchTerm'], 'Spider Man');
-      final jfArtistsRequest = jellyfinRequests.singleWhere((url) => url.path == '/Artists');
-      expect(jfArtistsRequest.queryParameters['searchTerm'], 'Spider Man');
+      expect(jfItemsRequest.queryParameters['ParentId'], 'shows');
+      expect(jellyfinRequests.where((url) => url.path == '/Artists'), isEmpty);
     });
 
     test('getOnDeckFromAllServers forwards preview limit to clients', () async {
@@ -868,7 +920,7 @@ void main() {
               final parentId = req.url.queryParameters['ParentId']!;
               return _json({
                 'Items': [
-                  {'Id': 'item-$parentId', 'Type': 'Movie', 'Name': 'Latest $parentId', 'ParentLibraryId': parentId},
+                  {'Id': 'item-$parentId', 'Type': 'Movie', 'Name': 'Latest $parentId'},
                 ],
               });
             } finally {
@@ -924,12 +976,12 @@ void main() {
             return switch (parentId) {
               'movies' => _json({
                 'Items': [
-                  {'Id': 'movie-1', 'Type': 'Movie', 'Name': 'Latest Movie', 'ParentLibraryId': 'movies'},
+                  {'Id': 'movie-1', 'Type': 'Movie', 'Name': 'Latest Movie'},
                 ],
               }),
               'shows' => _json({
                 'Items': [
-                  {'Id': 'show-1', 'Type': 'Series', 'Name': 'Latest Show', 'ParentLibraryId': 'shows'},
+                  {'Id': 'show-1', 'Type': 'Series', 'Name': 'Latest Show'},
                 ],
               }),
               _ => http.Response('mixed latest should not be requested', 500),
@@ -981,22 +1033,22 @@ void main() {
             return switch (parentId) {
               'movies' => _json({
                 'Items': [
-                  {'Id': 'movie-1', 'Type': 'Movie', 'Name': 'Latest Movie', 'ParentLibraryId': 'movies'},
+                  {'Id': 'movie-1', 'Type': 'Movie', 'Name': 'Latest Movie'},
                 ],
               }),
               'mv' => _json({
                 'Items': [
-                  {'Id': 'mv-1', 'Type': 'MusicVideo', 'Name': 'Latest Music Video', 'ParentLibraryId': 'mv'},
+                  {'Id': 'mv-1', 'Type': 'MusicVideo', 'Name': 'Latest Music Video'},
                 ],
               }),
               'home-vids' => _json({
                 'Items': [
-                  {'Id': 'vid-1', 'Type': 'Video', 'Name': 'Latest Home Video', 'ParentLibraryId': 'home-vids'},
+                  {'Id': 'vid-1', 'Type': 'Video', 'Name': 'Latest Home Video'},
                 ],
               }),
               'music' => _json({
                 'Items': [
-                  {'Id': 'album-1', 'Type': 'MusicAlbum', 'Name': 'Latest Album', 'ParentLibraryId': 'music'},
+                  {'Id': 'album-1', 'Type': 'MusicAlbum', 'Name': 'Latest Album'},
                 ],
               }),
               _ => http.Response('latest should not be requested for $parentId', 500),
@@ -1060,7 +1112,7 @@ void main() {
           captured.add(req.url);
           if (req.url.path == '/Users/user-1/Items/Latest') {
             return _json([
-              {'Id': 'album-1', 'Type': 'MusicAlbum', 'Name': 'Latest Album', 'ParentLibraryId': 'music'},
+              {'Id': 'album-1', 'Type': 'MusicAlbum', 'Name': 'Latest Album'},
             ]);
           }
           if (req.url.path == '/Items' && req.url.queryParameters['Filters'] == 'IsPlayed') {
@@ -1071,7 +1123,6 @@ void main() {
                   'Id': sortBy == 'DatePlayed' ? 'recent-track' : 'most-played-track',
                   'Type': 'Audio',
                   'Name': sortBy == 'DatePlayed' ? 'Recent Track' : 'Most Played Track',
-                  'ParentLibraryId': 'music',
                 },
               ],
             });

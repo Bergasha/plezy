@@ -35,12 +35,10 @@ class WatchTogetherController {
         myPeerId: peerService.myPeerId ?? '',
         controlMode: session.controlMode,
         sendState: _sendState,
-        callbacks: HostCoordinatorCallbacks(
-          onPhaseChanged: (phase) => onPhaseChanged?.call(phase),
-          onWaitingOnChanged: (peers) => onWaitingOnChanged?.call(peers),
-          onResumedWithout: (peers) => onResumedWithout?.call(peers),
-          onRemoteAction: (peer, hint) => onRemoteAction?.call(peer, hint),
-        ),
+        onPhaseChanged: (phase) => onPhaseChanged?.call(phase),
+        onWaitingOnChanged: (peers) => onWaitingOnChanged?.call(peers),
+        onResumedWithout: (peers) => onResumedWithout?.call(peers),
+        onRemoteAction: (peer, hint) => onRemoteAction?.call(peer, hint),
         nowMs: _nowMs,
       );
     } else {
@@ -49,14 +47,12 @@ class WatchTogetherController {
         myPeerId: peerService.myPeerId ?? '',
         sendToHost: _sendToHost,
         clockSync: _clockSync!,
-        callbacks: GuestReconcilerCallbacks(
-          onMediaSwitchNeeded: (ratingKey, serverId, title) => onMediaStateReceived?.call(ratingKey, serverId, title),
-          onControlModeChanged: (mode) => onControlModeReceived?.call(mode),
-          onPhaseChanged: (phase) => onPhaseChanged?.call(phase),
-          onWaitingOnChanged: (peers) => onWaitingOnChanged?.call(peers),
-          onCorrectingChanged: (correcting) => onCorrectingChanged?.call(correcting),
-          onRemoteAction: (peer, hint) => onRemoteAction?.call(peer, hint),
-        ),
+        onMediaSwitchNeeded: (ratingKey, serverId, title) => onMediaStateReceived?.call(ratingKey, serverId, title),
+        onControlModeChanged: (mode) => onControlModeReceived?.call(mode),
+        onPhaseChanged: (phase) => onPhaseChanged?.call(phase),
+        onWaitingOnChanged: (peers) => onWaitingOnChanged?.call(peers),
+        onCorrectingChanged: (correcting) => onCorrectingChanged?.call(correcting),
+        onRemoteAction: (peer, hint) => onRemoteAction?.call(peer, hint),
         nowMs: _nowMs,
       );
       _clockSync!.start();
@@ -222,7 +218,14 @@ class WatchTogetherController {
   void announceJoin(String displayName) {
     final peerId = _peerService.myPeerId;
     if (peerId == null) return;
-    _peerService.broadcast(SyncMessage.join(peerId: peerId, displayName: displayName, isHost: _session.isHost));
+    _peerService.broadcast(
+      SyncMessage.join(
+        peerId: peerId,
+        displayName: displayName,
+        isHost: _session.isHost,
+        controlMode: _session.isHost ? _session.controlMode : null,
+      ),
+    );
   }
 
   void announceLeave() {
@@ -394,7 +397,17 @@ class WatchTogetherController {
 
     if (_session.isHost) {
       _coordinator?.onPeerJoined(senderId, compatible: compatible);
-    } else if (senderId == _session.hostPeerId && firstSighting) {
+      return;
+    }
+
+    if (senderId != _session.hostPeerId) return;
+    // The host's join carries the room's control mode — the lobby-safe
+    // carrier, since PlaybackState only flows once a media epoch exists.
+    // Authenticated by the relay-derived host peer ID, not the join's own
+    // spoofable isHost flag.
+    final controlMode = message.controlMode;
+    if (controlMode != null) onControlModeReceived?.call(controlMode);
+    if (firstSighting) {
       // A fresh host join can mean a restarted host app with a reset
       // sequence counter — accept its numbering from scratch.
       _reconciler?.resetSequence();

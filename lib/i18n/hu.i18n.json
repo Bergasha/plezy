@@ -195,6 +195,11 @@
     "followServerTrackSelectionsDescription": "Epizódváltáskor a szerveren kiválasztott hang és felirat lép életbe az aktuális választás átvitele helyett",
     "showChapterMarkersOnTimeline": "Fejezetjelölők megjelenítése az idősávon",
     "showChapterMarkersOnTimelineDescription": "Az idősáv felosztása a fejezetek határainál",
+    "specialsOrdering": "Különkiadások epizódsorrendben",
+    "specialsOrderingDescription": "A különkiadások helye a sorozat lejátszási sorrendjében",
+    "specialsOrderingServer": "Szerver szerinti sorrend",
+    "specialsOrderingAirDate": "Adás dátuma szerint közbeszúrva",
+    "specialsOrderingLast": "A normál évadok után",
     "clickVideoTogglesPlayback": "Kattintás a videóra a lejátszás/szünet váltásához",
     "clickVideoTogglesPlaybackDescription": "A videóra kattintva vált a lejátszás/szünet, a vezérlők megjelenítése helyett.",
     "videoPlayerControls": "Videólejátszó vezérlői",
@@ -340,11 +345,17 @@
     "subtitlesAndConfig": "Feliratok és konfiguráció",
     "seekAndTiming": "Tekerés és időzítés",
     "behavior": "Viselkedés",
-    "exportDialogTitle": "Plezy-beállítások exportálása",
-    "linuxVideoRenderMode": "Videó megjelenítési mód",
-    "linuxVideoRenderModeDescription": "Az Automatikus a natív Wayland síkot részesíti előnyben (HDR-képes); a Texture az SDR tartalék utat kényszeríti ki.",
-    "linuxVideoRenderModeAuto": "Automatikus",
-    "linuxVideoRenderModeTexture": "Texture (SDR)"
+    "rememberPlayerChanges": "Lejátszó módosításainak megjegyzése",
+    "rememberPlayerChangesDescription": "A lejátszás közben végzett módosítások mentési és újbóli alkalmazási helye",
+    "scopePlaybackSpeed": "Lejátszási sebesség",
+    "scopeShaderPreset": "Shader-előbeállítás",
+    "scopeAspectRatio": "Képarány",
+    "scopeSyncOffsets": "Hang- és feliratszinkronizálás",
+    "playerScopeOff": "Ne mentse",
+    "playerScopeGlobal": "Mindenhol",
+    "playerScopeLibrary": "Könyvtáronként",
+    "playerScopeTitle": "Sorozatonként vagy filmenként",
+    "exportDialogTitle": "Plezy-beállítások exportálása"
   },
   "search": {
     "hint": "Keresés filmek, sorozatok és zenék között...",
@@ -598,12 +609,7 @@
   "videoControls": {
     "audioLabel": "Hang",
     "subtitlesLabel": "Feliratok",
-    "resetToZero": "Visszaállítás 0 ms-ra",
     "addTime": "+${amount}${unit}",
-    "minusTime": "-${amount}${unit}",
-    "playsLater": "${label}: későbbre állítva",
-    "playsEarlier": "${label}: korábbra állítva",
-    "noOffset": "Nincs eltolás",
     "letterbox": "Fekete sávok",
     "fillScreen": "Képernyő kitöltése",
     "stretch": "Nyújtás",
@@ -1134,7 +1140,6 @@
       "rankPopular": "#${n} népszerű",
       "rankAiring": "#${n} adásban",
       "rankRated": "#${n} értékelt",
-      "rankFavorited": "#${n} kedvenc",
       "rankTrending": "#${n} felkapott",
       "rankSeasonal": "#${n} a(z) ${season} évadban",
       "watchingNow": "${n} nézi",
@@ -1415,7 +1420,12 @@
     "repeatAll": "Összes ismétlése",
     "repeatOne": "Egy szám ismétlése",
     "instantMixNoServer": "Nem érhető el szerver az azonnali mixhez",
-    "noAudioUrl": "Nem érhető el hang-URL ehhez: ${track}"
+    "noAudioUrl": "Nem érhető el hang-URL ehhez: ${track}",
+    "discography": {
+      "singlesAndEps": "Kislemezek és EP-k",
+      "live": "Élő",
+      "compilations": "Válogatások"
+    }
   },
   "watchTogether": {
     "title": "Watch Together (Közös nézés)",
@@ -1725,6 +1735,7 @@
     "decoder": "Dekóder",
     "rawDecoder": "Nyers dekóder",
     "tunneling": "Alagutazás",
+    "passthrough": "Passthrough",
     "aspect": "Méretarány",
     "rotation": "Forgatás",
     "dvSource": "DV-forrás",
@@ -1856,9 +1867,7 @@
     "producer": "Producer",
     "country": "Ország",
     "collection": "Gyűjtemény",
-    "label": "Kiadó",
-    "style": "Stílus",
-    "mood": "Hangulat"
+    "label": "Kiadó"
   },
   "matchScreen": {
     "match": "Párosítás...",

@@ -36,7 +36,7 @@ class TmdbCacheWarmer {
     List<MediaItem> items;
     try {
       items = await drainPages<MediaItem>(
-        (start, size) => client.fetchLibraryContent(library.id, LibraryQuery(offset: start, limit: size)),
+        (start, size) => client.fetchLibraryPagedContent(library.id, query: LibraryQuery(offset: start, limit: size)),
         pageSize: 200,
       );
     } catch (e) {

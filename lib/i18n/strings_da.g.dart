@@ -316,6 +316,11 @@ class _Translations$settings$da extends Translations$settings$en {
 	@override String get followServerTrackSelectionsDescription => 'Ved afsnitsskift anvendes lyden og underteksterne valgt på serveren i stedet for at videreføre det aktuelle valg';
 	@override String get showChapterMarkersOnTimeline => 'Vis kapitelmarkører på tidslinjen';
 	@override String get showChapterMarkersOnTimelineDescription => 'Opdel tidslinjen ved kapitelgrænser';
+	@override String get specialsOrdering => 'Specialafsnit i episoderekkefølge';
+	@override String get specialsOrderingDescription => 'Hvor specialafsnit afspilles i seriens visningsrækkefølge';
+	@override String get specialsOrderingServer => 'Følg serverrækkefølgen';
+	@override String get specialsOrderingAirDate => 'Indflet efter udsendelsesdato';
+	@override String get specialsOrderingLast => 'Efter almindelige sæsoner';
 	@override String get clickVideoTogglesPlayback => 'Klik på videoen for at skifte mellem afspilning og pause';
 	@override String get clickVideoTogglesPlaybackDescription => 'Klik på videoen for at afspille eller sætte på pause i stedet for at vise betjeningsknapperne.';
 	@override String get videoPlayerControls => 'Videoafspillerkontroller';
@@ -461,11 +466,17 @@ class _Translations$settings$da extends Translations$settings$en {
 	@override String get subtitlesAndConfig => 'Undertekster og konfiguration';
 	@override String get seekAndTiming => 'Søgning og timing';
 	@override String get behavior => 'Adfærd';
+	@override String get rememberPlayerChanges => 'Husk afspillerændringer';
+	@override String get rememberPlayerChangesDescription => 'Hvor en ændring under afspilning gemmes og anvendes igen';
+	@override String get scopePlaybackSpeed => 'Afspilningshastighed';
+	@override String get scopeShaderPreset => 'Shader-forudindstilling';
+	@override String get scopeAspectRatio => 'Billedformat';
+	@override String get scopeSyncOffsets => 'Synkronisering af lyd og undertekster';
+	@override String get playerScopeOff => 'Gem ikke';
+	@override String get playerScopeGlobal => 'Overalt';
+	@override String get playerScopeLibrary => 'Pr. bibliotek';
+	@override String get playerScopeTitle => 'Pr. serie eller film';
 	@override String get exportDialogTitle => 'Eksportér Plezy-indstillinger';
-	@override String get linuxVideoRenderMode => 'Video-gengivelsestilstand';
-	@override String get linuxVideoRenderModeDescription => 'Automatisk foretrækker det native Wayland-plan (HDR-kompatibelt); Texture tvinger SDR-fallback-stien.';
-	@override String get linuxVideoRenderModeAuto => 'Automatisk';
-	@override String get linuxVideoRenderModeTexture => 'Texture (SDR)';
 }
 
 // Path: search
@@ -756,12 +767,7 @@ class _Translations$videoControls$da extends Translations$videoControls$en {
 	// Translations
 	@override String get audioLabel => 'Lyd';
 	@override String get subtitlesLabel => 'Undertekster';
-	@override String get resetToZero => 'Nulstil til 0ms';
 	@override String addTime({required Object amount, required Object unit}) => '+${amount}${unit}';
-	@override String minusTime({required Object amount, required Object unit}) => '-${amount}${unit}';
-	@override String playsLater({required Object label}) => '${label} afspilles senere';
-	@override String playsEarlier({required Object label}) => '${label} afspilles tidligere';
-	@override String get noOffset => 'Ingen forskydning';
 	@override String get letterbox => 'Letterbox';
 	@override String get fillScreen => 'Fyld skærm';
 	@override String get stretch => 'Stræk';
@@ -1531,6 +1537,7 @@ class _Translations$music$da extends Translations$music$en {
 	@override String get repeatOne => 'Gentag ét nummer';
 	@override String get instantMixNoServer => 'Ingen server er tilgængelig til et øjeblikkeligt mix';
 	@override String noAudioUrl({required Object track}) => 'Ingen lyd-URL er tilgængelig for ${track}';
+	@override late final _Translations$music$discography$da discography = _Translations$music$discography$da._(_root);
 }
 
 // Path: watchTogether
@@ -1790,6 +1797,7 @@ class _Translations$performanceOverlay$da extends Translations$performanceOverla
 	@override String get decoder => 'Dekoder';
 	@override String get rawDecoder => 'Rå dekoder';
 	@override String get tunneling => 'Tunneling';
+	@override String get passthrough => 'Passthrough';
 	@override String get aspect => 'Billedformat';
 	@override String get rotation => 'Rotation';
 	@override String get dvSource => 'DV-kilde';
@@ -1936,8 +1944,6 @@ class _Translations$metadataEdit$da extends Translations$metadataEdit$en {
 	@override String get country => 'Land';
 	@override String get collection => 'Samling';
 	@override String get label => 'Etiket';
-	@override String get style => 'Stil';
-	@override String get mood => 'Stemning';
 }
 
 // Path: matchScreen
@@ -2311,7 +2317,6 @@ class _Translations$explore$badge$da extends Translations$explore$badge$en {
 	@override String rankPopular({required Object n}) => '#${n} populær';
 	@override String rankAiring({required Object n}) => '#${n} på luften';
 	@override String rankRated({required Object n}) => '#${n} bedømt';
-	@override String rankFavorited({required Object n}) => '#${n} favorit';
 	@override String rankTrending({required Object n}) => '#${n} populær lige nu';
 	@override String rankSeasonal({required Object n, required Object season}) => '#${n} i ${season}';
 	@override String watchingNow({required Object n}) => '${n} ser med';
@@ -2479,6 +2484,18 @@ class _Translations$explore$detail$da extends Translations$explore$detail$en {
 	@override String recommendedByPercent({required Object percent}) => 'Anbefalet af ${percent} af seerne';
 	@override String get relatedTitles => 'Relaterede titler';
 	@override String get background => 'Baggrund';
+}
+
+// Path: music.discography
+class _Translations$music$discography$da extends Translations$music$discography$en {
+	_Translations$music$discography$da._(TranslationsDa root) : this._root = root, super.internal(root);
+
+	final TranslationsDa _root; // ignore: unused_field
+
+	// Translations
+	@override String get singlesAndEps => 'Singler og EP\'er';
+	@override String get live => 'Live';
+	@override String get compilations => 'Opsamlinger';
 }
 
 // Path: downloads.backgroundWarning
@@ -2877,6 +2894,11 @@ extension on TranslationsDa {
 			'settings.followServerTrackSelectionsDescription' => 'Ved afsnitsskift anvendes lyden og underteksterne valgt på serveren i stedet for at videreføre det aktuelle valg',
 			'settings.showChapterMarkersOnTimeline' => 'Vis kapitelmarkører på tidslinjen',
 			'settings.showChapterMarkersOnTimelineDescription' => 'Opdel tidslinjen ved kapitelgrænser',
+			'settings.specialsOrdering' => 'Specialafsnit i episoderekkefølge',
+			'settings.specialsOrderingDescription' => 'Hvor specialafsnit afspilles i seriens visningsrækkefølge',
+			'settings.specialsOrderingServer' => 'Følg serverrækkefølgen',
+			'settings.specialsOrderingAirDate' => 'Indflet efter udsendelsesdato',
+			'settings.specialsOrderingLast' => 'Efter almindelige sæsoner',
 			'settings.clickVideoTogglesPlayback' => 'Klik på videoen for at skifte mellem afspilning og pause',
 			'settings.clickVideoTogglesPlaybackDescription' => 'Klik på videoen for at afspille eller sætte på pause i stedet for at vise betjeningsknapperne.',
 			'settings.videoPlayerControls' => 'Videoafspillerkontroller',
@@ -3022,11 +3044,17 @@ extension on TranslationsDa {
 			'settings.subtitlesAndConfig' => 'Undertekster og konfiguration',
 			'settings.seekAndTiming' => 'Søgning og timing',
 			'settings.behavior' => 'Adfærd',
+			'settings.rememberPlayerChanges' => 'Husk afspillerændringer',
+			'settings.rememberPlayerChangesDescription' => 'Hvor en ændring under afspilning gemmes og anvendes igen',
+			'settings.scopePlaybackSpeed' => 'Afspilningshastighed',
+			'settings.scopeShaderPreset' => 'Shader-forudindstilling',
+			'settings.scopeAspectRatio' => 'Billedformat',
+			'settings.scopeSyncOffsets' => 'Synkronisering af lyd og undertekster',
+			'settings.playerScopeOff' => 'Gem ikke',
+			'settings.playerScopeGlobal' => 'Overalt',
+			'settings.playerScopeLibrary' => 'Pr. bibliotek',
+			'settings.playerScopeTitle' => 'Pr. serie eller film',
 			'settings.exportDialogTitle' => 'Eksportér Plezy-indstillinger',
-			'settings.linuxVideoRenderMode' => 'Video-gengivelsestilstand',
-			'settings.linuxVideoRenderModeDescription' => 'Automatisk foretrækker det native Wayland-plan (HDR-kompatibelt); Texture tvinger SDR-fallback-stien.',
-			'settings.linuxVideoRenderModeAuto' => 'Automatisk',
-			'settings.linuxVideoRenderModeTexture' => 'Texture (SDR)',
 			'search.hint' => 'Søg film, serier, musik...',
 			'search.tryDifferentTerm' => 'Prøv en anden søgning',
 			'search.searchYourMedia' => 'Søg i dine medier',
@@ -3195,6 +3223,8 @@ extension on TranslationsDa {
 			'mediaMenu.deleteMovieTitle' => 'Slet denne film?',
 			'mediaMenu.deleteEpisodeConfirm' => 'Slet episode',
 			'mediaMenu.deleteSeasonConfirm' => 'Slet sæson',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => 'Slet TV-serie',
 			'mediaMenu.deleteMovieConfirm' => 'Slet film',
 			'mediaMenu.deleteAnyway' => 'Slet alligevel',
@@ -3206,8 +3236,6 @@ extension on TranslationsDa {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy kunne ikke kontrollere, hvilke filer dette vil fjerne, så det kan slette mere end det ovennævnte emne. Annuller og prøv igen, eller slet alligevel.',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Din server leverede ikke filoplysninger for dette emne, så Plezy kan ikke kontrollere, hvilke filer dette vil fjerne. Det kan slette mere end det ovennævnte emne.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Mediet blev slettet',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => 'Mediet kunne ikke slettes',
 			'mediaMenu.rate' => 'Bedøm',
 			'mediaMenu.playFromBeginning' => 'Afspil fra begyndelsen',
@@ -3253,12 +3281,7 @@ extension on TranslationsDa {
 			'audioTracks.track' => ({required Object n}) => 'Lydspor ${n}',
 			'videoControls.audioLabel' => 'Lyd',
 			'videoControls.subtitlesLabel' => 'Undertekster',
-			'videoControls.resetToZero' => 'Nulstil til 0ms',
 			'videoControls.addTime' => ({required Object amount, required Object unit}) => '+${amount}${unit}',
-			'videoControls.minusTime' => ({required Object amount, required Object unit}) => '-${amount}${unit}',
-			'videoControls.playsLater' => ({required Object label}) => '${label} afspilles senere',
-			'videoControls.playsEarlier' => ({required Object label}) => '${label} afspilles tidligere',
-			'videoControls.noOffset' => 'Ingen forskydning',
 			'videoControls.letterbox' => 'Letterbox',
 			'videoControls.fillScreen' => 'Fyld skærm',
 			'videoControls.stretch' => 'Stræk',
@@ -3714,14 +3737,14 @@ extension on TranslationsDa {
 			'explore.characters' => 'Figurer',
 			'explore.addToWatchlist' => 'Føj til ønskeliste',
 			'explore.removeFromWatchlist' => 'Fjern fra ønskeliste',
+			_ => null,
+		} ?? switch (path) {
 			'explore.addedToWatchlist' => 'Føjet til overvågningslisten',
 			'explore.removedFromWatchlist' => 'Fjernet fra overvågningslisten',
 			'explore.watchlistUpdateFailed' => 'Kunne ikke opdatere ønskelisten',
 			'explore.watchlistNoMatch' => 'Kunne ikke knytte dette element til en overvågningsliste',
 			'explore.notInLibrary' => 'Ikke i dit bibliotek',
 			'explore.inTheseLibraries' => 'I disse biblioteker',
-			_ => null,
-		} ?? switch (path) {
 			'explore.checkingLibrary' => 'Tjekker dit bibliotek...',
 			'explore.emptyTitle' => 'Der er ikke noget her endnu',
 			'explore.emptyMessage' => ({required Object source}) => 'Indholdsrækker fra ${source} vises her, når de har indhold.',
@@ -3732,7 +3755,6 @@ extension on TranslationsDa {
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} populær',
 			'explore.badge.rankAiring' => ({required Object n}) => '#${n} på luften',
 			'explore.badge.rankRated' => ({required Object n}) => '#${n} bedømt',
-			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} favorit',
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} populær lige nu',
 			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} i ${season}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n} ser med',
@@ -3979,6 +4001,9 @@ extension on TranslationsDa {
 			'music.repeatOne' => 'Gentag ét nummer',
 			'music.instantMixNoServer' => 'Ingen server er tilgængelig til et øjeblikkeligt mix',
 			'music.noAudioUrl' => ({required Object track}) => 'Ingen lyd-URL er tilgængelig for ${track}',
+			'music.discography.singlesAndEps' => 'Singler og EP\'er',
+			'music.discography.live' => 'Live',
+			'music.discography.compilations' => 'Opsamlinger',
 			'watchTogether.title' => 'Se sammen',
 			'watchTogether.description' => 'Se indhold synkroniseret med venner og familie',
 			'watchTogether.createSession' => 'Opret session',
@@ -4226,6 +4251,8 @@ extension on TranslationsDa {
 			'companionRemote.remote.subtitles' => 'Undertekster',
 			'companionRemote.remote.audio' => 'Lyd',
 			'companionRemote.remote.searchHint' => 'Søg på desktop...',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.errors.noNetworkInterface' => 'Ingen netværksgrænseflade fundet',
 			'companionRemote.errors.authenticationFailed' => 'Godkendelse mislykkedes',
 			'companionRemote.errors.serverStartFailed' => ({required Object error}) => 'Fjernbetjeningsserveren kunne ikke startes: ${error}',
@@ -4234,8 +4261,6 @@ extension on TranslationsDa {
 			'companionRemote.errors.failedToConnectAnyAddress' => 'Kunne ikke oprette forbindelse til nogen adresse',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => 'Forbindelse mistet efter ${attempts} forsøg',
 			'companionRemote.errors.connectionLost' => 'Forbindelse mistet',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => 'Forbindelsen blev lukket før godkendelsen',
 			'videoSettings.playbackSpeed' => 'Afspilningshastighed',
 			'videoSettings.normalSpeed' => 'Normal',
@@ -4268,6 +4293,7 @@ extension on TranslationsDa {
 			'performanceOverlay.decoder' => 'Dekoder',
 			'performanceOverlay.rawDecoder' => 'Rå dekoder',
 			'performanceOverlay.tunneling' => 'Tunneling',
+			'performanceOverlay.passthrough' => 'Passthrough',
 			'performanceOverlay.aspect' => 'Billedformat',
 			'performanceOverlay.rotation' => 'Rotation',
 			'performanceOverlay.dvSource' => 'DV-kilde',
@@ -4396,8 +4422,6 @@ extension on TranslationsDa {
 			'metadataEdit.country' => 'Land',
 			'metadataEdit.collection' => 'Samling',
 			'metadataEdit.label' => 'Etiket',
-			'metadataEdit.style' => 'Stil',
-			'metadataEdit.mood' => 'Stemning',
 			'matchScreen.match' => 'Match...',
 			'matchScreen.fixMatch' => 'Ret match...',
 			'matchScreen.unmatch' => 'Fjern match',

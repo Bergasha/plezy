@@ -1,4 +1,5 @@
 import '../../../../i18n/strings.g.dart';
+import '../../../../utils/codec_utils.dart';
 
 /// Data model for video player performance statistics.
 ///
@@ -34,6 +35,10 @@ class PerformanceStats {
   final int? audioBitrate;
   final String? audioDecoderName;
 
+  /// mpv `audio-params/format` when it names an IEC 61937 bitstream
+  /// ('spdif-eac3'); null when audio is decoded locally.
+  final String? audioPassthroughFormat;
+
   final bool tunneledPlayback;
   final String? tunnelingStatus;
 
@@ -54,12 +59,10 @@ class PerformanceStats {
   final String dvConversionMode;
   final int? dvConvertedRpus;
   final int? dvRpuConversionFailures;
-  final int? dvRpuOutputTooSmall;
   final int? dvAvgRpuConversionUs;
   final int? dvAvgSampleProcessingUs;
   final int? dvSourceProfile;
   final String? dvPlaybackPath;
-  final String? dvPlaybackReason;
 
   final int? appMemoryBytes;
   final double? uiFps;
@@ -89,6 +92,7 @@ class PerformanceStats {
     this.audioChannels,
     this.audioBitrate,
     this.audioDecoderName,
+    this.audioPassthroughFormat,
     this.tunneledPlayback = false,
     this.tunnelingStatus,
     this.actualFps,
@@ -106,12 +110,10 @@ class PerformanceStats {
     this.dvConversionMode = '',
     this.dvConvertedRpus,
     this.dvRpuConversionFailures,
-    this.dvRpuOutputTooSmall,
     this.dvAvgRpuConversionUs,
     this.dvAvgSampleProcessingUs,
     this.dvSourceProfile,
     this.dvPlaybackPath,
-    this.dvPlaybackReason,
     this.appMemoryBytes,
     this.uiFps,
   });
@@ -142,6 +144,7 @@ class PerformanceStats {
       audioChannels = null,
       audioBitrate = null,
       audioDecoderName = null,
+      audioPassthroughFormat = null,
       tunneledPlayback = false,
       tunnelingStatus = null,
       actualFps = null,
@@ -159,12 +162,10 @@ class PerformanceStats {
       dvConversionMode = '',
       dvConvertedRpus = null,
       dvRpuConversionFailures = null,
-      dvRpuOutputTooSmall = null,
       dvAvgRpuConversionUs = null,
       dvAvgSampleProcessingUs = null,
       dvSourceProfile = null,
       dvPlaybackPath = null,
-      dvPlaybackReason = null,
       appMemoryBytes = null,
       uiFps = null;
 
@@ -204,6 +205,17 @@ class PerformanceStats {
     if (audioSamplerate == null) return t.common.notAvailable;
     final khz = audioSamplerate! / 1000;
     return '${khz.toStringAsFixed(1)} kHz';
+  }
+
+  /// Whether audio is bitstreamed to the device instead of decoded locally.
+  bool get audioPassthrough => audioPassthroughFormat != null;
+
+  /// Format the bitstreamed codec ('spdif-eac3' → 'E-AC3').
+  String get audioPassthroughFormatted {
+    final format = audioPassthroughFormat;
+    if (format == null) return t.common.notAvailable;
+    final codec = format.startsWith('spdif-') ? format.substring('spdif-'.length) : format;
+    return CodecUtils.formatAudioCodec(codec);
   }
 
   /// Format FPS with 2 decimal places.

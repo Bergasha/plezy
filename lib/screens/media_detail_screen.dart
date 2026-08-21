@@ -70,6 +70,7 @@ import '../widgets/settings_builder.dart';
 import '../utils/layout_constants.dart';
 import '../providers/catalog_sources_provider.dart';
 import '../providers/download_provider.dart';
+import '../providers/multi_server_provider.dart';
 import '../providers/offline_watch_provider.dart';
 import '../providers/watch_state_store.dart';
 import '../services/catalog/catalog_source.dart';
@@ -1148,7 +1149,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     );
   }
 
-  /// Backend-neutral counterpart of [getServerBoundPlexClient]. Returns a
+  /// Returns a
   /// [MediaServerClient] for Jellyfin items too, so image URLs use the
   /// right server's transcoder.
   MediaServerClient? _getMediaClientForMetadata(BuildContext context) {
@@ -1683,12 +1684,16 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     }
   }
 
+  /// Downloaded episodes of [showId] belonging to the season with [seasonIndex], sorted by episode number.
+  List<MediaItem> _downloadedEpisodesForSeason(DownloadProvider downloadProvider, String showId, int? seasonIndex) {
+    return downloadProvider.getDownloadedEpisodesForShow(showId).where((ep) => ep.parentIndex == seasonIndex).toList()
+      ..sort((a, b) => (a.index ?? 0).compareTo(b.index ?? 0));
+  }
+
   /// Load episodes from downloaded content for a season
   void _loadEpisodesFromDownloads() {
     final downloadProvider = context.read<DownloadProvider>();
-    final allEpisodes = downloadProvider.getDownloadedEpisodesForShow(_metadata.parentId ?? '');
-    final seasonEpisodes = allEpisodes.where((ep) => ep.parentIndex == _metadata.index).toList()
-      ..sort((a, b) => (a.index ?? 0).compareTo(b.index ?? 0));
+    final seasonEpisodes = _downloadedEpisodesForSeason(downloadProvider, _metadata.parentId ?? '', _metadata.index);
 
     setState(() {
       _allEpisodes = _allEpisodes.completeInitialLoad(seasonEpisodes, seasonEpisodes.length);
@@ -1762,9 +1767,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       if (widget.isOffline) {
         // Offline: load from downloads (already the complete set).
         final downloadProvider = context.read<DownloadProvider>();
-        final allEpisodes = downloadProvider.getDownloadedEpisodesForShow(_metadata.id);
-        final seasonEpisodes = allEpisodes.where((ep) => ep.parentIndex == season.index).toList()
-          ..sort((a, b) => (a.index ?? 0).compareTo(b.index ?? 0));
+        final seasonEpisodes = _downloadedEpisodesForSeason(downloadProvider, _metadata.id, season.index);
         _completeSeasonEpisodesLoad(
           seasonIndex: seasonIndex,
           seasonId: seasonId,
@@ -3219,6 +3222,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   Future<void> _playFirstEpisode() async {
+    // Loading seasons and resolving the first episode cost network round
+    // trips; show the shared scoped loading dialog so Play gives immediate
+    // feedback. The offline branch reads local state only and needs none.
+    final loadingDialog = ScopedLoadingDialogController();
+    if (!widget.isOffline && mounted) {
+      loadingDialog.show(context, builder: (_) => const Center(child: CircularProgressIndicator()));
+    }
     try {
       // If seasons aren't loaded yet, wait for them or load them
       if (_seasons.isEmpty && !_isLoadingSeasons) {
@@ -3249,12 +3259,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       MediaItem? firstEpisode;
       if (!mounted) return;
       if (widget.isOffline) {
-        // In offline mode, get episodes from downloads
+        // In offline mode, get episodes from downloads (filtered to this season).
         final downloadProvider = context.read<DownloadProvider>();
-        final allEpisodes = downloadProvider.getDownloadedEpisodesForShow(_metadata.id);
-        // Filter to episodes of this season
-        final episodes = allEpisodes.where((ep) => ep.parentIndex == firstSeason.index).toList()
-          ..sort((a, b) => (a.index ?? 0).compareTo(b.index ?? 0));
+        final episodes = _downloadedEpisodesForSeason(downloadProvider, _metadata.id, firstSeason.index);
         firstEpisode = episodes.isEmpty ? null : episodes.first;
       } else {
         final client = getServerBoundMediaClient(context);
@@ -3272,6 +3279,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         }
         return;
       }
+
+      // Hide the spinner before pushing the player so the pop cannot land on
+      // the player route.
+      await loadingDialog.dismiss();
 
       // Play the first episode
       // Preserve serverId for the episode
@@ -3294,6 +3305,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       if (mounted) {
         showErrorSnackBar(context, t.messages.errorLoading(error: e.toString()));
       }
+    } finally {
+      await loadingDialog.dismiss();
     }
   }
 

@@ -317,6 +317,11 @@ class _Translations$settings$zh_Hant extends Translations$settings$zh {
 	@override String get followServerTrackSelectionsDescription => '切換劇集時，套用伺服器上為該集選擇的音訊與字幕，而不是沿用目前選擇';
 	@override String get showChapterMarkersOnTimeline => '在進度條上顯示章節標記';
 	@override String get showChapterMarkersOnTimelineDescription => '依章節分段顯示進度條';
+	@override String get specialsOrdering => '特別篇依集數排序';
+	@override String get specialsOrderingDescription => '特別篇在影集觀看順序中的播放位置';
+	@override String get specialsOrderingServer => '依伺服器順序';
+	@override String get specialsOrderingAirDate => '依播出日期交錯';
+	@override String get specialsOrderingLast => '一般季數之後';
 	@override String get clickVideoTogglesPlayback => '點選影片可切換播放或暫停';
 	@override String get clickVideoTogglesPlaybackDescription => '點選影片即可播放或暫停，而不顯示控制面板。';
 	@override String get videoPlayerControls => '影片播放器控制';
@@ -462,11 +467,17 @@ class _Translations$settings$zh_Hant extends Translations$settings$zh {
 	@override String get subtitlesAndConfig => '字幕與設定';
 	@override String get seekAndTiming => '跳轉與計時';
 	@override String get behavior => '行為';
+	@override String get rememberPlayerChanges => '記住播放器變更';
+	@override String get rememberPlayerChangesDescription => '播放期間所做的變更要儲存並從何處重新套用';
+	@override String get scopePlaybackSpeed => '播放速度';
+	@override String get scopeShaderPreset => '著色器預設';
+	@override String get scopeAspectRatio => '顯示比例';
+	@override String get scopeSyncOffsets => '音訊與字幕同步';
+	@override String get playerScopeOff => '不要儲存';
+	@override String get playerScopeGlobal => '全部';
+	@override String get playerScopeLibrary => '依媒體庫';
+	@override String get playerScopeTitle => '依影集或電影';
 	@override String get exportDialogTitle => '匯出 Plezy 設定';
-	@override String get linuxVideoRenderMode => '影片轉譯模式';
-	@override String get linuxVideoRenderModeDescription => '自動偏好原生 Wayland 平面（支援 HDR）；紋理強制使用 SDR 備援路徑。';
-	@override String get linuxVideoRenderModeAuto => '自動';
-	@override String get linuxVideoRenderModeTexture => '紋理（SDR）';
 }
 
 // Path: search
@@ -754,12 +765,7 @@ class _Translations$videoControls$zh_Hant extends Translations$videoControls$zh 
 	// Translations
 	@override String get audioLabel => '音訊';
 	@override String get subtitlesLabel => '字幕';
-	@override String get resetToZero => '重設為 0 ms';
 	@override String addTime({required Object amount, required Object unit}) => '+${amount} ${unit}';
-	@override String minusTime({required Object amount, required Object unit}) => '-${amount} ${unit}';
-	@override String playsLater({required Object label}) => '${label} 延後播放';
-	@override String playsEarlier({required Object label}) => '${label} 提前播放';
-	@override String get noOffset => '無偏移';
 	@override String get letterbox => '信箱模式（Letterbox）';
 	@override String get fillScreen => '填滿螢幕';
 	@override String get stretch => '拉伸';
@@ -1524,6 +1530,7 @@ class _Translations$music$zh_Hant extends Translations$music$zh {
 	@override String get repeatOne => '單曲重複播放';
 	@override String get instantMixNoServer => '沒有可用於即時混音的伺服器';
 	@override String noAudioUrl({required Object track}) => '${track} 沒有可用的音訊 URL';
+	@override late final _Translations$music$discography$zh_Hant discography = _Translations$music$discography$zh_Hant._(_root);
 }
 
 // Path: watchTogether
@@ -1783,6 +1790,7 @@ class _Translations$performanceOverlay$zh_Hant extends Translations$performanceO
 	@override String get decoder => '解碼器';
 	@override String get rawDecoder => '原始解碼器';
 	@override String get tunneling => '通道模式';
+	@override String get passthrough => '直通';
 	@override String get aspect => '寬高比';
 	@override String get rotation => '旋轉角度';
 	@override String get dvSource => 'DV 來源';
@@ -1929,8 +1937,6 @@ class _Translations$metadataEdit$zh_Hant extends Translations$metadataEdit$zh {
 	@override String get country => '國家/地區';
 	@override String get collection => '收藏集';
 	@override String get label => '標記';
-	@override String get style => '風格';
-	@override String get mood => '氛圍';
 }
 
 // Path: matchScreen
@@ -2304,7 +2310,6 @@ class _Translations$explore$badge$zh_Hant extends Translations$explore$badge$zh 
 	@override String rankPopular({required Object n}) => '#${n} 熱門';
 	@override String rankAiring({required Object n}) => '#${n} 播出中';
 	@override String rankRated({required Object n}) => '#${n} 高分';
-	@override String rankFavorited({required Object n}) => '#${n} 最多收藏';
 	@override String rankTrending({required Object n}) => '#${n} 趨勢';
 	@override String rankSeasonal({required Object n, required Object season}) => '#${n} · ${season}';
 	@override String watchingNow({required Object n}) => '${n} 觀看中';
@@ -2470,6 +2475,18 @@ class _Translations$explore$detail$zh_Hant extends Translations$explore$detail$z
 	@override String recommendedByPercent({required Object percent}) => '${percent} 的觀眾推薦';
 	@override String get relatedTitles => '相關作品';
 	@override String get background => '背景介紹';
+}
+
+// Path: music.discography
+class _Translations$music$discography$zh_Hant extends Translations$music$discography$zh {
+	_Translations$music$discography$zh_Hant._(TranslationsZhHant root) : this._root = root, super.internal(root);
+
+	final TranslationsZhHant _root; // ignore: unused_field
+
+	// Translations
+	@override String get singlesAndEps => '單曲與 EP';
+	@override String get live => '現場';
+	@override String get compilations => '合輯';
 }
 
 // Path: downloads.backgroundWarning
@@ -2868,6 +2885,11 @@ extension on TranslationsZhHant {
 			'settings.followServerTrackSelectionsDescription' => '切換劇集時，套用伺服器上為該集選擇的音訊與字幕，而不是沿用目前選擇',
 			'settings.showChapterMarkersOnTimeline' => '在進度條上顯示章節標記',
 			'settings.showChapterMarkersOnTimelineDescription' => '依章節分段顯示進度條',
+			'settings.specialsOrdering' => '特別篇依集數排序',
+			'settings.specialsOrderingDescription' => '特別篇在影集觀看順序中的播放位置',
+			'settings.specialsOrderingServer' => '依伺服器順序',
+			'settings.specialsOrderingAirDate' => '依播出日期交錯',
+			'settings.specialsOrderingLast' => '一般季數之後',
 			'settings.clickVideoTogglesPlayback' => '點選影片可切換播放或暫停',
 			'settings.clickVideoTogglesPlaybackDescription' => '點選影片即可播放或暫停，而不顯示控制面板。',
 			'settings.videoPlayerControls' => '影片播放器控制',
@@ -3013,11 +3035,17 @@ extension on TranslationsZhHant {
 			'settings.subtitlesAndConfig' => '字幕與設定',
 			'settings.seekAndTiming' => '跳轉與計時',
 			'settings.behavior' => '行為',
+			'settings.rememberPlayerChanges' => '記住播放器變更',
+			'settings.rememberPlayerChangesDescription' => '播放期間所做的變更要儲存並從何處重新套用',
+			'settings.scopePlaybackSpeed' => '播放速度',
+			'settings.scopeShaderPreset' => '著色器預設',
+			'settings.scopeAspectRatio' => '顯示比例',
+			'settings.scopeSyncOffsets' => '音訊與字幕同步',
+			'settings.playerScopeOff' => '不要儲存',
+			'settings.playerScopeGlobal' => '全部',
+			'settings.playerScopeLibrary' => '依媒體庫',
+			'settings.playerScopeTitle' => '依影集或電影',
 			'settings.exportDialogTitle' => '匯出 Plezy 設定',
-			'settings.linuxVideoRenderMode' => '影片轉譯模式',
-			'settings.linuxVideoRenderModeDescription' => '自動偏好原生 Wayland 平面（支援 HDR）；紋理強制使用 SDR 備援路徑。',
-			'settings.linuxVideoRenderModeAuto' => '自動',
-			'settings.linuxVideoRenderModeTexture' => '紋理（SDR）',
 			'search.hint' => '搜尋電影、影集、音樂…',
 			'search.tryDifferentTerm' => '嘗試不同的關鍵字',
 			'search.searchYourMedia' => '搜尋媒體庫',
@@ -3186,6 +3214,8 @@ extension on TranslationsZhHant {
 			'mediaMenu.deleteMovieTitle' => '刪除此電影？',
 			'mediaMenu.deleteEpisodeConfirm' => '刪除單集',
 			'mediaMenu.deleteSeasonConfirm' => '刪除季',
+			_ => null,
+		} ?? switch (path) {
 			'mediaMenu.deleteShowConfirm' => '刪除影集',
 			'mediaMenu.deleteMovieConfirm' => '刪除電影',
 			'mediaMenu.deleteAnyway' => '仍要刪除',
@@ -3197,8 +3227,6 @@ extension on TranslationsZhHant {
 			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy 無法確認此操作會刪除哪些檔案，因此刪除範圍可能超出上方所列的項目。請取消後重試，或仍要刪除。',
 			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => '您的伺服器未提供此項目的檔案資訊，因此 Plezy 無法確認此操作會刪除哪些檔案。刪除範圍可能超出上方所列的項目。',
 			'mediaMenu.mediaDeletedSuccessfully' => '媒體已成功刪除',
-			_ => null,
-		} ?? switch (path) {
 			'mediaMenu.mediaFailedToDelete' => '刪除媒體失敗',
 			'mediaMenu.rate' => '評分',
 			'mediaMenu.playFromBeginning' => '從頭播放',
@@ -3244,12 +3272,7 @@ extension on TranslationsZhHant {
 			'audioTracks.track' => ({required Object n}) => '音軌 ${n}',
 			'videoControls.audioLabel' => '音訊',
 			'videoControls.subtitlesLabel' => '字幕',
-			'videoControls.resetToZero' => '重設為 0 ms',
 			'videoControls.addTime' => ({required Object amount, required Object unit}) => '+${amount} ${unit}',
-			'videoControls.minusTime' => ({required Object amount, required Object unit}) => '-${amount} ${unit}',
-			'videoControls.playsLater' => ({required Object label}) => '${label} 延後播放',
-			'videoControls.playsEarlier' => ({required Object label}) => '${label} 提前播放',
-			'videoControls.noOffset' => '無偏移',
 			'videoControls.letterbox' => '信箱模式（Letterbox）',
 			'videoControls.fillScreen' => '填滿螢幕',
 			'videoControls.stretch' => '拉伸',
@@ -3705,14 +3728,14 @@ extension on TranslationsZhHant {
 			'explore.characters' => '角色',
 			'explore.addToWatchlist' => '新增至待看清單',
 			'explore.removeFromWatchlist' => '從待看清單移除',
+			_ => null,
+		} ?? switch (path) {
 			'explore.addedToWatchlist' => '已加入待看清單',
 			'explore.removedFromWatchlist' => '已從待看清單移除',
 			'explore.watchlistUpdateFailed' => '無法更新待看清單',
 			'explore.watchlistNoMatch' => '無法將此項目與待看清單配對',
 			'explore.notInLibrary' => '不在您的媒體庫中',
 			'explore.inTheseLibraries' => '在這些媒體庫中',
-			_ => null,
-		} ?? switch (path) {
 			'explore.checkingLibrary' => '正在檢查您的媒體庫…',
 			'explore.emptyTitle' => '這裡還沒有任何內容',
 			'explore.emptyMessage' => ({required Object source}) => '當 ${source} 有內容時，相關資訊將顯示在此處。',
@@ -3723,7 +3746,6 @@ extension on TranslationsZhHant {
 			'explore.badge.rankPopular' => ({required Object n}) => '#${n} 熱門',
 			'explore.badge.rankAiring' => ({required Object n}) => '#${n} 播出中',
 			'explore.badge.rankRated' => ({required Object n}) => '#${n} 高分',
-			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} 最多收藏',
 			'explore.badge.rankTrending' => ({required Object n}) => '#${n} 趨勢',
 			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} · ${season}',
 			'explore.badge.watchingNow' => ({required Object n}) => '${n} 觀看中',
@@ -3970,6 +3992,9 @@ extension on TranslationsZhHant {
 			'music.repeatOne' => '單曲重複播放',
 			'music.instantMixNoServer' => '沒有可用於即時混音的伺服器',
 			'music.noAudioUrl' => ({required Object track}) => '${track} 沒有可用的音訊 URL',
+			'music.discography.singlesAndEps' => '單曲與 EP',
+			'music.discography.live' => '現場',
+			'music.discography.compilations' => '合輯',
 			'watchTogether.title' => '一起看',
 			'watchTogether.description' => '與親友同步觀看內容',
 			'watchTogether.createSession' => '建立「一起看」工作階段',
@@ -4217,6 +4242,8 @@ extension on TranslationsZhHant {
 			'companionRemote.remote.subtitles' => '字幕',
 			'companionRemote.remote.audio' => '音訊',
 			'companionRemote.remote.searchHint' => '在電腦版上搜尋…',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.errors.noNetworkInterface' => '找不到網路介面',
 			'companionRemote.errors.authenticationFailed' => '身分驗證失敗',
 			'companionRemote.errors.serverStartFailed' => ({required Object error}) => '無法啟動遠端伺服器：${error}',
@@ -4225,8 +4252,6 @@ extension on TranslationsZhHant {
 			'companionRemote.errors.failedToConnectAnyAddress' => '無法連線至任何位址',
 			'companionRemote.errors.connectionLostAfterAttempts' => ({required Object attempts}) => '嘗試 ${attempts} 次後連線中斷',
 			'companionRemote.errors.connectionLost' => '連線已中斷',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.closedBeforeAuth' => '連線在驗證前已關閉',
 			'videoSettings.playbackSpeed' => '播放速度',
 			'videoSettings.normalSpeed' => '正常速度',
@@ -4259,6 +4284,7 @@ extension on TranslationsZhHant {
 			'performanceOverlay.decoder' => '解碼器',
 			'performanceOverlay.rawDecoder' => '原始解碼器',
 			'performanceOverlay.tunneling' => '通道模式',
+			'performanceOverlay.passthrough' => '直通',
 			'performanceOverlay.aspect' => '寬高比',
 			'performanceOverlay.rotation' => '旋轉角度',
 			'performanceOverlay.dvSource' => 'DV 來源',
@@ -4387,8 +4413,6 @@ extension on TranslationsZhHant {
 			'metadataEdit.country' => '國家/地區',
 			'metadataEdit.collection' => '收藏集',
 			'metadataEdit.label' => '標記',
-			'metadataEdit.style' => '風格',
-			'metadataEdit.mood' => '氛圍',
 			'matchScreen.match' => '配對…',
 			'matchScreen.fixMatch' => '修正配對…',
 			'matchScreen.unmatch' => '取消配對',

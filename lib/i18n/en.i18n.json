@@ -195,6 +195,11 @@
     "followServerTrackSelectionsDescription": "On episode change, apply the audio and subtitles selected on the server instead of carrying over the current choice",
     "showChapterMarkersOnTimeline": "Show chapter markers on seek bar",
     "showChapterMarkersOnTimelineDescription": "Segment the seek bar at chapter boundaries",
+    "specialsOrdering": "Specials in episode order",
+    "specialsOrderingDescription": "Where specials play in a show's watch order",
+    "specialsOrderingServer": "Follow server order",
+    "specialsOrderingAirDate": "Interleave by air date",
+    "specialsOrderingLast": "After regular seasons",
     "clickVideoTogglesPlayback": "Click on video to toggle play/pause",
     "clickVideoTogglesPlaybackDescription": "Click video to play/pause instead of showing controls.",
     "showControlsOnMouseMove": "Show controls on mouse movement",
@@ -367,11 +372,17 @@
     "subtitlesAndConfig": "Subtitles & Configuration",
     "seekAndTiming": "Seek & Timing",
     "behavior": "Behavior",
-    "exportDialogTitle": "Export Plezy settings",
-    "linuxVideoRenderMode": "Video rendering mode",
-    "linuxVideoRenderModeDescription": "Automatic prefers the native Wayland plane (HDR-capable); Texture forces the SDR fallback path.",
-    "linuxVideoRenderModeAuto": "Automatic",
-    "linuxVideoRenderModeTexture": "Texture (SDR)"
+    "rememberPlayerChanges": "Remember Player Changes",
+    "rememberPlayerChangesDescription": "Where a change made during playback is saved and reapplied from",
+    "scopePlaybackSpeed": "Playback Speed",
+    "scopeShaderPreset": "Shader Preset",
+    "scopeAspectRatio": "Aspect Ratio",
+    "scopeSyncOffsets": "Audio & Subtitle Sync",
+    "playerScopeOff": "Don't save",
+    "playerScopeGlobal": "Everywhere",
+    "playerScopeLibrary": "Per library",
+    "playerScopeTitle": "Per show or movie",
+    "exportDialogTitle": "Export Plezy settings"
   },
   "actor": {
     "filmography": "Filmography"
@@ -629,12 +640,7 @@
   "videoControls": {
     "audioLabel": "Audio",
     "subtitlesLabel": "Subtitles",
-    "resetToZero": "Reset to 0ms",
     "addTime": "+${amount}${unit}",
-    "minusTime": "-${amount}${unit}",
-    "playsLater": "${label} plays later",
-    "playsEarlier": "${label} plays earlier",
-    "noOffset": "No offset",
     "letterbox": "Letterbox",
     "fillScreen": "Fill screen",
     "stretch": "Stretch",
@@ -1175,7 +1181,6 @@
       "rankPopular": "#${n} popular",
       "rankAiring": "#${n} airing",
       "rankRated": "#${n} rated",
-      "rankFavorited": "#${n} favorited",
       "rankTrending": "#${n} trending",
       "rankSeasonal": "#${n} in ${season}",
       "watchingNow": "${n} watching",
@@ -1456,7 +1461,12 @@
     "repeatAll": "Repeat all",
     "repeatOne": "Repeat one",
     "instantMixNoServer": "No server is available for an instant mix",
-    "noAudioUrl": "No audio URL is available for ${track}"
+    "noAudioUrl": "No audio URL is available for ${track}",
+    "discography": {
+      "singlesAndEps": "Singles & EPs",
+      "live": "Live",
+      "compilations": "Compilations"
+    }
   },
   "watchTogether": {
     "title": "Watch Together",
@@ -1766,6 +1776,7 @@
     "decoder": "Decoder",
     "rawDecoder": "Raw Decoder",
     "tunneling": "Tunneling",
+    "passthrough": "Passthrough",
     "aspect": "Aspect",
     "rotation": "Rotation",
     "dvSource": "DV Source",
@@ -1897,9 +1908,7 @@
     "producer": "Producer",
     "country": "Country",
     "collection": "Collection",
-    "label": "Label",
-    "style": "Style",
-    "mood": "Mood"
+    "label": "Label"
   },
   "matchScreen": {
     "match": "Match...",

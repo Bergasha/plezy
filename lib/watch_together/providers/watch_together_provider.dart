@@ -102,7 +102,7 @@ class WatchTogetherProvider with ChangeNotifier {
   StreamSubscription<void>? _sessionEndedSubscription;
 
   // Getters
-  bool get isInSession => _session != null && _session!.state != SessionState.disconnected;
+  bool get isInSession => _session != null;
   bool get isHost => _session?.isHost ?? false;
   bool get isConnected => _session?.isConnected ?? false;
   bool get isSyncing => _isSyncing;
@@ -441,9 +441,7 @@ class WatchTogetherProvider with ChangeNotifier {
 
   /// Enter a room by code — joins a room that still has someone in it and
   /// hosts the code otherwise.
-  ///
-  /// Returns `true` if the user became the host.
-  Future<bool> enterRoom(
+  Future<void> enterRoom(
     String sessionId, {
     required WatchTogetherRelayEndpoint relayEndpoint,
     ControlMode controlMode = ControlMode.anyone,
@@ -484,7 +482,6 @@ class WatchTogetherProvider with ChangeNotifier {
     } else {
       await joinSession(sessionId, relayEndpoint: relayEndpoint, displayName: displayName);
     }
-    return shouldBeHost;
   }
 
   /// Leave the current session. Local callbacks and player bindings are
@@ -743,11 +740,18 @@ class WatchTogetherProvider with ChangeNotifier {
 
             // Send our join info back so the new peer adds us to their
             // participant list. Only reply to NEW peers to avoid an
-            // infinite join ping-pong (A→join→B→join→A→...).
+            // infinite join ping-pong (A→join→B→join→A→...). The host's
+            // reply also carries the room's control mode so lobby guests
+            // learn it before any playback state exists.
             if (_peerService != null) {
               _peerService!.sendTo(
                 message.peerId!,
-                SyncMessage.join(peerId: _peerService!.myPeerId!, displayName: _displayName, isHost: isHost),
+                SyncMessage.join(
+                  peerId: _peerService!.myPeerId!,
+                  displayName: _displayName,
+                  isHost: isHost,
+                  controlMode: isHost ? _session?.controlMode : null,
+                ),
               );
             }
           }
