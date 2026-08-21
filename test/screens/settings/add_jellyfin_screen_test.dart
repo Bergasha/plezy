@@ -389,12 +389,12 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
     await tester.pumpAndSettle();
 
-    // A deliberate return to the field opens the native IME (afterFirstFocus):
-    // the field becomes editable in place — no Flutter overlay, focus stays on
-    // the field itself.
-    expect(FocusManager.instance.primaryFocus?.debugLabel, 'AddJellyfin:Url');
-    expect(find.byKey(const Key('tv_virtual_keyboard_panel')), findsNothing);
-    expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isFalse);
+    // A deliberate return to the field opens text input (afterFirstFocus).
+    // On Android TV/Fire TV this is the Flutter overlay (the platform IME is
+    // unreliable on some devices): the overlay takes focus for itself and the
+    // underlying field goes read-only while it handles input.
+    expect(find.byKey(const Key('tv_virtual_keyboard_panel')), findsOneWidget);
+    expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isTrue);
   });
 
   testWidgets('TV discovery keeps initial URL focus and D-pad reaches discovered servers', (tester) async {

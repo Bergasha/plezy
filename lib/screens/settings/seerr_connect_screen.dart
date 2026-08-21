@@ -12,6 +12,7 @@ import '../../providers/seerr_account_provider.dart';
 import '../../services/seerr/seerr_constants.dart';
 import '../../services/seerr/seerr_exceptions.dart';
 import '../../theme/mono_tokens.dart';
+import '../../utils/platform_detector.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/focused_scroll_scaffold.dart';
 import '../../widgets/loading_indicator_box.dart';
@@ -187,6 +188,12 @@ class _SeerrConnectScreenState extends State<SeerrConnectScreen> with AsyncFormS
         focusNode: _urlFocus,
         autofocus: true,
         tvTextInputAutoOpenBehavior: deferredUrlFieldAutoOpen,
+        // Android TV/Fire TV's platform IME is unreliable on some devices;
+        // Apple TV's native keyboard already works fine, so only override
+        // there.
+        tvTextInputPresentation: PlatformDetector.isAppleTV()
+            ? TvTextInputPresentation.automatic
+            : TvTextInputPresentation.flutterOverlay,
         keyboardType: TextInputType.url,
         autocorrect: false,
         enableSuggestions: false,
@@ -286,6 +293,9 @@ class _SeerrConnectScreenState extends State<SeerrConnectScreen> with AsyncFormS
         autocorrect: false,
         enableSuggestions: false,
         enabled: !busy,
+        tvTextInputPresentation: PlatformDetector.isAppleTV()
+            ? TvTextInputPresentation.automatic
+            : TvTextInputPresentation.flutterOverlay,
         keyboardType: isLocal ? TextInputType.emailAddress : TextInputType.text,
         textInputAction: TextInputAction.next,
         onFieldSubmitted: busy ? null : (_) => _passwordFocus.requestFocus(),
@@ -301,6 +311,9 @@ class _SeerrConnectScreenState extends State<SeerrConnectScreen> with AsyncFormS
         focusNode: _passwordFocus,
         obscureText: true,
         enabled: !busy,
+        tvTextInputPresentation: PlatformDetector.isAppleTV()
+            ? TvTextInputPresentation.automatic
+            : TvTextInputPresentation.flutterOverlay,
         textInputAction: TextInputAction.done,
         onFieldSubmitted: busy ? null : (_) => _signInWithCredentials(),
         decoration: InputDecoration(

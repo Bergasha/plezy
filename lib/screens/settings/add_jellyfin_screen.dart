@@ -499,10 +499,15 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
       FocusableTextFormField(
         controller: _urlController,
         focusNode: _urlFocus,
-        // Native on every TV: on Apple TV `automatic` would route this
-        // wrap-to-4-lines field to the Flutter overlay, but it is logically
-        // single-line URL input the system keyboard handles (#1051, #1079).
-        tvTextInputPresentation: TvTextInputPresentation.platform,
+        // On Apple TV, `automatic` would route this wrap-to-4-lines field to
+        // the Flutter overlay, but it is logically single-line URL input the
+        // system keyboard handles (#1051, #1079) — force platform there. On
+        // Android TV/Fire TV the platform IME is unreliable (missing/broken
+        // default keyboard on some devices), so the always-available Flutter
+        // overlay is used instead of falling through to it via `automatic`.
+        tvTextInputPresentation: PlatformDetector.isAppleTV()
+            ? TvTextInputPresentation.platform
+            : TvTextInputPresentation.flutterOverlay,
         autofocus: true,
         tvTextInputAutoOpenBehavior: deferredUrlFieldAutoOpen,
         keyboardType: TextInputType.url,
@@ -555,6 +560,12 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
           autocorrect: false,
           enableSuggestions: false,
           enabled: !busy,
+          // Android TV/Fire TV's platform IME is unreliable on some devices;
+          // Apple TV's native keyboard already works fine, so only override
+          // there (see the URL field above for the full rationale).
+          tvTextInputPresentation: PlatformDetector.isAppleTV()
+              ? TvTextInputPresentation.automatic
+              : TvTextInputPresentation.flutterOverlay,
           onNavigateUp: () => _changeServerFocus.requestFocus(),
           textInputAction: TextInputAction.next,
           onFieldSubmitted: busy ? null : (_) => _passwordFocus.requestFocus(),
@@ -570,6 +581,9 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
           focusNode: _passwordFocus,
           obscureText: true,
           enabled: !busy,
+          tvTextInputPresentation: PlatformDetector.isAppleTV()
+              ? TvTextInputPresentation.automatic
+              : TvTextInputPresentation.flutterOverlay,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: busy ? null : (_) => _signIn(),
           decoration: InputDecoration(
