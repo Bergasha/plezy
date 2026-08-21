@@ -2291,6 +2291,12 @@ class Translations$messages$en {
 	/// en: 'Couldn't load episodes'
 	String get episodesLoadFailed => 'Couldn\'t load episodes';
 
+	/// en: 'Episode ${current} of ${total}'
+	String episodeOfTotal({required Object current, required Object total}) => 'Episode ${current} of ${total}';
+
+	/// en: 'Next episode airs ${date}'
+	String nextEpisodeAirs({required Object date}) => 'Next episode airs ${date}';
+
 	/// en: 'No results found'
 	String get noResultsFound => 'No results found';
 
@@ -7238,6 +7244,8 @@ extension on Translations {
 			'messages.noEpisodesFound' => 'No episodes found in first season',
 			'messages.noEpisodesFoundGeneral' => 'No episodes found',
 			'messages.episodesLoadFailed' => 'Couldn\'t load episodes',
+			'messages.episodeOfTotal' => ({required Object current, required Object total}) => 'Episode ${current} of ${total}',
+			'messages.nextEpisodeAirs' => ({required Object date}) => 'Next episode airs ${date}',
 			'messages.noResultsFound' => 'No results found',
 			'messages.sleepTimerSet' => ({required Object label}) => 'Sleep timer set for ${label}',
 			'messages.noItemsAvailable' => 'No items available',
@@ -7540,10 +7548,10 @@ extension on Translations {
 			'licenses.relatedPackages' => 'Related Packages',
 			'licenses.license' => 'License',
 			'licenses.licenseNumber' => ({required Object number}) => 'License ${number}',
-			'licenses.licensesCount' => ({required Object count}) => '${count} licenses',
-			'navigation.libraries' => 'Libraries',
 			_ => null,
 		} ?? switch (path) {
+			'licenses.licensesCount' => ({required Object count}) => '${count} licenses',
+			'navigation.libraries' => 'Libraries',
 			'navigation.downloads' => 'Downloads',
 			'navigation.liveTv' => 'Live TV',
 			'navigation.explore' => 'Explore',
@@ -8054,10 +8062,10 @@ extension on Translations {
 			'companionRemote.pairing.cryptoInitFailed' => 'Couldn\'t start secure connection. Sign in to Plex first.',
 			'companionRemote.pairing.validationHostRequired' => 'Please enter host address',
 			'companionRemote.pairing.validationHostFormat' => 'Format must be IP:port (e.g., 192.168.1.100:48632)',
-			'companionRemote.pairing.connectionTimedOut' => 'Connection timed out. Use the same network on both devices.',
-			'companionRemote.pairing.sessionNotFound' => 'Device not found. Make sure Plezy is running on the host.',
 			_ => null,
 		} ?? switch (path) {
+			'companionRemote.pairing.connectionTimedOut' => 'Connection timed out. Use the same network on both devices.',
+			'companionRemote.pairing.sessionNotFound' => 'Device not found. Make sure Plezy is running on the host.',
 			'companionRemote.pairing.authFailed' => 'Authentication failed. Both devices need the same Plex account.',
 			'companionRemote.pairing.failedToConnect' => ({required Object error}) => 'Failed to connect: ${error}',
 			'companionRemote.remote.disconnectConfirm' => 'Do you want to disconnect from the remote session?',

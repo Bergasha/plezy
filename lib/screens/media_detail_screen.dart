@@ -5,10 +5,13 @@ import '../media/ids.dart';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../database/app_database.dart';
+import '../models/tmdb/tmdb_tv_details.dart';
 import '../navigation/profile_navigation_scope.dart';
 import '../services/device_performance.dart';
 import '../services/image_cache_service.dart';
 import '../services/fullscreen_state_manager.dart';
+import '../services/tmdb_client.dart';
 import 'package:flutter/services.dart';
 import 'package:plezy/utils/platform_detector.dart';
 import 'package:plezy/widgets/app_icon.dart';
@@ -346,6 +349,17 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   List<CatalogSource> _watchlistListenedSources = const [];
   final GlobalKey _watchlistButtonKey = GlobalKey();
   bool _watchlistMutationInFlight = false;
+
+  // TMDb next-episode-to-air / season episode count (airing shows only).
+  // Resolved once per show via the same external-id lookup the watchlist
+  // feature uses; season episode counts are fetched lazily as each season
+  // tab is viewed. A finished/canceled show or one with no TMDb match simply
+  // never populates these, so the summary line stays hidden for it.
+  TmdbTvDetails? _tmdbTvDetails;
+  int? _tmdbShowId;
+  bool _tmdbShowDetailsLoadAttempted = false;
+  final Map<int, int> _tmdbSeasonEpisodeCounts = {};
+  final Set<int> _tmdbSeasonEpisodeCountsLoading = {};
 
   // Inline season tabs
   int _selectedSeasonIndex = 0;
@@ -1500,6 +1514,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         _showEpisodesDirectly = shouldShowEpisodesDirectly;
         _selectedSeasonIndex = onDeckSeasonIndex;
       });
+      unawaited(_ensureTmdbAiringInfoLoaded());
 
       if (shouldShowEpisodesDirectly) {
         await _fetchAllEpisodes();
@@ -1526,6 +1541,67 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       if (!(_seasonsCompleter?.isCompleted ?? true)) {
         _seasonsCompleter?.complete();
       }
+    }
+  }
+
+  /// Resolve the show's TMDb id (same lookup the watchlist feature uses) and
+  /// fetch its airing status once per screen instance. Silently does nothing
+  /// for movies, offline mode, unmatched shows, or anything not currently
+  /// airing — those cases just never populate [_tmdbTvDetails].
+  Future<void> _ensureTmdbAiringInfoLoaded() async {
+    if (_tmdbShowDetailsLoadAttempted || widget.isOffline || !_metadata.isShow) return;
+    _tmdbShowDetailsLoadAttempted = true;
+    final client = _getMediaClientForMetadata(context);
+    if (client == null) return;
+    try {
+      final externalIds = await client.fetchExternalIds(_metadata.id);
+      final tmdbId = externalIds.tmdb;
+      if (tmdbId == null || !mounted) return;
+      final tmdb = TmdbClient(database: context.read<AppDatabase>());
+      final TmdbTvDetails? details;
+      try {
+        details = await tmdb.getTvShowDetails(tmdbId);
+      } finally {
+        tmdb.dispose();
+      }
+      if (!mounted || details == null || !details.isAiring) return;
+      setState(() {
+        _tmdbShowId = tmdbId;
+        _tmdbTvDetails = details;
+      });
+      final seasonNumber = _seasons.isEmpty || _selectedSeasonIndex >= _seasons.length
+          ? null
+          : _seasons[_selectedSeasonIndex].index;
+      if (seasonNumber != null) unawaited(_ensureTmdbSeasonEpisodeCount(seasonNumber));
+    } catch (e, st) {
+      appLogger.d('TMDb airing info lookup failed', error: e, stackTrace: st);
+    }
+  }
+
+  /// Lazily fetch and cache a season's total TMDb episode count. Safe to call
+  /// from build (e.g. when the selected season changes) — dedupes against an
+  /// in-flight or already-cached lookup for the same season number.
+  Future<void> _ensureTmdbSeasonEpisodeCount(int seasonNumber) async {
+    final showId = _tmdbShowId;
+    if (showId == null) return;
+    if (_tmdbSeasonEpisodeCounts.containsKey(seasonNumber) || _tmdbSeasonEpisodeCountsLoading.contains(seasonNumber)) {
+      return;
+    }
+    _tmdbSeasonEpisodeCountsLoading.add(seasonNumber);
+    try {
+      final tmdb = TmdbClient(database: context.read<AppDatabase>());
+      final int? count;
+      try {
+        count = await tmdb.getSeasonEpisodeCount(showId, seasonNumber);
+      } finally {
+        tmdb.dispose();
+      }
+      if (!mounted || count == null) return;
+      setState(() => _tmdbSeasonEpisodeCounts[seasonNumber] = count!);
+    } catch (e, st) {
+      appLogger.d('TMDb season episode count lookup failed', error: e, stackTrace: st);
+    } finally {
+      _tmdbSeasonEpisodeCountsLoading.remove(seasonNumber);
     }
   }
 
@@ -2704,6 +2780,106 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     );
   }
 
+  /// The TMDb season number for whichever season's episodes are currently
+  /// showing, or null when seasons aren't loaded yet.
+  int? get _selectedTmdbSeasonNumber {
+    if (_seasons.isEmpty || _selectedSeasonIndex >= _seasons.length) return null;
+    return _seasons[_selectedSeasonIndex].index;
+  }
+
+  /// "Episode 8 of 10 · Next episode airs Feb 15" — only for a TMDb-airing
+  /// show, and only once at least one half of that has data to show. Shared
+  /// by the non-TV Column and the TV episodes rail header; [scale] is the
+  /// TV layout's font-scale factor (default 1.0 off TV). [focusedEpisode]
+  /// lets the TV rail report whichever episode currently has D-pad focus
+  /// instead of the season's highest-loaded one — passed via
+  /// [_tvDetailFocusedEpisode] so scrubbing to episode 6 reads "6 of 10".
+  Widget _buildTmdbAiringSummary({double scale = 1.0, MediaItem? focusedEpisode}) {
+    final details = _tmdbTvDetails;
+    final seasonNumber = _selectedTmdbSeasonNumber;
+    if (details == null || seasonNumber == null) return const SizedBox.shrink();
+    unawaited(_ensureTmdbSeasonEpisodeCount(seasonNumber));
+
+    final total = _tmdbSeasonEpisodeCounts[seasonNumber];
+    final next = details.nextEpisodeToAir;
+    final nextAppliesToThisSeason = next != null && next.seasonNumber == seasonNumber && next.airDate != null;
+    final focusedInSeason = focusedEpisode != null && focusedEpisode.parentIndex == seasonNumber
+        ? focusedEpisode.index
+        : null;
+    final highestAvailable = focusedInSeason ?? (_episodes.isEmpty ? null : (_episodes.last.index ?? _episodes.length));
+
+    final parts = <String>[
+      if (total != null && highestAvailable != null) t.messages.episodeOfTotal(current: highestAvailable, total: total),
+      if (nextAppliesToThisSeason) t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!)),
+    ];
+    if (parts.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12 * scale),
+      child: Text(
+        parts.join('  •  '),
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 14) * scale,
+        ),
+      ),
+    );
+  }
+
+  /// Placeholder row for a still-airing season's next, not-yet-released
+  /// episode — the library has no file for it yet, so there's no [EpisodeCard]
+  /// to show; this mirrors its general shape with a calendar icon standing in
+  /// for a thumbnail. Waits for the real episode list to finish paginating so
+  /// it can't flash in ahead of episodes still loading.
+  Widget _buildTmdbNextEpisodePlaceholder() {
+    final next = _tmdbTvDetails?.nextEpisodeToAir;
+    final seasonNumber = _selectedTmdbSeasonNumber;
+    if (next == null || next.airDate == null || seasonNumber == null || next.seasonNumber != seasonNumber) {
+      return const SizedBox.shrink();
+    }
+    if (_episodeListHasMore || _episodeListLoadingMore) return const SizedBox.shrink();
+    final episodeNumber = next.episodeNumber;
+    if (episodeNumber != null && _episodes.any((episode) => episode.index == episodeNumber)) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final label = formatSeasonEpisodeLabel(seasonNumber, episodeNumber);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 140,
+            height: 79,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Icon(Symbols.calendar_month_rounded, color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: .start,
+              mainAxisSize: .min,
+              children: [
+                if (label != null)
+                  Text(label, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                Text(
+                  t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!)),
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   bool _shouldUseLastEpisodeFocusNode({
     required MediaItem episode,
     required int index,
@@ -3284,6 +3460,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                   const SizedBox(height: 12),
                                   _buildSeasonTabs(),
                                   const SizedBox(height: 16),
+                                  _buildTmdbAiringSummary(),
                                   if (_isLoadingSeasonEpisodes)
                                     _sectionLoading
                                   else if (_seasonEpisodesFirstPageError && _episodes.isEmpty)
@@ -3291,9 +3468,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                       t.messages.episodesLoadFailed,
                                       () => unawaited(_fetchSeasonEpisodes(_selectedSeasonIndex)),
                                     )
-                                  else if (_episodes.isNotEmpty)
-                                    _buildEpisodesList()
-                                  else
+                                  else if (_episodes.isNotEmpty) ...[
+                                    _buildEpisodesList(),
+                                    _buildTmdbNextEpisodePlaceholder(),
+                                  ] else
                                     _sectionEmpty(context, t.messages.noEpisodesFoundGeneral),
                                 ],
                                 const SizedBox(height: 24),
@@ -3301,13 +3479,15 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                 // Server says flatten — existing behavior unchanged
                                 Text(key: _seasonsSectionKey, t.libraries.groupings.episodes, style: sectionTitleStyle),
                                 const SizedBox(height: 12),
+                                _buildTmdbAiringSummary(),
                                 if (_isLoadingSeasons || _isLoadingEpisodes)
                                   _sectionLoading
                                 else if (_allEpisodesPageError && _episodes.isEmpty)
                                   _sectionError(t.messages.episodesLoadFailed, () => unawaited(_fetchAllEpisodes()))
-                                else if (_episodes.isNotEmpty)
-                                  _buildEpisodesList()
-                                else
+                                else if (_episodes.isNotEmpty) ...[
+                                  _buildEpisodesList(),
+                                  _buildTmdbNextEpisodePlaceholder(),
+                                ] else
                                   _sectionEmpty(context, t.messages.noEpisodesFoundGeneral),
                                 const SizedBox(height: 24),
                               ],
@@ -3784,6 +3964,15 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (hasEpisodeHubs)
+            Padding(
+              padding: EdgeInsets.only(left: TvBrowseRailLayout.horizontalInsetForScale(scale) + (24 * scale)),
+              child: ValueListenableBuilder<MediaItem?>(
+                valueListenable: _tvDetailFocusedEpisode,
+                builder: (context, focusedEpisode, _) =>
+                    _buildTmdbAiringSummary(scale: scale, focusedEpisode: focusedEpisode),
+              ),
+            ),
           if (hasEpisodeHubs)
             KeyedSubtree(
               key: _tvEpisodesRailSectionKey,

@@ -7,6 +7,7 @@ import '../database/tmdb_cache_operations.dart';
 import '../models/tmdb/tmdb_cast_credit.dart';
 import '../models/tmdb/tmdb_filmography_credit.dart';
 import '../models/tmdb/tmdb_person.dart';
+import '../models/tmdb/tmdb_tv_details.dart';
 import '../utils/app_logger.dart';
 
 
@@ -48,7 +49,42 @@ class TmdbClient {
     return cast.map((entry) => TmdbFilmographyCredit.fromJson(entry as Map<String, dynamic>)).toList();
   }
 
-  Future<Map<String, dynamic>?> _get(String path) async {
+  /// Show-level status (`status`, `in_production`) and `next_episode_to_air`
+  /// — used to tell an airing show apart from a finished one and, when
+  /// airing, when its next episode lands.
+  Future<TmdbTvDetails?> getTvShowDetails(int tmdbShowId) async {
+    final json = await _get('/tv/$tmdbShowId', cacheBust: true);
+    if (json == null) return null;
+    return TmdbTvDetails.fromJson(json);
+  }
+
+  /// Total episode count TMDb has listed for a season, aired or not — used
+  /// for "episode 8 of 10". Returns null on a failed/missing lookup rather
+  /// than 0, so callers can tell "unknown" apart from "no episodes".
+  Future<int?> getSeasonEpisodeCount(int tmdbShowId, int seasonNumber) async {
+    final json = await _get('/tv/$tmdbShowId/season/$seasonNumber', cacheBust: true);
+    if (json == null) return null;
+    final episodes = json['episodes'] as List<dynamic>?;
+    return episodes?.length;
+  }
+
+  /// Today's date (UTC) as `YYYY-MM-DD`, appended to a cache key so
+  /// schedule-sensitive lookups (next-air-date, episode counts) refresh once
+  /// a day instead of caching forever like [_get]'s other callers — cheaper
+  /// than adding real TTL support to the underlying cache table.
+  String _cacheBustSuffix() {
+    final now = DateTime.now().toUtc();
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    return '?_d=${now.year}-$month-$day';
+  }
+
+  Future<Map<String, dynamic>?> _get(String path, {bool cacheBust = false}) async {
+    final effectivePath = cacheBust ? '$path${_cacheBustSuffix()}' : path;
+    return _getRaw(effectivePath);
+  }
+
+  Future<Map<String, dynamic>?> _getRaw(String path) async {
     final database = _database;
     if (database != null) {
       final cached = await database.getTmdbCache(path);

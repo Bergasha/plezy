@@ -771,6 +771,8 @@
     "noEpisodesFound": "No episodes found in first season",
     "noEpisodesFoundGeneral": "No episodes found",
     "episodesLoadFailed": "Couldn't load episodes",
+    "episodeOfTotal": "Episode ${current} of ${total}",
+    "nextEpisodeAirs": "Next episode airs ${date}",
     "noResultsFound": "No results found",
     "sleepTimerSet": "Sleep timer set for ${label}",
     "noItemsAvailable": "No items available",
