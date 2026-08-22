@@ -155,7 +155,10 @@ class NavigationRailItem extends StatelessWidget {
     // The collapsed TV rail is a transparent overlay strip; a persistent
     // active pill over artwork is noise there, so it shows focus only.
     final showSelected = isSelected && !suppressSelectedBackground && !(collapsedLayout && PlatformDetector.isTV());
-    if (focused) return t.text.withValues(alpha: showSelected ? selectedFocusAlpha : focusAlpha);
+    // `accent` picks up OLED's red so the currently-focused destination is
+    // unmistakable while navigating; every other palette keeps accent == text
+    // and this renders exactly as it always has.
+    if (focused) return t.accent.withValues(alpha: showSelected ? selectedFocusAlpha : focusAlpha);
     if (showSelected) return t.text.withValues(alpha: 0.1);
     return null;
   }
