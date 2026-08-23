@@ -47,6 +47,22 @@ void main() {
       expect(p.isHostServerRunning, isFalse);
       p.dispose();
     });
+
+    test('host listen addresses are exposed while running and cleared on stop', () async {
+      final host = _FakeCompanionRemotePeerService();
+      final harness = await _RemoteHarness.create(
+        _FakePeerFactory([host]).call,
+        discoveryServiceFactory: _FakeLanDiscoveryService.new,
+      );
+      addTearDown(harness.close);
+
+      expect(harness.provider.hostServerAddresses, isEmpty);
+      await harness.provider.startHostServer();
+      expect(harness.provider.hostServerAddresses, ['127.0.0.1:48634']);
+
+      await harness.provider.stopHostServer();
+      expect(harness.provider.hostServerAddresses, isEmpty);
+    });
   });
 
   group('CompanionRemoteProvider — dispose hygiene', () {
@@ -422,6 +438,55 @@ void main() {
       expect(harness.provider.reconnectAttempts, 1);
 
       await harness.provider.cancelReconnect();
+    });
+
+    test('candidate status and error emissions during a failed reconnect attempt still reschedule', () async {
+      final initial = _FakeCompanionRemotePeerService();
+      final joinGate = Completer<void>();
+      final candidate = _FakeCompanionRemotePeerService(
+        joinGate: joinGate,
+        joinError: StateError('synthetic reconnect failure'),
+      );
+      final factory = _FakePeerFactory([initial, candidate]);
+      final harness = await _RemoteHarness.create(factory.call);
+      addTearDown(harness.close);
+      await harness.provider.connectToManualHost('192.0.2.35:48634');
+
+      initial.emitDeviceDisconnected();
+      final retry = harness.provider.retryReconnectNow();
+      await candidate.joinStarted.future;
+
+      // A joining candidate mirrors its own lifecycle into the session: a
+      // transient connected knocks it out of `reconnecting`, and the dying
+      // socket's error then stamps `error`.
+      candidate.emitStatus(RemoteSessionStatus.connected);
+      candidate.emitError(RemotePeerError(type: RemotePeerErrorType.connectionFailed, message: 'handshake died'));
+      expect(harness.provider.status, isNot(RemoteSessionStatus.reconnecting));
+
+      joinGate.complete();
+      await retry;
+
+      // Regression: rescheduling used to read the peer-overwritten session
+      // status and ended the cycle after this single failed attempt. The
+      // attempt's own captured intent must drive the reschedule.
+      expect(harness.provider.reconnectAttempts, 1);
+
+      await harness.provider.cancelReconnect();
+    });
+
+    test('a failed user-initiated connect does not schedule a reconnect', () async {
+      final candidate = _FakeCompanionRemotePeerService(joinError: StateError('synthetic connect failure'));
+      final factory = _FakePeerFactory([candidate]);
+      final harness = await _RemoteHarness.create(factory.call);
+      addTearDown(harness.close);
+
+      await expectLater(harness.provider.connectToManualHost('192.0.2.36:48634'), throwsA(isA<StateError>()));
+
+      // _scheduleReconnect arms synchronously, so a zero attempt count proves
+      // the user-initiated failure surfaced as an error without a retry cycle.
+      expect(harness.provider.status, RemoteSessionStatus.error);
+      expect(harness.provider.reconnectAttempts, 0);
+      expect(factory.created, 1);
     });
 
     test('disconnect while backgrounded defers retries until resume, then reconnects', () async {

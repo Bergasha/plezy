@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "A natív DV7 kényszerítése és a DV-átalakítási újrapróbálkozás letiltása",
     "dvConversionDv81Description": "A közvetlen RPU-átalakítás kényszerítése Dolby Vision Profile 8.1-re",
     "dvConversionHevcStripDescription": "A Dolby Vision RPU/EL-rétegek eltávolítása és egyszerű HEVC-ként való megjelenítés",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Profil kérése az alkalmazás megnyitásakor",
     "requireProfileSelectionOnOpenDescription": "Profilválasztó megjelenítése minden alkalommal, amikor az alkalmazást megnyitod",
     "forceTvMode": "TV-mód kényszerítése",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Műsorújság frissítése kérve",
     "rulesProcessRequested": "Szabályok újraértékelése kérve",
     "recordShow": "Műsor rögzítése",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "${minutes} perc múlva kezdődik",
     "dayAtTime": "${day}, ${time}",
     "invalidPlaybackData": "A(z) ${product} érvénytelen Élő TV-lejátszási adatokat adott vissza",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Használd a mobileszközödet az alkalmazás vezérléséhez",
       "startServer": "Szerver indítása",
       "stopServer": "Szerver leállítása",
-      "minimize": "Kis méret"
+      "minimize": "Kis méret",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Az azonos Plex-fiókot használó Plezy-eszközök itt jelennek meg",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Részben elérhető",
     "statusRequested": "Igényelve",
     "statusProcessing": "Feldolgozás alatt",
+    "statusBlocklisted": "",
     "couldNotReach": "Nem sikerült elérni ezt: ${url}: ${error}",
     "noInstanceAtUrl": "Nem található Seerr-példány ezen a címen: ${url} (HTTP ${status})",
     "notInitialized": "Ennek a Seerr-példánynak a kezdeti beállítása még nem fejeződött be",

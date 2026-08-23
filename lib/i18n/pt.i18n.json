@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Forçar DV7 nativo e impedir uma nova tentativa de conversão de DV",
     "dvConversionDv81Description": "Forçar a conversão RPU integrada para Dolby Vision perfil 8.1",
     "dvConversionHevcStripDescription": "Remover as camadas RPU/EL do Dolby Vision e apresentar HEVC sem Dolby Vision",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Pedir perfil ao abrir o app",
     "requireProfileSelectionOnOpenDescription": "Mostrar a seleção de perfil sempre que o app for aberto",
     "forceTvMode": "Forçar modo TV",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Atualização do guia solicitada",
     "rulesProcessRequested": "Reavaliação de regras solicitada",
     "recordShow": "Gravar programa",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "Começa em ${minutes} min",
     "dayAtTime": "${day} às ${time}",
     "invalidPlaybackData": "${product} retornou dados inválidos de reprodução de TV ao Vivo",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Use seu dispositivo móvel para controlar este app",
       "startServer": "Iniciar servidor",
       "stopServer": "Parar servidor",
-      "minimize": "Minimizar"
+      "minimize": "Minimizar",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Dispositivos Plezy com a mesma conta Plex aparecem aqui",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Parcialmente disponível",
     "statusRequested": "Solicitado",
     "statusProcessing": "Processando",
+    "statusBlocklisted": "",
     "couldNotReach": "Não foi possível acessar ${url}: ${error}",
     "noInstanceAtUrl": "Nenhuma instância do Seerr em ${url} (HTTP ${status})",
     "notInitialized": "Esta instância do Seerr não concluiu a configuração inicial",

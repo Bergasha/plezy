@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Natives DV7 erzwingen und einen erneuten DV-Konvertierungsversuch unterdrücken",
     "dvConversionDv81Description": "Inline-RPU-Konvertierung in Dolby-Vision-Profil 8.1 erzwingen",
     "dvConversionHevcStripDescription": "Dolby-Vision-RPU/EL-Schichten entfernen und reines HEVC ausgeben",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Profil beim Öffnen abfragen",
     "requireProfileSelectionOnOpenDescription": "Profilauswahl bei jedem Öffnen der App anzeigen",
     "forceTvMode": "TV-Modus erzwingen",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Aktualisierung des TV-Programms angefordert",
     "rulesProcessRequested": "Regelauswertung angefordert",
     "recordShow": "Sendung aufnehmen",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "Beginnt in ${minutes} Min.",
     "dayAtTime": "${day} um ${time}",
     "invalidPlaybackData": "${product} hat ungültige Live-TV-Wiedergabedaten zurückgegeben",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Verwende dein Mobilgerät, um diese App zu steuern",
       "startServer": "Server starten",
       "stopServer": "Server stoppen",
-      "minimize": "Minimieren"
+      "minimize": "Minimieren",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Plezy-Geräte mit demselben Plex-Konto erscheinen hier",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Teilweise verfügbar",
     "statusRequested": "Angefragt",
     "statusProcessing": "Wird verarbeitet",
+    "statusBlocklisted": "",
     "couldNotReach": "${url} nicht erreichbar: ${error}",
     "noInstanceAtUrl": "Keine Seerr-Instanz unter ${url} (HTTP ${status})",
     "notInitialized": "Die Ersteinrichtung dieser Seerr-Instanz wurde noch nicht abgeschlossen",

@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Dwing native DV7 af en voorkom een nieuwe poging met DV-conversie",
     "dvConversionDv81Description": "Dwing directe RPU-conversie naar Dolby Vision-profiel 8.1 af",
     "dvConversionHevcStripDescription": "Verwijder Dolby Vision RPU/EL-lagen en bied gewone HEVC aan",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Vraag om profiel bij openen",
     "requireProfileSelectionOnOpenDescription": "Toon profielselectie telkens wanneer de app wordt geopend",
     "forceTvMode": "Tv-modus afdwingen",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Vernieuwing van de gids aangevraagd",
     "rulesProcessRequested": "Nieuwe evaluatie van regels aangevraagd",
     "recordShow": "Programma opnemen",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "Begint over ${minutes} min",
     "dayAtTime": "${day} om ${time}",
     "invalidPlaybackData": "${product} heeft ongeldige afspeelgegevens voor Live-tv geretourneerd",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Gebruik je mobiele apparaat om deze app te bedienen",
       "startServer": "Server starten",
       "stopServer": "Server stoppen",
-      "minimize": "Minimaliseren"
+      "minimize": "Minimaliseren",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Plezy-apparaten met hetzelfde Plex-account verschijnen hier",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Gedeeltelijk beschikbaar",
     "statusRequested": "Aangevraagd",
     "statusProcessing": "Verwerken",
+    "statusBlocklisted": "",
     "couldNotReach": "Kon ${url} niet bereiken: ${error}",
     "noInstanceAtUrl": "Geen Seerr-instantie op ${url} (HTTP ${status})",
     "notInitialized": "De eerste configuratie van deze Seerr-instantie is niet voltooid",

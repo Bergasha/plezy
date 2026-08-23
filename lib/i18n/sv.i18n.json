@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Tvinga inbyggd DV7 och förhindra nya försök med DV-konvertering",
     "dvConversionDv81Description": "Tvinga direkt RPU-konvertering till Dolby Vision-profil 8.1",
     "dvConversionHevcStripDescription": "Ta bort Dolby Visions RPU-/EL-lager och använd vanlig HEVC",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Fråga efter profil vid appstart",
     "requireProfileSelectionOnOpenDescription": "Visa profilval varje gång appen öppnas",
     "forceTvMode": "Tvinga TV-läge",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Uppdatering av programguiden har begärts",
     "rulesProcessRequested": "Ny regelutvärdering har begärts",
     "recordShow": "Spela in program",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "Börjar om ${minutes} min",
     "dayAtTime": "${day} kl. ${time}",
     "invalidPlaybackData": "${product} returnerade ogiltiga uppspelningsdata för Live-TV",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Använd din mobila enhet för att styra appen",
       "startServer": "Starta server",
       "stopServer": "Stoppa server",
-      "minimize": "Minimera"
+      "minimize": "Minimera",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Plezy-enheter med samma Plex-konto visas här",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Delvis tillgänglig",
     "statusRequested": "Begärd",
     "statusProcessing": "Bearbetas",
+    "statusBlocklisted": "",
     "couldNotReach": "Kunde inte nå ${url}: ${error}",
     "noInstanceAtUrl": "Det finns ingen Seerr-instans på ${url} (HTTP ${status})",
     "notInitialized": "Den här Seerr-instansen har inte slutfört den inledande konfigurationen",

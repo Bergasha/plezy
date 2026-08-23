@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Ichki DV7 rejimini majburlash",
     "dvConversionDv81Description": "Dolby Vision profile 8.1 formatiga oʻtkazish",
     "dvConversionHevcStripDescription": "Dolby Vision qatlamlarini olib tashlash va HEVC sifatida koʻrsatish",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Ochilganda profilni soʻrash",
     "requireProfileSelectionOnOpenDescription": "Ilova ochilgan har safar profilni tanlashni koʻrsatish",
     "forceTvMode": "TV rejimini majburlash",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Jadvalni yangilash soʻraldi",
     "rulesProcessRequested": "Qoidalarni qayta baholash soʻraldi",
     "recordShow": "Shouni yozib olish",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "${minutes} daqiqadan keyin boshlanadi",
     "dayAtTime": "${day}, soat ${time} da",
     "invalidPlaybackData": "${product} Jonli TV ijrosi uchun notoʻgʻri maʼlumot qaytardi",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Ushbu ilovani boshqarish uchun telefoningizdan foydalaning",
       "startServer": "Serverni ishga tushirish",
       "stopServer": "Serverni toʻxtatish",
-      "minimize": "Yigʻish"
+      "minimize": "Yigʻish",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Bir xil Plex hisobidagi Plezy qurilmalari bu yerda koʻrinadi",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Qisman mavjud",
     "statusRequested": "Soʻraldi",
     "statusProcessing": "Ishlanmoqda",
+    "statusBlocklisted": "",
     "couldNotReach": "${url} manziliga ulanib boʻlmadi: ${error}",
     "noInstanceAtUrl": "${url} manzilida Seerr nusxasi yoʻq (HTTP ${status})",
     "notInitialized": "Bu Seerr nusxasining dastlabki sozlamasi yakunlanmagan",

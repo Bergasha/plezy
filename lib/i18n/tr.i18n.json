@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Yerel DV7'yi zorla ve DV dönüştürme yeniden denemesini engelle",
     "dvConversionDv81Description": "Dolby Vision profile 8.1'e satır içi RPU dönüştürmeyi zorla",
     "dvConversionHevcStripDescription": "Dolby Vision RPU/EL katmanlarını soy ve düz HEVC olarak sun",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Uygulama açılışında profil sor",
     "requireProfileSelectionOnOpenDescription": "Uygulama her açıldığında profil seçimini göster",
     "forceTvMode": "TV modunu zorla",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Rehber yenilemesi istendi",
     "rulesProcessRequested": "Kuralın yeniden değerlendirilmesi istendi",
     "recordShow": "Programı kaydet",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "${minutes} dk içinde başlıyor",
     "dayAtTime": "${day} saat ${time}",
     "invalidPlaybackData": "${product} geçersiz Canlı TV oynatma verileri döndürdü",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Bu uygulamayı kontrol etmek için mobil cihazınızı kullanın",
       "startServer": "Sunucuyu Başlat",
       "stopServer": "Sunucuyu Durdur",
-      "minimize": "Küçült"
+      "minimize": "Küçült",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Aynı Plex hesabına sahip Plezy cihazları burada görünür",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Kısmen mevcut",
     "statusRequested": "İstendi",
     "statusProcessing": "İşleniyor",
+    "statusBlocklisted": "",
     "couldNotReach": "${url} adresine ulaşılamadı: ${error}",
     "noInstanceAtUrl": "${url} adresinde Seerr örneği bulunamadı (HTTP ${status})",
     "notInitialized": "Bu Seerr örneği ilk çalıştırma kurulumunu tamamlamadı",

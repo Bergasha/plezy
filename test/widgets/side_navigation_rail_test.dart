@@ -193,7 +193,12 @@ void main() {
     final selectedItemContainer = tester.widget<Container>(
       find.descendant(of: selectedItem, matching: find.byType(Container)).first,
     );
-    expect((selectedItemContainer.decoration as BoxDecoration?)?.color, isNull);
+    // The per-item morph used to stack two `Opacity` subtrees, which cost a
+    // saveLayer each on every frame of the 250 ms expand. It now crossfades via
+    // colour alpha on the leaf, so a hidden indicator is a fully transparent
+    // colour rather than an absent one. Either way it must be invisible.
+    final indicatorColor = (selectedItemContainer.decoration as BoxDecoration?)?.color;
+    expect(indicatorColor?.a ?? 0.0, 0.0);
 
     expect(_railSurfaceOpacity(tester).opacity, 0.0);
   });
@@ -430,6 +435,70 @@ void main() {
     await tester.pumpAndSettle();
 
     // Home -> Libraries -> Search. The Movies row is skipped while collapsed.
+    await _press(tester, LogicalKeyboardKey.arrowDown);
+    await _press(tester, LogicalKeyboardKey.arrowDown);
+    await _press(tester, LogicalKeyboardKey.enter);
+
+    expect(selectedTab, NavigationTabId.search);
+  });
+
+  testWidgets('collapsed rail with expanded Libraries skips focus-excluded library rows', (tester) async {
+    // The library rows render under ExcludeFocus while the rail is collapsed
+    // even though the Libraries section pref is expanded; targeting one used
+    // to swallow DOWN forever, cutting off everything below the header.
+    await SettingsService.getInstance();
+    await SettingsService.instance.write(SettingsService.librariesSectionExpanded, true);
+
+    final movies = _library(id: '1', title: 'Movies', serverId: ServerId('server-a'), serverName: 'Server A');
+
+    final librariesProvider = LibrariesProvider();
+    await librariesProvider.updateLibraryOrder([movies]);
+    addTearDown(librariesProvider.dispose);
+
+    final hiddenLibrariesProvider = HiddenLibrariesProvider();
+    await hiddenLibrariesProvider.ensureInitialized();
+    addTearDown(hiddenLibrariesProvider.dispose);
+
+    final manager = MultiServerManager();
+    final multiServerProvider = testMultiServerProvider(manager);
+    addTearDown(multiServerProvider.dispose);
+
+    final sideNavKey = GlobalKey<SideNavigationRailState>();
+    NavigationTabId? selectedTab;
+
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<LibrariesProvider>.value(value: librariesProvider),
+            ChangeNotifierProvider<HiddenLibrariesProvider>.value(value: hiddenLibrariesProvider),
+            ChangeNotifierProvider<MultiServerProvider>.value(value: multiServerProvider),
+          ],
+          child: InputModeTracker(
+            child: MaterialApp(
+              theme: ThemeData(extensions: const [testMonoTokens]),
+              home: Scaffold(
+                body: SideNavigationRail(
+                  key: sideNavKey,
+                  selectedTab: NavigationTabId.discover,
+                  isSidebarFocused: false,
+                  alwaysExpanded: false,
+                  onDestinationSelected: (tab) => selectedTab = tab,
+                  onLibrarySelected: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    sideNavKey.currentState!.focusActiveItem();
+    await tester.pumpAndSettle();
+
+    // Home -> Libraries -> Search. The Movies row stays out of D-pad order
+    // while the rail is collapsed, so DOWN lands on the next real row.
     await _press(tester, LogicalKeyboardKey.arrowDown);
     await _press(tester, LogicalKeyboardKey.arrowDown);
     await _press(tester, LogicalKeyboardKey.enter);

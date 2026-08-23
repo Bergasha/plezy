@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "네이티브 DV7을 강제하고 DV 변환 재시도를 억제합니다",
     "dvConversionDv81Description": "Dolby Vision 프로필 8.1로 인라인 RPU 변환을 강제합니다",
     "dvConversionHevcStripDescription": "Dolby Vision RPU/EL 레이어를 제거하고 일반 HEVC로 제공합니다",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "앱 실행 시 프로필 선택",
     "requireProfileSelectionOnOpenDescription": "앱을 열 때마다 프로필 선택 화면을 표시합니다",
     "forceTvMode": "TV 모드 강제 사용",
@@ -1328,6 +1332,16 @@
     "guideReloadRequested": "가이드 새로고침 요청됨",
     "rulesProcessRequested": "규칙 재평가 요청됨",
     "recordShow": "프로그램 녹화",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "${minutes}분 후 시작",
     "dayAtTime": "${day} ${time}",
     "invalidPlaybackData": "${product}에서 잘못된 실시간 TV 재생 데이터를 반환했습니다",
@@ -1631,7 +1645,8 @@
       "usePhoneToControl": "모바일 기기로 이 앱을 제어하세요",
       "startServer": "서버 시작",
       "stopServer": "서버 중지",
-      "minimize": "최소화"
+      "minimize": "최소화",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "같은 Plex 계정의 Plezy 기기가 여기에 표시됩니다",
@@ -1920,6 +1935,7 @@
     "statusPartiallyAvailable": "일부 사용 가능",
     "statusRequested": "요청됨",
     "statusProcessing": "처리 중",
+    "statusBlocklisted": "",
     "couldNotReach": "${url}에 연결할 수 없습니다: ${error}",
     "noInstanceAtUrl": "${url}에 Seerr 인스턴스가 없습니다(HTTP ${status})",
     "notInitialized": "이 Seerr 인스턴스는 최초 실행 설정을 완료하지 않았습니다",

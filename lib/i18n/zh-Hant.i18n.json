@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "強制使用原生 DV7 並停用 DV 轉換重試",
     "dvConversionDv81Description": "強制將內嵌的 RPU 轉換為 Dolby Vision Profile 8.1",
     "dvConversionHevcStripDescription": "移除 Dolby Vision RPU/EL 層，並以一般 HEVC 呈現",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "開啟應用程式時要求選擇使用者",
     "requireProfileSelectionOnOpenDescription": "每次開啟應用程式時顯示使用者設定檔選擇畫面",
     "forceTvMode": "強制 TV 模式",
@@ -1328,6 +1332,16 @@
     "guideReloadRequested": "已要求更新節目表指南",
     "rulesProcessRequested": "已要求重新評估規則",
     "recordShow": "錄製節目",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "${minutes} 分鐘後開始",
     "dayAtTime": "${day} ${time}",
     "invalidPlaybackData": "${product} 傳回了無效的直播電視播放資料",
@@ -1631,7 +1645,8 @@
       "usePhoneToControl": "使用行動裝置控制此應用程式",
       "startServer": "啟動伺服器",
       "stopServer": "停止伺服器",
-      "minimize": "最小化"
+      "minimize": "最小化",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "使用相同 Plex 帳戶的 Plezy 裝置會顯示在此處",
@@ -1920,6 +1935,7 @@
     "statusPartiallyAvailable": "部分可用",
     "statusRequested": "已請求",
     "statusProcessing": "處理中",
+    "statusBlocklisted": "",
     "couldNotReach": "無法連線至 ${url}：${error}",
     "noInstanceAtUrl": "在 ${url} 找不到 Seerr 執行個體（HTTP ${status}）",
     "notInitialized": "此 Seerr 執行個體尚未完成首次執行設定",

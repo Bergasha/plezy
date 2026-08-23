@@ -56,6 +56,9 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
   String _deviceName = t.companionRemote.unknownDevice;
   String _platform = 'unknown';
   bool _isPlayerActive = false;
+  // Listen addresses of a running host server (`ip:port`), surfaced so the
+  // host UI can show what a phone's manual connection should target.
+  List<String> _hostServerAddresses = const [];
 
   static const int _maxReconnectAttempts = 5;
 
@@ -119,6 +122,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
   RemoteDevice? get connectedDevice => _session?.connectedDevice;
   bool get isPlayerActive => _isPlayerActive;
   bool get isHostServerRunning => _peerService?.isServerRunning ?? false;
+  List<String> get hostServerAddresses => _hostServerAddresses;
 
   Future<void> _initializeDeviceInfo() async {
     final identity = await DeviceIdentityService.resolve();
@@ -590,6 +594,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
     try {
       final contexts = List<RemoteAuthContext>.unmodifiable(_authContexts);
       final result = await _peerService!.createSessionForContexts(_deviceName, _platform, contexts);
+      _hostServerAddresses = result.addresses;
 
       _session = RemoteSession(
         role: RemoteSessionRole.host,
@@ -612,6 +617,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
       appLogger.d('CompanionRemote: Host server running, broadcasting on LAN');
     } catch (e) {
       appLogger.e('CompanionRemote: Failed to start host server', error: e);
+      _hostServerAddresses = const [];
       _session = RemoteSession(
         role: RemoteSessionRole.host,
         status: RemoteSessionStatus.error,
@@ -633,6 +639,7 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
     try {
       await _discoveryService?.stopBroadcasting();
       _discoveryService?.stopListening();
+      _hostServerAddresses = const [];
 
       if (identical(_peerService, peer)) {
         _peerService = null;
@@ -766,14 +773,20 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
   /// guards live here so a candidate that lost ownership while joining is
   /// disposed rather than promoted, in exactly one place. Returns true only
   /// when the candidate was promoted.
+  ///
+  /// [isReconnectAttempt] carries the attempt's own intent: a failed reconnect
+  /// reschedules from this captured flag (plus the generation guard) rather
+  /// than from `_session.status`, which the candidate's mirrored status/error
+  /// emissions can overwrite while the join is in flight.
   Future<bool> _runRemoteConnect({
     required int generation,
     required Future<void> Function(CompanionRemotePeerService peer) join,
     required void Function(CompanionRemotePeerService peer) onConnected,
     required String failureLog,
-    required void Function(Object error) onFailure,
+    void Function(Object error)? onFailure,
     bool seedConnectingSession = false,
     bool rethrowOnFailure = false,
+    bool isReconnectAttempt = false,
   }) async {
     final candidate = _peerServiceFactory();
     _pendingRemotePeer = candidate;
@@ -809,7 +822,10 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
       _cleanupSubscriptions();
       await _disposePeer(candidate);
       appLogger.e(failureLog, error: error, stackTrace: stackTrace);
-      onFailure(error);
+      onFailure?.call(error);
+      if (isReconnectAttempt && generation == _remoteGeneration) {
+        _scheduleReconnect(generation);
+      }
       if (rethrowOnFailure) rethrow;
       return false;
     }
@@ -1085,11 +1101,10 @@ class CompanionRemoteProvider with ChangeNotifier, DisposableChangeNotifierMixin
         _reconnectAttempts = 0;
       },
       failureLog: 'CompanionRemote: Reconnect failed',
-      onFailure: (_) {
-        if (generation == _remoteGeneration && _session?.status == RemoteSessionStatus.reconnecting) {
-          _scheduleReconnect(generation);
-        }
-      },
+      // Reschedule from the attempt's own intent, not from `_session.status`:
+      // the candidate's status/error emissions overwrite `reconnecting` while
+      // the join is in flight, which used to end the cycle after one failure.
+      isReconnectAttempt: true,
     );
     if (reconnected) {
       appLogger.d('CompanionRemote: Reconnected successfully');

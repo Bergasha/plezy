@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "强制原生 DV7 并禁止重试 DV 转换",
     "dvConversionDv81Description": "强制内联 RPU 转换为 Dolby Vision Profile 8.1",
     "dvConversionHevcStripDescription": "移除 Dolby Vision RPU/EL 层并呈现普通 HEVC",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "打开应用时选择用户资料",
     "requireProfileSelectionOnOpenDescription": "每次打开应用时都显示用户资料选择界面",
     "forceTvMode": "强制 TV 模式",
@@ -1328,6 +1332,16 @@
     "guideReloadRequested": "已请求更新节目指南",
     "rulesProcessRequested": "已请求重新评估规则",
     "recordShow": "录制节目",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "${minutes} 分钟后开始",
     "dayAtTime": "${day} ${time}",
     "invalidPlaybackData": "${product} 返回了无效的直播电视播放数据",
@@ -1631,7 +1645,8 @@
       "usePhoneToControl": "使用移动设备控制此应用",
       "startServer": "启动服务器",
       "stopServer": "停止服务器",
-      "minimize": "最小化"
+      "minimize": "最小化",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "使用同一 Plex 账号的 Plezy 设备会显示在这里",
@@ -1920,6 +1935,7 @@
     "statusPartiallyAvailable": "部分可用",
     "statusRequested": "已请求",
     "statusProcessing": "处理中",
+    "statusBlocklisted": "",
     "couldNotReach": "无法连接到 ${url}：${error}",
     "noInstanceAtUrl": "${url} 上没有 Seerr 实例（HTTP ${status}）",
     "notInitialized": "此 Seerr 实例尚未完成首次运行设置",

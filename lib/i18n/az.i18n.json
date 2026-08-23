@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Daxili DV7-ni məcburi et",
     "dvConversionDv81Description": "Dolby Vision profile 8.1-ə çevrilməni məcburi et",
     "dvConversionHevcStripDescription": "Dolby Vision təbəqələrini sil və sadə HEVC kimi təqdim et",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Açılışda profil soruş",
     "requireProfileSelectionOnOpenDescription": "Tətbiq hər dəfə açıldıqda profil seçimini göstər",
     "forceTvMode": "TV rejimini məcburi et",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Bələdçi yenilənməsi tələb olundu",
     "rulesProcessRequested": "Qaydaların yenidən qiymətləndirilməsi tələb olundu",
     "recordShow": "Şounu yaz",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "${minutes} dəq sonra başlayır",
     "dayAtTime": "${day}, saat ${time}",
     "invalidPlaybackData": "${product} etibarsız Canlı TV oynatma məlumatı qaytardı",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Bu tətbiqi idarə etmək üçün mobil cihazınızı istifadə edin",
       "startServer": "Serveri başlat",
       "stopServer": "Serveri dayandır",
-      "minimize": "Yığ"
+      "minimize": "Yığ",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Eyni Plex hesabına sahib Plezy cihazları burada görünür",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Hissəvi əlçatandır",
     "statusRequested": "Sorğu göndərildi",
     "statusProcessing": "Emal edilir",
+    "statusBlocklisted": "",
     "couldNotReach": "${url} ünvanına çatmaq olmadı: ${error}",
     "noInstanceAtUrl": "${url} ünvanında Seerr instansiyası yoxdur (HTTP ${status})",
     "notInitialized": "Bu Seerr instansiyasının ilkin quraşdırılması tamamlanmayıb",

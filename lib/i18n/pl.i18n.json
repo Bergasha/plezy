@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Wymuś natywne DV7 i wyłącz ponowną próbę konwersji DV",
     "dvConversionDv81Description": "Wymuś wbudowaną konwersję RPU do profilu Dolby Vision 8.1",
     "dvConversionHevcStripDescription": "Usuń warstwy Dolby Vision RPU/EL i przedstaw zwykłe HEVC",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Pytaj o profil przy otwarciu aplikacji",
     "requireProfileSelectionOnOpenDescription": "Pokaż wybór profilu za każdym razem, gdy aplikacja jest otwierana",
     "forceTvMode": "Wymuś tryb TV",
@@ -1355,6 +1359,16 @@
     "guideReloadRequested": "Zażądano odświeżenia przewodnika",
     "rulesProcessRequested": "Zażądano ponownej oceny reguł",
     "recordShow": "Nagraj program",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "Rozpocznie się za ${minutes} min",
     "dayAtTime": "${day} o ${time}",
     "invalidPlaybackData": "${product} zwrócił nieprawidłowe dane odtwarzania TV na żywo",
@@ -1661,7 +1675,8 @@
       "usePhoneToControl": "Użyj urządzenia mobilnego, aby sterować tą aplikacją",
       "startServer": "Uruchom serwer",
       "stopServer": "Zatrzymaj serwer",
-      "minimize": "Minimalizuj"
+      "minimize": "Minimalizuj",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Urządzenia Plezy z tym samym kontem Plex pojawią się tutaj",
@@ -1950,6 +1965,7 @@
     "statusPartiallyAvailable": "Częściowo dostępne",
     "statusRequested": "Zamówione",
     "statusProcessing": "Przetwarzanie",
+    "statusBlocklisted": "",
     "couldNotReach": "Nie udało się połączyć z ${url}: ${error}",
     "noInstanceAtUrl": "Pod adresem ${url} nie ma instancji Seerr (HTTP ${status})",
     "notInitialized": "Ta instancja Seerr nie ukończyła konfiguracji początkowej",

@@ -1102,6 +1102,18 @@ class Translations$settings$en {
 	/// en: 'Strip Dolby Vision RPU/EL layers and present plain HEVC'
 	String get dvConversionHevcStripDescription => 'Strip Dolby Vision RPU/EL layers and present plain HEVC';
 
+	/// en: 'Container Demuxer'
+	String get demuxer => 'Container Demuxer';
+
+	/// en: 'Which demuxer parses direct-played files. Switch to media3 if a file misbehaves.'
+	String get demuxerDescription => 'Which demuxer parses direct-played files. Switch to media3 if a file misbehaves.';
+
+	/// en: 'FFmpeg (Recommended)'
+	String get demuxerFfmpeg => 'FFmpeg (Recommended)';
+
+	/// en: 'media3'
+	String get demuxerMedia3 => 'media3';
+
 	/// en: 'Ask for profile on app open'
 	String get requireProfileSelectionOnOpen => 'Ask for profile on app open';
 
@@ -3581,6 +3593,8 @@ class Translations$liveTv$en {
 	/// en: 'Record show'
 	String get recordShow => 'Record show';
 
+	late final Translations$liveTv$recordSettings$en recordSettings = Translations$liveTv$recordSettings$en.internal(_root);
+
 	/// en: 'Starting in ${minutes} min'
 	String startingInMinutes({required Object minutes}) => 'Starting in ${minutes} min';
 
@@ -5102,6 +5116,9 @@ class Translations$seerr$en {
 	/// en: 'Processing'
 	String get statusProcessing => 'Processing';
 
+	/// en: 'Blocklisted'
+	String get statusBlocklisted => 'Blocklisted';
+
 	/// en: 'Could not reach ${url}: ${error}'
 	String couldNotReach({required Object url, required Object error}) => 'Could not reach ${url}: ${error}';
 
@@ -6093,6 +6110,39 @@ class Translations$explore$detail$en {
 	String get background => 'Background';
 }
 
+// Path: liveTv.recordSettings
+class Translations$liveTv$recordSettings$en {
+	Translations$liveTv$recordSettings$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Start early (seconds)'
+	String get startEarly => 'Start early (seconds)';
+
+	/// en: 'End late (seconds)'
+	String get endLate => 'End late (seconds)';
+
+	/// en: 'Only new episodes'
+	String get newOnly => 'Only new episodes';
+
+	/// en: 'Record on any channel'
+	String get anyChannel => 'Record on any channel';
+
+	/// en: 'Record at any time'
+	String get anyTime => 'Record at any time';
+
+	/// en: 'Skip episodes already in the library'
+	String get skipInLibrary => 'Skip episodes already in the library';
+
+	/// en: 'Episodes to keep'
+	String get keepUpTo => 'Episodes to keep';
+
+	/// en: '0 keeps every episode'
+	String get keepUpToHint => '0 keeps every episode';
+}
+
 // Path: music.discography
 class Translations$music$discography$en {
 	Translations$music$discography$en.internal(this._root);
@@ -6238,6 +6288,9 @@ class Translations$companionRemote$session$en {
 
 	/// en: 'Minimize'
 	String get minimize => 'Minimize';
+
+	/// en: 'Manual connection address:'
+	String get manualAddressHint => 'Manual connection address:';
 }
 
 // Path: companionRemote.pairing
@@ -6883,6 +6936,10 @@ extension on Translations {
 			'settings.dvConversionNativeDescription' => 'Force native DV7 and suppress DV conversion retry',
 			'settings.dvConversionDv81Description' => 'Force inline RPU conversion to Dolby Vision profile 8.1',
 			'settings.dvConversionHevcStripDescription' => 'Strip Dolby Vision RPU/EL layers and present plain HEVC',
+			'settings.demuxer' => 'Container Demuxer',
+			'settings.demuxerDescription' => 'Which demuxer parses direct-played files. Switch to media3 if a file misbehaves.',
+			'settings.demuxerFfmpeg' => 'FFmpeg (Recommended)',
+			'settings.demuxerMedia3' => 'media3',
 			'settings.requireProfileSelectionOnOpen' => 'Ask for profile on app open',
 			'settings.requireProfileSelectionOnOpenDescription' => 'Show profile selection every time the app is opened',
 			'settings.forceTvMode' => 'Force TV mode',
@@ -7062,12 +7119,12 @@ extension on Translations {
 			'fileInfo.directPlay' => 'Direct Play',
 			'fileInfo.directStream' => 'Direct Stream',
 			'fileInfo.transcoding' => 'Transcoding',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.etag' => 'ETag',
 			'fileInfo.versionId' => 'Version ID',
 			'fileInfo.fileId' => 'File ID',
 			'fileInfo.defaultAudioTrack' => 'Default Audio Track',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.defaultSubtitleTrack' => 'Default Subtitle Track',
 			'fileInfo.subtitlesOff' => 'Off',
 			'fileInfo.flagDefault' => 'Default',
@@ -7576,12 +7633,12 @@ extension on Translations {
 			'startup.quitPlezy' => 'Quit Plezy',
 			'startup.repairFailed' => 'Repair failed',
 			'startup.repairKeptSignIns' => 'Your servers and profiles are still signed in.',
+			_ => null,
+		} ?? switch (path) {
 			'startup.repairLostSignIns' => 'The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.',
 			'startup.repairLostSessions' => 'At least one tracker or Seerr connection was lost and has to be reconnected.',
 			'startup.backupTitle' => 'A copy of the damaged file was kept',
 			'startup.backupWarning' => 'It contains your sign-in credentials. Do not upload or share it.',
-			_ => null,
-		} ?? switch (path) {
 			'startup.deleteBackup' => 'Delete copy',
 			'startup.backupDeleted' => 'Copy deleted.',
 			'startup.previousFailureTitle' => 'Plezy failed to start last time',
@@ -7808,6 +7865,14 @@ extension on Translations {
 			'liveTv.guideReloadRequested' => 'Guide refresh requested',
 			'liveTv.rulesProcessRequested' => 'Rule re-evaluation requested',
 			'liveTv.recordShow' => 'Record show',
+			'liveTv.recordSettings.startEarly' => 'Start early (seconds)',
+			'liveTv.recordSettings.endLate' => 'End late (seconds)',
+			'liveTv.recordSettings.newOnly' => 'Only new episodes',
+			'liveTv.recordSettings.anyChannel' => 'Record on any channel',
+			'liveTv.recordSettings.anyTime' => 'Record at any time',
+			'liveTv.recordSettings.skipInLibrary' => 'Skip episodes already in the library',
+			'liveTv.recordSettings.keepUpTo' => 'Episodes to keep',
+			'liveTv.recordSettings.keepUpToHint' => '0 keeps every episode',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => 'Starting in ${minutes} min',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} at ${time}',
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} returned invalid Live TV playback data',
@@ -8082,6 +8147,8 @@ extension on Translations {
 			'companionRemote.unknownDevice' => 'Unknown Device',
 			'companionRemote.session.startingServer' => 'Starting remote server...',
 			'companionRemote.session.hostAddress' => 'Host Address',
+			_ => null,
+		} ?? switch (path) {
 			'companionRemote.session.connected' => 'Connected',
 			'companionRemote.session.serverRunning' => 'Remote server active',
 			'companionRemote.session.serverStopped' => 'Remote server stopped',
@@ -8091,11 +8158,10 @@ extension on Translations {
 			'companionRemote.session.startServer' => 'Start Server',
 			'companionRemote.session.stopServer' => 'Stop Server',
 			'companionRemote.session.minimize' => 'Minimize',
+			'companionRemote.session.manualAddressHint' => 'Manual connection address:',
 			'companionRemote.pairing.discoveryDescription' => 'Plezy devices with the same Plex account appear here',
 			'companionRemote.pairing.hostAddressHint' => '192.168.1.100:48632',
 			'companionRemote.pairing.connecting' => 'Connecting...',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.pairing.searchingForDevices' => 'Looking for devices...',
 			'companionRemote.pairing.noDevicesFound' => 'No devices found on your network',
 			'companionRemote.pairing.noDevicesHint' => 'Open Plezy on desktop and use the same Wi-Fi',
@@ -8358,6 +8424,7 @@ extension on Translations {
 			'seerr.statusPartiallyAvailable' => 'Partially available',
 			'seerr.statusRequested' => 'Requested',
 			'seerr.statusProcessing' => 'Processing',
+			'seerr.statusBlocklisted' => 'Blocklisted',
 			'seerr.couldNotReach' => ({required Object url, required Object error}) => 'Could not reach ${url}: ${error}',
 			'seerr.noInstanceAtUrl' => ({required Object url, required Object status}) => 'No Seerr instance at ${url} (HTTP ${status})',
 			'seerr.notInitialized' => 'This Seerr instance has not completed first-run setup',

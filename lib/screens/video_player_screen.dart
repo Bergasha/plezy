@@ -620,7 +620,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   late final FocusNode _playNextConfirmFocusNode;
 
   bool _showStillWatchingPrompt = false;
-  int _stillWatchingCountdown = 30;
+  final ValueNotifier<int> _stillWatchingCountdown = ValueNotifier<int>(30);
   Timer? _stillWatchingTimer;
   late final FocusNode _stillWatchingPauseFocusNode;
   late final FocusNode _stillWatchingContinueFocusNode;
@@ -875,6 +875,11 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   /// with, rather than a controller the test seeded itself.
   @visibleForTesting
   PlayerChromeController get chromeController => _chromeController;
+
+  /// Lets reload-failure coverage assert the progress tracker was rebuilt and
+  /// which item it is bound to; the tracker itself is private screen state.
+  @visibleForTesting
+  PlaybackProgressTracker? get debugProgressTrackerForTesting => _progressTracker;
 
   late final PlayerNavigationCoordinator _playerNavigationCoordinator;
 
@@ -1329,6 +1334,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         final tunneledPlayback = settingsService.read(SettingsService.tunneledPlayback);
         await currentPlayer.setProperty('tunneled-playback', tunneledPlayback ? 'yes' : 'no');
         await currentPlayer.setProperty('exo-buffer-tier', playbackBufferTier.nativeValue);
+        await currentPlayer.setProperty('demuxer-mode', settingsService.read(SettingsService.demuxerMode).nativeValue);
       }
       if ((Platform.isAndroid && useExoPlayer) || Platform.isIOS || Platform.isMacOS) {
         final dvConversionMode = settingsService.read(SettingsService.dvConversionMode);
@@ -1932,6 +1938,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     _http503Watchdog.disarm();
 
     _stillWatchingTimer?.cancel();
+    _stillWatchingCountdown.dispose();
 
     _liveSeek.dispose();
 

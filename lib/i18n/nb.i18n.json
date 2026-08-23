@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Tving opprinnelig DV7-avspilling og ikke prøv DV-konvertering på nytt",
     "dvConversionDv81Description": "Tving direkte RPU-konvertering til Dolby Vision-profil 8.1",
     "dvConversionHevcStripDescription": "Fjern Dolby Vision RPU/EL-lag og lever som vanlig HEVC",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Spør om profil ved appåpning",
     "requireProfileSelectionOnOpenDescription": "Vis profilvalg hver gang appen åpnes",
     "forceTvMode": "Tving TV-modus",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Oppdatering av programguiden er forespurt",
     "rulesProcessRequested": "Ny vurdering av reglene er forespurt",
     "recordShow": "Ta opp program",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "Starter om ${minutes} min",
     "dayAtTime": "${day} kl. ${time}",
     "invalidPlaybackData": "${product} returnerte ugyldige avspillingsdata for direkte-TV",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Bruk mobilenheten din til å styre denne appen",
       "startServer": "Start server",
       "stopServer": "Stopp server",
-      "minimize": "Minimer"
+      "minimize": "Minimer",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "Plezy-enheter med samme Plex-konto vises her",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Delvis tilgjengelig",
     "statusRequested": "Forespurt",
     "statusProcessing": "Behandler",
+    "statusBlocklisted": "",
     "couldNotReach": "Kunne ikke nå ${url}: ${error}",
     "noInstanceAtUrl": "Ingen Seerr-instans på ${url} (HTTP ${status})",
     "notInitialized": "Denne Seerr-instansen har ikke fullført førstegangsoppsettet",

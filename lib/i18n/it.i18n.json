@@ -319,6 +319,10 @@
     "dvConversionNativeDescription": "Forza il DV7 nativo e impedisce nuovi tentativi di conversione DV",
     "dvConversionDv81Description": "Forza la conversione RPU diretta al profilo Dolby Vision 8.1",
     "dvConversionHevcStripDescription": "Rimuove i livelli RPU/EL di Dolby Vision e riproduce il video come semplice HEVC",
+    "demuxer": "",
+    "demuxerDescription": "",
+    "demuxerFfmpeg": "",
+    "demuxerMedia3": "",
     "requireProfileSelectionOnOpen": "Chiedi di scegliere il profilo all'apertura",
     "requireProfileSelectionOnOpenDescription": "Mostra la selezione del profilo ogni volta che l'app viene aperta",
     "forceTvMode": "Forza modalità TV",
@@ -1337,6 +1341,16 @@
     "guideReloadRequested": "Aggiornamento della guida richiesto",
     "rulesProcessRequested": "Rielaborazione delle regole richiesta",
     "recordShow": "Registra programma",
+    "recordSettings": {
+      "startEarly": "",
+      "endLate": "",
+      "newOnly": "",
+      "anyChannel": "",
+      "anyTime": "",
+      "skipInLibrary": "",
+      "keepUpTo": "",
+      "keepUpToHint": ""
+    },
     "startingInMinutes": "Inizia tra ${minutes} min",
     "dayAtTime": "${day} alle ${time}",
     "invalidPlaybackData": "${product} ha restituito dati di riproduzione della TV in diretta non validi",
@@ -1641,7 +1655,8 @@
       "usePhoneToControl": "Usa il tuo dispositivo mobile per controllare questa app",
       "startServer": "Avvia server",
       "stopServer": "Arresta server",
-      "minimize": "Riduci"
+      "minimize": "Riduci",
+      "manualAddressHint": ""
     },
     "pairing": {
       "discoveryDescription": "I dispositivi Plezy con lo stesso account Plex appaiono qui",
@@ -1930,6 +1945,7 @@
     "statusPartiallyAvailable": "Disponibile in parte",
     "statusRequested": "Richiesto",
     "statusProcessing": "In elaborazione",
+    "statusBlocklisted": "",
     "couldNotReach": "Impossibile raggiungere ${url}: ${error}",
     "noInstanceAtUrl": "Nessuna istanza Seerr all'indirizzo ${url} (HTTP ${status})",
     "notInitialized": "Questa istanza Seerr non ha completato la configurazione iniziale",

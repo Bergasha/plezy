@@ -341,6 +341,10 @@
     "dvConversionNativeDescription": "Force native DV7 and suppress DV conversion retry",
     "dvConversionDv81Description": "Force inline RPU conversion to Dolby Vision profile 8.1",
     "dvConversionHevcStripDescription": "Strip Dolby Vision RPU/EL layers and present plain HEVC",
+    "demuxer": "Container Demuxer",
+    "demuxerDescription": "Which demuxer parses direct-played files. Switch to media3 if a file misbehaves.",
+    "demuxerFfmpeg": "FFmpeg (Recommended)",
+    "demuxerMedia3": "media3",
     "requireProfileSelectionOnOpen": "Ask for profile on app open",
     "requireProfileSelectionOnOpenDescription": "Show profile selection every time the app is opened",
     "forceTvMode": "Force TV mode",
@@ -1378,6 +1382,16 @@
     "guideReloadRequested": "Guide refresh requested",
     "rulesProcessRequested": "Rule re-evaluation requested",
     "recordShow": "Record show",
+    "recordSettings": {
+      "startEarly": "Start early (seconds)",
+      "endLate": "End late (seconds)",
+      "newOnly": "Only new episodes",
+      "anyChannel": "Record on any channel",
+      "anyTime": "Record at any time",
+      "skipInLibrary": "Skip episodes already in the library",
+      "keepUpTo": "Episodes to keep",
+      "keepUpToHint": "0 keeps every episode"
+    },
     "startingInMinutes": "Starting in ${minutes} min",
     "dayAtTime": "${day} at ${time}",
     "invalidPlaybackData": "${product} returned invalid Live TV playback data",
@@ -1682,7 +1696,8 @@
       "usePhoneToControl": "Use your mobile device to control this app",
       "startServer": "Start Server",
       "stopServer": "Stop Server",
-      "minimize": "Minimize"
+      "minimize": "Minimize",
+      "manualAddressHint": "Manual connection address:"
     },
     "pairing": {
       "discoveryDescription": "Plezy devices with the same Plex account appear here",
@@ -1971,6 +1986,7 @@
     "statusPartiallyAvailable": "Partially available",
     "statusRequested": "Requested",
     "statusProcessing": "Processing",
+    "statusBlocklisted": "Blocklisted",
     "couldNotReach": "Could not reach ${url}: ${error}",
     "noInstanceAtUrl": "No Seerr instance at ${url} (HTTP ${status})",
     "notInitialized": "This Seerr instance has not completed first-run setup",

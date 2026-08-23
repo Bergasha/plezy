@@ -19,6 +19,7 @@ import '../navigation/navigation_tabs.dart';
 import '../providers/catalog_sources_provider.dart';
 import '../providers/hidden_libraries_provider.dart';
 import '../providers/libraries_provider.dart';
+import '../services/device_performance.dart';
 import '../services/music/music_playback_service.dart';
 import '../services/settings_service.dart';
 import '../utils/music_navigation.dart';
@@ -94,6 +95,14 @@ class NavigationRailItem extends StatelessWidget {
   final Widget? iconWidget;
   final Widget label;
 
+  /// Base color inherited by single-style text labels. During the morph its
+  /// alpha is changed at the leaf, avoiding an opacity layer for the row.
+  final Color? labelColor;
+
+  /// Builds labels with more than one text color at [opacity]. Non-text
+  /// labels without a builder use one opacity layer only while morphing.
+  final Widget Function(double opacity)? labelBuilder;
+
   /// Semantic label for the icon-only collapsed pill. Null means the item
   /// has no collapsed representation and always lays out expanded.
   final String? collapsedLabel;
@@ -101,6 +110,9 @@ class NavigationRailItem extends StatelessWidget {
   /// Widget rendered after the [label] (e.g. a section header's chevron).
   /// Expanded layout only.
   final Widget? trailing;
+
+  /// Builds a trailing leaf at [opacity] when it should fade with the label.
+  final Widget Function(double opacity)? trailingBuilder;
   final bool isSelected;
   final bool isCollapsed;
   final VoidCallback onTap;
@@ -135,7 +147,10 @@ class NavigationRailItem extends StatelessWidget {
     this.iconWidget,
     required this.label,
     this.collapsedLabel,
+    this.labelColor,
+    this.labelBuilder,
     this.trailing,
+    this.trailingBuilder,
     required this.isSelected,
     this.isCollapsed = false,
     required this.onTap,
@@ -151,7 +166,7 @@ class NavigationRailItem extends StatelessWidget {
     this.onNavigateRight,
   });
 
-  Color? _indicatorColor(MonoTokens t, {required bool focused, required bool collapsedLayout}) {
+  Color? _indicatorColorForLayout(MonoTokens t, {required bool focused, required bool collapsedLayout}) {
     // The collapsed TV rail is a transparent overlay strip; a persistent
     // active pill over artwork is noise there, so it shows focus only.
     final showSelected = isSelected && !suppressSelectedBackground && !(collapsedLayout && PlatformDetector.isTV());
@@ -161,6 +176,14 @@ class NavigationRailItem extends StatelessWidget {
     if (focused) return t.accent.withValues(alpha: showSelected ? selectedFocusAlpha : focusAlpha);
     if (showSelected) return t.text.withValues(alpha: 0.1);
     return null;
+  }
+
+  Color? _indicatorColor(MonoTokens t, {required bool focused, required double expansion}) {
+    return Color.lerp(
+      _indicatorColorForLayout(t, focused: focused, collapsedLayout: true),
+      _indicatorColorForLayout(t, focused: focused, collapsedLayout: false),
+      expansion,
+    );
   }
 
   Widget _leadingIcon(MonoTokens t) =>
@@ -190,7 +213,7 @@ class NavigationRailItem extends StatelessWidget {
             height: collapsedIndicatorHeight,
             alignment: .center,
             decoration: BoxDecoration(
-              color: _indicatorColor(t, focused: focused, collapsedLayout: true),
+              color: _indicatorColor(t, focused: focused, expansion: 0),
               borderRadius: BorderRadius.circular(MonoTokens.radiusFull),
             ),
             child: _leadingIcon(t),
@@ -201,65 +224,120 @@ class NavigationRailItem extends StatelessWidget {
   }
 
   /// M3E expanded destination: full-width stadium indicator behind the row.
-  Widget _buildExpandedLayout(MonoTokens t, {required bool focused, required bool fixedHeight}) {
+  Widget _labelAtOpacity(BuildContext context, double opacity) {
+    final builder = labelBuilder;
+    if (builder != null) return builder(opacity);
+
+    final textStyle = label is Text ? (label as Text).style : null;
+    final inheritsTextColor =
+        label is Text &&
+        (textStyle == null || (textStyle.inherit && textStyle.color == null && textStyle.foreground == null));
+    final color = inheritsTextColor ? labelColor ?? DefaultTextStyle.of(context).style.color : null;
+    if (color != null) {
+      return DefaultTextStyle.merge(
+        style: TextStyle(color: color.withValues(alpha: color.a * opacity)),
+        child: label,
+      );
+    }
+    if (opacity >= 1) return label;
+
+    // The reconnect progress indicator is the only production caller of this
+    // path. It cannot inherit text color, so retain one small opacity layer
+    // rather than a layer for every destination row.
+    return Opacity(opacity: opacity, child: label);
+  }
+
+  Widget? _trailingAtOpacity(double opacity) {
+    final builder = trailingBuilder;
+    return builder == null ? trailing : builder(opacity);
+  }
+
+  Widget _buildExpandedContent(
+    BuildContext context,
+    MonoTokens t, {
+    required double labelOpacity,
+    required bool showLeading,
+  }) {
+    return Row(
+      children: [
+        if (showLeading) _leadingIcon(t) else SizedBox(width: iconSize, height: iconSize),
+        const SizedBox(width: 11),
+        Expanded(child: _labelAtOpacity(context, labelOpacity)),
+        ?_trailingAtOpacity(labelOpacity),
+      ],
+    );
+  }
+
+  Widget _buildExpandedLayout(BuildContext context, MonoTokens t, {required bool focused, required bool fixedHeight}) {
     return Container(
       constraints: fixedHeight ? null : BoxConstraints(minHeight: expandedHeight),
       alignment: .centerLeft,
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: fixedHeight ? 0 : 8),
       decoration: BoxDecoration(
-        color: _indicatorColor(t, focused: focused, collapsedLayout: false),
+        color: _indicatorColor(t, focused: focused, expansion: 1),
         borderRadius: BorderRadius.circular(MonoTokens.radiusFull),
       ),
-      child: Row(
-        children: [
-          _leadingIcon(t),
-          const SizedBox(width: 11),
-          Expanded(child: label),
-          ?trailing,
-        ],
-      ),
+      child: _buildExpandedContent(context, t, labelOpacity: 1, showLeading: true),
     );
   }
 
-  /// At the endpoints only the active layout exists in the tree; mid-morph
-  /// both are stacked and crossfaded inside a box that lerps between their
-  /// fixed extents, tracking the rail's own width animation tick for tick.
+  /// At the endpoints only the active layout exists in the tree. Mid-morph a
+  /// single icon moves with the pill geometry while label and indicator color
+  /// alpha provide the crossfade without subtree opacity layers.
   Widget _buildMorphingLayouts(BuildContext context, MonoTokens t, {required bool focused, required double expansion}) {
     if (expansion <= 0) return _buildCollapsedLayout(context, t, focused: focused);
     if (expansion >= 1) {
       return SizedBox(
         width: expandedContentWidth,
         height: expandedHeight,
-        child: _buildExpandedLayout(t, focused: focused, fixedHeight: true),
+        child: _buildExpandedLayout(context, t, focused: focused, fixedHeight: true),
       );
     }
+
     final collapsedWidth = _collapsedItemWidth(context);
     const collapsedHeight = collapsedItemHeight;
-    // Both children keep their natural fixed extents and are only clipped by
-    // the lerping box, so neither layout is ever squeezed mid-morph.
+    final collapsedPillWidth = collapsedWidth < collapsedIndicatorWidth ? collapsedWidth : collapsedIndicatorWidth;
+    final indicatorLeft = lerpDouble((collapsedWidth - collapsedPillWidth) / 2, 0, expansion);
+    final indicatorTop = lerpDouble((collapsedHeight - collapsedIndicatorHeight) / 2, 0, expansion);
+    final iconLeft = lerpDouble((collapsedWidth - iconSize) / 2, horizontalPadding, expansion);
+    final iconTop = lerpDouble((collapsedHeight - iconSize) / 2, (expandedHeight - iconSize) / 2, expansion);
+
     return SizedBox(
       width: lerpDouble(collapsedWidth, expandedContentWidth, expansion),
       height: lerpDouble(collapsedHeight, expandedHeight, expansion),
       child: Stack(
         children: [
           Positioned(
-            left: 0,
-            top: 0,
-            child: Opacity(
-              opacity: 1 - expansion,
-              child: _buildCollapsedLayout(context, t, focused: focused),
+            left: indicatorLeft,
+            top: indicatorTop,
+            child: Container(
+              width: lerpDouble(collapsedPillWidth, expandedContentWidth, expansion),
+              height: lerpDouble(collapsedIndicatorHeight, expandedHeight, expansion),
+              decoration: BoxDecoration(
+                color: _indicatorColor(t, focused: focused, expansion: expansion),
+                borderRadius: BorderRadius.circular(MonoTokens.radiusFull),
+              ),
             ),
           ),
           Positioned(
             left: 0,
             top: 0,
-            child: Opacity(
-              opacity: expansion,
-              child: SizedBox(
-                width: expandedContentWidth,
-                height: expandedHeight,
-                child: _buildExpandedLayout(t, focused: focused, fixedHeight: true),
+            child: SizedBox(
+              width: expandedContentWidth,
+              height: expandedHeight,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: _buildExpandedContent(context, t, labelOpacity: expansion, showLeading: false),
               ),
+            ),
+          ),
+          Positioned(
+            left: iconLeft,
+            top: iconTop,
+            child: SizedBox(
+              width: iconSize,
+              height: iconSize,
+              child: Center(child: _leadingIcon(t)),
             ),
           ),
         ],
@@ -278,7 +356,7 @@ class NavigationRailItem extends StatelessWidget {
         final content = collapsedLabel == null
             ? SizedBox(
                 width: expandedContentWidth,
-                child: _buildExpandedLayout(t, focused: focused, fixedHeight: false),
+                child: _buildExpandedLayout(context, t, focused: focused, fixedHeight: false),
               )
             : TweenAnimationBuilder<double>(
                 tween: Tween(end: isCollapsed ? 0.0 : 1.0),
@@ -377,7 +455,9 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
   /// layout morph, and the shell's content translate + bleed counter
   /// animations (MainScreen and SideNavigationBleedBuilder) so they all
   /// track tick for tick.
-  static const Duration expandDuration = Duration(milliseconds: 250);
+  /// Reduced-tier devices resolve this to zero; keep every consumer on this
+  /// getter so the shell and rail continue to move in lockstep.
+  static Duration get expandDuration => DevicePerformance.reducedDuration(const Duration(milliseconds: 250));
   static const Curve expandCurve = Curves.easeInOutCubicEmphasized;
 
   static double collapsedWidthForContext(BuildContext _) => PlatformDetector.isTV() ? tvCollapsedWidth : collapsedWidth;
@@ -667,6 +747,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     required bool hasNowPlaying,
     required bool hasExplore,
     required bool hasWatchlist,
+    required bool isCollapsed,
   }) {
     return [
       if (widget.isOfflineMode && widget.onReconnect != null) _kReconnect,
@@ -675,7 +756,10 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
         if (hasWatchlist) _kWatchlist,
         if (hasNowPlaying) _kNowPlaying,
         _kLibraries,
-        if (_librariesExpanded) ...[
+        // Library rows render inside ExcludeFocus(excluding: !_librariesExpanded
+        // || isCollapsed); keep the D-pad order in lockstep with that render
+        // condition so a collapsed rail never targets a focus-excluded row.
+        if (_librariesExpanded && !isCollapsed) ...[
           ..._focusKeysForLibraryRows(visibleRows),
           if (hasHiddenLibraries) ...[
             _kHiddenLibraries,
@@ -718,14 +802,19 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     final currentIndex = focusOrder.indexOf(currentKey);
     if (currentIndex == -1) return KeyEventResult.ignored;
 
-    final nextIndex = isDown ? currentIndex + 1 : currentIndex - 1;
-    if (nextIndex < 0 || nextIndex >= focusOrder.length) return KeyEventResult.handled;
-
-    final nextNode = _focusTracker.nodeFor(focusOrder[nextIndex]);
-    if (nextNode == null) return KeyEventResult.ignored;
-
-    _requestFocusAndReveal(nextNode);
-    return KeyEventResult.handled;
+    // Scan onward past keys whose node is unmounted or focus-excluded (a row
+    // can outlive its focusability, e.g. under an ExcludeFocus ancestor).
+    // Returning handled without moving focus would swallow the key and also
+    // suppress the framework's own directional traversal, so yield ignored
+    // when no viable candidate remains in the requested direction.
+    final step = isDown ? 1 : -1;
+    for (var index = currentIndex + step; index >= 0 && index < focusOrder.length; index += step) {
+      final node = _focusTracker.nodeFor(focusOrder[index]);
+      if (node == null || node.context == null || !node.canRequestFocus) continue;
+      _requestFocusAndReveal(node);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   /// Collapse the sidebar (resets touch-expand state).
@@ -842,6 +931,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           hasNowPlaying: nowPlayingTrack != null,
           hasExplore: hasExplore,
           hasWatchlist: hasWatchlist,
+          isCollapsed: isCollapsed,
         );
         _debugAssertUniqueFocusOrder(focusOrder);
         return TapRegion(
@@ -1055,14 +1145,11 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
       selectedIcon: selectedIcon,
       label: Text(
         label,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          color: isSelected ? t.text : t.textMuted,
-        ),
+        style: TextStyle(fontSize: 14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400),
         overflow: .ellipsis,
         maxLines: 1,
       ),
+      labelColor: isSelected ? t.text : t.textMuted,
       collapsedLabel: label,
       isSelected: isSelected,
       isCollapsed: isCollapsed,
@@ -1079,6 +1166,33 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
   /// opens the now-playing screen.
   Widget _buildNowPlayingItem(MediaItem track, MusicPlaybackService musicService, {required bool isCollapsed}) {
     final t = tokens(context);
+    final nowPlayingLabel = Translations.of(context).music.nowPlaying;
+    final trackTitle = track.title ?? '';
+
+    Widget buildLabel(double opacity) {
+      return Column(
+        crossAxisAlignment: .start,
+        mainAxisSize: .min,
+        children: [
+          Text(
+            nowPlayingLabel,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: .w600,
+              color: t.text.withValues(alpha: t.text.a * opacity),
+            ),
+            overflow: .ellipsis,
+            maxLines: 1,
+          ),
+          Text(
+            trackTitle,
+            style: TextStyle(fontSize: 11, color: t.textMuted.withValues(alpha: t.textMuted.a * opacity)),
+            overflow: .ellipsis,
+            maxLines: 1,
+          ),
+        ],
+      );
+    }
 
     return NavigationRailItem(
       icon: Symbols.music_note_rounded,
@@ -1088,24 +1202,8 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           child: EqualizerIcon(animate: musicService.isPlaying, color: t.text),
         ),
       ),
-      label: Column(
-        crossAxisAlignment: .start,
-        mainAxisSize: .min,
-        children: [
-          Text(
-            Translations.of(context).music.nowPlaying,
-            style: TextStyle(fontSize: 14, fontWeight: .w600, color: t.text),
-            overflow: .ellipsis,
-            maxLines: 1,
-          ),
-          Text(
-            track.title ?? '',
-            style: TextStyle(fontSize: 11, color: t.textMuted),
-            overflow: .ellipsis,
-            maxLines: 1,
-          ),
-        ],
-      ),
+      label: buildLabel(1),
+      labelBuilder: buildLabel,
       collapsedLabel: Translations.of(context).music.nowPlaying,
       isSelected: false,
       isCollapsed: isCollapsed,
@@ -1124,10 +1222,11 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.text))
           : Text(
               Translations.of(context).common.reconnect,
-              style: TextStyle(fontSize: 14, fontWeight: .w400, color: t.textMuted),
+              style: const TextStyle(fontSize: 14, fontWeight: .w400),
               overflow: .ellipsis,
               maxLines: 1,
             ),
+      labelColor: widget.isReconnecting ? null : t.textMuted,
       collapsedLabel: Translations.of(context).common.reconnect,
       isSelected: false,
       isCollapsed: isCollapsed,
@@ -1149,10 +1248,11 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
       icon: isFullscreen ? Symbols.fullscreen_exit_rounded : Symbols.fullscreen_rounded,
       label: Text(
         label,
-        style: TextStyle(fontSize: 14, fontWeight: .w400, color: t.textMuted),
+        style: const TextStyle(fontSize: 14, fontWeight: .w400),
         overflow: .ellipsis,
         maxLines: 1,
       ),
+      labelColor: t.textMuted,
       collapsedLabel: label,
       isSelected: false,
       isCollapsed: isCollapsed,
@@ -1173,6 +1273,16 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     final isLoading = librariesProvider.isLoading;
     final isLibrariesTabSelected = widget.selectedTab == NavigationTabId.libraries;
     final allEmpty = visibleRows.isEmpty && hiddenLibraryCount == 0;
+    final headerLabelColor = isLibrariesTabSelected ? t.text : t.textMuted;
+
+    Widget buildChevron(double opacity) {
+      return AppIcon(
+        _librariesExpanded ? Symbols.expand_less_rounded : Symbols.expand_more_rounded,
+        fill: 1,
+        size: 18,
+        color: t.textMuted.withValues(alpha: t.textMuted.a * opacity),
+      );
+    }
 
     return Column(
       crossAxisAlignment: .start,
@@ -1184,21 +1294,14 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           icon: Symbols.video_library_rounded,
           label: Text(
             Translations.of(context).navigation.libraries,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isLibrariesTabSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isLibrariesTabSelected ? t.text : t.textMuted,
-            ),
+            style: TextStyle(fontSize: 14, fontWeight: isLibrariesTabSelected ? FontWeight.w600 : FontWeight.w400),
             overflow: .ellipsis,
             maxLines: 1,
           ),
+          labelColor: headerLabelColor,
           collapsedLabel: Translations.of(context).navigation.libraries,
-          trailing: AppIcon(
-            _librariesExpanded ? Symbols.expand_less_rounded : Symbols.expand_more_rounded,
-            fill: 1,
-            size: 18,
-            color: t.textMuted,
-          ),
+          trailing: buildChevron(1),
+          trailingBuilder: buildChevron,
           isSelected: isLibrariesTabSelected,
           isCollapsed: isCollapsed,
           onTap: () =>
