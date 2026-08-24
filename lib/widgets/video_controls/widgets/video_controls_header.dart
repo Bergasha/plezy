@@ -43,6 +43,17 @@ class VideoControlsHeader extends StatelessWidget {
     this.onStartAutoHide,
   });
 
+  /// The name line viewers actually watch for — the show for an episode,
+  /// the movie's own title otherwise — with its release year appended. For
+  /// an episode this is the *episode's* year (Plex/Jellyfin both key it per
+  /// episode), not the show's premiere year, matching what viewers actually
+  /// want to know: when did the thing on screen right now come out.
+  String _titleWithYear(String itemTitle) {
+    final name = metadata.grandparentTitle ?? itemTitle;
+    final year = metadata.year;
+    return year == null ? name : '$name ($year)';
+  }
+
   @override
   Widget build(BuildContext context) {
     final itemTitle = metadata.title ?? t.common.unknown;
@@ -74,10 +85,9 @@ class VideoControlsHeader extends StatelessWidget {
   }
 
   Widget _buildSingleLineTitle(String itemTitle) {
-    final seriesName = metadata.grandparentTitle ?? itemTitle;
     final hasEpisodeInfo = metadata.parentIndex != null && metadata.index != null;
 
-    final List<String> parts = [seriesName];
+    final List<String> parts = [_titleWithYear(itemTitle)];
 
     if (hasEpisodeInfo) {
       parts.add('S${metadata.parentIndex}E${metadata.index}');
@@ -109,7 +119,7 @@ class VideoControlsHeader extends StatelessWidget {
       crossAxisAlignment: .start,
       children: [
         Text(
-          metadata.grandparentTitle ?? itemTitle,
+          _titleWithYear(itemTitle),
           style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: .bold),
           maxLines: 1,
           overflow: .ellipsis,
