@@ -161,8 +161,8 @@ class NavigationRailItem extends StatelessWidget {
     this.expandedContentWidth = SideNavigationRailState.expandedWidth - 24,
     this.expandedHeight = 48,
     this.suppressSelectedBackground = false,
-    this.focusAlpha = 0.12,
-    this.selectedFocusAlpha = 0.15,
+    this.focusAlpha = 0.22,
+    this.selectedFocusAlpha = 0.32,
     this.onNavigateRight,
   });
 
@@ -1310,8 +1310,8 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           // A selected library owns the highlight; the header only shows it
           // for the bare Libraries tab.
           suppressSelectedBackground: widget.isSidebarFocused || widget.selectedLibraryKey != null,
-          focusAlpha: 0.08,
-          selectedFocusAlpha: 0.1,
+          focusAlpha: 0.16,
+          selectedFocusAlpha: 0.22,
           onNavigateRight: widget.onNavigateToContent,
         ),
 
