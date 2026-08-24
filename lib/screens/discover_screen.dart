@@ -656,6 +656,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     final profiles = activeProvider.profiles;
 
     return FocusableAction(
+      tooltip: t.profiles.sectionTitle,
       onPressed: _switchingProfile ? null : () => _userMenuKey.currentState?.showButtonMenu(focusFirstItem: true),
       child: AppMenuButton<String>(
         key: _userMenuKey,
@@ -754,10 +755,12 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 key: _actionBarKey,
                 onNavigateLeft: _navigateToSidebar,
                 onNavigateDown: _focusContentFromAppBar,
+                showFocusLabels: true,
                 actions: [
                   FocusableAction(
                     icon: Symbols.refresh_rounded,
                     iconColor: foregroundColor,
+                    tooltip: t.common.refresh,
                     onPressed: () async {
                       final outcome = await _discover.refreshNow();
                       if (!context.mounted) return;
@@ -774,6 +777,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   ),
                   // Watch Together
                   FocusableAction(
+                    tooltip: t.watchTogether.title,
                     onPressed: () =>
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const WatchTogetherScreen())),
                     child: Stack(
@@ -809,6 +813,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   ),
                   // Companion Remote
                   FocusableAction(
+                    tooltip: t.companionRemote.title,
                     onPressed: () {
                       if (isDesktop) {
                         RemoteSessionDialog.show(context);
@@ -860,6 +865,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   if (PlatformDetector.isDesktop(context) &&
                       context.select<MultiServerProvider, bool>((p) => p.hasOnlinePlexServers))
                     FocusableAction(
+                      tooltip: t.serverTasks.title,
                       onPressed: () => _serverActivitiesButtonKey.currentState?.togglePanel(),
                       child: ServerActivitiesButton(key: _serverActivitiesButtonKey),
                     ),

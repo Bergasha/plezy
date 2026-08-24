@@ -77,6 +77,13 @@ class FocusableActionBar extends StatefulWidget {
 
   final double spacing;
 
+  /// Pop each focused action's [FocusableAction.tooltip] below the icon
+  /// while it holds D-pad/keyboard focus, in addition to the platform
+  /// tooltip's hover/long-press behavior. Off by default — most action bars
+  /// are packed tightly enough (mini player, video controls) that a label
+  /// popping in below every icon would be visual noise rather than help.
+  final bool showFocusLabels;
+
   const FocusableActionBar({
     super.key,
     required this.actions,
@@ -87,6 +94,7 @@ class FocusableActionBar extends StatefulWidget {
     this.onBack,
     this.onFocusChange,
     this.spacing = 0,
+    this.showFocusLabels = false,
   });
 
   @override
@@ -310,7 +318,7 @@ class FocusableActionBarState extends State<FocusableActionBar> {
     final buildState = FocusableActionBuildState(showFocus: showFocus, animationDuration: duration);
     final customChild = action.builder?.call(context, buildState);
 
-    return Focus(
+    final button = Focus(
       // Keyed on the binding so an insertion moves the element with its node
       // instead of detaching (and thereby unfocusing) it slot by slot.
       key: ObjectKey(_focusBindings[index]),
@@ -353,6 +361,81 @@ class FocusableActionBarState extends State<FocusableActionBar> {
                       onPressed: action.onPressed,
                     ),
               ),
+        ),
+      ),
+    );
+
+    if (!widget.showFocusLabels || action.tooltip == null) return button;
+
+    // Absolutely positioned below the icon rather than laid out inline, so a
+    // label popping in never reflows neighboring actions or the row's own
+    // width — it just floats over whatever is beneath the bar.
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        button,
+        Positioned(
+          // +24 clears the ~48px Material tap target most actions render at,
+          // regardless of the icon glyph's own (usually smaller) iconSize.
+          // A fixed height keeps this box's constraints bounded — left+right
+          // without a bottom otherwise hands its child an infinite height.
+          top: action.iconSize + 24,
+          height: 26,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            // The icon's own tap-target width (left:0/right:0 above) is
+            // usually narrower than its label; OverflowBox lets the label
+            // size itself up to a generous cap and paint outside that slot
+            // — Clip.none on the enclosing Stack means it's never clipped.
+            child: Center(
+              child: OverflowBox(
+                minWidth: 0,
+                maxWidth: 200,
+                maxHeight: 26,
+                child: AnimatedOpacity(
+                  opacity: showFocus ? 1.0 : 0.0,
+                  duration: duration,
+                  child: AnimatedSlide(
+                    offset: showFocus ? Offset.zero : const Offset(0, -0.2),
+                    duration: duration,
+                    curve: Curves.easeOut,
+                    child: Center(child: _FocusActionLabel(text: action.tooltip!)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Small pill-shaped label popped under a [FocusableAction] while it's
+/// D-pad/keyboard focused (see [FocusableActionBar.showFocusLabels]).
+class _FocusActionLabel extends StatelessWidget {
+  const _FocusActionLabel({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Text(
+          text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+          style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurface, fontWeight: .w600),
         ),
       ),
     );
