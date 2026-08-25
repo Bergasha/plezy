@@ -134,7 +134,7 @@ class PlayerAndroid extends PlayerBase {
       });
       if (disposed) throw StateError('Player was disposed during initialization');
       if (result != true) {
-        throw Exception('Failed to initialize ExoPlayer');
+        throw const PlayerInitializationException();
       }
 
       // Register property observers before flipping `initialized` so partial
@@ -158,7 +158,7 @@ class PlayerAndroid extends PlayerBase {
       initialized = true;
     } catch (e) {
       _initFuture = null;
-      if (!disposed) errorController.add(PlayerError('Initialization failed: $e'));
+      if (!disposed) errorController.add(PlayerError(e.toString(), cause: PlayerError.playerInitFailed));
       rethrow;
     }
   }
@@ -578,6 +578,7 @@ class PlayerAndroid extends PlayerBase {
     int extraDelayMs = 0,
     int videoWidth = 0,
     int videoHeight = 0,
+    bool matchResolution = false,
   }) async {
     if (disposed || !initialized) return false;
     final result = await invoke<bool>('setVideoFrameRate', {
@@ -586,6 +587,7 @@ class PlayerAndroid extends PlayerBase {
       'extraDelayMs': extraDelayMs,
       'videoWidth': videoWidth,
       'videoHeight': videoHeight,
+      'matchResolution': matchResolution,
     });
     return result ?? false;
   }

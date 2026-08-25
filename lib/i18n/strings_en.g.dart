@@ -140,6 +140,9 @@ class Translations$auth$en {
 	/// en: 'Connect to ${product}'
 	String connectToMediaBrowser({required Object product}) => 'Connect to ${product}';
 
+	/// en: 'Quick Connect'
+	String get quickConnect => 'Quick Connect';
+
 	/// en: 'Use Quick Connect'
 	String get useQuickConnect => 'Use Quick Connect';
 
@@ -315,6 +318,8 @@ class Translations$common$en {
 
 	/// en: 'ABC'
 	String get letterKeys => 'ABC';
+
+	late final Translations$common$mediaKind$en mediaKind = Translations$common$mediaKind$en.internal(_root);
 }
 
 // Path: screens
@@ -1017,6 +1022,12 @@ class Translations$settings$en {
 
 	/// en: 'Match display refresh rate to video content'
 	String get matchContentFrameRateDescription => 'Match display refresh rate to video content';
+
+	/// en: 'Match Content Resolution'
+	String get matchContentResolution => 'Match Content Resolution';
+
+	/// en: 'Switch the display to the video's native resolution so your TV handles upscaling. Menus and subtitles are upscaled too during playback'
+	String get matchContentResolutionDescription => 'Switch the display to the video\'s native resolution so your TV handles upscaling. Menus and subtitles are upscaled too during playback';
 
 	/// en: 'Match Refresh Rate'
 	String get matchRefreshRate => 'Match Refresh Rate';
@@ -3084,6 +3095,9 @@ class Translations$serverSelection$en {
 
 	/// en: 'Failed to load servers: ${error}'
 	String failedToLoadServers({required Object error}) => 'Failed to load servers: ${error}';
+
+	/// en: 'No usable servers were found on this account'
+	String get noValidServers => 'No usable servers were found on this account';
 }
 
 // Path: hubDetail
@@ -4058,6 +4072,8 @@ class Translations$watchTogether$en {
 
 	/// en: 'User'
 	String get defaultDisplayName => 'User';
+
+	late final Translations$watchTogether$errors$en errors = Translations$watchTogether$errors$en.internal(_root);
 }
 
 // Path: downloads
@@ -5125,6 +5141,12 @@ class Translations$seerr$en {
 	/// en: 'No Seerr instance at ${url} (HTTP ${status})'
 	String noInstanceAtUrl({required Object url, required Object status}) => 'No Seerr instance at ${url} (HTTP ${status})';
 
+	/// en: 'Enter a server address like https://seerr.example.com'
+	String get invalidUrl => 'Enter a server address like https://seerr.example.com';
+
+	/// en: 'This Seerr instance does not support Quick Connect. It needs Seerr 3.4 or newer.'
+	String get quickConnectUnsupported => 'This Seerr instance does not support Quick Connect. It needs Seerr 3.4 or newer.';
+
 	/// en: 'This Seerr instance has not completed first-run setup'
 	String get notInitialized => 'This Seerr instance has not completed first-run setup';
 
@@ -5290,6 +5312,9 @@ class Translations$addServer$en {
 	/// en: 'The authentication response was not valid JSON'
 	String get authResponseNotJson => 'The authentication response was not valid JSON';
 
+	/// en: 'The sign-in response from the server was incomplete'
+	String get authResponseIncomplete => 'The sign-in response from the server was incomplete';
+
 	/// en: 'Quick Connect was rejected by the server'
 	String get quickConnectRejected => 'Quick Connect was rejected by the server';
 
@@ -5379,6 +5404,51 @@ class Translations$common$ratingSource$en {
 
 	/// en: 'Rotten Tomatoes audience'
 	String get rottenTomatoesAudience => 'Rotten Tomatoes audience';
+}
+
+// Path: common.mediaKind
+class Translations$common$mediaKind$en {
+	Translations$common$mediaKind$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Movie'
+	String get movie => 'Movie';
+
+	/// en: 'Show'
+	String get show => 'Show';
+
+	/// en: 'Season'
+	String get season => 'Season';
+
+	/// en: 'Episode'
+	String get episode => 'Episode';
+
+	/// en: 'Artist'
+	String get artist => 'Artist';
+
+	/// en: 'Album'
+	String get album => 'Album';
+
+	/// en: 'Track'
+	String get track => 'Track';
+
+	/// en: 'Collection'
+	String get collection => 'Collection';
+
+	/// en: 'Playlist'
+	String get playlist => 'Playlist';
+
+	/// en: 'Clip'
+	String get clip => 'Clip';
+
+	/// en: 'Photo'
+	String get photo => 'Photo';
+
+	/// en: 'Folder'
+	String get folder => 'Folder';
 }
 
 // Path: hotkeys.actions
@@ -5493,6 +5563,9 @@ class Translations$videoControls$pipErrors$en {
 
 	/// en: 'Picture-in-picture failed to start'
 	String get failed => 'Picture-in-picture failed to start';
+
+	/// en: 'Picture-in-picture could not be prepared'
+	String get prepareFailed => 'Picture-in-picture could not be prepared';
 
 	/// en: 'An error occurred: ${error}'
 	String unknown({required Object error}) => 'An error occurred: ${error}';
@@ -6161,6 +6234,27 @@ class Translations$music$discography$en {
 	String get compilations => 'Compilations';
 }
 
+// Path: watchTogether.errors
+class Translations$watchTogether$errors$en {
+	Translations$watchTogether$errors$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'The relay did not respond in time'
+	String get timedOut => 'The relay did not respond in time';
+
+	/// en: 'The connection closed before the session was ready'
+	String get connectionLost => 'The connection closed before the session was ready';
+
+	/// en: 'The relay sent an unexpected response'
+	String get invalidRelayResponse => 'The relay sent an unexpected response';
+
+	/// en: 'The host ended the session'
+	String get sessionEnded => 'The host ended the session';
+}
+
 // Path: downloads.backgroundWarning
 class Translations$downloads$backgroundWarning$en {
 	Translations$downloads$backgroundWarning$en.internal(this._root);
@@ -6617,6 +6711,7 @@ extension on Translations {
 			'auth.useBrowser' => 'Use browser',
 			'auth.or' => 'or',
 			'auth.connectToMediaBrowser' => ({required Object product}) => 'Connect to ${product}',
+			'auth.quickConnect' => 'Quick Connect',
 			'auth.useQuickConnect' => 'Use Quick Connect',
 			'auth.quickConnectInstructions' => 'Open Quick Connect in Jellyfin and enter this code.',
 			'auth.quickConnectWaiting' => 'Waiting for approval…',
@@ -6683,6 +6778,18 @@ extension on Translations {
 			'common.notAvailable' => 'N/A',
 			'common.url' => 'URL',
 			'common.letterKeys' => 'ABC',
+			'common.mediaKind.movie' => 'Movie',
+			'common.mediaKind.show' => 'Show',
+			'common.mediaKind.season' => 'Season',
+			'common.mediaKind.episode' => 'Episode',
+			'common.mediaKind.artist' => 'Artist',
+			'common.mediaKind.album' => 'Album',
+			'common.mediaKind.track' => 'Track',
+			'common.mediaKind.collection' => 'Collection',
+			'common.mediaKind.playlist' => 'Playlist',
+			'common.mediaKind.clip' => 'Clip',
+			'common.mediaKind.photo' => 'Photo',
+			'common.mediaKind.folder' => 'Folder',
 			'screens.licenses' => 'Licenses',
 			'screens.switchProfile' => 'Switch Profile',
 			'screens.subtitleStyling' => 'Subtitle Styling',
@@ -6908,6 +7015,8 @@ extension on Translations {
 			'settings.autoPipDescription' => 'Automatically enter picture-in-picture when you leave the app during playback',
 			'settings.matchContentFrameRate' => 'Match Content Frame Rate',
 			'settings.matchContentFrameRateDescription' => 'Match display refresh rate to video content',
+			'settings.matchContentResolution' => 'Match Content Resolution',
+			'settings.matchContentResolutionDescription' => 'Switch the display to the video\'s native resolution so your TV handles upscaling. Menus and subtitles are upscaled too during playback',
 			'settings.matchRefreshRate' => 'Match Refresh Rate',
 			'settings.matchRefreshRateDescription' => 'Match display refresh rate in fullscreen',
 			'settings.matchDynamicRange' => 'Match Dynamic Range',
@@ -7104,6 +7213,8 @@ extension on Translations {
 			'fileInfo.previewIndex' => 'Preview Index',
 			'fileInfo.packetLength' => 'Packet Length',
 			'fileInfo.filePresent' => 'File Present',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.fileReadable' => 'Readable by Server',
 			'fileInfo.streamPath' => 'Stream Path',
 			'fileInfo.optimizedForStreaming' => 'Optimized for Streaming',
@@ -7119,8 +7230,6 @@ extension on Translations {
 			'fileInfo.directPlay' => 'Direct Play',
 			'fileInfo.directStream' => 'Direct Stream',
 			'fileInfo.transcoding' => 'Transcoding',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.etag' => 'ETag',
 			'fileInfo.versionId' => 'Version ID',
 			'fileInfo.fileId' => 'File ID',
@@ -7278,6 +7387,7 @@ extension on Translations {
 			'videoControls.pipErrors.notSupported' => 'Device doesn\'t support picture-in-picture mode',
 			'videoControls.pipErrors.voSwitchFailed' => 'Failed to switch video output for picture-in-picture',
 			'videoControls.pipErrors.failed' => 'Picture-in-picture failed to start',
+			'videoControls.pipErrors.prepareFailed' => 'Picture-in-picture could not be prepared',
 			'videoControls.pipErrors.unknown' => ({required Object error}) => 'An error occurred: ${error}',
 			'videoControls.chapters' => 'Chapters',
 			'videoControls.noChaptersAvailable' => 'No chapters available',
@@ -7602,6 +7712,7 @@ extension on Translations {
 			'about.viewLicensesDescription' => 'View licenses of third-party libraries',
 			'serverSelection.noServersFoundForAccount' => ({required Object username, required Object email}) => 'No servers found for ${username} (${email})',
 			'serverSelection.failedToLoadServers' => ({required Object error}) => 'Failed to load servers: ${error}',
+			'serverSelection.noValidServers' => 'No usable servers were found on this account',
 			'hubDetail.title' => 'Title',
 			'hubDetail.releaseYear' => 'Release Year',
 			'hubDetail.dateAdded' => 'Date Added',
@@ -7616,6 +7727,8 @@ extension on Translations {
 			'startup.phaseLabel' => 'Step',
 			'startup.showDetails' => 'Show details',
 			'startup.hideDetails' => 'Hide details',
+			_ => null,
+		} ?? switch (path) {
 			'startup.copyDetails' => 'Copy details',
 			'startup.detailsCopied' => 'Details copied to clipboard',
 			'startup.uploadDetails' => 'Upload details',
@@ -7633,8 +7746,6 @@ extension on Translations {
 			'startup.quitPlezy' => 'Quit Plezy',
 			'startup.repairFailed' => 'Repair failed',
 			'startup.repairKeptSignIns' => 'Your servers and profiles are still signed in.',
-			_ => null,
-		} ?? switch (path) {
 			'startup.repairLostSignIns' => 'The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.',
 			'startup.repairLostSessions' => 'At least one tracker or Seerr connection was lost and has to be reconnected.',
 			'startup.backupTitle' => 'A copy of the damaged file was kept',
@@ -8017,6 +8128,10 @@ extension on Translations {
 			'watchTogether.guestSwitchUnavailable' => 'Couldn\'t switch — server unavailable for sync',
 			'watchTogether.guestSwitchFailed' => 'Couldn\'t switch — content not found on this server',
 			'watchTogether.defaultDisplayName' => 'User',
+			'watchTogether.errors.timedOut' => 'The relay did not respond in time',
+			'watchTogether.errors.connectionLost' => 'The connection closed before the session was ready',
+			'watchTogether.errors.invalidRelayResponse' => 'The relay sent an unexpected response',
+			'watchTogether.errors.sessionEnded' => 'The host ended the session',
 			'downloads.title' => 'Downloads',
 			'downloads.manage' => 'Manage',
 			'downloads.tvShows' => 'TV Shows',
@@ -8126,6 +8241,8 @@ extension on Translations {
 			'downloads.errorPostProcessing' => ({required Object error}) => 'Post-processing failed: ${error}',
 			'downloads.notificationDownloading' => 'Downloading...',
 			'downloads.notificationComplete' => 'Download complete',
+			_ => null,
+		} ?? switch (path) {
 			'downloads.notificationPaused' => 'Download paused',
 			'shaders.title' => 'Shaders',
 			'shaders.noShaderDescription' => 'No video enhancement',
@@ -8147,8 +8264,6 @@ extension on Translations {
 			'companionRemote.unknownDevice' => 'Unknown Device',
 			'companionRemote.session.startingServer' => 'Starting remote server...',
 			'companionRemote.session.hostAddress' => 'Host Address',
-			_ => null,
-		} ?? switch (path) {
 			'companionRemote.session.connected' => 'Connected',
 			'companionRemote.session.serverRunning' => 'Remote server active',
 			'companionRemote.session.serverStopped' => 'Remote server stopped',
@@ -8427,6 +8542,8 @@ extension on Translations {
 			'seerr.statusBlocklisted' => 'Blocklisted',
 			'seerr.couldNotReach' => ({required Object url, required Object error}) => 'Could not reach ${url}: ${error}',
 			'seerr.noInstanceAtUrl' => ({required Object url, required Object status}) => 'No Seerr instance at ${url} (HTTP ${status})',
+			'seerr.invalidUrl' => 'Enter a server address like https://seerr.example.com',
+			'seerr.quickConnectUnsupported' => 'This Seerr instance does not support Quick Connect. It needs Seerr 3.4 or newer.',
 			'seerr.notInitialized' => 'This Seerr instance has not completed first-run setup',
 			'seerr.noPlexTokenForReauth' => 'No Plex token is available to sign in again',
 			'seerr.noStoredCredentials' => 'No stored credentials are available to sign in again',
@@ -8502,6 +8619,7 @@ extension on Translations {
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Reuse another profile\'s connection. PIN-protected profiles require a PIN.',
 			'addServer.invalidCredentials' => 'Invalid username or password',
 			'addServer.authResponseNotJson' => 'The authentication response was not valid JSON',
+			'addServer.authResponseIncomplete' => 'The sign-in response from the server was incomplete',
 			'addServer.quickConnectRejected' => 'Quick Connect was rejected by the server',
 			'addServer.quickConnectNotJson' => 'The Quick Connect response was not valid JSON',
 			'addServer.quickConnectMissingFields' => 'The Quick Connect response is missing a code or secret',

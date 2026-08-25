@@ -20,7 +20,7 @@ on:
 
 env:
   # Only place this workflow names the SDK; .github/actions/setup-flutter-git pins the same release.
-  FLUTTER_VERSION: "3.44.0"
+  FLUTTER_VERSION: "3.47.1"
 
 jobs:
   analyze:
@@ -317,7 +317,8 @@ jobs:
             mpv_property_result_contract_test \
             hdr_metadata_test \
             plane_geometry_test \
-            video_params_test
+            video_params_test \
+            plane_render_executor_test
 
       - name: Run Linux native reliability tests
         run: |
