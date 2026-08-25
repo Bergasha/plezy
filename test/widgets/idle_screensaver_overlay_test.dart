@@ -126,6 +126,42 @@ void main() {
     );
   }
 
+  /// Mirrors production mounting: the overlay sits as a `Positioned.fill`
+  /// sibling of real content, here a focused button that counts presses —
+  /// standing in for whatever control (e.g. Play/Pause) might be focused
+  /// underneath when the screensaver shows.
+  Future<void> pumpOverlayOverContent(WidgetTester tester, {required VoidCallback onUnderlyingSelect}) {
+    final underlyingFocusNode = FocusNode();
+    addTearDown(underlyingFocusNode.dispose);
+    return tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<MultiServerProvider>.value(value: multiServer),
+          ChangeNotifierProvider<LibrariesProvider>.value(value: libraries),
+        ],
+        child: MaterialApp(
+          home: Stack(
+            children: [
+              Focus(
+                focusNode: underlyingFocusNode,
+                autofocus: true,
+                onKeyEvent: (node, event) {
+                  if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.select) {
+                    onUnderlyingSelect();
+                    return KeyEventResult.handled;
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: const SizedBox.expand(),
+              ),
+              const Positioned.fill(child: IdleScreensaverOverlay()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   testWidgets('stays hidden past the idle timeout while disabled', (tester) async {
     final settings = await SettingsService.getInstance();
     await settings.write(SettingsService.screensaverIdleMinutes, 1);
@@ -228,6 +264,26 @@ void main() {
     await tester.pump(const Duration(minutes: 2));
     await tester.pump();
     expect(find.byType(CyclingMediaBackdrop), findsOneWidget);
+  });
+
+  testWidgets('the dismissing key press does not also reach whatever was focused underneath', (tester) async {
+    final settings = await SettingsService.getInstance();
+    await settings.write(SettingsService.screensaverIdleMinutes, 1);
+    await settings.write(SettingsService.screensaverEnabled, true);
+    aggregation.libraryResult = [movieLibrary];
+    client.libraryContent = [testMediaItem(id: 'a', title: 'Movie A', artPath: '/art/a.jpg', serverId: 'server_1')];
+    await tester.runAsync(() => libraries.loadLibraries());
+
+    var underlyingSelects = 0;
+    await pumpOverlayOverContent(tester, onUnderlyingSelect: () => underlyingSelects++);
+    await tester.pump(const Duration(minutes: 2));
+    await tester.pump();
+    expect(find.byType(CyclingMediaBackdrop), findsOneWidget, reason: 'precondition: screensaver is up');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump();
+    expect(find.byType(CyclingMediaBackdrop), findsNothing, reason: 'the press dismissed it');
+    expect(underlyingSelects, 0, reason: 'the same press must not also reach the control underneath (e.g. pause it)');
   });
 
   testWidgets('dismisses on tap', (tester) async {

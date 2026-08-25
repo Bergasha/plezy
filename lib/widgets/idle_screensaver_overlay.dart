@@ -68,6 +68,12 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
   List<_ScreensaverEntry> _entries = const [];
   MediaServerClient? _artClient;
 
+  /// [_ScreensaverContent]'s focus node, hoisted here so the dismissing key
+  /// press can be redirected onto it (see [_handleGlobalKeyEvent]) instead of
+  /// relying solely on its own `autofocus`, which can lose a focus race
+  /// against whatever was already focused underneath.
+  final FocusNode _contentFocusNode = FocusNode(debugLabel: 'ScreensaverContent');
+
   @override
   void initState() {
     super.initState();
@@ -88,11 +94,18 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
     GamepadService.removeGamepadInputListener(_handleActivity);
     CompanionRemoteReceiver.removeRemoteInputListener(_handleActivity);
     _idleTimer?.cancel();
+    _contentFocusNode.dispose();
     super.dispose();
   }
 
   // Passive observation only — never consumes the event, so normal input
-  // handling elsewhere in the app is completely unaffected.
+  // handling elsewhere in the app is completely unaffected. Safe to stay
+  // passive here: [_ScreensaverContentState] forcibly takes focus the moment
+  // it's shown (see its `initState`), so by the time any key press actually
+  // reaches this handler, that content's own `onKeyEvent` has already
+  // claimed and consumed it via the normal focus dispatch — this is just a
+  // backstop for input sources that skip the focus system entirely (mouse
+  // movement, gamepad/companion-remote activity).
   bool _handleGlobalKeyEvent(KeyEvent event) {
     _handleActivity();
     return false;
@@ -232,18 +245,29 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
         }
 
         if (!_showing) return const SizedBox.shrink();
-        return _ScreensaverContent(entries: _entries, client: _artClient, onDismiss: _dismiss);
+        return _ScreensaverContent(
+          entries: _entries,
+          client: _artClient,
+          onDismiss: _dismiss,
+          focusNode: _contentFocusNode,
+        );
       },
     );
   }
 }
 
 class _ScreensaverContent extends StatefulWidget {
-  const _ScreensaverContent({required this.entries, required this.client, required this.onDismiss});
+  const _ScreensaverContent({
+    required this.entries,
+    required this.client,
+    required this.onDismiss,
+    required this.focusNode,
+  });
 
   final List<_ScreensaverEntry> entries;
   final MediaServerClient? client;
   final VoidCallback onDismiss;
+  final FocusNode focusNode;
 
   @override
   State<_ScreensaverContent> createState() => _ScreensaverContentState();
@@ -288,6 +312,15 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
     super.initState();
     _scheduleTitleReveal();
     _scheduleNextBackdrop();
+    // `autofocus` alone is a no-op here: it only claims focus when the
+    // enclosing scope has none, so whatever the viewer was last focused on
+    // (e.g. the player's Play/Pause) simply keeps it, and the *next* key
+    // press reaches that control instead of dismissing the screensaver. An
+    // explicit request unconditionally takes focus regardless of who
+    // currently holds it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.focusNode.requestFocus();
+    });
   }
 
   @override
@@ -327,6 +360,7 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
   @override
   Widget build(BuildContext context) {
     return Focus(
+      focusNode: widget.focusNode,
       autofocus: true,
       onKeyEvent: (node, event) {
         widget.onDismiss();
