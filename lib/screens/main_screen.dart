@@ -543,7 +543,7 @@ class _MainScreenState extends State<MainScreen>
       _lastHasExplore = false;
     }
     try {
-      _lastHasWatchlist = context.read<CatalogSourcesProvider>().activeSource?.supportsWatchlist ?? false;
+      _lastHasWatchlist = context.read<CatalogSourcesProvider>().watchlistCapableSource != null;
     } catch (_) {
       _lastHasWatchlist = false;
     }
@@ -1343,7 +1343,7 @@ class _MainScreenState extends State<MainScreen>
 
   void _handleCatalogSourcesChanged() {
     final hasExplore = (_catalogSourcesProvider?.hasAnySource ?? false) && _showExploreTabSetting;
-    final hasWatchlist = _catalogSourcesProvider?.activeSource?.supportsWatchlist ?? false;
+    final hasWatchlist = _catalogSourcesProvider?.watchlistCapableSource != null;
     if (hasExplore == _lastHasExplore && hasWatchlist == _lastHasWatchlist) return;
     _lastHasExplore = hasExplore;
     _lastHasWatchlist = hasWatchlist;

@@ -884,7 +884,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     final hasExploreSource = context.watch<CatalogSourcesProvider?>()?.hasAnySource ?? false;
     // Nullable watch: rail tests (and any host without the profile session
     // scope) simply never show the Watchlist item.
-    final hasWatchlist = context.watch<CatalogSourcesProvider?>()?.activeSource?.supportsWatchlist ?? false;
+    final hasWatchlist = context.watch<CatalogSourcesProvider?>()?.watchlistCapableSource != null;
     // Nullable watch: rail tests (and any host without the profile session
     // scope) simply never show the Now Playing item. TV-only — it is the
     // way back into the now-playing screen there; desktop already has the

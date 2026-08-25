@@ -52,13 +52,21 @@ class ExploreProvider extends ChangeNotifier with DisposableChangeNotifierMixin 
   /// the row refetch waits out the burst so it reads settled server state.
   static const Duration _watchlistRefreshDelay = Duration(seconds: 1);
 
-  ExploreProvider(this._catalogSources) {
+  /// [sourceSelector] picks which [CatalogSource] this instance follows out
+  /// of [CatalogSourcesProvider] — [CatalogSourcesProvider.activeSource] by
+  /// default (the Explore tab). [WatchlistScreen] passes
+  /// [CatalogSourcesProvider.watchlistCapableSource] instead, so the sidebar
+  /// Watchlist tab keeps showing a watchlist-capable source's list even
+  /// while Explore itself is pointed at a source with no watchlist (Seerr).
+  ExploreProvider(this._catalogSources, {CatalogSource? Function(CatalogSourcesProvider)? sourceSelector})
+    : _sourceSelector = sourceSelector ?? ((p) => p.activeSource) {
     _catalogSources.addListener(_onSourcesChanged);
-    _source = _catalogSources.activeSource;
+    _source = _sourceSelector(_catalogSources);
     _source?.watchlistChanges.addListener(_onWatchlistChanged);
   }
 
   final CatalogSourcesProvider _catalogSources;
+  final CatalogSource? Function(CatalogSourcesProvider) _sourceSelector;
   CatalogSource? _source;
 
   Map<CatalogRowId, CatalogPage> _rows = {};
@@ -297,7 +305,7 @@ class ExploreProvider extends ChangeNotifier with DisposableChangeNotifierMixin 
   }
 
   void _onSourcesChanged() {
-    final next = _catalogSources.activeSource;
+    final next = _sourceSelector(_catalogSources);
     if (identical(next, _source)) return;
     _source?.watchlistChanges.removeListener(_onWatchlistChanged);
     _source = next;

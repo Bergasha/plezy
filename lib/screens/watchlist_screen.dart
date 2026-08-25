@@ -6,14 +6,22 @@ import 'package:provider/provider.dart';
 
 import '../i18n/strings.g.dart';
 import '../mixins/refreshable.dart';
+import '../providers/catalog_sources_provider.dart';
 import '../providers/explore_provider.dart';
 import '../services/catalog/catalog_source.dart';
 import 'hub_detail_screen.dart';
 import 'libraries/state_messages.dart';
 
-/// Sidebar tab wrapping the active catalog source's watchlist row in the
+/// Sidebar tab wrapping a watchlist-capable source's watchlist row in the
 /// same grid/pagination machinery the Explore tab's "View All" uses, so the
 /// watchlist is reachable without going through Explore first.
+///
+/// Deliberately its own [ExploreProvider] instance, pinned to
+/// [CatalogSourcesProvider.watchlistCapableSource] rather than reading the
+/// shared Explore-tab one: that instance follows whatever source Explore is
+/// currently browsing, which empties this tab the moment Explore points at a
+/// source with no watchlist (Seerr) even though a perfectly good watchlist
+/// (Plex, a tracker, ...) is still connected.
 ///
 /// [HubDetailScreen] normally shows a back button when pushed as a route; as
 /// a tab root there is nothing to pop, so [CustomAppBar]'s automatic leading
@@ -26,21 +34,35 @@ class WatchlistScreen extends StatefulWidget {
 }
 
 class _WatchlistScreenState extends State<WatchlistScreen> with Refreshable {
+  late final ExploreProvider _explore;
+
   @override
   void initState() {
     super.initState();
-    unawaited(context.read<ExploreProvider>().load());
+    _explore = ExploreProvider(
+      context.read<CatalogSourcesProvider>(),
+      sourceSelector: (sources) => sources.watchlistCapableSource,
+    );
+    unawaited(_explore.load());
+  }
+
+  @override
+  void dispose() {
+    _explore.dispose();
+    super.dispose();
   }
 
   @override
   void refresh() {
-    unawaited(context.read<ExploreProvider>().load());
+    unawaited(_explore.load());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ExploreProvider>(
-      builder: (context, explore, _) {
+    return ListenableBuilder(
+      listenable: _explore,
+      builder: (context, _) {
+        final explore = _explore;
         final rowHub = explore.rowHubs.where((r) => r.row == CatalogRowId.watchlist).firstOrNull;
         if (rowHub != null) {
           return HubDetailScreen(
