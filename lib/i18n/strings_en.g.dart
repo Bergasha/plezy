@@ -270,6 +270,9 @@ class Translations$common$en {
 	/// en: 'Off'
 	String get off => 'Off';
 
+	/// en: 'Options'
+	String get options => 'Options';
+
 	/// en: 'Season ${number}'
 	String seasonNumber({required Object number}) => 'Season ${number}';
 
@@ -466,6 +469,18 @@ class Translations$settings$en {
 	/// en: 'Comfortable'
 	String get comfortable => 'Comfortable';
 
+	/// en: 'Grid Spacing'
+	String get gridSpacing => 'Grid Spacing';
+
+	/// en: 'Tight'
+	String get gridSpacingTight => 'Tight';
+
+	/// en: 'Normal'
+	String get gridSpacingNormal => 'Normal';
+
+	/// en: 'Spacious'
+	String get gridSpacingSpacious => 'Spacious';
+
 	/// en: 'Corner Spotlight Backdrop'
 	String get tvCornerSpotlightBackdrop => 'Corner Spotlight Backdrop';
 
@@ -595,18 +610,6 @@ class Translations$settings$en {
 	/// en: 'Use hardware acceleration when available'
 	String get hardwareDecodingDescription => 'Use hardware acceleration when available';
 
-	/// en: 'Buffer Size'
-	String get bufferSize => 'Buffer Size';
-
-	/// en: '${size}MB'
-	String bufferSizeMB({required Object size}) => '${size}MB';
-
-	/// en: 'Auto (Recommended)'
-	String get bufferSizeAuto => 'Auto (Recommended)';
-
-	/// en: '${heap}MB memory available. A ${size}MB buffer may affect playback.'
-	String bufferSizeWarning({required Object heap, required Object size}) => '${heap}MB memory available. A ${size}MB buffer may affect playback.';
-
 	/// en: 'Playback Buffer'
 	String get playbackBuffer => 'Playback Buffer';
 
@@ -624,6 +627,12 @@ class Translations$settings$en {
 
 	/// en: 'Default Quality'
 	String get defaultQualityTitle => 'Default Quality';
+
+	/// en: 'Default Quality on Cellular'
+	String get cellularQualityTitle => 'Default Quality on Cellular';
+
+	/// en: 'Same as Default Quality'
+	String get cellularQualitySameAsDefault => 'Same as Default Quality';
 
 	/// en: 'Music Quality'
 	String get musicQualityTitle => 'Music Quality';
@@ -663,6 +672,12 @@ class Translations$settings$en {
 
 	/// en: 'On episode change, apply the audio and subtitles selected on the server instead of carrying over the current choice'
 	String get followServerTrackSelectionsDescription => 'On episode change, apply the audio and subtitles selected on the server instead of carrying over the current choice';
+
+	/// en: 'Remember music session'
+	String get resumeMusicOnLaunch => 'Remember music session';
+
+	/// en: 'Reopen the last song paused where it left off when the app starts'
+	String get resumeMusicOnLaunchDescription => 'Reopen the last song paused where it left off when the app starts';
 
 	/// en: 'Show chapter markers on seek bar'
 	String get showChapterMarkersOnTimeline => 'Show chapter markers on seek bar';
@@ -853,8 +868,20 @@ class Translations$settings$en {
 	/// en: 'Could not save changes. Try again.'
 	String get saveFailed => 'Could not save changes. Try again.';
 
-	/// en: 'Auto Skip'
-	String get autoSkip => 'Auto Skip';
+	/// en: 'Auto-Play & Skip'
+	String get autoPlayAndSkip => 'Auto-Play & Skip';
+
+	/// en: 'Auto-Play Next Episode'
+	String get autoPlayNextEpisode => 'Auto-Play Next Episode';
+
+	/// en: 'Start the next episode automatically when one ends'
+	String get autoPlayNextEpisodeDescription => 'Start the next episode automatically when one ends';
+
+	/// en: 'Play Next Countdown'
+	String get playNextCountdown => 'Play Next Countdown';
+
+	/// en: 'Play immediately'
+	String get playNextCountdownImmediate => 'Play immediately';
 
 	/// en: 'Auto Skip Intro'
 	String get autoSkipIntro => 'Auto Skip Intro';
@@ -1087,8 +1114,8 @@ class Translations$settings$en {
 	/// en: 'Dolby Vision Conversion'
 	String get dvConversionMode => 'Dolby Vision Conversion';
 
-	/// en: 'Choose how ExoPlayer handles Dolby Vision Profile 7 files.'
-	String get dvConversionModeDescription => 'Choose how ExoPlayer handles Dolby Vision Profile 7 files.';
+	/// en: 'Choose how Dolby Vision Profile 7 files are handled.'
+	String get dvConversionModeDescription => 'Choose how Dolby Vision Profile 7 files are handled.';
 
 	/// en: 'Auto'
 	String get dvConversionAuto => 'Auto';
@@ -1114,17 +1141,11 @@ class Translations$settings$en {
 	/// en: 'Strip Dolby Vision RPU/EL layers and present plain HEVC'
 	String get dvConversionHevcStripDescription => 'Strip Dolby Vision RPU/EL layers and present plain HEVC';
 
-	/// en: 'Container Demuxer'
-	String get demuxer => 'Container Demuxer';
+	/// en: 'Deinterlacing'
+	String get deinterlace => 'Deinterlacing';
 
-	/// en: 'Which demuxer parses direct-played files. Switch to media3 if a file misbehaves.'
-	String get demuxerDescription => 'Which demuxer parses direct-played files. Switch to media3 if a file misbehaves.';
-
-	/// en: 'FFmpeg (Recommended)'
-	String get demuxerFfmpeg => 'FFmpeg (Recommended)';
-
-	/// en: 'media3'
-	String get demuxerMedia3 => 'media3';
+	/// en: 'Remove combing artifacts from interlaced video (mpv player only)'
+	String get deinterlaceDescription => 'Remove combing artifacts from interlaced video (mpv player only)';
 
 	/// en: 'Ask for profile on app open'
 	String get requireProfileSelectionOnOpen => 'Ask for profile on app open';
@@ -1177,8 +1198,23 @@ class Translations$settings$en {
 	/// en: 'Show only favorite channels when opening Live TV'
 	String get liveTvDefaultFavoritesDescription => 'Show only favorite channels when opening Live TV';
 
+	/// en: 'General'
+	String get general => 'General';
+
+	/// en: 'Language, startup, and window behavior'
+	String get generalDescription => 'Language, startup, and window behavior';
+
+	/// en: 'Language & Region'
+	String get languageAndRegion => 'Language & Region';
+
+	/// en: 'Startup'
+	String get startup => 'Startup';
+
 	/// en: 'Display'
 	String get display => 'Display';
+
+	/// en: 'Library & Cards'
+	String get libraryAndCards => 'Library & Cards';
 
 	/// en: 'Home Screen'
 	String get homeScreen => 'Home Screen';
@@ -1204,20 +1240,53 @@ class Translations$settings$en {
 	/// en: 'Window'
 	String get window => 'Window';
 
-	/// en: 'Content'
-	String get content => 'Content';
+	/// en: 'Live TV'
+	String get liveTv => 'Live TV';
 
 	/// en: 'Player'
 	String get player => 'Player';
 
-	/// en: 'Subtitles & Configuration'
-	String get subtitlesAndConfig => 'Subtitles & Configuration';
+	/// en: 'Video & Display'
+	String get videoAndDisplay => 'Video & Display';
+
+	/// en: 'Audio'
+	String get audio => 'Audio';
+
+	/// en: 'Quality'
+	String get quality => 'Quality';
+
+	/// en: 'Subtitles'
+	String get subtitles => 'Subtitles';
 
 	/// en: 'Seek & Timing'
 	String get seekAndTiming => 'Seek & Timing';
 
 	/// en: 'Behavior'
 	String get behavior => 'Behavior';
+
+	/// en: 'Gestures'
+	String get gestures => 'Gestures';
+
+	/// en: 'Brightness Swipe'
+	String get gestureBrightnessSwipe => 'Brightness Swipe';
+
+	/// en: 'Swipe up or down on the left edge to adjust brightness'
+	String get gestureBrightnessSwipeDescription => 'Swipe up or down on the left edge to adjust brightness';
+
+	/// en: 'Volume Swipe'
+	String get gestureVolumeSwipe => 'Volume Swipe';
+
+	/// en: 'Swipe up or down on the right edge to adjust volume'
+	String get gestureVolumeSwipeDescription => 'Swipe up or down on the right edge to adjust volume';
+
+	/// en: 'Pinch to Zoom'
+	String get gesturePinchToZoom => 'Pinch to Zoom';
+
+	/// en: 'Pinch on the video to zoom in or out'
+	String get gesturePinchToZoomDescription => 'Pinch on the video to zoom in or out';
+
+	/// en: 'Controls'
+	String get controls => 'Controls';
 
 	/// en: 'Remember Player Changes'
 	String get rememberPlayerChanges => 'Remember Player Changes';
@@ -3548,6 +3617,21 @@ class Translations$liveTv$en {
 	/// en: 'Reload Guide'
 	String get reloadGuide => 'Reload Guide';
 
+	/// en: 'Search Guide'
+	String get searchGuide => 'Search Guide';
+
+	/// en: 'Search channels & programs'
+	String get searchHint => 'Search channels & programs';
+
+	/// en: 'No matches for "${query}"'
+	String searchNoResults({required Object query}) => 'No matches for "${query}"';
+
+	/// en: 'Channels'
+	String get channelsSection => 'Channels';
+
+	/// en: 'Programs'
+	String get programsSection => 'Programs';
+
 	/// en: 'Now'
 	String get now => 'Now';
 
@@ -3966,6 +4050,12 @@ class Translations$music$en {
 
 	/// en: 'No server is available for an instant mix'
 	String get instantMixNoServer => 'No server is available for an instant mix';
+
+	/// en: 'Failed to load the instant mix'
+	String get instantMixFailed => 'Failed to load the instant mix';
+
+	/// en: 'The instant mix came back with no tracks'
+	String get instantMixEmpty => 'The instant mix came back with no tracks';
 
 	/// en: 'No audio URL is available for ${track}'
 	String noAudioUrl({required Object track}) => 'No audio URL is available for ${track}';
@@ -5291,6 +5381,9 @@ class Translations$services$en {
 
 	/// en: 'Sync watch progress and request new titles.'
 	String get hubSubtitle => 'Sync watch progress and request new titles.';
+
+	/// en: 'Integrations'
+	String get integrations => 'Integrations';
 
 	/// en: 'Not connected'
 	String get notConnected => 'Not connected';
@@ -6998,6 +7091,7 @@ extension on Translations {
 			'common.mute' => 'Mute',
 			'common.ok' => 'OK',
 			'common.off' => 'Off',
+			'common.options' => 'Options',
 			'common.seasonNumber' => ({required Object number}) => 'Season ${number}',
 			'common.episodeNumberTitle' => ({required Object number, required Object title}) => 'Episode ${number} - ${title}',
 			'common.chapterNumber' => ({required Object number}) => 'Chapter ${number}',
@@ -7076,6 +7170,10 @@ extension on Translations {
 			'settings.displayScale' => 'Display Scale',
 			'settings.compact' => 'Compact',
 			'settings.comfortable' => 'Comfortable',
+			'settings.gridSpacing' => 'Grid Spacing',
+			'settings.gridSpacingTight' => 'Tight',
+			'settings.gridSpacingNormal' => 'Normal',
+			'settings.gridSpacingSpacious' => 'Spacious',
 			'settings.tvCornerSpotlightBackdrop' => 'Corner Spotlight Backdrop',
 			'settings.tvCornerSpotlightBackdropDescription' => 'Show spotlight artwork in the top-right corner instead of filling the screen',
 			'settings.viewMode' => 'View Mode',
@@ -7119,16 +7217,14 @@ extension on Translations {
 			'settings.mpv' => 'mpv',
 			'settings.hardwareDecoding' => 'Hardware Decoding',
 			'settings.hardwareDecodingDescription' => 'Use hardware acceleration when available',
-			'settings.bufferSize' => 'Buffer Size',
-			'settings.bufferSizeMB' => ({required Object size}) => '${size}MB',
-			'settings.bufferSizeAuto' => 'Auto (Recommended)',
-			'settings.bufferSizeWarning' => ({required Object heap, required Object size}) => '${heap}MB memory available. A ${size}MB buffer may affect playback.',
 			'settings.playbackBuffer' => 'Playback Buffer',
 			'settings.playbackBufferAuto' => 'Auto (Recommended)',
 			'settings.playbackBufferLarge' => 'Large',
 			'settings.playbackBufferExtraLarge' => 'Extra Large',
 			'settings.playbackBufferDescription' => 'Buffer more against unstable connections. Also limited by Buffer Size.',
 			'settings.defaultQualityTitle' => 'Default Quality',
+			'settings.cellularQualityTitle' => 'Default Quality on Cellular',
+			'settings.cellularQualitySameAsDefault' => 'Same as Default Quality',
 			'settings.musicQualityTitle' => 'Music Quality',
 			'settings.subtitleStyling' => 'Subtitle Styling',
 			'settings.subtitleStylingDescription' => 'Customize subtitle appearance',
@@ -7142,6 +7238,8 @@ extension on Translations {
 			'settings.rememberTrackSelectionsDescription' => 'Remember audio and subtitle choices per title',
 			'settings.followServerTrackSelections' => 'Use server\'s per-episode track selections',
 			'settings.followServerTrackSelectionsDescription' => 'On episode change, apply the audio and subtitles selected on the server instead of carrying over the current choice',
+			'settings.resumeMusicOnLaunch' => 'Remember music session',
+			'settings.resumeMusicOnLaunchDescription' => 'Reopen the last song paused where it left off when the app starts',
 			'settings.showChapterMarkersOnTimeline' => 'Show chapter markers on seek bar',
 			'settings.showChapterMarkersOnTimelineDescription' => 'Segment the seek bar at chapter boundaries',
 			'settings.specialsOrdering' => 'Specials in episode order',
@@ -7205,7 +7303,11 @@ extension on Translations {
 			'settings.shortcutAlreadyAssigned' => ({required Object action}) => 'Shortcut already assigned to ${action}',
 			'settings.shortcutUpdated' => ({required Object action}) => 'Shortcut updated for ${action}',
 			'settings.saveFailed' => 'Could not save changes. Try again.',
-			'settings.autoSkip' => 'Auto Skip',
+			'settings.autoPlayAndSkip' => 'Auto-Play & Skip',
+			'settings.autoPlayNextEpisode' => 'Auto-Play Next Episode',
+			'settings.autoPlayNextEpisodeDescription' => 'Start the next episode automatically when one ends',
+			'settings.playNextCountdown' => 'Play Next Countdown',
+			'settings.playNextCountdownImmediate' => 'Play immediately',
 			'settings.autoSkipIntro' => 'Auto Skip Intro',
 			'settings.autoSkipIntroDescription' => 'Automatically skip intro markers after a few seconds',
 			'settings.autoSkipCredits' => 'Auto Skip Credits',
@@ -7283,7 +7385,7 @@ extension on Translations {
 			'settings.audioDownmixNormalize' => 'Normalize Volume on Downmix',
 			'settings.audioDownmixNormalizeDescription' => 'Lower the mix to prevent clipping. Turn off to keep the original volume (may distort loud scenes).',
 			'settings.dvConversionMode' => 'Dolby Vision Conversion',
-			'settings.dvConversionModeDescription' => 'Choose how ExoPlayer handles Dolby Vision Profile 7 files.',
+			'settings.dvConversionModeDescription' => 'Choose how Dolby Vision Profile 7 files are handled.',
 			'settings.dvConversionAuto' => 'Auto',
 			'settings.dvConversionNative' => 'Native / Disabled',
 			'settings.dvConversionDv81' => 'P7 → P8.1',
@@ -7292,10 +7394,8 @@ extension on Translations {
 			'settings.dvConversionNativeDescription' => 'Force native DV7 and suppress DV conversion retry',
 			'settings.dvConversionDv81Description' => 'Force inline RPU conversion to Dolby Vision profile 8.1',
 			'settings.dvConversionHevcStripDescription' => 'Strip Dolby Vision RPU/EL layers and present plain HEVC',
-			'settings.demuxer' => 'Container Demuxer',
-			'settings.demuxerDescription' => 'Which demuxer parses direct-played files. Switch to media3 if a file misbehaves.',
-			'settings.demuxerFfmpeg' => 'FFmpeg (Recommended)',
-			'settings.demuxerMedia3' => 'media3',
+			'settings.deinterlace' => 'Deinterlacing',
+			'settings.deinterlaceDescription' => 'Remove combing artifacts from interlaced video (mpv player only)',
 			'settings.requireProfileSelectionOnOpen' => 'Ask for profile on app open',
 			'settings.requireProfileSelectionOnOpenDescription' => 'Show profile selection every time the app is opened',
 			'settings.forceTvMode' => 'Force TV mode',
@@ -7313,7 +7413,12 @@ extension on Translations {
 			'settings.showExploreTabDescription' => 'Display the Explore tab with content from Plex Discover and connected trackers',
 			'settings.liveTvDefaultFavorites' => 'Default to Favorite Channels',
 			'settings.liveTvDefaultFavoritesDescription' => 'Show only favorite channels when opening Live TV',
+			'settings.general' => 'General',
+			'settings.generalDescription' => 'Language, startup, and window behavior',
+			'settings.languageAndRegion' => 'Language & Region',
+			'settings.startup' => 'Startup',
 			'settings.display' => 'Display',
+			'settings.libraryAndCards' => 'Library & Cards',
 			'settings.homeScreen' => 'Home Screen',
 			'settings.screensaver' => 'Screensaver',
 			'settings.screensaverEnabled' => 'Enable screensaver',
@@ -7322,11 +7427,22 @@ extension on Translations {
 			'settings.screensaverIdleTimeoutDescription' => 'How long to wait for inactivity before the screensaver starts',
 			'settings.navigation' => 'Navigation',
 			'settings.window' => 'Window',
-			'settings.content' => 'Content',
+			'settings.liveTv' => 'Live TV',
 			'settings.player' => 'Player',
-			'settings.subtitlesAndConfig' => 'Subtitles & Configuration',
+			'settings.videoAndDisplay' => 'Video & Display',
+			'settings.audio' => 'Audio',
+			'settings.quality' => 'Quality',
+			'settings.subtitles' => 'Subtitles',
 			'settings.seekAndTiming' => 'Seek & Timing',
 			'settings.behavior' => 'Behavior',
+			'settings.gestures' => 'Gestures',
+			'settings.gestureBrightnessSwipe' => 'Brightness Swipe',
+			'settings.gestureBrightnessSwipeDescription' => 'Swipe up or down on the left edge to adjust brightness',
+			'settings.gestureVolumeSwipe' => 'Volume Swipe',
+			'settings.gestureVolumeSwipeDescription' => 'Swipe up or down on the right edge to adjust volume',
+			'settings.gesturePinchToZoom' => 'Pinch to Zoom',
+			'settings.gesturePinchToZoomDescription' => 'Pinch on the video to zoom in or out',
+			'settings.controls' => 'Controls',
 			'settings.rememberPlayerChanges' => 'Remember Player Changes',
 			'settings.rememberPlayerChangesDescription' => 'Where a change made during playback is saved and reapplied from',
 			'settings.scopePlaybackSpeed' => 'Playback Speed',
@@ -7468,6 +7584,8 @@ extension on Translations {
 			'fileInfo.has64bitOffsets' => '64-bit Offsets',
 			'fileInfo.protocol' => 'Protocol',
 			'fileInfo.mediaType' => 'Media Type',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.sourceKind' => 'Source Kind',
 			'fileInfo.optimizedVersion' => 'Optimized Version',
 			'fileInfo.optimizationTarget' => 'Optimization Target',
@@ -7987,6 +8105,8 @@ extension on Translations {
 			'libraries.filterCategories.contentRating' => 'Content Rating',
 			'libraries.filterCategories.tag' => 'Tag',
 			'libraries.filterCategories.unwatched' => 'Unwatched',
+			_ => null,
+		} ?? switch (path) {
 			'libraries.filterCategories.unplayed' => 'Unplayed',
 			'libraries.filterCategories.favorites' => 'Favorites',
 			'libraries.sortLabels.title' => 'Title',
@@ -8010,8 +8130,6 @@ extension on Translations {
 			'libraries.sortLabels.latestEpisodeAirDate' => 'Latest Episode Air Date',
 			'libraries.sortLabels.lastEpisodeDateAdded' => 'Last Episode Date Added',
 			'about.title' => 'About',
-			_ => null,
-		} ?? switch (path) {
 			'about.openSourceLicenses' => 'Open Source Licenses',
 			'about.versionLabel' => ({required Object version}) => 'Version ${version}',
 			'about.appDescription' => 'A beautiful Plex, Jellyfin, and Emby client for Flutter',
@@ -8227,6 +8345,11 @@ extension on Translations {
 			'liveTv.unknownChannel' => 'Unknown channel',
 			'liveTv.live' => 'LIVE',
 			'liveTv.reloadGuide' => 'Reload Guide',
+			'liveTv.searchGuide' => 'Search Guide',
+			'liveTv.searchHint' => 'Search channels & programs',
+			'liveTv.searchNoResults' => ({required Object query}) => 'No matches for "${query}"',
+			'liveTv.channelsSection' => 'Channels',
+			'liveTv.programsSection' => 'Programs',
 			'liveTv.now' => 'Now',
 			'liveTv.today' => 'Today',
 			'liveTv.tomorrow' => 'Tomorrow',
@@ -8364,6 +8487,8 @@ extension on Translations {
 			'music.repeatAll' => 'Repeat all',
 			'music.repeatOne' => 'Repeat one',
 			'music.instantMixNoServer' => 'No server is available for an instant mix',
+			'music.instantMixFailed' => 'Failed to load the instant mix',
+			'music.instantMixEmpty' => 'The instant mix came back with no tracks',
 			'music.noAudioUrl' => ({required Object track}) => 'No audio URL is available for ${track}',
 			'music.discography.singlesAndEps' => 'Singles & EPs',
 			'music.discography.live' => 'Live',
@@ -8499,6 +8624,8 @@ extension on Translations {
 			'downloads.syncRuleCleanupUnavailable' => 'Associated downloads could not be identified safely. Reconnect the server and try again, or remove the rule without deleting downloads.',
 			'downloads.syncedNewEpisodes' => ({required Object count, required Object title}) => 'Synced ${count} new episodes for ${title}',
 			'downloads.activeSyncRules' => 'Sync rules',
+			_ => null,
+		} ?? switch (path) {
 			'downloads.noSyncRules' => 'No sync rules',
 			'downloads.manageSyncRule' => 'Manage sync',
 			'downloads.editEpisodeCount' => 'Episode count',
@@ -8529,8 +8656,6 @@ extension on Translations {
 			'downloads.backgroundWarning.stillNotWorking' => 'Device-specific help',
 			'downloads.backgroundWarning.stillNotWorkingDescription' => 'See steps for your device, or send a log from Settings › View Logs if the issue continues.',
 			'downloads.backgroundWarning.dialogTitle' => 'Downloads may not finish',
-			_ => null,
-		} ?? switch (path) {
 			'downloads.backgroundWarning.dialogDownloadAnyway' => 'Download anyway',
 			'downloads.backgroundWarning.dialogFixFirst' => 'Fix this first',
 			'downloads.backgroundWarning.statusTile' => 'Background downloads',
@@ -8862,6 +8987,7 @@ extension on Translations {
 			'seerr.sessionRejectedAfterReauth' => 'The session was rejected after signing in again',
 			'services.title' => 'Services',
 			'services.hubSubtitle' => 'Sync watch progress and request new titles.',
+			'services.integrations' => 'Integrations',
 			'services.notConnected' => 'Not connected',
 			'services.connectedAs' => ({required Object username}) => 'Connected as @${username}',
 			'services.scrobble' => 'Track progress automatically',

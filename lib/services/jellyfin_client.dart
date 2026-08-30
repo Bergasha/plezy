@@ -78,6 +78,7 @@ import 'scrub_preview_source.dart';
 import 'settings_service.dart' show SpecialsOrdering;
 import 'subtitle_preference.dart';
 import 'track_selection_service.dart';
+import 'video_decode_capabilities.dart';
 import '../mpv/mpv.dart';
 import '../utils/codec_utils.dart';
 
@@ -308,11 +309,6 @@ class JellyfinClient
       baseUrl: connection.baseUrl,
       defaultHeaders: headers,
       logLabel: 'Jellyfin',
-      // Same pool tuning Plex uses: the home fan-out issues several concurrent
-      // requests per pass, and the untuned dart:io default drops idle
-      // connections after 15s — a fresh TLS handshake per request on a
-      // high-RTT/CDN link.
-      usePlexApiClient: true,
       prioritizedEndpoints: connection.baseUrls,
       onEndpointSwitch: (newBaseUrl, {required persist}) => client._handleEndpointSwitch(newBaseUrl, persist: persist),
       onAllEndpointsExhausted: onAllEndpointsExhausted,

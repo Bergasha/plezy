@@ -30,6 +30,7 @@ import '../../providers/theme_provider.dart';
 import '../../providers/seerr_account_provider.dart';
 import '../../services/account_preferences_accounts.dart';
 import '../../services/keyboard_shortcuts_service.dart';
+import '../../services/companion_remote/companion_remote_host_controller.dart';
 import '../../services/background_work_diagnostics_service.dart';
 import '../../services/settings_service.dart' as settings;
 import '../../services/tmdb_cache_warmer.dart';
@@ -57,6 +58,7 @@ import 'about_screen.dart';
 import 'add_connection_screen.dart';
 import 'account_preferences_screen.dart';
 import 'appearance_settings_screen.dart';
+import 'general_settings_screen.dart';
 import 'keyboard_shortcuts_screen.dart';
 import 'logs_screen.dart';
 import 'playback_settings_screen.dart';
@@ -97,6 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
 
   // Focus tracking keys
   static const _kDonate = 'donate';
+  static const _kGeneral = 'general';
   static const _kAppearance = 'appearance';
   static const _kPlayback = 'playback';
   static const _kManageLibraries = 'manage_libraries';
@@ -107,8 +110,10 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
   static const _kBackgroundDownloads = 'background_downloads';
   static const _kVideoPlayerControls = 'video_player_controls';
   static const _kVideoPlayerNavigation = 'video_player_navigation';
+  static const _kCompanionRemoteServer = 'companion_remote_server';
   static const _kCrashReporting = 'crash_reporting';
   static const _kDebugLogging = 'debug_logging';
+  static const _kAutoHidePerformanceOverlay = 'auto_hide_performance_overlay';
   static const _kViewLogs = 'view_logs';
   static const _kClearImageCache = 'clear_image_cache';
   static const _kResetSettings = 'reset_settings';
@@ -147,7 +152,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
   @override
   void focusActiveTabIfReady() {
     if (InputModeTracker.isKeyboardMode(context, listen: false)) {
-      _focusTracker.restoreFocus(fallbackKey: DonationService.isEnabled ? _kDonate : _kAppearance);
+      _focusTracker.restoreFocus(fallbackKey: DonationService.isEnabled ? _kDonate : _kGeneral);
     }
   }
 
@@ -197,6 +202,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
                 SettingsGroup(
                   children: [
                     if (DonationService.isEnabled) _buildDonateTile(),
+                    _buildGeneralTile(),
                     _buildAppearanceTile(),
                     _buildPlaybackTile(),
                     if (hasLibraries) _buildManageLibrariesTile(sheetContext),
@@ -208,7 +214,8 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
 
                 if (!PlatformDetector.isAppleTV()) _buildDownloadsSection(),
 
-                if (_keyboardShortcutsSupported) ...[_buildKeyboardShortcutsSection()],
+                if (_keyboardShortcutsSupported || PlatformDetector.shouldActAsRemoteHost(sheetContext))
+                  _buildControlsSection(sheetContext),
 
                 _buildAdvancedSection(),
 
@@ -237,6 +244,16 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildGeneralTile() {
+    return SettingNavigationTile(
+      focusNode: _focusTracker.get(_kGeneral),
+      icon: Symbols.settings_rounded,
+      title: t.settings.general,
+      subtitle: t.settings.generalDescription,
+      destinationBuilder: (context) => const GeneralSettingsScreen(),
     );
   }
 
@@ -422,6 +439,8 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           subtitle: t.settings.autoRemoveWatchedDownloadsDescription,
         ),
         if (_backgroundWorkDiagnostics.isSupported) _buildBackgroundDownloadsTile(),
+        // TODO: "Remove orphaned downloads" toggle (#1413) goes here, next to
+        // autoRemoveWatchedDownloads.
       ],
     );
   }
@@ -469,12 +488,13 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
     );
   }
 
-  Widget _buildKeyboardShortcutsSection() {
-    if (_keyboardService == null) return const SizedBox.shrink();
-
-    return SettingsGroup(
-      title: t.settings.keyboardShortcuts,
-      children: [
+  /// Input devices: keyboard shortcuts on platforms with a physical keyboard,
+  /// and the companion-remote host on surfaces that can be controlled from a
+  /// phone. Either half may be absent; the caller skips the section when both
+  /// are.
+  Widget _buildControlsSection(BuildContext context) {
+    final children = <Widget>[
+      if (_keyboardService != null) ...[
         SettingNavigationTile(
           focusNode: _focusTracker.get(_kVideoPlayerControls),
           icon: Symbols.keyboard_rounded,
@@ -495,7 +515,20 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           subtitle: t.settings.videoPlayerNavigationDescription,
         ),
       ],
-    );
+      if (PlatformDetector.shouldActAsRemoteHost(context))
+        SettingSwitchTile(
+          focusNode: _focusTracker.get(_kCompanionRemoteServer),
+          pref: settings.SettingsService.enableCompanionRemoteServer,
+          icon: Symbols.phone_android_rounded,
+          title: t.settings.companionRemoteServer,
+          subtitle: t.settings.companionRemoteServerDescription,
+          onAfterWrite: (v) => applyCompanionRemoteServerSetting(context, v),
+        ),
+    ];
+    // Keyboard platforms render nothing until the shortcuts service loads; an
+    // empty SettingsGroup would paint a bare section title.
+    if (children.isEmpty) return const SizedBox.shrink();
+    return SettingsGroup(title: t.settings.controls, children: children);
   }
 
   Widget _buildAdvancedSection() {
@@ -522,6 +555,13 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           icon: Symbols.bug_report_rounded,
           title: t.settings.debugLogging,
           subtitle: t.settings.debugLoggingDescription,
+        ),
+        SettingSwitchTile(
+          focusNode: _focusTracker.get(_kAutoHidePerformanceOverlay),
+          pref: settings.SettingsService.autoHidePerformanceOverlay,
+          icon: Symbols.speed_rounded,
+          title: t.settings.autoHidePerformanceOverlay,
+          subtitle: t.settings.autoHidePerformanceOverlayDescription,
         ),
         SettingNavigationTile(
           focusNode: _focusTracker.get(_kViewLogs),
@@ -592,6 +632,8 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           subtitle: t.settings.importSettingsDescription,
           onTap: _showImportSettingsDialog,
         ),
+        // TODO: Cloud settings sync/backup (#1795, #1979) goes here once a
+        // sync backend exists (iCloud on Apple platforms, or the relay).
       ],
     );
   }
