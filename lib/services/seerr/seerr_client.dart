@@ -169,7 +169,17 @@ class SeerrClient {
 
   Future<SeerrRequest> createRequest(SeerrRequestPayload payload) async {
     final data = await _request('POST', '/request', body: payload.toJson());
-    return SeerrRequest.fromJson(data as Map<String, dynamic>);
+    final map = data as Map<String, dynamic>;
+    // A 2xx response body without an id is Seerr reporting a soft failure
+    // (e.g. the arr push failed after the request record was created) rather
+    // than the created MediaRequest; surface its message instead of crashing
+    // on the null id cast below.
+    if (map['id'] == null) {
+      final message = map['message'] as String?;
+      appLogger.w('Seerr: createRequest response missing id', error: map);
+      throw SeerrApiException((message?.isNotEmpty ?? false) ? message! : 'Seerr did not confirm the request', statusCode: 200);
+    }
+    return SeerrRequest.fromJson(map);
   }
 
   // ---------- Sonarr / Radarr options (request sheet advanced pickers) ----------

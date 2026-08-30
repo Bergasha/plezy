@@ -516,6 +516,24 @@ void main() {
         throwsA(isA<SeerrApiException>().having((e) => e.message, 'message', 'Request quota exceeded')),
       );
     });
+
+    test('a 2xx response with no id surfaces its message instead of crashing on the null cast', () async {
+      final client = clientWith(
+        MockClient((request) async => _json({'message': 'Failed to add request to Sonarr'}, status: 201)),
+      );
+      await expectLater(
+        client.createRequest(const SeerrRequestPayload(mediaType: 'tv', mediaId: 1396)),
+        throwsA(isA<SeerrApiException>().having((e) => e.message, 'message', 'Failed to add request to Sonarr')),
+      );
+    });
+
+    test('a 2xx response with neither id nor message still surfaces a readable error', () async {
+      final client = clientWith(MockClient((request) async => _json({}, status: 201)));
+      await expectLater(
+        client.createRequest(const SeerrRequestPayload(mediaType: 'tv', mediaId: 1396)),
+        throwsA(isA<SeerrApiException>().having((e) => e.message, 'message', 'Seerr did not confirm the request')),
+      );
+    });
   });
 
   group('SeerrPage', () {
