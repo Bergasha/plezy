@@ -96,6 +96,7 @@ import '../mixins/server_bound_media_mixin.dart';
 import '../utils/watch_state_notifier.dart';
 import '../utils/deletion_notifier.dart';
 import '../utils/global_key_utils.dart';
+import '../utils/tone_mapped_logo_image.dart';
 import '../widgets/episode_card.dart';
 import '../widgets/fitting_title_text.dart';
 import 'actor_media_screen.dart';
@@ -952,6 +953,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   /// Build title text widget for clear logo fallback.
+  ///
+  /// The hero scrim washes artwork toward the scaffold background, so the
+  /// default is the theme foreground with a background-side shadow — a
+  /// hard-coded white title disappears into the light theme's near-white
+  /// wash on bright covers.
   Widget _buildDetailTitle(
     BuildContext context,
     String title, {
@@ -961,11 +967,12 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     Color? color,
     Color? shadowColor,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     final baseStyle = (Theme.of(context).textTheme.displaySmall ?? const TextStyle()).copyWith(
-      color: color ?? Colors.white,
+      color: color ?? colorScheme.onSurface,
       fontWeight: fontWeight,
       fontSize: fontSize,
-      shadows: [Shadow(color: shadowColor ?? Colors.black.withValues(alpha: 0.5), blurRadius: shadowBlur)],
+      shadows: [Shadow(color: shadowColor ?? _detailTitleShadowColor(context), blurRadius: shadowBlur)],
     );
 
     return FittingTitleText(title, style: baseStyle);
@@ -1302,6 +1309,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     required BoxFit fit,
     required ImageType imageType,
     Alignment alignment = Alignment.center,
+    Color? logoToneTarget,
+    bool logoToneRemapMixed = true,
     Widget Function(BuildContext, String, dynamic)? errorWidget,
     Widget Function(BuildContext, String)? placeholder,
   }) {
@@ -1313,6 +1322,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
       return OptimizedMediaImage(
         client: null,
+        logoToneTarget: logoToneTarget,
+        logoToneRemapMixed: logoToneRemapMixed,
         imagePath: null,
         localFilePath: localPath,
         cacheMissingLocalFile: true,
@@ -4463,8 +4474,6 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                   fontSize: 56 * scale,
                                   fontWeight: .w800,
                                   shadowBlur: 12,
-                                  color: foregroundColor,
-                                  shadowColor: _tvDetailTitleShadowColor(context),
                                 ),
                               ),
                               SizedBox(height: logoMetadataGap),
@@ -4629,7 +4638,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   Color _tvDetailForegroundColor(BuildContext context) => Theme.of(context).colorScheme.onSurface;
 
-  Color _tvDetailTitleShadowColor(BuildContext context) {
+  /// Background-side halo behind the hero title: dark themes shadow with
+  /// black, light themes with white, so the title separates from artwork the
+  /// scrim has not fully washed out.
+  Color _detailTitleShadowColor(BuildContext context) {
     final brightness = Theme.of(context).colorScheme.brightness;
     return brightness == Brightness.dark ? Colors.black.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.55);
   }
@@ -4642,6 +4654,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     required Widget Function(BuildContext context, String title) titleBuilder,
   }) {
     Widget titleFallback(BuildContext context) => titleBuilder(context, metadata.displayTitle);
+    // The hero scrim washes the backdrop toward the scaffold background, so a
+    // light theme needs light-toned clear logos recolored to stay visible.
+    final theme = Theme.of(context);
+    final logoToneTarget = logoToneTargetFor(
+      surface: theme.scaffoldBackgroundColor,
+      foreground: theme.colorScheme.onSurface,
+    );
 
     if (metadata.clearLogoPath == null) {
       return SizedBox(width: width, height: height, child: titleFallback(context));
@@ -4658,6 +4677,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
             fit: BoxFit.contain,
             alignment: .centerLeft,
             imageType: ImageType.heroLogo,
+            logoToneTarget: logoToneTarget,
+            logoToneRemapMixed: false,
             placeholder: (context, url) => titleFallback(context),
             errorWidget: (context, url, error) => titleFallback(context),
           );
@@ -4668,6 +4689,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
             logoPath: metadata.clearLogoPath,
             width: width,
             height: height,
+            logoToneTarget: logoToneTarget,
             fallbackBuilder: titleFallback,
           );
         },
