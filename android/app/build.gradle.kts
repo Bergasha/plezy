@@ -59,7 +59,13 @@ plugins {
 }
 
 val mpvVersion = "v1.2.2"
-val mpvSha256 = "0207bb46660c239268c4c17bddc7fd570722513344b136c7c5336aca135dc8a0"
+// Upstream's own e1ef52ab pinned 0207bb46...dc8a0, but the actual asset at
+// this release URL hashes to the value below (verified by direct download;
+// the release/asset timestamps show a normal single publish, not a later
+// swap, so this reads as a transcription mistake in their commit rather
+// than a tampered asset). Drop this override once upstream corrects their
+// own pin.
+val mpvSha256 = "71e5e5785047ba734de0c7159e8074c14c97021b20c0e8d3b223f7224edcaca4"
 val mpvDir = layout.buildDirectory.dir("libmpv").get().asFile
 val mpvAar = "libmpv-release.aar"
 val mpvUrl = "https://github.com/edde746/libmpv-android/releases/download/$mpvVersion/$mpvAar"
