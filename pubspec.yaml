@@ -1,7 +1,7 @@
 name: plezy
 description: "Makes Shayflix way better"
 publish_to: "none"
-version: 2.15.12+155
+version: 2.15.13+156
 
 environment:
   # Dart floor stays 3.12: freezed 3.x emits `final` constructor parameters,
