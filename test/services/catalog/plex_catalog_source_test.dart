@@ -574,6 +574,30 @@ void main() {
 
       expect(requests.map((request) => request.url.path), ['/library/metadata/matches', '/actions/addToWatchlist']);
     });
+
+    test('a modern-agent plex id resolves without a Discover match request', () async {
+      final requests = <http.Request>[];
+      final source = PlexCatalogSource(
+        PlexDiscoverClient(
+          _session,
+          httpClient: MockClient((request) async {
+            requests.add(request);
+            return jsonResponse(const <String, Object?>{});
+          }),
+        ),
+      );
+      addTearDown(source.dispose);
+
+      final resolved = await source.resolveItemIds(
+        MediaKind.movie,
+        const ExternalIds(imdb: 'tt1375666', plex: '5d776b59ad5437001f79c6f8'),
+      );
+
+      expect(resolved?.plex, '5d776b59ad5437001f79c6f8');
+      expect(resolved?.imdb, 'tt1375666');
+      expect(requests, isEmpty, reason: 'the native Plex id must not require a Discover match lookup');
+    });
+
     test('external-id matching and fetchDetail return enriched item, cast, and related', () async {
       final requests = <http.Request>[];
       final metadataResponse = Completer<http.Response>();

@@ -1,6 +1,6 @@
 cask "plezy" do
-  version "2.17.0"
-  sha256 "318b9ac0ff0d239b3edbad57a44c008e7aaf0c5623bc2c595407fce2987ba5e4"
+  version "2.18.0"
+  sha256 "affa0922fb33b6ca79a0d6ce7e5042539097a0ea097f011c9a4cfdbe0e822f94"
 
   url "https://github.com/edde746/plezy/releases/download/#{version}/plezy-macos.dmg"
   name "Plezy"

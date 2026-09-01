@@ -58,11 +58,23 @@ plugins {
   id("dev.flutter.flutter-gradle-plugin")
 }
 
-val mpvVersion = "v1.0.7"
-val mpvSha256 = "d55d440e587b2a9ffb91874d93069460a987be05fe72af8394849983f0df2d7a"
+val mpvVersion = "v1.2.2"
+// Upstream's own e1ef52ab pinned 0207bb46...dc8a0, but the actual asset at
+// this release URL hashes to the value below (verified by direct download;
+// the release/asset timestamps show a normal single publish, not a later
+// swap, so this reads as a transcription mistake in their commit rather
+// than a tampered asset). Drop this override once upstream corrects their
+// own pin.
+val mpvSha256 = "71e5e5785047ba734de0c7159e8074c14c97021b20c0e8d3b223f7224edcaca4"
 val mpvDir = layout.buildDirectory.dir("libmpv").get().asFile
 val mpvAar = "libmpv-release.aar"
 val mpvUrl = "https://github.com/edde746/libmpv-android/releases/download/$mpvVersion/$mpvAar"
+
+// Dev-only escape hatch: point the build at a locally built libmpv AAR
+// (libmpv-android's build-local.sh output) to test fork patches before a
+// release is pinned. The URL + sha256 above stay authoritative otherwise.
+val localMpvAar: String? = (project.findProperty("plezy.localMpvAar") as String?)
+  ?: System.getenv("PLEZY_LOCAL_MPV_AAR")
 
 val media3Version = "1.11.0"
 val mpvFfmpegVersion = "8.0.1"
@@ -76,6 +88,8 @@ val downloadLibmpv = tasks.register("downloadLibmpv") {
   inputs.property("version", mpvVersion)
   inputs.property("sourceUrl", mpvUrl)
   inputs.property("sha256", mpvSha256)
+  inputs.property("localOverride", localMpvAar ?: "")
+  localMpvAar?.let { inputs.file(it) }
   outputs.files(aar, manifest)
   doLast {
     mpvDir.parentFile.mkdirs()
@@ -83,15 +97,20 @@ val downloadLibmpv = tasks.register("downloadLibmpv") {
     try {
       staging.mkdirs()
       val stagedAar = File(staging, mpvAar)
-      try {
-        providers.exec {
-          commandLine("curl", "-sfL", mpvUrl, "-o", stagedAar.absolutePath)
-        }.result.get().assertNormalExitValue()
-      } catch (error: Exception) {
-        throw GradleException("Failed to download $mpvAar $mpvVersion", error)
+      if (localMpvAar != null) {
+        File(localMpvAar).copyTo(stagedAar, overwrite = true)
+        File(staging, ".manifest").writeText("version=local\nsource=$localMpvAar\n")
+      } else {
+        try {
+          providers.exec {
+            commandLine("curl", "-sfL", mpvUrl, "-o", stagedAar.absolutePath)
+          }.result.get().assertNormalExitValue()
+        } catch (error: Exception) {
+          throw GradleException("Failed to download $mpvAar $mpvVersion", error)
+        }
+        verifySha256(stagedAar, mpvSha256, "$mpvAar $mpvVersion")
+        File(staging, ".manifest").writeText("version=$mpvVersion\nsha256=$mpvSha256\n")
       }
-      verifySha256(stagedAar, mpvSha256, "$mpvAar $mpvVersion")
-      File(staging, ".manifest").writeText("version=$mpvVersion\nsha256=$mpvSha256\n")
       promoteDirectory(staging, mpvDir)
     } finally {
       staging.deleteRecursively()
@@ -132,7 +151,7 @@ val prepareMpvFfmpegDevelopment = tasks.register("prepareMpvFfmpegDevelopment") 
   val aar = File(mpvDir, mpvAar)
   val manifest = File(mpvFfmpegDevelopmentDir, ".manifest")
   val abis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
-  val libraries = listOf("avcodec", "avformat", "avutil", "swresample")
+  val libraries = listOf("avcodec", "avutil", "swresample")
   inputs.file(aar)
   inputs.property("ffmpegVersion", mpvFfmpegVersion)
   inputs.property("sourceUrl", mpvFfmpegSourceUrl)
@@ -145,7 +164,6 @@ val prepareMpvFfmpegDevelopment = tasks.register("prepareMpvFfmpegDevelopment") 
   outputs.files(
     File(mpvFfmpegDevelopmentDir, "include/libavcodec/avcodec.h"),
     File(mpvFfmpegDevelopmentDir, "include/libavutil/avconfig.h"),
-    File(mpvFfmpegDevelopmentDir, "include/libavformat/avformat.h"),
     File(mpvFfmpegDevelopmentDir, "include/libswresample/swresample.h"),
     manifest
   )
@@ -183,7 +201,7 @@ val prepareMpvFfmpegDevelopment = tasks.register("prepareMpvFfmpegDevelopment") 
       } catch (error: Exception) {
         throw GradleException("Failed to extract FFmpeg $mpvFfmpegVersion headers", error)
       }
-      listOf("libavcodec", "libavformat", "libavutil", "libswresample").forEach { library ->
+      listOf("libavcodec", "libavutil", "libswresample").forEach { library ->
         project.copy {
           from(File(extractedSource, library)) {
             include("*.h")
@@ -207,7 +225,6 @@ val prepareMpvFfmpegDevelopment = tasks.register("prepareMpvFfmpegDevelopment") 
         from(zipTree(aar)) {
           include(
             "jni/*/libavcodec.so",
-            "jni/*/libavformat.so",
             "jni/*/libavutil.so",
             "jni/*/libswresample.so"
           )

@@ -161,8 +161,8 @@ class NavigationRailItem extends StatelessWidget {
     this.expandedContentWidth = SideNavigationRailState.expandedWidth - 24,
     this.expandedHeight = 48,
     this.suppressSelectedBackground = false,
-    this.focusAlpha = 0.12,
-    this.selectedFocusAlpha = 0.15,
+    this.focusAlpha = 0.22,
+    this.selectedFocusAlpha = 0.32,
     this.onNavigateRight,
   });
 
@@ -170,7 +170,10 @@ class NavigationRailItem extends StatelessWidget {
     // The collapsed TV rail is a transparent overlay strip; a persistent
     // active pill over artwork is noise there, so it shows focus only.
     final showSelected = isSelected && !suppressSelectedBackground && !(collapsedLayout && PlatformDetector.isTV());
-    if (focused) return t.text.withValues(alpha: showSelected ? selectedFocusAlpha : focusAlpha);
+    // `accent` picks up OLED's red so the currently-focused destination is
+    // unmistakable while navigating; every other palette keeps accent == text
+    // and this renders exactly as it always has.
+    if (focused) return t.accent.withValues(alpha: showSelected ? selectedFocusAlpha : focusAlpha);
     if (showSelected) return t.text.withValues(alpha: 0.1);
     return null;
   }
@@ -466,6 +469,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
   }
 
   static const _kHome = 'home';
+  static const _kWatchlist = 'watchlist';
   static const _kExplore = 'explore';
   static const _kNowPlaying = 'nowPlaying';
   static const _kLibraries = 'libraries';
@@ -612,6 +616,8 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     switch (widget.selectedTab) {
       case NavigationTabId.discover:
         return _kHome;
+      case NavigationTabId.watchlist:
+        return _kWatchlist;
       case NavigationTabId.explore:
         return _kExplore;
       case NavigationTabId.libraries:
@@ -665,9 +671,11 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     required bool hasLiveTv,
     required bool hasNowPlaying,
     required bool hasExplore,
+    required bool hasWatchlist,
   }) {
     return {
       _kHome,
+      if (hasWatchlist) _kWatchlist,
       if (hasNowPlaying) _kNowPlaying,
       _kLibraries,
       if (hasExplore) _kExplore,
@@ -746,12 +754,14 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     required bool hasLiveTv,
     required bool hasNowPlaying,
     required bool hasExplore,
+    required bool hasWatchlist,
     required bool isCollapsed,
   }) {
     return [
       if (widget.isOfflineMode && widget.onReconnect != null) _kReconnect,
       if (!widget.isOfflineMode) ...[
         _kHome,
+        if (hasWatchlist) _kWatchlist,
         if (hasNowPlaying) _kNowPlaying,
         _kLibraries,
         // Library rows render inside ExcludeFocus(excluding: !_librariesExpanded
@@ -873,6 +883,9 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     // scope) simply never show the Explore item.
     final hasExploreSource = context.watch<CatalogSourcesProvider?>()?.hasAnySource ?? false;
     // Nullable watch: rail tests (and any host without the profile session
+    // scope) simply never show the Watchlist item.
+    final hasWatchlist = context.watch<CatalogSourcesProvider?>()?.watchlistCapableSource != null;
+    // Nullable watch: rail tests (and any host without the profile session
     // scope) simply never show the Now Playing item. TV-only — it is the
     // way back into the now-playing screen there; desktop already has the
     // mini-player for that.
@@ -915,6 +928,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
             hasLiveTv: hasLiveTv,
             hasNowPlaying: nowPlayingTrack != null,
             hasExplore: hasExplore,
+            hasWatchlist: hasWatchlist,
           ),
         );
         final focusOrder = _buildFocusOrder(
@@ -924,6 +938,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           hasLiveTv: hasLiveTv,
           hasNowPlaying: nowPlayingTrack != null,
           hasExplore: hasExplore,
+          hasWatchlist: hasWatchlist,
           isCollapsed: isCollapsed,
         );
         _debugAssertUniqueFocusOrder(focusOrder);
@@ -1016,6 +1031,18 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
                                         isCollapsed: isCollapsed,
                                       ),
                                       const SizedBox(height: _itemGap),
+                                      if (hasWatchlist) ...[
+                                        _buildNavItem(
+                                          icon: Symbols.bookmark_rounded,
+                                          selectedIcon: Symbols.bookmark_rounded,
+                                          label: Translations.of(context).navigation.watchlist,
+                                          isSelected: widget.selectedTab == NavigationTabId.watchlist,
+                                          onTap: () => widget.onDestinationSelected(NavigationTabId.watchlist),
+                                          focusNode: _focusTracker.get(_kWatchlist),
+                                          isCollapsed: isCollapsed,
+                                        ),
+                                        const SizedBox(height: _itemGap),
+                                      ],
                                       // Now Playing — only while a music session is live.
                                       if (nowPlayingTrack != null && musicService != null) ...[
                                         _buildNowPlayingItem(nowPlayingTrack, musicService, isCollapsed: isCollapsed),
@@ -1294,8 +1321,8 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           // A selected library owns the highlight; the header only shows it
           // for the bare Libraries tab.
           suppressSelectedBackground: widget.isSidebarFocused || widget.selectedLibraryKey != null,
-          focusAlpha: 0.08,
-          selectedFocusAlpha: 0.1,
+          focusAlpha: 0.16,
+          selectedFocusAlpha: 0.22,
           onNavigateRight: widget.onNavigateToContent,
         ),
 

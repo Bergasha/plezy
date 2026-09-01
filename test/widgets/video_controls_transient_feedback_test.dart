@@ -513,6 +513,16 @@ void main() {
     testWidgets('select raises the chrome before toggling so no badge flashes under it', (tester) async {
       await pumpControls(tester, wireTransportCallback: true);
 
+      // First press with the chrome down only reveals it — no pause underneath.
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.select);
+      await tester.pump();
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.select);
+      await tester.pump();
+
+      expect(chrome.controlsVisible, isTrue);
+      expect(transportCommands, isEmpty);
+
+      // Second press, chrome already up, toggles playback.
       await tester.sendKeyDownEvent(LogicalKeyboardKey.select);
       await tester.pump();
       await tester.sendKeyUpEvent(LogicalKeyboardKey.select);

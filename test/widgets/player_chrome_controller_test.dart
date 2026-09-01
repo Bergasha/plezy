@@ -245,5 +245,37 @@ void main() {
       await tester.pump();
       expect(controller.controlsVisible, isFalse);
     });
+
+    testWidgets('wakeOnHover false leaves hidden controls hidden on hover', (tester) async {
+      final controller = PlayerChromeController();
+      addTearDown(controller.dispose);
+      controller.hide();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 200,
+              height: 200,
+              child: PlayerChromeInteractionRegion(
+                controller: controller,
+                hideOnExit: true,
+                wakeOnHover: false,
+                child: const ColoredBox(color: Colors.black),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: const Offset(250, 250));
+      await tester.pump();
+      await mouse.moveTo(const Offset(20, 20));
+      await tester.pump();
+
+      expect(controller.controlsVisible, isFalse);
+    });
   });
 }

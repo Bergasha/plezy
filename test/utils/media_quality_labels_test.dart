@@ -37,7 +37,34 @@ void main() {
         ),
       );
 
-      expect(buildMediaQualityLabels(item), ['4K', 'DV', 'TrueHD Atmos']);
+      expect(buildMediaQualityLabels(item), ['4K', 'DV', 'TrueHD 7.1', 'Atmos']);
+    });
+
+    test('formats DTS:X as its own chip alongside the channel count', () {
+      final item = _episodeWithVersion(
+        MediaVersion(
+          id: '1',
+          videoResolution: '1080',
+          parts: const [
+            MediaPart(
+              id: 'part-1',
+              streams: [
+                MediaStream(id: 'video', kind: MediaStreamKind.video),
+                MediaStream(
+                  id: 'audio',
+                  kind: MediaStreamKind.audio,
+                  codec: 'dca',
+                  displayTitle: 'English (DTS-HD MA 7.1 / DTS:X)',
+                  channels: 8,
+                  selected: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+
+      expect(buildMediaQualityLabels(item), ['1080p', 'DTS 7.1', 'DTS:X']);
     });
 
     test('formats Dolby Vision profile when stream metadata includes it', () {

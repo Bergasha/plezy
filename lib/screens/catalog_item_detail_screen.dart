@@ -32,7 +32,10 @@ import '../services/catalog/catalog_source.dart';
 import '../services/catalog/seerr_catalog_source.dart';
 import '../utils/app_logger.dart';
 import '../utils/catalog_navigation_helper.dart';
+import '../utils/content_utils.dart';
 import '../utils/desktop_window_padding.dart';
+import '../utils/provider_extensions.dart';
+import '../utils/video_player_navigation.dart';
 import '../utils/formatters.dart';
 import '../utils/country_codes.dart';
 import '../utils/language_codes.dart';
@@ -500,6 +503,30 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
         _focusSectionBelowDetailActions();
       }
     });
+  }
+
+  /// Prefers an in-app-playable trailer from a matched library item's own
+  /// Plex extras (streamed through the normal player, no browser) over the
+  /// catalog's external trailer link — only falling back to [externalUrl]
+  /// when there's no library match, or the match has no trailer extra.
+  Future<void> _playTrailer(String externalUrl) async {
+    final match = _matches?.firstOrNull;
+    if (match != null) {
+      final client = context.getMediaClientForItemOrNull(match);
+      if (client != null) {
+        try {
+          final extras = await client.fetchExtras(match.id);
+          final localTrailer = extras.where(isTrailerExtra).firstOrNull;
+          if (localTrailer != null) {
+            if (mounted) unawaited(navigateToVideoPlayer(context, metadata: localTrailer));
+            return;
+          }
+        } catch (e) {
+          appLogger.w('Failed to check library match for a local trailer', error: e);
+        }
+      }
+    }
+    if (mounted) await _openExternalUrl(externalUrl);
   }
 
   Future<void> _openExternalUrl(String value) async {
@@ -1334,7 +1361,7 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
                                                 debugLabel: 'catalog_trailer',
                                                 icon: Symbols.play_circle_rounded,
                                                 tooltip: t.explore.detail.watchTrailer,
-                                                onPressed: () => unawaited(_openExternalUrl(trailer)),
+                                                onPressed: () => unawaited(_playTrailer(trailer)),
                                               ),
                                           ],
                                         ),

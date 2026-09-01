@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../media/ids.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../media/library_query.dart';
@@ -15,10 +18,22 @@ import '../widgets/desktop_app_bar.dart';
 import '../widgets/optimized_media_image.dart';
 import '../utils/media_image_helper.dart';
 import '../i18n/strings.g.dart';
+import '../utils/formatters.dart';
+import '../widgets/collapsible_text.dart';
 import 'base_media_list_detail_screen.dart';
 import 'focusable_detail_screen_mixin.dart';
 import '../mixins/grid_focus_node_mixin.dart';
 import '../focus/focusable_action_bar.dart';
+import '../database/app_database.dart';
+import '../models/catalog/catalog_item.dart';
+import '../models/tmdb/tmdb_person.dart';
+import '../focus/focus_theme.dart';
+import '../services/settings_service.dart';
+import '../services/tmdb_cast_matcher.dart';
+import '../services/tmdb_filmography_mapper.dart';
+import '../utils/grid_size_calculator.dart';
+import '../utils/platform_detector.dart';
+import '../widgets/focusable_media_card.dart';
 
 /// Screen to browse all media featuring a specific actor.
 class ActorMediaScreen extends StatefulWidget {
@@ -29,6 +44,7 @@ class ActorMediaScreen extends StatefulWidget {
   final String serverId;
   final String? serverName;
   final MediaBackend backend;
+  final MediaItem? sourceMediaItem;
 
   const ActorMediaScreen({
     super.key,
@@ -39,6 +55,7 @@ class ActorMediaScreen extends StatefulWidget {
     required this.serverId,
     this.serverName,
     required this.backend,
+    this.sourceMediaItem,
   });
 
   @override
@@ -53,6 +70,43 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
         PaginatedItemUpdatable<ActorMediaScreen>,
         StandardPaginatedView<MediaItem, ActorMediaScreen> {
   static const int _pageSize = 200;
+
+  TmdbCastMatcher? _tmdbMatcherOrNull;
+  TmdbCastMatcher get _tmdbMatcher => _tmdbMatcherOrNull ??= TmdbCastMatcher(database: context.read<AppDatabase>());
+  TmdbPerson? _tmdbPerson;
+  bool _tmdbLoading = false;
+  final _bioFocusNode = FocusNode();
+  List<CatalogItem>? _filmography;
+
+  @override
+  void initState() {
+    super.initState();
+    final source = widget.sourceMediaItem;
+    if (source != null) {
+      _tmdbLoading = true;
+      _tmdbMatcher
+          .resolveCastMember(metadata: source, actorName: widget.actorName, client: _mediaClient)
+          .then((person) async {
+            if (!mounted) return;
+            setState(() {
+              _tmdbPerson = person;
+              _tmdbLoading = false;
+            });
+            if (person == null) return;
+            try {
+              final credits = await _tmdbMatcher.getFilmography(person.id);
+              if (!mounted) return;
+              setState(() => _filmography = mapTmdbFilmography(credits));
+            } catch (_) {
+              if (mounted) setState(() => _filmography = const []);
+            }
+          })
+          .catchError((_) {
+            if (!mounted) return;
+            setState(() => _tmdbLoading = false);
+          });
+    }
+  }
 
   @override
   MediaItem get mediaItem => MediaItem(
@@ -74,6 +128,8 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
 
   @override
   void dispose() {
+    _tmdbMatcherOrNull?.dispose();
+    _bioFocusNode.dispose();
     disposePagination();
     disposeFocusResources();
     super.dispose();
@@ -106,41 +162,96 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
     return [];
   }
 
+  int? _ageInYears(String birthday, String? asOf) {
+    try {
+      final birth = DateTime.parse(birthday);
+      final end = asOf != null ? DateTime.parse(asOf) : DateTime.now();
+      var age = end.year - birth.year;
+      if (end.month < birth.month || (end.month == birth.month && end.day < birth.day)) age--;
+      return age;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _departmentLabel(String? department) {
+    return switch (department) {
+      'Acting' => 'Actor',
+      'Directing' => 'Director',
+      'Production' => 'Producer',
+      'Writing' => 'Writer',
+      _ => department,
+    };
+  }
+
   Widget _buildActorHeader() {
     final theme = Theme.of(context);
+    final person = _tmdbPerson;
+    final photoUrl = person?.profilePath != null ? 'https://image.tmdb.org/t/p/w500${person!.profilePath}' : null;
+    final occupation = _departmentLabel(person?.knownForDepartment);
+    final birthday = person?.birthday;
+    final deathday = person?.deathday;
+
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
+          crossAxisAlignment: .start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(40),
+              borderRadius: BorderRadius.circular(12),
               child: OptimizedMediaImage(
-                client: _mediaClient,
-                imagePath: widget.actorThumb,
-                width: 80,
-                height: 80,
+                client: photoUrl == null ? _mediaClient : null,
+                imagePath: photoUrl ?? widget.actorThumb,
+                width: 160,
+                height: 240,
                 fit: BoxFit.cover,
                 imageType: ImageType.avatar,
                 fallbackIcon: Symbols.person_rounded,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: .start,
                 children: [
                   Text(
                     widget.actorName,
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: .bold),
+                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: .bold),
                     maxLines: 2,
                     overflow: .ellipsis,
                   ),
-                  if (widget.characterName != null) ...[
+                  if (occupation != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      widget.characterName!,
+                      occupation,
+                      style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                  if (birthday != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      deathday != null
+                          ? 'Born ${formatFullDate(birthday)}\nDied ${formatFullDate(deathday)} (${_ageInYears(birthday, deathday)})'
+                          : 'Born ${formatFullDate(birthday)} (${_ageInYears(birthday, null)} years)',
                       style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                  if (person?.biography != null) ...[
+                    const SizedBox(height: 12),
+                    CollapsibleText(
+                      text: person!.biography!,
+                      maxLines: 4,
+                      style: theme.textTheme.bodyMedium,
+                      skipTraversal: false,
+                      focusNode: _bioFocusNode,
+                    ),
+                  ],
+                  if (widget.characterName != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.characterName!,
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       maxLines: 1,
                       overflow: .ellipsis,
                     ),
@@ -161,6 +272,61 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
     );
   }
 
+  Widget _buildFilmographySection() {
+    final filmography = _filmography;
+    if (filmography == null || filmography.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    final theme = Theme.of(context);
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: .start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(t.actor.filmography, style: theme.textTheme.titleMedium?.copyWith(fontWeight: .bold)),
+            ),
+            const SizedBox(height: 8),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final density = SettingsService.instance.read(SettingsService.libraryDensity);
+                final isTv = PlatformDetector.isTV();
+                final cardWidth = GridSizeCalculator.getCellWidth(constraints.maxWidth, context, density);
+                final posterWidth = cardWidth - 6;
+                final posterHeight = posterWidth * 1.5;
+                final containerHeight = posterHeight + (isTv ? 48 : 33);
+                final focusExtra = FocusTheme.focusBorderWidth * 2;
+
+                return SizedBox(
+                  height: containerHeight + focusExtra + (isTv ? 12 : 4) + 16,
+                  child: ListView.builder(
+                    scrollDirection: .horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filmography.length,
+                    itemBuilder: (context, index) {
+                      final catalogItem = filmography[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FocusableMediaCard(
+                          item: catalogItem.toMediaItem(),
+                          width: cardWidth,
+                          height: containerHeight,
+                          forceGridMode: true,
+                          onBack: handleBackFromContent,
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return buildDetailScaffold(
@@ -174,7 +340,9 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
             itemAt: (index) => loadedItems[index],
             onRefresh: updateItem,
             onSkeletonVisible: (index) => ensureIndexLoaded(index, pageSize: _pageSize),
+            navigateUpTarget: _tmdbPerson?.biography != null ? _bioFocusNode : null,
           ),
+        _buildFilmographySection(),
       ],
     );
   }

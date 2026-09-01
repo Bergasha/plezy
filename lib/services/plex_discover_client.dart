@@ -261,22 +261,28 @@ class PlexDiscoverClient {
     ];
   }
 
+  /// Discover's matches endpoint only recognizes some guid forms for a given
+  /// title even when the item carries several — a lookup that misses on one
+  /// id can still hit on another, so every id the item has is tried in turn
+  /// rather than giving up after the first.
   Future<Map<String, dynamic>?> match(ExternalIds ids) async {
-    final guid = switch (ids) {
-      ExternalIds(imdb: final String imdb) => 'imdb://$imdb',
-      ExternalIds(tmdb: final int tmdb) => 'tmdb://$tmdb',
-      ExternalIds(tvdb: final int tvdb) => 'tvdb://$tvdb',
-      _ => null,
-    };
-    if (guid == null) return null;
-    final data = await _request(
-      'GET',
-      '/library/metadata/matches',
-      query: {'guid': guid, 'includeGuids': 1},
-      allowNotFound: true,
-    );
-    if (data == null) return null;
-    return firstFlexibleMap(_mediaContainer(data)['Metadata']);
+    final guids = [
+      if (ids.tmdb case final tmdb?) 'tmdb://$tmdb',
+      if (ids.imdb case final imdb?) 'imdb://$imdb',
+      if (ids.tvdb case final tvdb?) 'tvdb://$tvdb',
+    ];
+    for (final guid in guids) {
+      final data = await _request(
+        'GET',
+        '/library/metadata/matches',
+        query: {'guid': guid, 'includeGuids': 1},
+        allowNotFound: true,
+      );
+      if (data == null) continue;
+      final metadata = firstFlexibleMap(_mediaContainer(data)['Metadata']);
+      if (metadata != null) return metadata;
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>?> getMetadata(String ratingKey) async {

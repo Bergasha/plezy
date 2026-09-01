@@ -72,6 +72,13 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
     int? lastObservedPositionMs;
 
     _playingSubscription = currentPlayer.streams.playing.listen(_onPlayingStateChanged);
+    // Seed from the current synchronous state rather than only waiting on the
+    // next transition: streams.playing is a broadcast stream with no replay,
+    // so if playback was already under way by the time this subscription
+    // attaches, the listener above would never fire and the flag would stay
+    // stuck at its initial false — exactly what let the idle screensaver show
+    // up over genuinely ongoing playback.
+    VideoPlayerScreenState._isActivelyPlaying = currentPlayer.state.playing;
 
     _completedSubscription = currentPlayer.streams.completed.listen((done) {
       // completed=false means a file (re)loaded after a reconnect-seek or fresh
@@ -552,6 +559,8 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
   }
 
   void _onPlayingStateChanged(bool isPlaying) {
+    VideoPlayerScreenState._isActivelyPlaying = isPlaying;
+
     if (!isPlaying) {
       _lastPlaybackPauseAt = DateTime.now();
     }

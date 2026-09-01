@@ -16,6 +16,24 @@ class CompanionRemoteReceiver {
     return _instance!;
   }
 
+  /// Notified on viewer remote input (see [_isViewerInput]). A listener list
+  /// (not a single settable callback) so independent consumers — idle-activity
+  /// tracking (InputModeTracker now uses
+  /// [InputModeTracker.reportNonPointerInput] directly instead) — can coexist
+  /// without clobbering each other's registration. Same pattern as
+  /// [GamepadService.addGamepadInputListener].
+  static final List<VoidCallback> _remoteInputListeners = [];
+
+  static void addRemoteInputListener(VoidCallback listener) => _remoteInputListeners.add(listener);
+
+  static void removeRemoteInputListener(VoidCallback listener) => _remoteInputListeners.remove(listener);
+
+  static void _notifyRemoteInput() {
+    for (final listener in List<VoidCallback>.of(_remoteInputListeners)) {
+      listener();
+    }
+  }
+
   /// Owners prevent a disposed screen from clearing callbacks installed by a
   /// replacement screen later in the same frame.
   Object? navigationOwner;
@@ -49,8 +67,10 @@ class CompanionRemoteReceiver {
     // A paired phone cannot point, so any viewer command is evidence of a
     // pointerless device. Protocol frames are not viewer input: promoting on the
     // periodic ping would flip an idle desktop host into keyboard mode — and hide
-    // its cursor — on every heartbeat.
+    // its cursor — on every heartbeat. Same filter gates idle-activity listeners
+    // (e.g. the screensaver) so a background ping can't wake/dismiss it either.
     if (_isViewerInput(command.type)) {
+      _notifyRemoteInput();
       InputModeTracker.reportNonPointerInput();
       scheduleFrameIfIdle();
     }

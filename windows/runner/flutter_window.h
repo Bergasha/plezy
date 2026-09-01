@@ -24,6 +24,7 @@ class FlutterWindow : public Win32Window {
   flutter::DartProject project_;
 
   std::unique_ptr<flutter::FlutterViewController> flutter_controller_;
+  bool is_destroying_flutter_controller_ = false;
 
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> window_channel_;
 

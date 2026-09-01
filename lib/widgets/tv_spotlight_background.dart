@@ -12,6 +12,7 @@ import '../utils/formatters.dart';
 import '../utils/layout_constants.dart';
 import '../utils/media_image_helper.dart';
 import '../services/settings_service.dart';
+import '../utils/tone_mapped_logo_image.dart';
 import 'cycling_media_backdrop.dart';
 import 'fitting_title_text.dart';
 import 'fitted_metadata_line.dart';
@@ -101,7 +102,11 @@ class TvSpotlightBackground extends StatelessWidget {
             if (media != null && showInfo)
               Positioned(
                 left: contentLeft ?? TvLayoutConstants.horizontalInset,
-                right: MediaQuery.sizeOf(context).width * 0.43,
+                // Widened from 0.43 — the metadata line (year, resolution,
+                // audio codec/channels, Atmos/DTS:X, ratings, etc.) kept
+                // growing longer than the reserved text column and was
+                // clipping mid-word.
+                right: MediaQuery.sizeOf(context).width * 0.28,
                 top: contentTop,
                 bottom: contentBottom,
                 // The info block still cross-fades via AnimatedSwitcher, but its
@@ -224,6 +229,13 @@ class TvSpotlightBackground extends StatelessWidget {
   }
 
   Widget _buildLogoOrTitle(BuildContext context, MediaItem media, String title) {
+    final theme = Theme.of(context);
+    // The spotlight scrim washes artwork toward the scaffold background, so
+    // light themes recolor light-toned logos to stay visible.
+    final logoToneTarget = logoToneTargetFor(
+      surface: theme.scaffoldBackgroundColor,
+      foreground: theme.colorScheme.onSurface,
+    );
     final scale = _scale(context);
     final logoPath = media.clearLogoPath;
     final logoWidth = _logoWidth(scale);
@@ -240,16 +252,19 @@ class TvSpotlightBackground extends StatelessWidget {
 
     final localLogoPath = localArtworkPathResolver?.call(logoPath);
     if (localLogoPath != null && File(localLogoPath).existsSync()) {
+      final bounded = MediaImageHelper.boundedDecode(
+        FileImage(File(localLogoPath)),
+        memWidth: logoMemWidth,
+        memHeight: logoMemHeight,
+      );
       return SizedBox(
         width: logoWidth,
         height: logoHeight,
         child: blurArtwork(
           Image(
-            image: MediaImageHelper.boundedDecode(
-              FileImage(File(localLogoPath)),
-              memWidth: logoMemWidth,
-              memHeight: logoMemHeight,
-            ),
+            image: logoToneTarget == null
+                ? bounded
+                : ToneMappedLogoImage(bounded, target: logoToneTarget, remapMixed: false),
             fit: BoxFit.contain,
             alignment: .centerLeft,
             errorBuilder: (context, error, stackTrace) => _buildTitle(context, title),
@@ -266,6 +281,7 @@ class TvSpotlightBackground extends StatelessWidget {
       width: logoWidth,
       height: logoHeight,
       fadeInDuration: DevicePerformance.reducedDuration(const Duration(milliseconds: 200)),
+      logoToneTarget: logoToneTarget,
       fallbackBuilder: (context) => _buildTitle(context, title),
     );
   }

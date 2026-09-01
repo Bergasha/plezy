@@ -4,9 +4,12 @@ import '../media/ids.dart';
 
 import 'package:flutter/material.dart';
 
+import '../database/app_database.dart';
+import '../models/tmdb/tmdb_tv_details.dart';
 import '../navigation/profile_navigation_scope.dart';
 import '../services/device_performance.dart';
 import '../services/fullscreen_state_manager.dart';
+import '../services/tmdb_client.dart';
 import 'package:flutter/services.dart';
 import 'package:plezy/utils/platform_detector.dart';
 import 'package:plezy/widgets/app_icon.dart';
@@ -46,6 +49,12 @@ import '../widgets/optimized_media_image.dart';
 import '../utils/media_image_helper.dart';
 import '../utils/media_quality_labels.dart';
 import '../services/plex_client.dart';
+import '../services/plex_community_service.dart';
+import '../connection/connection_registry.dart';
+import '../models/plex/plex_community_review.dart';
+import '../widgets/plex_review_card.dart';
+import '../widgets/tv_extras_strip.dart';
+import '../media/media_backend.dart';
 import '../media/media_server_client.dart';
 import '../services/media_list_playback_launcher.dart';
 import '../utils/content_utils.dart';
@@ -87,6 +96,7 @@ import '../mixins/server_bound_media_mixin.dart';
 import '../utils/watch_state_notifier.dart';
 import '../utils/deletion_notifier.dart';
 import '../utils/global_key_utils.dart';
+import '../utils/tone_mapped_logo_image.dart';
 import '../widgets/episode_card.dart';
 import '../widgets/fitting_title_text.dart';
 import 'actor_media_screen.dart';
@@ -110,11 +120,11 @@ const double _tvDetailTallPosterScale = 0.72;
 const double _tvDetailEpisodeThumbnailScale = 0.72;
 const double _tvDetailActionSize = 46;
 const double _tvDetailActionRailGap = 4;
+const double _tvDetailBottomSectionHeadingHeight = 24;
+const double _tvDetailBottomSectionHeadingGap = 8;
+const double _tvDetailBottomSectionGap = 16;
 const String _tvDetailSeasonsErrorHubId = 'detail_seasons_error';
 const String _tvDetailSeasonHubIdPrefix = 'detail_season_';
-const String _tvDetailExtrasHubId = 'detail_extras';
-const String _tvDetailActorsHubId = 'detail_actors';
-const String _tvDetailActorPersonIdRawKey = 'tvDetailActorPersonId';
 
 enum _SyncRuleAction { edit, remove, delete }
 
@@ -295,12 +305,25 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   List<GlobalKey<HubSectionState>> _relatedHubKeys = [];
   bool _hasLoadedExtras = false;
   bool _hasLoadedRelatedHubs = false;
+  PlexRatingsAndReviews? _ratingsAndReviews;
+  bool _hasLoadedRatingsAndReviews = false;
   final _tvDetailRailKey = GlobalKey<TvBrowseRailState>();
+
+  /// Shows only: the episode/season-hub rail rendered before Cast (see
+  /// _buildTvDetailBottomScrollable). _tvDetailRailKey above becomes the
+  /// "remaining hubs" (Related Shows/Movies) rail once this one exists.
+  final _tvDetailEpisodesRailKey = GlobalKey<TvBrowseRailState>();
   final _hubFocusMemory = HubFocusMemory();
   PageRoute<dynamic>? _route;
   RouteObserver<PageRoute<dynamic>>? _routeObserver;
   late final ScrollController _scrollController;
   final ScrollController _extrasScrollController = ScrollController();
+
+  /// Scrolls the TV layout's bottom-docked region (Cast rail → Reviews →
+  /// Extras). Distinct from [_scrollController] (the non-TV Column's own
+  /// page scroll, which also scrolls the hero away) — on TV the hero stays
+  /// fixed and only this region scrolls.
+  final ScrollController _tvDetailBottomScrollController = ScrollController();
   bool _watchStateChanged = false;
   final ValueNotifier<double> _scrollOffset = ValueNotifier<double>(0);
   bool _suppressBackAfterPop = false;
@@ -320,10 +343,24 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   // resolve once via the owning server, then per capable source; membership
   // comes from each source's session snapshot, so opening details never
   // costs a provider call. Multiple candidates → the toggle opens a chooser.
-  List<WatchlistCandidate> _watchlistCandidates = const [];
+  // Null means resolution hasn't finished yet (the button still shows,
+  // matching the ⋮ menu's optimistic-until-proven-empty watchlist entry);
+  // an empty list means it genuinely resolved to nothing.
+  List<WatchlistCandidate>? _watchlistCandidates;
   List<CatalogSource> _watchlistListenedSources = const [];
   final GlobalKey _watchlistButtonKey = GlobalKey();
   bool _watchlistMutationInFlight = false;
+
+  // TMDb next-episode-to-air / season episode count (airing shows only).
+  // Resolved once per show via the same external-id lookup the watchlist
+  // feature uses; season episode counts are fetched lazily as each season
+  // tab is viewed. A finished/canceled show or one with no TMDb match simply
+  // never populates these, so the summary line stays hidden for it.
+  TmdbTvDetails? _tmdbTvDetails;
+  int? _tmdbShowId;
+  bool _tmdbShowDetailsLoadAttempted = false;
+  final Map<int, int> _tmdbSeasonEpisodeCounts = {};
+  final Set<int> _tmdbSeasonEpisodeCountsLoading = {};
 
   // Inline season tabs
   int _selectedSeasonIndex = 0;
@@ -393,6 +430,23 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   final _castStripKey = GlobalKey<CastMemberStripState>();
   final _castSectionKey = GlobalKey();
   final _seasonsSectionKey = GlobalKey();
+
+  // Locked focus pattern for the Plex community ratings & reviews strip
+  final _reviewStripKey = GlobalKey<PlexReviewStripState>();
+  final _reviewsSectionKey = GlobalKey();
+
+  // Locked focus pattern for the TV-only "Trailers & Extras" strip (the
+  // non-TV Column uses _extrasFocusNode/_buildExtrasSection instead).
+  final _extrasStripKey = GlobalKey<TvExtrasStripState>();
+
+  // Scroll-into-view anchor for the TV-only "remaining hubs" rail (Related
+  // Shows/Movies, and any other non-episode hub) — _castSectionKey now
+  // belongs to the standalone TV Cast section instead.
+  final _tvRelatedRailSectionKey = GlobalKey();
+
+  // Scroll-into-view anchor for the TV-only, shows-only episode/season-hub
+  // rail rendered before Cast.
+  final _tvEpisodesRailSectionKey = GlobalKey();
 
   // Focus target for the trailing info rows (studio / contentRating)
   late final FocusNode _infoRowsFocusNode;
@@ -684,10 +738,18 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// source this item resolves in, with its per-source ids. No-ops offline
   /// and for non-movie/show kinds.
   void _initWatchlistState() {
-    if (widget.isOffline || (!_metadata.isMovie && !_metadata.isShow)) return;
+    // No resolution will ever run for these cases — null would otherwise
+    // read as "still resolving" and show the button optimistically forever.
+    if (widget.isOffline || (!_metadata.isMovie && !_metadata.isShow)) {
+      _watchlistCandidates = const [];
+      return;
+    }
     final catalogSources = Provider.of<CatalogSourcesProvider?>(context, listen: false);
     final sources = catalogSources?.watchlistCapableSources ?? const <CatalogSource>[];
-    if (catalogSources == null || sources.isEmpty) return;
+    if (catalogSources == null || sources.isEmpty) {
+      _watchlistCandidates = const [];
+      return;
+    }
     _watchlistListenedSources = sources;
     for (final source in sources) {
       source.watchlistChanges.addListener(_onWatchlistSourceChanged);
@@ -698,17 +760,20 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   Future<void> _resolveWatchlistIds(CatalogSourcesProvider catalogSources) async {
     try {
-      // Session-cached on the provider and shared with the card context
-      // menus; null means the item is outside a source's domain and the
-      // action shows for the sources that resolved.
+      // Session-cached on the provider and shared with the card context menus.
       final candidates = await catalogSources.watchlistCandidatesFor(
         _metadata,
         client: _getMediaClientForMetadata(context),
       );
-      if (!mounted || candidates.isEmpty) return;
+      appLogger.d(
+        'Watchlist candidates resolved for ${_metadata.title}: '
+        '${candidates.map((c) => c.source.id.name).join(', ')}',
+      );
+      if (!mounted) return;
       setState(() => _watchlistCandidates = candidates);
     } catch (e) {
       appLogger.d('Watchlist external-id resolution failed', error: e);
+      if (mounted) setState(() => _watchlistCandidates = const []);
     }
   }
 
@@ -793,7 +858,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   bool _hasLoadedTvDetailSupplementalSections(MediaItem metadata) {
     if (widget.isOffline || (!metadata.isMovie && !metadata.isShow)) return true;
-    return _hasLoadedExtras && _hasLoadedRelatedHubs;
+    return _hasLoadedExtras && _hasLoadedRelatedHubs && _hasLoadedRatingsAndReviews;
   }
 
   void _scheduleTvDetailReveal(double railHeight, {required bool focusPrimaryAction}) {
@@ -816,7 +881,17 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         if (focusPrimaryAction) {
           _playButtonFocusNode.requestFocus();
         } else {
-          _tvDetailRailKey.currentState?.requestFocus();
+          // Shows: the episodes rail (with the next-episode-to-watch focused
+          // via initialHubId/initialItemId) takes priority over the
+          // remaining-hubs rail (Related Shows etc.) — currentState is null
+          // when that rail isn't in the tree (e.g. a movie has no episodes
+          // rail at all), so this falls through safely in every other case.
+          final episodesRailState = _tvDetailEpisodesRailKey.currentState;
+          if (episodesRailState != null) {
+            episodesRailState.requestFocus();
+          } else {
+            _tvDetailRailKey.currentState?.requestFocus();
+          }
         }
       });
     });
@@ -854,6 +929,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     _scrollController.dispose();
     _scrollOffset.dispose();
     _tvDetailFocusedEpisode.dispose();
+    _tvDetailBottomScrollController.dispose();
     _extrasScrollController.dispose();
     _extrasFocusNode.removeListener(_handleExtrasFocusChange);
     _extrasFocusNode.dispose();
@@ -877,6 +953,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   /// Build title text widget for clear logo fallback.
+  ///
+  /// The hero scrim washes artwork toward the scaffold background, so the
+  /// default is the theme foreground with a background-side shadow — a
+  /// hard-coded white title disappears into the light theme's near-white
+  /// wash on bright covers.
   Widget _buildDetailTitle(
     BuildContext context,
     String title, {
@@ -886,11 +967,12 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     Color? color,
     Color? shadowColor,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     final baseStyle = (Theme.of(context).textTheme.displaySmall ?? const TextStyle()).copyWith(
-      color: color ?? Colors.white,
+      color: color ?? colorScheme.onSurface,
       fontWeight: fontWeight,
       fontSize: fontSize,
-      shadows: [Shadow(color: shadowColor ?? Colors.black.withValues(alpha: 0.5), blurRadius: shadowBlur)],
+      shadows: [Shadow(color: shadowColor ?? _detailTitleShadowColor(context), blurRadius: shadowBlur)],
     );
 
     return FittingTitleText(title, style: baseStyle);
@@ -1227,6 +1309,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     required BoxFit fit,
     required ImageType imageType,
     Alignment alignment = Alignment.center,
+    Color? logoToneTarget,
+    bool logoToneRemapMixed = true,
     Widget Function(BuildContext, String, dynamic)? errorWidget,
     Widget Function(BuildContext, String)? placeholder,
   }) {
@@ -1238,6 +1322,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
       return OptimizedMediaImage(
         client: null,
+        logoToneTarget: logoToneTarget,
+        logoToneRemapMixed: logoToneRemapMixed,
         imagePath: null,
         localFilePath: localPath,
         cacheMissingLocalFile: true,
@@ -1279,6 +1365,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
           serverId: _metadata.serverId!,
           serverName: _metadata.serverName,
           backend: _metadata.backend,
+          sourceMediaItem: _metadata,
         ),
       ),
     );
@@ -1362,6 +1449,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       _isLoadingMetadata = true;
       _hasLoadedExtras = false;
       _hasLoadedRelatedHubs = false;
+      _hasLoadedRatingsAndReviews = false;
     });
 
     // Offline mode: try to load full metadata from cache (has clearLogo, summary, etc.)
@@ -1376,6 +1464,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         _isLoadingMetadata = false;
         _hasLoadedExtras = true;
         _hasLoadedRelatedHubs = true;
+        _hasLoadedRatingsAndReviews = true;
       });
 
       if (_metadata.isShow) {
@@ -1406,6 +1495,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
           _hasLoadedEpisodes = true;
           _hasLoadedExtras = true;
           _hasLoadedRelatedHubs = true;
+          _hasLoadedRatingsAndReviews = true;
         });
         return;
       }
@@ -1476,6 +1566,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       // backends; safe to call unconditionally.
       unawaited(_loadExtras());
       unawaited(_loadRelatedHubs());
+      unawaited(_loadRatingsAndReviews(base));
     } catch (e) {
       // Fallback to passed metadata on error
       if (!mounted) return;
@@ -1484,6 +1575,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         _isLoadingMetadata = false;
         _hasLoadedExtras = true;
         _hasLoadedRelatedHubs = true;
+        _hasLoadedRatingsAndReviews = true;
       });
 
       if (_metadata.isShow) {
@@ -1569,6 +1661,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         _showEpisodesDirectly = shouldShowEpisodesDirectly;
         _selectedSeasonIndex = onDeckSeasonIndex;
       });
+      unawaited(_ensureTmdbAiringInfoLoaded());
 
       if (shouldShowEpisodesDirectly) {
         await _fetchAllEpisodes();
@@ -1595,6 +1688,67 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       if (!(_seasonsCompleter?.isCompleted ?? true)) {
         _seasonsCompleter?.complete();
       }
+    }
+  }
+
+  /// Resolve the show's TMDb id (same lookup the watchlist feature uses) and
+  /// fetch its airing status once per screen instance. Silently does nothing
+  /// for movies, offline mode, unmatched shows, or anything not currently
+  /// airing — those cases just never populate [_tmdbTvDetails].
+  Future<void> _ensureTmdbAiringInfoLoaded() async {
+    if (_tmdbShowDetailsLoadAttempted || widget.isOffline || !_metadata.isShow) return;
+    _tmdbShowDetailsLoadAttempted = true;
+    final client = _getMediaClientForMetadata(context);
+    if (client == null) return;
+    try {
+      final externalIds = await client.fetchExternalIds(_metadata.id);
+      final tmdbId = externalIds.tmdb;
+      if (tmdbId == null || !mounted) return;
+      final tmdb = TmdbClient(database: context.read<AppDatabase>());
+      final TmdbTvDetails? details;
+      try {
+        details = await tmdb.getTvShowDetails(tmdbId);
+      } finally {
+        tmdb.dispose();
+      }
+      if (!mounted || details == null || !details.isAiring) return;
+      setState(() {
+        _tmdbShowId = tmdbId;
+        _tmdbTvDetails = details;
+      });
+      final seasonNumber = _seasons.isEmpty || _selectedSeasonIndex >= _seasons.length
+          ? null
+          : _seasons[_selectedSeasonIndex].index;
+      if (seasonNumber != null) unawaited(_ensureTmdbSeasonEpisodeCount(seasonNumber));
+    } catch (e, st) {
+      appLogger.d('TMDb airing info lookup failed', error: e, stackTrace: st);
+    }
+  }
+
+  /// Lazily fetch and cache a season's total TMDb episode count. Safe to call
+  /// from build (e.g. when the selected season changes) — dedupes against an
+  /// in-flight or already-cached lookup for the same season number.
+  Future<void> _ensureTmdbSeasonEpisodeCount(int seasonNumber) async {
+    final showId = _tmdbShowId;
+    if (showId == null) return;
+    if (_tmdbSeasonEpisodeCounts.containsKey(seasonNumber) || _tmdbSeasonEpisodeCountsLoading.contains(seasonNumber)) {
+      return;
+    }
+    _tmdbSeasonEpisodeCountsLoading.add(seasonNumber);
+    try {
+      final tmdb = TmdbClient(database: context.read<AppDatabase>());
+      final int? count;
+      try {
+        count = await tmdb.getSeasonEpisodeCount(showId, seasonNumber);
+      } finally {
+        tmdb.dispose();
+      }
+      if (!mounted || count == null) return;
+      setState(() => _tmdbSeasonEpisodeCounts[seasonNumber] = count!);
+    } catch (e, st) {
+      appLogger.d('TMDb season episode count lookup failed', error: e, stackTrace: st);
+    } finally {
+      _tmdbSeasonEpisodeCountsLoading.remove(seasonNumber);
     }
   }
 
@@ -2039,6 +2193,80 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     }
   }
 
+  /// Load Plex's community "Ratings & Reviews" (fan reviews) for [metadata].
+  ///
+  /// Plex-only: this is a plex.tv community-API call (`community.plex.tv`),
+  /// unrelated to the per-server Plex Media Server API, so it requires the
+  /// item's Plex GUID (`plex://movie/<id>` / `plex://show/<id>`) and the
+  /// *account-level* plex.tv token — not the per-server access token used
+  /// for the rest of this screen. Purely supplementary content: any failure
+  /// (no GUID, no resolvable account token, network/parse error) just leaves
+  /// the section hidden rather than surfacing an error.
+  Future<void> _loadRatingsAndReviews(MediaItem metadata) async {
+    void markLoaded() {
+      setStateIfMounted(() {
+        _hasLoadedRatingsAndReviews = true;
+      });
+    }
+
+    if (widget.isOffline || metadata.backend != MediaBackend.plex) {
+      markLoaded();
+      return;
+    }
+    if (!metadata.isMovie && !metadata.isShow) {
+      markLoaded();
+      return;
+    }
+
+    final metadataId = plexCommunityMetadataId(metadata.guid);
+    if (metadataId == null) {
+      markLoaded();
+      return;
+    }
+
+    final accountToken = await _resolvePlexAccountToken(metadata);
+    if (accountToken == null || !mounted) {
+      markLoaded();
+      return;
+    }
+
+    PlexCommunityService? service;
+    try {
+      service = await PlexCommunityService.create();
+      final result = await service.fetchRatingsAndReviews(accountToken: accountToken, metadataId: metadataId);
+      setStateIfMounted(() {
+        _ratingsAndReviews = result;
+        _hasLoadedRatingsAndReviews = true;
+      });
+    } catch (e) {
+      appLogger.w('Failed to load Plex ratings & reviews', error: e);
+      markLoaded();
+    } finally {
+      service?.dispose();
+    }
+  }
+
+  /// Resolve the plex.tv **account-level** token for [item]'s server, by
+  /// matching [MediaItem.serverId] (a server's `clientIdentifier`) against
+  /// the servers list of each connected Plex account. Distinct from
+  /// [PlexServer.accessToken] / [PlexClient]'s per-server token, which
+  /// community.plex.tv does not accept.
+  Future<String?> _resolvePlexAccountToken(MediaItem item) async {
+    final serverId = item.serverId;
+    if (serverId == null) return null;
+    try {
+      final accounts = await context.read<ConnectionRegistry>().listPlexAccounts();
+      for (final account in accounts) {
+        if (account.servers.any((server) => server.clientIdentifier == serverId)) {
+          return account.accountToken;
+        }
+      }
+    } catch (e) {
+      appLogger.w('Failed to resolve Plex account token for ratings/reviews', error: e);
+    }
+    return null;
+  }
+
   /// Focus the first visible section above cast: season tabs → overview → play button.
   /// Shared by cast UP, extras UP, and related hub UP handlers.
   void _focusSectionAboveCast() {
@@ -2055,14 +2283,78 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     }
   }
 
-  /// Focus the first visible section above extras: cast → season tabs → overview → play button.
-  void _focusSectionAboveExtras() {
+  // Section order top-to-bottom: (season tabs / overview / play) → Cast →
+  // Reviews → Extras → Related Hubs → Info Rows. Each "X-or-above"/
+  // "X-or-below" helper focuses X when present, else recurses to the next
+  // section further away — the "skip an absent section" pattern used
+  // throughout this chain so UP/DOWN always lands on the nearest visible
+  // section regardless of which optional sections this item happens to have.
+
+  /// Focus Cast if present, else the section above it (season tabs → overview
+  /// → play button). Shared by reviews UP and by anything above cast that
+  /// needs to retreat further when cast itself is absent.
+  void _focusCastOrAbove() {
     final metadata = _fullMetadata ?? _metadata;
     if (metadata.roles != null && metadata.roles!.isNotEmpty) {
       _castStripKey.currentState?.requestFocus();
       _scrollSectionIntoView(_castSectionKey);
     } else {
       _focusSectionAboveCast();
+    }
+  }
+
+  /// Focus Reviews if present, else cast-or-above. Used by extras UP and by
+  /// the related-hub top boundary when extras itself is absent.
+  void _focusReviewsOrAbove() {
+    if (_ratingsAndReviews != null && _ratingsAndReviews!.isNotEmpty) {
+      _reviewStripKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_reviewsSectionKey);
+    } else {
+      _focusCastOrAbove();
+    }
+  }
+
+  /// Focus Extras if present, else reviews-or-above. Used by the related-hub
+  /// top boundary handler.
+  void _focusExtrasOrAbove() {
+    if (_extras != null && _extras!.isNotEmpty) {
+      _extrasFocusNode.requestFocus();
+      _scrollSectionIntoView(_extrasSectionKey);
+    } else {
+      _focusReviewsOrAbove();
+    }
+  }
+
+  /// Focus related hubs if present, else info rows. Terminal "below extras"
+  /// fallback shared by the extras row's own DOWN handler and reviews'
+  /// below-fallback when extras itself is absent.
+  void _focusRelatedHubsOrBelow() {
+    if (_relatedHubs.isNotEmpty) {
+      _relatedHubKeys.first.currentState?.requestFocusFromMemory();
+    } else if (_hasInfoRows) {
+      _focusInfoRows();
+    }
+  }
+
+  /// Focus Extras if present, else related-hubs-or-below. Used by reviews'
+  /// own DOWN handler and cast's below-cast fallback when reviews is absent.
+  void _focusExtrasOrBelow() {
+    if (_extras != null && _extras!.isNotEmpty) {
+      _extrasFocusNode.requestFocus();
+      _scrollSectionIntoView(_extrasSectionKey);
+    } else {
+      _focusRelatedHubsOrBelow();
+    }
+  }
+
+  /// Focus Reviews if present, else extras-or-below. Used by cast's own DOWN
+  /// handler.
+  void _focusReviewsOrBelow() {
+    if (_ratingsAndReviews != null && _ratingsAndReviews!.isNotEmpty) {
+      _reviewStripKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_reviewsSectionKey);
+    } else {
+      _focusExtrasOrBelow();
     }
   }
 
@@ -2077,15 +2369,12 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     _scrollSectionIntoView(_infoRowsSectionKey);
   }
 
-  /// Focus the first visible focusable section above info rows: related hubs → extras → cast → …
+  /// Focus the first visible focusable section above info rows: related hubs → extras → reviews → cast → …
   void _focusSectionAboveInfoRows() {
     if (_relatedHubs.isNotEmpty) {
       _relatedHubKeys.last.currentState?.requestFocusFromMemory();
-    } else if (_extras != null && _extras!.isNotEmpty) {
-      _extrasFocusNode.requestFocus();
-      _scrollSectionIntoView(_extrasSectionKey);
     } else {
-      _focusSectionAboveExtras();
+      _focusExtrasOrAbove();
     }
   }
 
@@ -2197,7 +2486,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final metadata = _fullMetadata ?? _metadata;
 
     if (PlatformDetector.isTV()) {
-      _tvDetailRailKey.currentState?.requestFocus();
+      _focusTvSectionBelowActionRow();
       return;
     }
 
@@ -2486,18 +2775,15 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       return KeyEventResult.handled;
     }
 
+    // UP: reviews → cast → season tabs → overview → play button
     if (key.isUpKey) {
-      _focusSectionAboveExtras();
+      _focusReviewsOrAbove();
       return KeyEventResult.handled;
     }
 
     // DOWN: related hubs → info rows → consume
     if (key.isDownKey) {
-      if (_relatedHubs.isNotEmpty) {
-        _relatedHubKeys.first.currentState?.requestFocusFromMemory();
-      } else if (_hasInfoRows) {
-        _focusInfoRows();
-      }
+      _focusRelatedHubsOrBelow();
       return KeyEventResult.handled;
     }
 
@@ -2523,16 +2809,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     }
   }
 
-  /// Focus the first visible section below cast.
+  /// Focus the first visible section below cast: reviews → extras → related hubs → info rows.
   void _focusSectionBelowCast() {
-    if (_extras != null && _extras!.isNotEmpty) {
-      _extrasFocusNode.requestFocus();
-      _scrollSectionIntoView(_extrasSectionKey);
-    } else if (_relatedHubs.isNotEmpty) {
-      _relatedHubKeys.first.currentState?.requestFocusFromMemory();
-    } else if (_hasInfoRows) {
-      _focusInfoRows();
-    }
+    _focusReviewsOrBelow();
   }
 
   /// Handle vertical navigation between related hub sections
@@ -2541,14 +2820,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       hubCount: _relatedHubKeys.length,
       hubIndex: hubIndex,
       isUp: isUp,
-      onTopBoundary: () {
-        if (_extras != null && _extras!.isNotEmpty) {
-          _extrasFocusNode.requestFocus();
-          _scrollSectionIntoView(_extrasSectionKey);
-        } else {
-          _focusSectionAboveExtras();
-        }
-      },
+      onTopBoundary: _focusExtrasOrAbove,
       onBottomBoundary: _hasInfoRows ? _focusInfoRows : null,
       requestFocus: (targetIndex) {
         _relatedHubKeys[targetIndex].currentState?.requestFocusFromMemory();
@@ -2664,6 +2936,106 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
           onListRefresh: widget.isOffline ? null : _refreshCurrentEpisodes,
         );
       },
+    );
+  }
+
+  /// The TMDb season number for whichever season's episodes are currently
+  /// showing, or null when seasons aren't loaded yet.
+  int? get _selectedTmdbSeasonNumber {
+    if (_seasons.isEmpty || _selectedSeasonIndex >= _seasons.length) return null;
+    return _seasons[_selectedSeasonIndex].index;
+  }
+
+  /// "Episode 8 of 10 · Next episode airs Feb 15" — only for a TMDb-airing
+  /// show, and only once at least one half of that has data to show. Shared
+  /// by the non-TV Column and the TV episodes rail header; [scale] is the
+  /// TV layout's font-scale factor (default 1.0 off TV). [focusedEpisode]
+  /// lets the TV rail report whichever episode currently has D-pad focus
+  /// instead of the season's highest-loaded one — passed via
+  /// [_tvDetailFocusedEpisode] so scrubbing to episode 6 reads "6 of 10".
+  Widget _buildTmdbAiringSummary({double scale = 1.0, MediaItem? focusedEpisode}) {
+    final details = _tmdbTvDetails;
+    final seasonNumber = _selectedTmdbSeasonNumber;
+    if (details == null || seasonNumber == null) return const SizedBox.shrink();
+    unawaited(_ensureTmdbSeasonEpisodeCount(seasonNumber));
+
+    final total = _tmdbSeasonEpisodeCounts[seasonNumber];
+    final next = details.nextEpisodeToAir;
+    final nextAppliesToThisSeason = next != null && next.seasonNumber == seasonNumber && next.airDate != null;
+    final focusedInSeason = focusedEpisode != null && focusedEpisode.parentIndex == seasonNumber
+        ? focusedEpisode.index
+        : null;
+    final highestAvailable = focusedInSeason ?? (_episodes.isEmpty ? null : (_episodes.last.index ?? _episodes.length));
+
+    final parts = <String>[
+      if (total != null && highestAvailable != null) t.messages.episodeOfTotal(current: highestAvailable, total: total),
+      if (nextAppliesToThisSeason) t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!)),
+    ];
+    if (parts.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12 * scale),
+      child: Text(
+        parts.join('  •  '),
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 14) * scale,
+        ),
+      ),
+    );
+  }
+
+  /// Placeholder row for a still-airing season's next, not-yet-released
+  /// episode — the library has no file for it yet, so there's no [EpisodeCard]
+  /// to show; this mirrors its general shape with a calendar icon standing in
+  /// for a thumbnail. Waits for the real episode list to finish paginating so
+  /// it can't flash in ahead of episodes still loading.
+  Widget _buildTmdbNextEpisodePlaceholder() {
+    final next = _tmdbTvDetails?.nextEpisodeToAir;
+    final seasonNumber = _selectedTmdbSeasonNumber;
+    if (next == null || next.airDate == null || seasonNumber == null || next.seasonNumber != seasonNumber) {
+      return const SizedBox.shrink();
+    }
+    if (_episodeListHasMore || _episodeListLoadingMore) return const SizedBox.shrink();
+    final episodeNumber = next.episodeNumber;
+    if (episodeNumber != null && _episodes.any((episode) => episode.index == episodeNumber)) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final label = formatSeasonEpisodeLabel(seasonNumber, episodeNumber);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 140,
+            height: 79,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Icon(Symbols.calendar_month_rounded, color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: .start,
+              mainAxisSize: .min,
+              children: [
+                if (label != null)
+                  Text(label, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                Text(
+                  t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!)),
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -3257,6 +3629,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                   const SizedBox(height: 12),
                                   _buildSeasonTabs(),
                                   const SizedBox(height: 16),
+                                  _buildTmdbAiringSummary(),
                                   if (_isLoadingSeasonEpisodes)
                                     _sectionLoading
                                   else if (_seasonEpisodesFirstPageError && _episodes.isEmpty)
@@ -3264,9 +3637,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                       t.messages.episodesLoadFailed,
                                       () => unawaited(_fetchSeasonEpisodes(_selectedSeasonIndex)),
                                     )
-                                  else if (_episodes.isNotEmpty)
-                                    _buildEpisodesList()
-                                  else
+                                  else if (_episodes.isNotEmpty) ...[
+                                    _buildEpisodesList(),
+                                    _buildTmdbNextEpisodePlaceholder(),
+                                  ] else
                                     _sectionEmpty(context, t.messages.noEpisodesFoundGeneral),
                                 ],
                                 SizedBox(height: isTv ? 24 : 12),
@@ -3274,13 +3648,15 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                 // Server says flatten — existing behavior unchanged
                                 Text(key: _seasonsSectionKey, t.libraries.groupings.episodes, style: sectionTitleStyle),
                                 const SizedBox(height: 12),
+                                _buildTmdbAiringSummary(),
                                 if (_isLoadingSeasons || _isLoadingEpisodes)
                                   _sectionLoading
                                 else if (_allEpisodesPageError && _episodes.isEmpty)
                                   _sectionError(t.messages.episodesLoadFailed, () => unawaited(_fetchAllEpisodes()))
-                                else if (_episodes.isNotEmpty)
-                                  _buildEpisodesList()
-                                else
+                                else if (_episodes.isNotEmpty) ...[
+                                  _buildEpisodesList(),
+                                  _buildTmdbNextEpisodePlaceholder(),
+                                ] else
                                   _sectionEmpty(context, t.messages.noEpisodesFoundGeneral),
                                 SizedBox(height: isTv ? 24 : 12),
                               ],
@@ -3291,6 +3667,19 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                 const SizedBox(height: 12),
                                 _buildCastSection(metadata),
                                 SizedBox(height: isTv ? 24 : 12),
+                              ],
+
+                              // Ratings & Reviews (Plex community fan reviews)
+                              if (!widget.isOffline && _ratingsAndReviews != null && _ratingsAndReviews!.isNotEmpty) ...[
+                                Text(key: _reviewsSectionKey, t.discover.ratingsAndReviews, style: sectionTitleStyle),
+                                const SizedBox(height: 12),
+                                PlexReviewStrip(
+                                  key: _reviewStripKey,
+                                  reviews: _ratingsAndReviews!.reviews,
+                                  onNavigateUp: _focusCastOrAbove,
+                                  onNavigateDown: _focusExtrasOrBelow,
+                                ),
+                                const SizedBox(height: 24),
                               ],
 
                               // Trailers & Extras Section
@@ -3421,6 +3810,14 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final hideSpoilers = SettingsService.instance.read(SettingsService.hideSpoilers);
     final detailScale = TvLayoutConstants.scaleForSize(size);
     final spotlightTop = (size.height * 0.08).clamp(56.0 * detailScale, 110.0 * detailScale).toDouble();
+
+    // Hero sizing is unrelated to Reviews/Extras — it's based solely on the
+    // hub rail's own self-computed height (or an empty-rail reserve), exactly
+    // as before Reviews/Extras existed. This apparatus (rawRailHeight /
+    // _estimateTvDetailRailHeight / stableRailHeight / _scheduleTvDetailReveal)
+    // is still load-bearing for that: it's what sizes/gates the hero
+    // (spotlight + title + action row) area above the docked region, not the
+    // docked region's own content, which now sizes itself and scrolls.
     final rawRailHeight = _estimateTvDetailRailHeight(size, detailHubs);
     if (!_tvDetailRevealed && _isTvDetailReadyToReveal(metadata)) {
       _scheduleTvDetailReveal(rawRailHeight, focusPrimaryAction: metadata.isMovie);
@@ -3431,12 +3828,59 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final foregroundBottom = (railHeight - railTopPadding) + (_tvDetailActionRailGap * detailScale);
     final spotlightLeft = (24 * detailScale).clamp(18.0, 40.0).toDouble();
 
+    // Shows split detailHubs into two TvBrowseRail instances so the
+    // episode-selection hubs can render FIRST (before Cast/Reviews, so
+    // viewers can jump straight to picking an episode), with whatever's left
+    // (Related Shows, etc.) rendered after Reviews. Movies never produce
+    // episode/season hubs, so this partition is a no-op for them — episodeHubs
+    // is always empty and remainingHubs is the full (unchanged) detailHubs
+    // list, exactly matching the single-rail movie behavior before this split.
+    final episodeHubs = metadata.isShow
+        ? detailHubs.where(_isTvDetailEpisodeSelectionHub).toList()
+        : const <MediaHub>[];
+    final remainingHubs = metadata.isShow
+        ? detailHubs.where((hub) => !_isTvDetailEpisodeSelectionHub(hub)).toList()
+        : detailHubs;
+    final hasEpisodeHubs = episodeHubs.isNotEmpty;
+    final hasRemainingHubs = remainingHubs.isNotEmpty;
+
+    // Shows: Episodes rail → Cast → Ratings & Reviews → Related rail →
+    // Trailers & Extras. Movies: Cast → Ratings & Reviews → Related rail →
+    // Trailers & Extras (hasEpisodeHubs is always false, so the first rail
+    // never renders for movies). All in one real scrolling container
+    // occupying the same footprint a single rail alone used to occupy
+    // (railHeight, bottom-anchored) — each section takes its natural size and
+    // the next one flows after it, instead of hand-computed Positioned
+    // offsets that drift out of sync with actual rendered heights (see
+    // history: that approach visibly overlapped in motion once real content
+    // replaced the height estimates).
+    //
+    // Cast is a standalone CastMemberStrip — the same locked-focus-row widget
+    // the non-TV Column already uses for Cast — rather than a hub inside
+    // TvBrowseRail: CastMemberStrip's own sizing (GridSizeCalculator, gated
+    // on PlatformDetector.isTV()) is already TV-scale-aware, so it needed no
+    // changes to host here, and pulling Cast out avoids needing a THIRD
+    // TvBrowseRail instance just to get Reviews between Cast and the
+    // remaining hubs. Reviews and Extras don't route through
+    // _tvDetailHubs/TvBrowseRail either: reviews aren't MediaItems
+    // (avatar/name/stars/text, not poster/title), and Extras needs to sit
+    // after the remaining-hubs rail, which no single TvBrowseRail's shared
+    // vertical navigation model can express on its own.
+    final hasCast = metadata.roles != null && metadata.roles!.isNotEmpty;
+    final reviews = _ratingsAndReviews;
+    final hasReviews = !widget.isOffline && reviews != null && reviews.isNotEmpty;
+    final extras = _extras;
+    final hasExtras = !widget.isOffline && extras != null && extras.isNotEmpty;
+
     final revealContent = Stack(
       fit: StackFit.expand,
       children: [
         Positioned(
           left: spotlightLeft,
-          right: size.width * 0.40,
+          // Widened from 0.43 — the metadata line (year, resolution, audio
+          // codec/channels, Atmos/DTS:X, ratings, etc.) kept growing longer
+          // than the reserved text column and was clipping mid-word.
+          right: size.width * 0.28,
           top: spotlightTop,
           bottom: foregroundBottom,
           child: ValueListenableBuilder<MediaItem?>(
@@ -3457,31 +3901,25 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
             context: context,
           )!,
         ),
-        if (detailHubs.isNotEmpty)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: TvBrowseRail(
-              key: _tvDetailRailKey,
-              hubs: detailHubs,
-              focusMemory: _hubFocusMemory,
-              iconForHub: _getTvDetailHubIcon,
-              onFocusedHubItemChanged: _handleTvDetailFocusedRailItemChanged,
-              onRefresh: (source) => unawaited(_refreshItemInPlace(source)),
-              onActiveHubChanged: _handleTvDetailHubChanged,
-              onActivateItem: _handleTvDetailRailItemActivated,
-              trailingForHub: _tvDetailTrailingState,
-              onRetryHub: _retryTvDetailHub,
-              onNavigateUp: _focusTvDetailActionRow,
-              onBack: _popMediaDetailIfBackNotSuppressed,
-              tallPosterScale: _tvDetailTallPosterScale,
-              widePosterScaleForHub: _tvDetailWidePosterScaleForHub,
-              initialHubId: _tvDetailInitialHubId(metadata),
-              initialItemId: _tvDetailInitialItemId(metadata),
-              episodePosterModeForHub: _tvDetailEpisodePosterModeForHub,
-            ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: railHeight,
+          child: _buildTvDetailBottomScrollable(
+            metadata: metadata,
+            episodeHubs: episodeHubs,
+            hasEpisodeHubs: hasEpisodeHubs,
+            remainingHubs: remainingHubs,
+            hasRemainingHubs: hasRemainingHubs,
+            hasCast: hasCast,
+            reviews: reviews,
+            hasReviews: hasReviews,
+            extras: extras,
+            hasExtras: hasExtras,
+            scale: detailScale,
           ),
+        ),
       ],
     );
 
@@ -3513,6 +3951,427 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     );
 
     return content;
+  }
+
+  // TV bottom-docked section chain. Movies: Cast (CastMemberStrip) → Reviews
+  // → remaining-hubs rail (Related Movies — TvBrowseRail) → Extras. Shows:
+  // episodes rail (TvBrowseRail, season/episode hubs) → Cast → Reviews →
+  // remaining-hubs rail (Related Shows) → Extras — episode selection comes
+  // first so viewers can jump straight to picking an episode. Any section can
+  // independently be absent — same "skip an absent section" pattern used by
+  // the non-TV Column's own chain (see _focusCastOrAbove and friends),
+  // re-derived here because the TV chain's targets (TvBrowseRail's
+  // GlobalKeys, the action row) are TV-only constructs. Each helper
+  // recomputes presence fresh via the _tvChainHasX getters below rather than
+  // threading booleans through closures, so a handler always sees the
+  // current state even if it fires after a rebuild.
+
+  /// Whether this item currently has an episode-selection rail to show. Only
+  /// ever true for shows — movies never produce season/episode hubs (see
+  /// _tvDetailHubs), so this mirrors the metadata.isShow gate in
+  /// _buildTvDetailScreen's episodeHubs/remainingHubs split.
+  bool get _tvChainHasEpisodeHubs {
+    final metadata = _fullMetadata ?? _metadata;
+    if (!metadata.isShow) return false;
+    return _tvDetailHubs(metadata).any(_isTvDetailEpisodeSelectionHub);
+  }
+
+  bool get _tvChainHasCast {
+    final metadata = _fullMetadata ?? _metadata;
+    return metadata.roles != null && metadata.roles!.isNotEmpty;
+  }
+
+  bool get _tvChainHasReviews => !widget.isOffline && _ratingsAndReviews != null && _ratingsAndReviews!.isNotEmpty;
+
+  bool get _tvChainHasExtras => !widget.isOffline && _extras != null && _extras!.isNotEmpty;
+
+  /// Whether this item has any non-episode hubs left (Related Shows/Movies,
+  /// etc.) for the second TvBrowseRail instance. For movies this is simply
+  /// "any hubs at all," since _tvDetailHubs never produces episode hubs for
+  /// them.
+  bool get _tvChainHasRemainingHubs {
+    final metadata = _fullMetadata ?? _metadata;
+    final hubs = _tvDetailHubs(metadata);
+    if (!metadata.isShow) return hubs.isNotEmpty;
+    return hubs.any((hub) => !_isTvDetailEpisodeSelectionHub(hub));
+  }
+
+  /// Action row DOWN boundary: focus the episodes rail if present (shows
+  /// only), else cascade down.
+  void _focusTvSectionBelowActionRow() {
+    if (_tvChainHasEpisodeHubs) {
+      _tvDetailEpisodesRailKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_tvEpisodesRailSectionKey);
+    } else {
+      _focusTvSectionBelowEpisodesRail();
+    }
+  }
+
+  /// Episodes rail DOWN boundary: focus Cast if present, else cascade down.
+  void _focusTvSectionBelowEpisodesRail() {
+    if (_tvChainHasCast) {
+      _castStripKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_castSectionKey);
+    } else {
+      _focusTvSectionBelowCast();
+    }
+  }
+
+  /// Cast DOWN boundary: focus Reviews if present, else cascade down.
+  void _focusTvSectionBelowCast() {
+    if (_tvChainHasReviews) {
+      _reviewStripKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_reviewsSectionKey);
+    } else {
+      _focusTvSectionBelowReviews();
+    }
+  }
+
+  /// Reviews DOWN boundary: focus the remaining-hubs rail if present, else
+  /// cascade down.
+  void _focusTvSectionBelowReviews() {
+    if (_tvChainHasRemainingHubs) {
+      _tvDetailRailKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_tvRelatedRailSectionKey);
+    } else {
+      _focusTvSectionBelowRail();
+    }
+  }
+
+  /// Remaining-hubs rail DOWN boundary: focus Extras if present, else
+  /// nothing (matches TvBrowseRail's original behavior of simply clamping at
+  /// the last hub when there was nothing to escape to).
+  void _focusTvSectionBelowRail() {
+    if (_tvChainHasExtras) {
+      _extrasStripKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_extrasSectionKey);
+    }
+  }
+
+  /// Extras UP boundary: focus the remaining-hubs rail if present, else
+  /// cascade up.
+  void _focusTvSectionAboveExtras() {
+    if (_tvChainHasRemainingHubs) {
+      _tvDetailRailKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_tvRelatedRailSectionKey);
+    } else {
+      _focusTvSectionAboveRail();
+    }
+  }
+
+  /// Remaining-hubs rail UP boundary: focus Reviews if present, else cascade
+  /// up.
+  void _focusTvSectionAboveRail() {
+    if (_tvChainHasReviews) {
+      _reviewStripKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_reviewsSectionKey);
+    } else {
+      _focusTvSectionAboveReviews();
+    }
+  }
+
+  /// Reviews UP boundary: focus Cast if present, else cascade up.
+  void _focusTvSectionAboveReviews() {
+    if (_tvChainHasCast) {
+      _castStripKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_castSectionKey);
+    } else {
+      _focusTvSectionAboveCast();
+    }
+  }
+
+  /// Cast UP boundary: focus the episodes rail if present (shows only), else
+  /// the action row.
+  void _focusTvSectionAboveCast() {
+    if (_tvChainHasEpisodeHubs) {
+      _tvDetailEpisodesRailKey.currentState?.requestFocus();
+      _scrollSectionIntoView(_tvEpisodesRailSectionKey);
+    } else {
+      _focusTvDetailActionRow();
+    }
+  }
+
+  /// The scrolling container for the TV layout's bottom-docked region.
+  /// Movies: Cast → Ratings & Reviews → remaining-hubs rail (Related Movies)
+  /// → Trailers & Extras. Shows: episodes rail (season/episode hubs) → Cast
+  /// → Ratings & Reviews → remaining-hubs rail (Related Shows) → Trailers &
+  /// Extras. Each section is sized to its own natural height and simply
+  /// flows after the previous one — no manually computed offsets. Occupies a
+  /// fixed-height [Positioned] slot (see [_buildTvDetailScreen]) matching
+  /// what a single rail alone used to occupy, so when every optional section
+  /// is absent this looks identical to the original rail-only layout; when
+  /// present, the content exceeds the viewport and genuinely scrolls (driven
+  /// by [_tvDetailBottomScrollController], programmatically via
+  /// [_scrollSectionIntoView] on every UP/DOWN section handoff, or directly
+  /// by a mouse/touch user).
+  ///
+  /// [TvBrowseRail] needs no changes to be hosted this way, or to have two
+  /// instances share one [_hubFocusMemory]: it already self-sizes to its own
+  /// computed height regardless of the constraints its parent gives it (see
+  /// its `Align(heightFactor: 1)` wrapper) and never reads
+  /// `constraints.maxHeight` from its `LayoutBuilder`; and [HubFocusMemory]
+  /// is a plain `Map<String, int>` keyed by hub id, with no notion of "the"
+  /// rail — two instances reading/writing entries for disjoint hub ids (one
+  /// instance only ever sees episode/season hub ids, the other only ever
+  /// sees everything else) cannot collide. The one genuinely shared bit,
+  /// [HubFocusMemory]'s single last-focused-column hint (used as a fallback
+  /// for a hub neither instance has visited yet), is shared on purpose: it's
+  /// a column-position hint, not a hub-specific value, so carrying it across
+  /// both instances is the more useful behavior, not a bug.
+  Widget _buildTvDetailBottomScrollable({
+    required MediaItem metadata,
+    required List<MediaHub> episodeHubs,
+    required bool hasEpisodeHubs,
+    required List<MediaHub> remainingHubs,
+    required bool hasRemainingHubs,
+    required bool hasCast,
+    required PlexRatingsAndReviews? reviews,
+    required bool hasReviews,
+    required List<MediaItem>? extras,
+    required bool hasExtras,
+    required double scale,
+  }) {
+    return SingleChildScrollView(
+      controller: _tvDetailBottomScrollController,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasEpisodeHubs)
+            Padding(
+              padding: EdgeInsets.only(left: TvBrowseRailLayout.horizontalInsetForScale(scale) + (24 * scale)),
+              child: ValueListenableBuilder<MediaItem?>(
+                valueListenable: _tvDetailFocusedEpisode,
+                builder: (context, focusedEpisode, _) =>
+                    _buildTmdbAiringSummary(scale: scale, focusedEpisode: focusedEpisode),
+              ),
+            ),
+          if (hasEpisodeHubs)
+            KeyedSubtree(
+              key: _tvEpisodesRailSectionKey,
+              child: TvBrowseRail(
+                key: _tvDetailEpisodesRailKey,
+                hubs: episodeHubs,
+                focusMemory: _hubFocusMemory,
+                iconForHub: _getTvDetailHubIcon,
+                onFocusedHubItemChanged: _handleTvDetailFocusedRailItemChanged,
+                onRefresh: (source) => unawaited(_refreshItemInPlace(source)),
+                onActiveHubChanged: _handleTvDetailHubChanged,
+                onActivateItem: _handleTvDetailRailItemActivated,
+                trailingForHub: _tvDetailTrailingState,
+                leadingItemForHub: _tvDetailLeadingItemForHub,
+                onRetryHub: _retryTvDetailHub,
+                onNavigateUp: _focusTvDetailActionRow,
+                onNavigateDown: _focusTvSectionBelowEpisodesRail,
+                onBack: _popMediaDetailIfBackNotSuppressed,
+                tallPosterScale: _tvDetailTallPosterScale,
+                widePosterScaleForHub: _tvDetailWidePosterScaleForHub,
+                // The initial hub/item target always refers to episode
+                // content (a season id, 'detail_episodes', or an episode
+                // item id) — never to a remaining hub — so it belongs on
+                // this instance exclusively; the remaining-hubs rail below
+                // never receives one.
+                initialHubId: _tvDetailInitialHubId(metadata),
+                initialItemId: _tvDetailInitialItemId(metadata),
+                episodePosterModeForHub: _tvDetailEpisodePosterModeForHub,
+              ),
+            ),
+          if (hasCast)
+            KeyedSubtree(
+              key: _castSectionKey,
+              child: _buildTvDetailCastSection(metadata, scale: scale),
+            ),
+          if (hasReviews)
+            KeyedSubtree(
+              key: _reviewsSectionKey,
+              child: _buildTvDetailReviewsSection(
+                reviews!,
+                scale: scale,
+                onNavigateUp: _focusTvSectionAboveReviews,
+                onNavigateDown: (hasRemainingHubs || hasExtras) ? _focusTvSectionBelowReviews : null,
+              ),
+            ),
+          if (hasRemainingHubs)
+            KeyedSubtree(
+              key: _tvRelatedRailSectionKey,
+              child: TvBrowseRail(
+                key: _tvDetailRailKey,
+                hubs: remainingHubs,
+                focusMemory: _hubFocusMemory,
+                iconForHub: _getTvDetailHubIcon,
+                onFocusedHubItemChanged: _handleTvDetailFocusedRailItemChanged,
+                onRefresh: (source) => unawaited(_refreshItemInPlace(source)),
+                onActiveHubChanged: _handleTvDetailHubChanged,
+                onActivateItem: _handleTvDetailRailItemActivated,
+                trailingForHub: _tvDetailTrailingState,
+                onRetryHub: _retryTvDetailHub,
+                onNavigateUp: _focusTvSectionAboveRail,
+                onNavigateDown: _focusTvSectionBelowRail,
+                onBack: _popMediaDetailIfBackNotSuppressed,
+                tallPosterScale: _tvDetailTallPosterScale,
+                widePosterScaleForHub: _tvDetailWidePosterScaleForHub,
+                episodePosterModeForHub: _tvDetailEpisodePosterModeForHub,
+              ),
+            ),
+          if (hasExtras)
+            KeyedSubtree(
+              key: _extrasSectionKey,
+              child: _buildTvDetailExtrasSection(extras!, scale: scale, onNavigateUp: _focusTvSectionAboveExtras),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Cast strip for the TV layout — a directly-placed section above Reviews
+  /// (see [_buildTvDetailScreen]), using the same [CastMemberStrip] the
+  /// non-TV Column uses for Cast rather than a `TvBrowseRail` hub: its own
+  /// sizing (`GridSizeCalculator`, gated on `PlatformDetector.isTV()`) is
+  /// already TV-scale-aware, so no changes were needed to host it here, and
+  /// this avoids ever needing two `TvBrowseRail` instances just to get
+  /// Reviews between Cast and the remaining hubs.
+  Widget _buildTvDetailCastSection(MediaItem metadata, {required double scale}) {
+    return SettingValueBuilder<int>(
+      pref: SettingsService.libraryDensity,
+      builder: (context, libraryDensity, child) => _buildTvDetailCastSectionContent(metadata, scale: scale),
+    );
+  }
+
+  Widget _buildTvDetailCastSectionContent(MediaItem metadata, {required double scale}) {
+    final theme = Theme.of(context);
+    final horizontalInset = (24 * scale).clamp(18.0, 40.0).toDouble();
+    final roles = metadata.roles!;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(horizontalInset, 0, 0, _tvDetailBottomSectionGap * scale),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: _tvDetailBottomSectionHeadingHeight * scale,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                t.discover.cast,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 18 * scale,
+                  height: 1,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: _tvDetailBottomSectionHeadingGap * scale),
+          CastMemberStrip(
+            key: _castStripKey,
+            members: [for (final actor in roles) (name: actor.tag, secondary: actor.role, imagePath: actor.thumbPath)],
+            imageClient: getServerBoundMediaClient(context),
+            onNavigateUp: _focusTvDetailActionRow,
+            onNavigateDown: _focusTvSectionBelowCast,
+            onMemberTap: (index) => _navigateToActorMedia(roles[index]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Plex community "Ratings & Reviews" strip for the TV layout — a
+  /// directly-placed section below the hub rail (see [_buildTvDetailScreen]),
+  /// not routed through [_tvDetailHubs]/[TvBrowseRail]: reviews carry
+  /// avatar/name/stars/text, not the poster/title shape [TvBrowseRail]
+  /// assumes for its items.
+  Widget _buildTvDetailReviewsSection(
+    PlexRatingsAndReviews reviews, {
+    required double scale,
+    required VoidCallback onNavigateUp,
+    required VoidCallback? onNavigateDown,
+  }) {
+    final theme = Theme.of(context);
+    final horizontalInset = (24 * scale).clamp(18.0, 40.0).toDouble();
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(horizontalInset, 0, 0, _tvDetailBottomSectionGap * scale),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: _tvDetailBottomSectionHeadingHeight * scale,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                t.discover.ratingsAndReviews,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 18 * scale,
+                  height: 1,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: _tvDetailBottomSectionHeadingGap * scale),
+          PlexReviewStrip(
+            key: _reviewStripKey,
+            reviews: reviews.reviews,
+            // Match every other TV-rendered element's proportions instead of
+            // reserving a fixed desktop-sized footprint out of the (already
+            // scaled-down) TV screen budget.
+            cardScale: scale,
+            onNavigateUp: onNavigateUp,
+            onNavigateDown: onNavigateDown,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "Trailers & Extras" strip for the TV layout — a directly-placed section
+  /// below Reviews (see [_buildTvDetailScreen]), extracted out of
+  /// [_tvDetailHubs]/[TvBrowseRail] so Reviews can sit between Cast and
+  /// Extras: TvBrowseRail stacks every hub it's given into one shared
+  /// vertical navigation model, so Extras living inside it (alongside Cast)
+  /// made that ordering impossible.
+  Widget _buildTvDetailExtrasSection(List<MediaItem> extras, {required double scale, required VoidCallback onNavigateUp}) {
+    final theme = Theme.of(context);
+    final horizontalInset = (24 * scale).clamp(18.0, 40.0).toDouble();
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(horizontalInset, 0, 0, _tvDetailBottomSectionGap * scale),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: _tvDetailBottomSectionHeadingHeight * scale,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                t.discover.extras,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 18 * scale,
+                  height: 1,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: _tvDetailBottomSectionHeadingGap * scale),
+          TvExtrasStrip(
+            key: _extrasStripKey,
+            extras: extras,
+            cardScale: scale,
+            onRefresh: (source) => unawaited(_refreshItemInPlace(source)),
+            onNavigateUp: onNavigateUp,
+            // Extras is the last bottom-docked section — nothing follows it
+            // today (mirrors Reviews' own terminal DOWN before Extras
+            // existed), so DOWN is left unwired and simply consumed.
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildTvDetailForeground(
@@ -3615,8 +4474,6 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                   fontSize: 56 * scale,
                                   fontWeight: .w800,
                                   shadowBlur: 12,
-                                  color: foregroundColor,
-                                  shadowColor: _tvDetailTitleShadowColor(context),
                                 ),
                               ),
                               SizedBox(height: logoMetadataGap),
@@ -3781,7 +4638,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   Color _tvDetailForegroundColor(BuildContext context) => Theme.of(context).colorScheme.onSurface;
 
-  Color _tvDetailTitleShadowColor(BuildContext context) {
+  /// Background-side halo behind the hero title: dark themes shadow with
+  /// black, light themes with white, so the title separates from artwork the
+  /// scrim has not fully washed out.
+  Color _detailTitleShadowColor(BuildContext context) {
     final brightness = Theme.of(context).colorScheme.brightness;
     return brightness == Brightness.dark ? Colors.black.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.55);
   }
@@ -3794,6 +4654,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     required Widget Function(BuildContext context, String title) titleBuilder,
   }) {
     Widget titleFallback(BuildContext context) => titleBuilder(context, metadata.displayTitle);
+    // The hero scrim washes the backdrop toward the scaffold background, so a
+    // light theme needs light-toned clear logos recolored to stay visible.
+    final theme = Theme.of(context);
+    final logoToneTarget = logoToneTargetFor(
+      surface: theme.scaffoldBackgroundColor,
+      foreground: theme.colorScheme.onSurface,
+    );
 
     if (metadata.clearLogoPath == null) {
       return SizedBox(width: width, height: height, child: titleFallback(context));
@@ -3810,6 +4677,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
             fit: BoxFit.contain,
             alignment: .centerLeft,
             imageType: ImageType.heroLogo,
+            logoToneTarget: logoToneTarget,
+            logoToneRemapMixed: false,
             placeholder: (context, url) => titleFallback(context),
             errorWidget: (context, url, error) => titleFallback(context),
           );
@@ -3820,6 +4689,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
             logoPath: metadata.clearLogoPath,
             width: width,
             height: height,
+            logoToneTarget: logoToneTarget,
             fallbackBuilder: titleFallback,
           );
         },
@@ -3940,13 +4810,24 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     return hub.id.startsWith(_tvDetailSeasonHubIdPrefix) || hub.id == 'detail_episodes';
   }
 
+  /// Hubs that belong in the shows-only "episode selection" rail (rendered
+  /// first, before Cast/Reviews): the episode/season hubs themselves plus the
+  /// seasons-load-error placeholder, which represents that same content when
+  /// it failed to load.
+  bool _isTvDetailEpisodeSelectionHub(MediaHub hub) {
+    return _isTvDetailEpisodeHub(hub) || hub.id == _tvDetailSeasonsErrorHubId;
+  }
+
   EpisodePosterMode _tvDetailEpisodePosterModeForHub(MediaHub hub) {
     if (_isTvDetailEpisodeHub(hub)) return EpisodePosterMode.episodeThumbnail;
     return SettingsService.instance.read(SettingsService.episodePosterMode);
   }
 
+  // Extras no longer appears in _tvDetailHubs (it's a standalone
+  // TvExtrasStrip section instead — see _buildTvDetailExtrasSection), so
+  // this only needs to special-case episode hubs now.
   double _tvDetailWidePosterScaleForHub(MediaHub hub) {
-    return _isTvDetailEpisodeHub(hub) || hub.id == _tvDetailExtrasHubId ? _tvDetailEpisodeThumbnailScale : 1.0;
+    return _isTvDetailEpisodeHub(hub) ? _tvDetailEpisodeThumbnailScale : 1.0;
   }
 
   List<MediaHub> _tvDetailHubs(MediaItem metadata) {
@@ -4004,23 +4885,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         );
       }
     }
-    final actors = _tvDetailActorItems(metadata);
-    if (actors.isNotEmpty) {
-      hubs.add(
-        MediaHub(id: _tvDetailActorsHubId, title: t.discover.cast, type: 'person', items: actors, size: actors.length),
-      );
-    }
-    if (_extras != null && _extras!.isNotEmpty) {
-      hubs.add(
-        MediaHub(
-          id: _tvDetailExtrasHubId,
-          title: t.discover.extras,
-          type: 'clip',
-          items: _extras!,
-          size: _extras!.length,
-        ),
-      );
-    }
+    // Cast and Extras are deliberately NOT added here — both render as their
+    // own directly-placed sections (see _buildTvDetailCastSection /
+    // _buildTvDetailExtrasSection in _buildTvDetailScreen) so the on-screen
+    // order can be Cast → Reviews → (remaining hubs, i.e. this rail) →
+    // Extras. TvBrowseRail stacks every hub it's given into one shared
+    // vertical navigation model, so Cast/Extras living in here alongside
+    // Related Movies would make that ordering impossible.
     hubs.addAll(_relatedHubs.where((hub) => hub.items.isNotEmpty));
     return hubs;
   }
@@ -4041,31 +4912,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     return _onDeckEpisode?.id;
   }
 
-  List<MediaItem> _tvDetailActorItems(MediaItem metadata) {
-    final roles = metadata.roles;
-    if (roles == null || roles.isEmpty) return const [];
-
-    return [
-      for (var i = 0; i < roles.length; i++)
-        if (roles[i].tag.trim().isNotEmpty) _tvDetailActorItem(metadata, roles[i], i),
-    ];
-  }
-
-  MediaItem _tvDetailActorItem(MediaItem metadata, MediaRole actor, int index) {
-    final personId = actor.id?.trim();
-    return MediaItem(
-      id: personId != null && personId.isNotEmpty ? '${metadata.id}_actor_$personId' : '${metadata.id}_actor_$index',
-      backend: metadata.backend,
-      kind: MediaKind.unknown,
-      title: actor.tag,
-      parentTitle: actor.role,
-      thumbPath: actor.thumbPath,
-      serverId: metadata.serverId,
-      serverName: metadata.serverName,
-      raw: {if (personId != null && personId.isNotEmpty) _tvDetailActorPersonIdRawKey: personId},
-    );
-  }
-
+  // Cast no longer routes through TvBrowseRail's item-activation model — it's
+  // a standalone CastMemberStrip now (see _buildTvDetailCastSection), which
+  // already has its own onMemberTap wired straight to _navigateToActorMedia,
+  // same as the non-TV Column's Cast section.
   Future<bool> _handleTvDetailRailItemActivated(MediaHub hub, MediaItem item) async {
     if (_isTvDetailEpisodeHub(hub) && item.isEpisode) {
       await navigateToVideoPlayerWithRefresh(
@@ -4076,14 +4926,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       );
       return true;
     }
-    if (hub.id != _tvDetailActorsHubId) return false;
-    final personId = item.raw?[_tvDetailActorPersonIdRawKey];
-    if (personId is String && personId.isNotEmpty) {
-      _navigateToActorMedia(
-        MediaRole(id: personId, tag: item.displayTitle, role: item.parentTitle, thumbPath: item.thumbPath),
-      );
-    }
-    return true;
+    return false;
   }
 
   void _clearTvDetailFocusedEpisode() {
@@ -4217,12 +5060,22 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     }
   }
 
+  /// The season behind a TV detail episode hub, surfaced as the rail's leading
+  /// options slot so D-pad users can reach season actions (mark season
+  /// watched/unwatched, download, delete) that mobile exposes on the season
+  /// tabs (#2156). Non-season hubs (flatten episodes, actors, extras, related)
+  /// have no leading slot.
+  MediaItem? _tvDetailLeadingItemForHub(MediaHub hub) {
+    if (!hub.id.startsWith(_tvDetailSeasonHubIdPrefix)) return null;
+    final seasonIndex = int.tryParse(hub.id.substring(_tvDetailSeasonHubIdPrefix.length));
+    if (seasonIndex == null || seasonIndex < 0 || seasonIndex >= _seasons.length) return null;
+    return _seasons[seasonIndex];
+  }
+
   IconData _getTvDetailHubIcon(MediaHub hub, int index) {
     if (hub.id == _tvDetailSeasonsErrorHubId) return Symbols.error_outline_rounded;
     if (hub.id.startsWith(_tvDetailSeasonHubIdPrefix)) return Symbols.tv_rounded;
     if (hub.id == 'detail_episodes') return Symbols.tv_rounded;
-    if (hub.id == _tvDetailExtrasHubId) return Symbols.theaters_rounded;
-    if (hub.id == _tvDetailActorsHubId) return Symbols.group_rounded;
     return _getRelatedHubIcon(hub);
   }
 

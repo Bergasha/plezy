@@ -22,12 +22,12 @@ import '../utils/content_utils.dart';
 import '../widgets/cycling_media_backdrop.dart';
 import '../widgets/optimized_media_image.dart' show ClearLogoImage, blurArtwork;
 import '../widgets/toolbar_scrim.dart';
-import '../widgets/system_clock.dart';
 import '../providers/discover_provider.dart';
 import '../providers/multi_server_provider.dart';
 import '../providers/watch_state_store.dart';
 import '../widgets/hub_section.dart';
 import '../widgets/app_menu.dart';
+import '../widgets/home_clock.dart';
 import '../widgets/clickable_cursor.dart';
 import '../widgets/loading_indicator_box.dart';
 import '../widgets/profile_switching_overlay.dart';
@@ -55,6 +55,7 @@ import '../utils/snackbar_helper.dart';
 import '../utils/video_player_navigation.dart';
 import '../utils/layout_constants.dart';
 import '../utils/platform_detector.dart';
+import '../utils/tone_mapped_logo_image.dart';
 import '../theme/mono_tokens.dart';
 import 'libraries/content_state_builder.dart';
 import 'libraries/state_messages.dart';
@@ -442,9 +443,12 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     if (state == AppLifecycleState.resumed) {
       // Restart auto-scroll only if discover tab is visible
       if (_isTabVisible && !_isAutoScrollPaused) _startAutoScroll();
+      // Stale hubs refetch on every resume — cheap timestamp check, and a
+      // desktop window-focus gain after hours away should refresh too (#1646).
+      final startedFullPass = _discover.refreshIfStale();
       // Refresh continue watching on mobile only
       // (on desktop, "resumed" fires on every window focus gain)
-      if (Platform.isIOS || Platform.isAndroid) {
+      if (!startedFullPass && (Platform.isIOS || Platform.isAndroid)) {
         unawaited(_discover.refreshContinueWatching());
       }
     } else if (state == AppLifecycleState.inactive || state == AppLifecycleState.hidden) {
@@ -536,6 +540,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   void onTabShown() {
     _isTabVisible = true;
+    _discover.refreshIfStale();
     if (!_isAutoScrollPaused) {
       _startAutoScroll();
     }
@@ -588,7 +593,10 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   // Public method to refresh content (for normal navigation)
   @override
   void refresh() {
-    // Only refresh Continue Watching in background, not full screen reload
+    // A stale-resume refresh must also refetch the home hubs; otherwise new
+    // server-side media never appears until a restart (#1646). When fresh,
+    // only Continue Watching refetches — one on-deck call, zero hub calls.
+    if (_discover.refreshIfStale()) return;
     unawaited(_discover.refreshContinueWatching());
   }
 
@@ -656,6 +664,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     final profiles = activeProvider.profiles;
 
     return FocusableAction(
+      tooltip: t.profiles.sectionTitle,
       onPressed: _switchingProfile ? null : () => _userMenuKey.currentState?.showButtonMenu(focusFirstItem: true),
       child: AppMenuButton<String>(
         key: _userMenuKey,
@@ -746,14 +755,6 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               style: Theme.of(context).textTheme.titleLarge?.copyWith(color: foregroundColor, fontWeight: .bold),
             ),
           const Spacer(),
-          // TV only: a fullscreen leanback app hides the system clock, while a
-          // phone status bar and a desktop menu bar already show one.
-          if (PlatformDetector.isTV()) ...[
-            SystemClock(
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: foregroundColor, fontWeight: .w500),
-            ),
-            const SizedBox(width: 12),
-          ],
           Consumer2<WatchTogetherProvider, CompanionRemoteProvider>(
             builder: (context, watchTogether, companionRemote, _) {
               final isDesktop = PlatformDetector.shouldActAsRemoteHost(context);
@@ -762,10 +763,12 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                 key: _actionBarKey,
                 onNavigateLeft: _navigateToSidebar,
                 onNavigateDown: _focusContentFromAppBar,
+                showFocusLabels: true,
                 actions: [
                   FocusableAction(
                     icon: Symbols.refresh_rounded,
                     iconColor: foregroundColor,
+                    tooltip: t.common.refresh,
                     onPressed: () async {
                       final outcome = await _discover.refreshNow();
                       if (!context.mounted) return;
@@ -782,6 +785,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   ),
                   // Watch Together
                   FocusableAction(
+                    tooltip: t.watchTogether.title,
                     onPressed: () =>
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const WatchTogetherScreen())),
                     child: Stack(
@@ -817,6 +821,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   ),
                   // Companion Remote
                   FocusableAction(
+                    tooltip: t.companionRemote.title,
                     onPressed: () {
                       if (isDesktop) {
                         RemoteSessionDialog.show(context);
@@ -868,6 +873,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                   if (PlatformDetector.isDesktop(context) &&
                       context.select<MultiServerProvider, bool>((p) => p.hasOnlinePlexServers))
                     FocusableAction(
+                      tooltip: t.serverTasks.title,
                       onPressed: () => _serverActivitiesButtonKey.currentState?.togglePanel(),
                       child: ServerActivitiesButton(key: _serverActivitiesButtonKey),
                     ),
@@ -877,6 +883,8 @@ class _DiscoverScreenState extends State<DiscoverScreen>
               );
             },
           ),
+          const SizedBox(width: 12),
+          HomeClock(color: foregroundColor),
         ],
       ),
     );
@@ -1386,6 +1394,12 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                             width: heroLogoWidth,
                             height: heroLogoHeight,
                             alignment: alignLeft ? Alignment.bottomLeft : Alignment.bottomCenter,
+                            // The hero scrim washes artwork toward the scaffold
+                            // background; light themes recolor light-toned logos.
+                            logoToneTarget: logoToneTargetFor(
+                              surface: theme.scaffoldBackgroundColor,
+                              foreground: colorScheme.onSurface,
+                            ),
                             fallbackBuilder: (context) => FittingTitleText(
                               showName,
                               style: heroTitleStyle,

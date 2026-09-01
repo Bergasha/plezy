@@ -36,9 +36,29 @@ class WatchTogetherPeerService with KeepaliveMixin {
   /// reconnect is published to consumers.
   final Future<void> Function()? debugReconnectSetupSucceededBarrier;
 
+  /// How long initial setup waits for the relay to acknowledge its
+  /// announcement.
+  ///
+  /// This and the two release budgets below are separate knobs so a test can
+  /// expire exactly the phase it is about. Compressing them together would
+  /// also put a real WebSocket handshake on a deadline shorter than a loopback
+  /// round trip, which is a race, not a contract.
+  final Duration debugInitialSetupTimeout;
+
+  /// How long a release waits for the replacement WebSocket handshake it needs
+  /// when transport was already lost.
+  final Duration debugReleaseConnectTimeout;
+
+  /// How long a release waits for the relay to acknowledge its reconnect,
+  /// endSession, or leave announcement.
+  final Duration debugReleaseTimeout;
+
   WatchTogetherPeerService({
     WatchTogetherRelayEndpoint? endpoint,
     this.debugReconnectSetupSucceededBarrier,
+    this.debugInitialSetupTimeout = const Duration(seconds: 10),
+    this.debugReleaseConnectTimeout = const Duration(seconds: 10),
+    this.debugReleaseTimeout = const Duration(seconds: 10),
     WebSocketChannel Function(Uri uri)? debugChannelFactory,
   }) : endpoint = endpoint ?? WatchTogetherRelayEndpoint.defaultEndpoint,
        _channelFactory = debugChannelFactory ?? ((uri) => WebSocketChannel.connect(uri));
@@ -62,6 +82,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
   final _errorController = StreamController<PeerError>.broadcast();
   final _connectionStateController = StreamController<bool>.broadcast();
   final _sessionEndedController = StreamController<void>.broadcast();
+  final _hostChangedController = StreamController<String>.broadcast();
 
   // Reconnection state
   int _reconnectAttempts = 0;
@@ -103,6 +124,11 @@ class WatchTogetherPeerService with KeepaliveMixin {
 
   /// Emitted when the host has durably ended the relay room.
   Stream<void> get onSessionEnded => _sessionEndedController.stream;
+
+  /// Emitted with the new host's peer ID when the relay reassigns host
+  /// authority ([transferHost]). [hostPeerId] and [isHost] are already
+  /// updated when this fires.
+  Stream<String> get onHostChanged => _hostChangedController.stream;
 
   /// Current session ID (null if not in a session)
   String? get sessionId => _sessionId;
@@ -469,6 +495,20 @@ class WatchTogetherPeerService with KeepaliveMixin {
             _failSetup(_invalidSetupResponse(RelayProtocol.ended));
           }
 
+        case RelayProtocol.hostChanged:
+          final newHostPeerId = msg['hostPeerId'];
+          if (msg['sessionId'] != _sessionId ||
+              newHostPeerId is! String ||
+              !RelayProtocol.isValidPeerId(newHostPeerId)) {
+            appLogger.w('WatchTogether: Relay returned an invalid hostChanged message');
+            break;
+          }
+          if (newHostPeerId == _hostPeerId) break; // Duplicate delivery.
+          appLogger.d('WatchTogether: Host authority moved to $newHostPeerId');
+          _hostPeerId = newHostPeerId;
+          _isHost = newHostPeerId == _myPeerId;
+          _safeAdd(_hostChangedController, newHostPeerId);
+
         case RelayProtocol.error:
           final code = msg['code'] as String? ?? 'unknown';
           final message = msg['message'] as String? ?? t.common.unknown;
@@ -635,7 +675,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
       for (var attempt = 0; attempt < _maxReconnectAttempts; attempt++) {
         try {
           final completer = await _connectAndAnnounce(type, epoch);
-          await completer.future.timeout(const Duration(seconds: 10), onTimeout: () => throw timeoutError);
+          await completer.future.timeout(debugInitialSetupTimeout, onTimeout: () => throw timeoutError);
           return;
         } catch (error) {
           if (_disposed || epoch != _connectionEpoch) rethrow;
@@ -753,6 +793,18 @@ class WatchTogetherPeerService with KeepaliveMixin {
     _sendRaw({'type': RelayProtocol.sendTo, 'to': peerId, 'payload': payload});
   }
 
+  /// Ask the relay to reassign host authority to [peerId] (host only).
+  ///
+  /// The relay answers with a `hostChanged` broadcast on success or a
+  /// `not_host`/`peer_not_found` error on the error stream; local role state
+  /// only flips when the broadcast arrives.
+  void transferHost(String peerId) {
+    if (!RelayProtocol.isValidPeerId(peerId)) {
+      throw ArgumentError.value(peerId, 'peerId', 'Must be 1–${RelayProtocol.maxPeerIdLength} letters, digits, _ or -');
+    }
+    _sendRaw({'type': RelayProtocol.transferHost, 'to': peerId, 'protocolVersion': _relayProtocolVersion});
+  }
+
   /// Explicitly release this peer's relay ownership. Hosts destroy the room;
   /// guests release their reserved reconnect identity. If transport was lost,
   /// authenticate a fresh connection first so an intentional exit is not
@@ -784,18 +836,18 @@ class WatchTogetherPeerService with KeepaliveMixin {
             final reconnectCompleter = await _connectAndAnnounce(
               RelayProtocol.join,
               epoch,
-              connectTimeout: const Duration(seconds: 10),
+              connectTimeout: debugReleaseConnectTimeout,
               connectOperation: 'WatchTogether release reconnect',
             );
             await reconnectCompleter.future.namedTimeout(
-              const Duration(seconds: 10),
+              debugReleaseTimeout,
               operation: 'WatchTogether release reconnect',
             );
           }
 
           final releaseCompleter = _announce(_isHost ? RelayProtocol.endSession : RelayProtocol.leave);
           await releaseCompleter.future.namedTimeout(
-            const Duration(seconds: 10),
+            debugReleaseTimeout,
             operation: _isHost ? 'WatchTogether end session' : 'WatchTogether leave session',
           );
           return;
@@ -861,6 +913,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
     _disposed = true;
     unawaited(disconnect());
 
+    _hostChangedController.close();
     _peerConnectedController.close();
     _peerDisconnectedController.close();
     _messageReceivedController.close();

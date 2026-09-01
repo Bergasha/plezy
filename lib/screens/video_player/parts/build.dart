@@ -142,6 +142,8 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
   }
 
   void _startMobileZoomGesture() {
+    // Pinch-to-zoom is one of the optional touch gestures (#1810).
+    if (!SettingsService.instance.read(SettingsService.gesturePinchToZoom)) return;
     final filterManager = _videoFilterManager;
     if (filterManager == null || _isPinchZooming) return;
 
@@ -162,6 +164,7 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
     // Cache platform detection to avoid multiple calls
     final isMobile = PlatformDetector.isMobile(context);
     final hideChromeOnMouseExit = !(isMobile && !PlatformDetector.isTV());
+    final wakeChromeOnMouseHover = SettingsService.instance.read(SettingsService.showControlsOnMouseMove);
 
     // Back handling (sheet-close + player exit) is owned by the OverlaySheetHost
     // that wraps this widget — see video_player_screen.dart (canPop/onSystemBack).
@@ -220,6 +223,7 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
         child: PlayerChromeInteractionRegion(
           controller: _chromeController,
           hideOnExit: hideChromeOnMouseExit,
+          wakeOnHover: wakeChromeOnMouseHover,
           child: Stack(
             children: [
               // macOS PiP placeholder — video is in PiP window, show background with icon
@@ -317,6 +321,7 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
                         onBack: _handleBackButton,
                         onReachedEnd: ({skipAutoPlayCountdown = false}) =>
                             _onVideoCompleted(true, skipAutoPlayCountdown: skipAutoPlayCountdown),
+                        onSkipCreditsExit: () => unawaited(_skipCreditsAndExit()),
                         canControl: authority.canControlPlayback,
                         canNavigateMediaItems: authority.canNavigateMediaItems,
                         hasFirstFrame: _firstFrame.uiReady,

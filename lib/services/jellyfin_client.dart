@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../connection/connection.dart';
+import '../media/account_preferences.dart';
 import '../media/artist_discography.dart';
 import '../media/episode_collection.dart';
 import '../media/library_filter_result.dart';
@@ -21,6 +22,8 @@ import '../media/live_tv_support.dart';
 import '../media/lyrics.dart';
 import '../media/media_backend.dart';
 import '../media/media_browser_dialect.dart';
+import '../media/library_change_event.dart';
+import 'library_events/media_browser_library_event_socket.dart';
 import '../media/media_file_info.dart';
 import '../media/media_hub.dart';
 import '../media/media_item.dart';
@@ -32,6 +35,8 @@ import '../media/media_server_client.dart';
 import '../media/playback_report_metadata.dart';
 import '../media/server_capabilities.dart';
 import '../models/audio_quality_preset.dart';
+import '../models/jellyfin/jellyfin_account_preferences.dart';
+import '../models/jellyfin/jellyfin_display_preferences.dart';
 import '../models/jellyfin/jellyfin_user_profile.dart';
 import '../models/livetv_capture_buffer.dart';
 import '../models/livetv_channel.dart';
@@ -39,6 +44,7 @@ import '../models/livetv_program.dart';
 import '../models/livetv_dvr.dart';
 import '../models/media_grab_operation.dart';
 import '../models/media_subscription.dart';
+import '../models/transcode_quality_preset.dart';
 import '../media/media_source_info.dart';
 import '../media/media_sort.dart';
 import '../media/media_version.dart';
@@ -75,9 +81,11 @@ import 'scrub_preview_source.dart';
 import 'settings_service.dart' show SpecialsOrdering;
 import 'subtitle_preference.dart';
 import 'track_selection_service.dart';
+import 'video_decode_capabilities.dart';
 import '../mpv/mpv.dart';
 import '../utils/codec_utils.dart';
 
+part 'jellyfin_client/parts/account_preferences.dart';
 part 'jellyfin_client/parts/browse.dart';
 part 'jellyfin_client/parts/music.dart';
 part 'jellyfin_client/parts/playback.dart';
@@ -101,6 +109,16 @@ mixin _JellyfinClientInternals on MediaServerCacheMixin {
   MediaBrowserDialect get dialect;
   MediaBrowserPaths get paths;
   FailoverHttpClient get _http;
+
+  /// Cached `DisplayPreferences` value: whether `/Shows/NextUp` requests carry
+  /// `EnableRewatching=true`. Written by the account-preferences part, read by
+  /// the browse part on every Next Up request, so it is declared here.
+  bool _rewatchingInNextUp = false;
+
+  /// Whether this server both understands the parameter and has it switched on
+  /// for this account.
+  bool get sendNextUpRewatching => _rewatchingInNextUp && dialect.supportsNextUpRewatching;
+
   MediaItem? _mapItem(Map<String, dynamic> json);
   List<MediaItem> _mapItems(Iterable<Map<String, dynamic>> items);
   String? _absolutizeImagePath(String? path);
@@ -213,6 +231,7 @@ class JellyfinClient
     with
         MediaServerCacheMixin,
         _JellyfinClientInternals,
+        _JellyfinAccountPreferencesMethods,
         _JellyfinBrowseMethods,
         _JellyfinMusicMethods,
         _JellyfinPlaybackMethods,
@@ -293,11 +312,6 @@ class JellyfinClient
       baseUrl: connection.baseUrl,
       defaultHeaders: headers,
       logLabel: 'Jellyfin',
-      // Same pool tuning Plex uses: the home fan-out issues several concurrent
-      // requests per pass, and the untuned dart:io default drops idle
-      // connections after 15s — a fresh TLS handshake per request on a
-      // high-RTT/CDN link.
-      usePlexApiClient: true,
       prioritizedEndpoints: connection.baseUrls,
       onEndpointSwitch: (newBaseUrl, {required persist}) => client._handleEndpointSwitch(newBaseUrl, persist: persist),
       onAllEndpointsExhausted: onAllEndpointsExhausted,
@@ -435,6 +449,40 @@ class JellyfinClient
     MediaBrowserDialect.jellyfin => ServerCapabilities.jellyfin,
     MediaBrowserDialect.emby => ServerCapabilities.emby,
   };
+
+  /// Realtime library-change push on the dialect's session socket. Reads the
+  /// base URL live so endpoint failover lands on the channel's next
+  /// reconnect; Emby only routes `LibraryChanged` to sessions that registered
+  /// capabilities, so that dialect registers before each connect.
+  /// [LibraryEventService] owns the returned channel's lifecycle.
+  @override
+  LibraryEventChannel? createLibraryEventChannel() {
+    return MediaBrowserLibraryEventSocket(
+      serverId: serverId,
+      dialect: dialect,
+      baseUrl: () => _http.baseUrl,
+      accessToken: connection.accessToken,
+      deviceId: connection.deviceId,
+      registerCapabilities: dialect.requiresSessionCapabilitiesForLibraryEvents
+          ? _registerSessionCapabilitiesForEvents
+          : null,
+    );
+  }
+
+  /// `POST /Sessions/Capabilities/Full` with a minimal payload (verified 204
+  /// on Emby 4.9.5, after which the socket receives `LibraryChanged`).
+  Future<void> _registerSessionCapabilitiesForEvents() async {
+    final response = await _http.post(
+      '/Sessions/Capabilities/Full',
+      body: {
+        'PlayableMediaTypes': ['Video', 'Audio'],
+        'SupportedCommands': <String>[],
+        'SupportsMediaControl': false,
+        'SupportsSync': false,
+      },
+    );
+    throwIfHttpError(response);
+  }
 
   /// Neither dialect exposes a per-server played-threshold pref, so we mirror
   /// Plex's default of 90%.

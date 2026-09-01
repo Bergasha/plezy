@@ -105,13 +105,19 @@ extension _PlexVideoControlsMarkerMethods on _PlexVideoControlsState {
     final duration = widget.player.state.duration;
     final isAtEnd = duration > Duration.zero && (duration - endTime).inMilliseconds <= 1000;
 
-    final handsOffToCompletion = marker.isCredits && isAtEnd;
-    if (handsOffToCompletion) {
-      if (!skipAutoPlayCountdown && widget.onNext != null) {
-        _abandoningBurst(widget.onNext)!.call();
+    if (marker.isCredits && isAtEnd) {
+      // A manual press means the user explicitly asked to move on. Mark the
+      // episode watched and exit back to the previous screen (the episode
+      // list) instead of continuing playback in place or pausing behind a
+      // Play Next / Still Watching prompt — this matches Plex; the caller's
+      // on-deck refresh then highlights the next episode by the time this
+      // screen returns. Auto-skip (skipAutoPlayCountdown) keeps deferring to
+      // the parent's completion flow instead: seeking to EOF is unreliable
+      // due to position stream throttling, and an unattended auto-skip
+      // should still respect Still Watching.
+      if (!skipAutoPlayCountdown && widget.onSkipCreditsExit != null) {
+        _abandoningBurst(widget.onSkipCreditsExit)!.call();
       } else {
-        // Seeking to EOF is unreliable due to position stream throttling,
-        // so pause and defer to the parent's completion flow.
         await widget.player.pause();
         widget.onReachedEnd?.call(skipAutoPlayCountdown: skipAutoPlayCountdown);
       }
@@ -125,7 +131,7 @@ extension _PlexVideoControlsMarkerMethods on _PlexVideoControlsState {
     });
     // The play-next flow requests its own focus; claiming the surface here
     // would race it.
-    if (!handsOffToCompletion) _releaseSkipMarkerFocusToSurface();
+    if (!(marker.isCredits && isAtEnd)) _releaseSkipMarkerFocusToSurface();
     _cancelAutoSkipTimer();
     _cancelSkipButtonDismissTimer();
   }

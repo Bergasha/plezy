@@ -23,6 +23,16 @@ List<String> buildMediaQualityLabels(MediaItem item, {int versionIndex = 0}) {
   final audio = _selectedAudioStream(version);
   final audioLabel = _formatAudio(audio);
   if (audioLabel != null) labels.add(audioLabel);
+  if (audio != null) {
+    // A separate chip rather than folded into the codec label, so it reads
+    // as a distinct badge (matching how HDR/DV already get their own chip)
+    // instead of replacing the channel count audiences actually asked to see.
+    if (_isAtmos(audio)) {
+      labels.add('Atmos');
+    } else if (_isDtsX(audio)) {
+      labels.add('DTS:X');
+    }
+  }
 
   return labels;
 }
@@ -90,12 +100,11 @@ String? _formatAudio(MediaStream? stream) {
   final codec = stream.codec?.trim();
   if (codec != null && codec.isNotEmpty) parts.add(_formatAudioCodec(codec));
 
-  if (_isAtmos(stream)) {
-    parts.add('Atmos');
-  } else {
-    final channels = CodecUtils.formatAudioChannels(stream.channels);
-    if (channels != null) parts.add(channels);
-  }
+  // Channels always show alongside the codec (e.g. "EAC3 5.1") — Atmos/DTS:X
+  // get their own separate chip (see buildMediaQualityLabels) rather than
+  // replacing the channel count here.
+  final channels = CodecUtils.formatAudioChannels(stream.channels);
+  if (channels != null) parts.add(channels);
 
   return parts.isEmpty ? null : parts.join(' ');
 }
@@ -114,4 +123,11 @@ bool _isAtmos(MediaStream stream) {
     stream.title,
     stream.displayTitle,
   ].whereType<String>().any((value) => value.toLowerCase().contains('atmos'));
+}
+
+bool _isDtsX(MediaStream stream) {
+  return [stream.codec, stream.title, stream.displayTitle].whereType<String>().any((value) {
+    final normalized = value.toLowerCase().replaceAll(RegExp(r'[:\-\s]'), '');
+    return normalized.contains('dtsx');
+  });
 }

@@ -13,14 +13,11 @@ import '../../media/media_library.dart';
 import '../../models/audio_quality_preset.dart';
 import '../../models/transcode_quality_preset.dart';
 import '../../models/player_setting_scope.dart';
-import '../../mpv/player/platform/player_android.dart';
 import '../../providers/libraries_provider.dart';
 import '../../utils/app_logger.dart';
 import '../../utils/dialogs.dart';
 import '../../utils/provider_extensions.dart';
 import '../../utils/quality_preset_labels.dart';
-import '../../services/companion_remote/companion_remote_host_controller.dart';
-import '../../services/discord_rpc_service.dart';
 import '../../services/keyboard_shortcuts_service.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
@@ -104,29 +101,60 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
               children: [
                 if (Platform.isAndroid) _playerBackendSelector(),
                 if (PlatformDetector.supportsExternalPlayers()) _externalPlayerTile(),
+                if (!exoActive) _mpvConfigTile(),
                 _hardwareDecodingTile(),
+                if (exoActive) _playbackBufferTile(),
+                if (exoActive) _tunneledPlaybackTile(),
                 if (PlatformDetector.supportsPictureInPicture()) _autoPipTile(),
+              ],
+            ),
+
+            SettingsGroup(
+              title: t.settings.videoAndDisplay,
+              children: [
                 if (Platform.isAndroid) _matchContentFrameRateTile(),
                 if (Platform.isAndroid && PlatformDetector.isTV()) _matchContentResolutionTile(),
                 if (Platform.isWindows) _matchRefreshRateTile(),
                 if (Platform.isWindows) _matchDynamicRangeTile(),
                 if (showDisplaySwitchDelay) _displaySwitchDelayTile(),
-                if (exoActive) _tunneledPlaybackTile(),
+                if (Platform.isAndroid) _dvConversionModeTile(),
+                // mpv-only (#2149): ExoPlayer has no filter chain, so the
+                // tile disappears while the ExoPlayer backend is active.
+                if (!exoActive) _deinterlaceTile(),
+                // TODO: "Extend video into display cutout" toggle (#1769)
+                // goes here, Android-only.
+              ],
+            ),
+
+            SettingsGroup(
+              title: t.settings.audio,
+              children: [
                 if (PlatformDetector.supportsAudioPassthrough()) _audioPassthroughTile(),
                 _audioDownmixTile(),
                 if (downmixOn) _downmixCenterBoostTile(),
                 if (downmixOn) _downmixNormalizeTile(),
-                if (exoActive) _demuxerModeTile(),
-                if (exoActive) _dvConversionModeTile(),
-                _bufferSizeTile(),
-                if (exoActive) _playbackBufferTile(),
+                _maxVolumeTile(),
+              ],
+            ),
+
+            SettingsGroup(
+              title: t.settings.quality,
+              children: [
                 _defaultQualityTile(),
+                // Only a phone/tablet has a cellular radio; desktop and TV
+                // never report a cellular-only connection.
+                if (isMobile) _cellularQualityTile(),
+                // TODO: "Remote streaming quality" selector (#2064) goes here,
+                // mirroring cellularQualityPreset's nullable "same as default"
+                // pattern; needs local/remote connection detection in the
+                // failover client.
+                _directPlayCoveredQualityTile(),
                 _musicQualityTile(),
               ],
             ),
 
             SettingsGroup(
-              title: t.settings.subtitlesAndConfig,
+              title: t.settings.subtitles,
               children: [
                 SettingNavigationTile(
                   icon: Symbols.subtitles_rounded,
@@ -134,14 +162,14 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
                   subtitle: t.settings.subtitleStylingDescription,
                   destinationBuilder: (_) => const SubtitleStylingScreen(),
                 ),
-                if (!exoActive) _mpvConfigTile(),
               ],
             ),
 
             _seekAndTimingGroup(),
+            _autoPlayAndSkipGroup(),
             _behaviorGroup(context, isMobile),
+            if (isMobile) _gesturesGroup(),
             _rememberPlayerChangesGroup(),
-            _autoSkipGroup(),
             _prerollGroup(context),
             const SizedBox(height: 24),
           ],
@@ -195,16 +223,6 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
         min: 5,
         max: 240,
       ),
-      SettingNumberTile(
-        pref: SettingsService.maxVolume,
-        icon: Symbols.volume_up_rounded,
-        title: t.settings.maxVolume,
-        subtitleBuilder: (v) => t.settings.maxVolumePercent(percent: v.toString()),
-        labelText: t.settings.maxVolumeDescription,
-        suffixText: '%',
-        min: 100,
-        max: 300,
-      ),
     ],
   );
 
@@ -256,22 +274,6 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
   Widget _behaviorGroup(BuildContext context, bool isMobile) => SettingsGroup(
     title: t.settings.behavior,
     children: [
-      if (DiscordRPCService.isAvailable)
-        SettingSwitchTile(
-          pref: SettingsService.enableDiscordRPC,
-          icon: Symbols.chat_rounded,
-          title: t.settings.discordRichPresence,
-          subtitle: t.settings.discordRichPresenceDescription,
-          onAfterWrite: (v) => DiscordRPCService.instance.setEnabled(v),
-        ),
-      if (PlatformDetector.shouldActAsRemoteHost(context))
-        SettingSwitchTile(
-          pref: SettingsService.enableCompanionRemoteServer,
-          icon: Symbols.phone_android_rounded,
-          title: t.settings.companionRemoteServer,
-          subtitle: t.settings.companionRemoteServerDescription,
-          onAfterWrite: (v) => applyCompanionRemoteServerSetting(context, v),
-        ),
       SettingSwitchTile(
         pref: SettingsService.rememberTrackSelections,
         icon: Symbols.bookmark_rounded,
@@ -283,6 +285,12 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
         icon: Symbols.dns_rounded,
         title: t.settings.followServerTrackSelections,
         subtitle: t.settings.followServerTrackSelectionsDescription,
+      ),
+      SettingSwitchTile(
+        pref: SettingsService.resumeMusicOnLaunch,
+        icon: Symbols.music_history_rounded,
+        title: t.settings.resumeMusicOnLaunch,
+        subtitle: t.settings.resumeMusicOnLaunchDescription,
       ),
       SettingSwitchTile(
         pref: SettingsService.showChapterMarkersOnTimeline,
@@ -304,6 +312,22 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
           title: t.settings.clickVideoTogglesPlayback,
           subtitle: t.settings.clickVideoTogglesPlaybackDescription,
         ),
+      if (!isMobile)
+        SettingSwitchTile(
+          pref: SettingsService.showControlsOnMouseMove,
+          icon: Symbols.mouse_rounded,
+          title: t.settings.showControlsOnMouseMove,
+          subtitle: t.settings.showControlsOnMouseMoveDescription,
+        ),
+      if (PlatformDetector.isDesktopOS())
+        SettingSwitchTile(
+          pref: SettingsService.exitFullscreenOnPlayerClose,
+          icon: Symbols.fullscreen_exit_rounded,
+          title: t.settings.exitFullscreenOnPlayerClose,
+          subtitle: t.settings.exitFullscreenOnPlayerCloseDescription,
+        ),
+      // TODO: "Enter fullscreen when playback starts" toggle (#1641) goes
+      // here, desktop-only, paired with exitFullscreenOnPlayerClose.
     ],
   );
 
@@ -313,9 +337,31 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     SpecialsOrdering.specialsLast => t.settings.specialsOrderingLast,
   };
 
-  Widget _autoSkipGroup() => SettingsGroup(
-    title: t.settings.autoSkip,
+  Widget _autoPlayAndSkipGroup() => SettingsGroup(
+    title: t.settings.autoPlayAndSkip,
     children: [
+      // Also togglable from the in-player settings sheet; both write the same
+      // pref, and this pref gates the play-next prompt.
+      SettingSwitchTile(
+        pref: SettingsService.autoPlayNextEpisode,
+        icon: Symbols.skip_next_rounded,
+        title: t.settings.autoPlayNextEpisode,
+        subtitle: t.settings.autoPlayNextEpisodeDescription,
+      ),
+      SettingNumberTile(
+        pref: SettingsService.playNextCountdown,
+        icon: Symbols.timer_rounded,
+        title: t.settings.playNextCountdown,
+        subtitleBuilder: (v) =>
+            v == 0 ? t.settings.playNextCountdownImmediate : t.settings.secondsUnit(seconds: v.toString()),
+        labelText: t.settings.secondsLabel,
+        suffixText: t.settings.secondsShort,
+        min: 0,
+        max: 30,
+      ),
+      // TODO: Replace the two auto-skip switches below with per-marker skip
+      // modes — Off / Show button / Auto (#2138); migrate true→auto,
+      // false→button in SettingsService.
       SettingSwitchTile(
         pref: SettingsService.autoSkipIntro,
         icon: Symbols.fast_forward_rounded,
@@ -441,6 +487,39 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     setState(() => _prerollSelectedItemKeys = storage.getPrerollSelectedItemKeys());
   }
 
+  /// Optional touch gestures on the player surface (#1810); the group only
+  /// renders on mobile, matching where the gestures exist.
+  Widget _gesturesGroup() => SettingsGroup(
+    title: t.settings.gestures,
+    children: [
+      SettingSwitchTile(
+        pref: SettingsService.gestureBrightnessSwipe,
+        icon: Symbols.brightness_6_rounded,
+        title: t.settings.gestureBrightnessSwipe,
+        subtitle: t.settings.gestureBrightnessSwipeDescription,
+      ),
+      // Remember the last swiped level between playbacks (#2178).
+      SettingSwitchTile(
+        pref: SettingsService.rememberBrightnessLevel,
+        icon: Symbols.settings_brightness_rounded,
+        title: t.settings.rememberBrightnessLevel,
+        subtitle: t.settings.rememberBrightnessLevelDescription,
+      ),
+      SettingSwitchTile(
+        pref: SettingsService.gestureVolumeSwipe,
+        icon: Symbols.volume_up_rounded,
+        title: t.settings.gestureVolumeSwipe,
+        subtitle: t.settings.gestureVolumeSwipeDescription,
+      ),
+      SettingSwitchTile(
+        pref: SettingsService.gesturePinchToZoom,
+        icon: Symbols.pinch_rounded,
+        title: t.settings.gesturePinchToZoom,
+        subtitle: t.settings.gesturePinchToZoomDescription,
+      ),
+    ],
+  );
+
   Widget _playerBackendSelector() => SettingSegmentedTile<bool>(
     pref: SettingsService.useExoPlayer,
     icon: Symbols.play_circle_rounded,
@@ -513,6 +592,13 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     subtitle: t.settings.matchDynamicRangeDescription,
   );
 
+  Widget _deinterlaceTile() => SettingSwitchTile(
+    pref: SettingsService.deinterlace,
+    icon: Symbols.deblur_rounded,
+    title: t.settings.deinterlace,
+    subtitle: t.settings.deinterlaceDescription,
+  );
+
   Widget _audioPassthroughTile() => SettingSwitchTile(
     pref: SettingsService.audioPassthrough,
     icon: Symbols.surround_sound_rounded,
@@ -547,7 +633,18 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     subtitle: t.settings.audioDownmixNormalizeDescription,
   );
 
-  // Visibility for this and the three tiles below is decided by the hoisted
+  Widget _maxVolumeTile() => SettingNumberTile(
+    pref: SettingsService.maxVolume,
+    icon: Symbols.volume_up_rounded,
+    title: t.settings.maxVolume,
+    subtitleBuilder: (v) => t.settings.maxVolumePercent(percent: v.toString()),
+    labelText: t.settings.maxVolumeDescription,
+    suffixText: '%',
+    min: 100,
+    max: 300,
+  );
+
+  // Visibility for this and the tiles around it is decided by the hoisted
   // SettingsBuilder in build().
   Widget _displaySwitchDelayTile() => SettingNumberTile(
     pref: SettingsService.displaySwitchDelay,
@@ -584,40 +681,6 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     DvConversionModePreference.hevcStrip => t.settings.dvConversionHevcStrip,
   };
 
-  Widget _demuxerModeTile() => SettingSelectionTile<DemuxerPreference>(
-    pref: SettingsService.demuxerMode,
-    icon: Symbols.schema_rounded,
-    title: t.settings.demuxer,
-    subtitleBuilder: (mode) => '${_demuxerModeLabel(mode)} · ${t.settings.demuxerDescription}',
-    options: DemuxerPreference.values.map((m) => DialogOption(value: m, title: _demuxerModeLabel(m))).toList(),
-  );
-
-  String _demuxerModeLabel(DemuxerPreference mode) => switch (mode) {
-    DemuxerPreference.ffmpeg => t.settings.demuxerFfmpeg,
-    DemuxerPreference.media3 => t.settings.demuxerMedia3,
-  };
-
-  Widget _bufferSizeTile() {
-    final bufferOptions = const [0, 64, 128, 256, 512, 1024];
-    return SettingSelectionTile<int>(
-      pref: SettingsService.bufferSize,
-      icon: Symbols.memory_rounded,
-      title: t.settings.bufferSize,
-      subtitleBuilder: (v) => v == 0 ? t.settings.bufferSizeAuto : t.settings.bufferSizeMB(size: v.toString()),
-      options: bufferOptions
-          .map((s) => DialogOption(value: s, title: s == 0 ? t.settings.bufferSizeAuto : '${s}MB'))
-          .toList(),
-      onAfterWrite: (value) async {
-        if (Platform.isAndroid && value > 0) {
-          final heapMB = await PlayerAndroid.getHeapSize();
-          if (heapMB > 0 && value > heapMB ~/ 4 && mounted) {
-            showAppSnackBar(context, t.settings.bufferSizeWarning(heap: heapMB.toString(), size: value.toString()));
-          }
-        }
-      },
-    );
-  }
-
   Widget _playbackBufferTile() => SettingSelectionTile<PlaybackBufferTier>(
     pref: SettingsService.playbackBufferTier,
     icon: Symbols.hourglass_top_rounded,
@@ -642,6 +705,28 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     options: TranscodeQualityPreset.displayOrder
         .map((p) => DialogOption(value: p, title: qualityPresetLabel(p)))
         .toList(),
+  );
+
+  Widget _cellularQualityTile() => SettingSelectionTile<TranscodeQualityPreset?>(
+    pref: SettingsService.cellularQualityPreset,
+    icon: Symbols.signal_cellular_alt_rounded,
+    title: t.settings.cellularQualityTitle,
+    subtitleBuilder: (p) => p == null ? t.settings.cellularQualitySameAsDefault : qualityPresetLabel(p),
+    options: [
+      DialogOption<TranscodeQualityPreset?>(value: null, title: t.settings.cellularQualitySameAsDefault),
+      ...TranscodeQualityPreset.displayOrder.map(
+        (p) => DialogOption<TranscodeQualityPreset?>(value: p, title: qualityPresetLabel(p)),
+      ),
+    ],
+  );
+
+  // Plex-only effect: MediaBrowser servers make the equivalent
+  // direct-play-vs-transcode call server-side (#2152, #2193).
+  Widget _directPlayCoveredQualityTile() => SettingSwitchTile(
+    pref: SettingsService.directPlayCoveredQuality,
+    icon: Symbols.bolt_rounded,
+    title: t.settings.directPlayCoveredQuality,
+    subtitle: t.settings.directPlayCoveredQualityDescription,
   );
 
   Widget _musicQualityTile() => SettingSelectionTile<AudioQualityPreset>(
@@ -688,7 +773,8 @@ class _PrerollItemPickerDialogState extends State<_PrerollItemPickerDialog> {
       final storage = await StorageService.getInstance();
       final client = context.getMediaClientForLibrary(widget.library);
       final items = await drainPages<MediaItem>(
-        (start, size) => client.fetchLibraryContent(widget.library.id, LibraryQuery(offset: start, limit: size)),
+        (start, size) =>
+            client.fetchLibraryPagedContent(widget.library.id, query: LibraryQuery(offset: start, limit: size)),
         pageSize: 200,
         stopOnShortPage: true,
       );

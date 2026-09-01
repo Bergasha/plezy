@@ -34,6 +34,7 @@ import 'screens/profile/pin_entry_dialog.dart';
 import 'screens/profile/profile_switch_screen.dart';
 import 'services/storage_service.dart';
 import 'services/device_performance.dart';
+import 'services/video_decode_capabilities.dart';
 import 'services/macos_window_service.dart';
 import 'services/native_window_service.dart';
 import 'services/fullscreen_state_manager.dart';
@@ -47,6 +48,8 @@ import 'package:path_provider/path_provider.dart';
 import 'services/image_cache_service.dart';
 import 'services/gamepad_service.dart';
 import 'services/trackers/tracker_coordinator.dart';
+import 'providers/account_preferences_controller.dart';
+import 'services/account_preferences_repository.dart';
 import 'providers/user_profile_provider.dart';
 import 'providers/multi_server_provider.dart';
 import 'providers/theme_provider.dart';
@@ -56,6 +59,7 @@ import 'providers/offline_watch_provider.dart';
 import 'providers/shader_provider.dart';
 import 'utils/snackbar_helper.dart';
 import 'services/multi_server_manager.dart';
+import 'services/library_events/library_event_service.dart';
 import 'services/offline_watch_sync_service.dart';
 import 'services/data_aggregation_service.dart';
 import 'services/credential_vault.dart';
@@ -909,12 +913,14 @@ Future<_StartupDependencies> _initializeStartup(SettingsService settings) async 
       });
     }
 
-    // MainApp reads both synchronous facades during its first build, and both
-    // have a working sync fallback, so a detection failure is not fatal.
+    // MainApp reads the first two synchronous facades during its first build
+    // and the Jellyfin device profile the third at playback negotiation. All
+    // three have a working sync fallback, so a detection failure is not fatal.
     await _optionalGatePhase(StartupPhase.deviceCapabilities, () async {
       await (
         TvDetectionService.getInstance(forceTv: settings.read(SettingsService.forceTvMode)),
         DevicePerformance.getInstance(override: settings.read(SettingsService.visualEffects)),
+        VideoDecodeCapabilities.getInstance(),
       ).wait;
     });
 
@@ -1031,6 +1037,7 @@ Future<void> _logEnvironmentDiagnostics() async {
     ' [effects: ${DevicePerformance.describeSync()}]',
   );
   appLogger.i('Display: ${DevicePerformance.describeDisplay()}');
+  appLogger.i('Video decoders: ${VideoDecodeCapabilities.describeSync()}');
   if (Platform.isAndroid) {
     appLogger.i('Startup RSS: ${ProcessInfo.currentRss >> 20}MB');
   }
@@ -1223,6 +1230,7 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
   late final MultiServerManager _serverManager;
   late final DataAggregationService _aggregationService;
+  late final LibraryEventService _libraryEventService;
   late final AppDatabase _appDatabase;
   late final DownloadManagerService _downloadManager;
   late final OfflineWatchSyncService _offlineWatchSyncService;
@@ -1264,6 +1272,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
 
     _serverManager = MultiServerManager();
     _aggregationService = DataAggregationService(_serverManager);
+    _libraryEventService = LibraryEventService(_serverManager);
     _appDatabase = widget.appDatabase;
 
     PlexApiCache.initialize(_appDatabase);
@@ -1313,6 +1322,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     _removeConnectivitySyncListener();
     _memoryCheckTimer?.cancel();
 
+    _libraryEventService.dispose();
     _downloadManager.dispose();
     // Quitting straight from the player is a real stop: the trackers that own
     // their own watched semantics need the terminal report before the process
@@ -1337,6 +1347,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     _memoryCheckTimer?.cancel();
     _appLifecycleListener.dispose();
     if (!_shutdownStarted) {
+      _libraryEventService.dispose();
       _downloadManager.dispose();
       _serverManager.dispose();
     }
@@ -1503,6 +1514,9 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
         // App came back to foreground - trigger sync check
         _offlineWatchSyncService.onAppResumed();
         unawaited(TrackerCoordinator.instance.flushWriteQueue());
+        // Re-arm the per-server library push channels torn down on pause
+        // (and any that exhausted their reconnect attempts).
+        _libraryEventService.resume();
         // Re-probe servers — mobile OS may have dropped TCP connections during doze/sleep.
         // On desktop, resumed fires on every window focus (alt-tab), so apply a cooldown
         // to avoid piling up network probes from rapid alt-tabbing.
@@ -1521,6 +1535,9 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
         }
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
+        // Backgrounded: drop the library push sockets — they are
+        // foreground-only, and the stale-resume refresh covers the gap.
+        _libraryEventService.suspend();
         // Database is session-scoped and must survive suspend/resume.
         // Closing here would kill the Drift isolate channel while services
         // (sync, downloads, cache) still hold references to the executor.
@@ -1709,6 +1726,27 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
           ),
           update: (_, syncService, downloadProvider, previous) => previous!,
         ),
+        // Account preferences (server-stored: Jellyfin UserConfiguration,
+        // plex.tv user profile) live above the profile session so a write
+        // survives navigation, and so a profile switch clears the cache in one
+        // place. The repository is exposed separately because UI reads it
+        // directly; the controller owns and disposes it.
+        ChangeNotifierProxyProvider2<ActiveProfileProvider, ConnectionRegistry, AccountPreferencesController>(
+          create: (_) => AccountPreferencesController(),
+          update: (context, activeProfile, connections, previous) {
+            final controller = previous!;
+            controller.attach(
+              connections: connections,
+              profileConnections: context.read<ProfileConnectionRegistry>(),
+              activeProfile: activeProfile,
+              serverManager: context.read<MultiServerProvider>().serverManager,
+            );
+            return controller;
+          },
+        ),
+        ProxyProvider<AccountPreferencesController, AccountPreferencesRepository>(
+          update: (_, controller, _) => controller.repository,
+        ),
         ChangeNotifierProxyProvider2<ActiveProfileProvider, ConnectionRegistry, UserProfileProvider>(
           create: (context) => UserProfileProvider(storageService: context.read<StorageService>()),
           update: (context, activeProfile, connections, previous) {
@@ -1718,6 +1756,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
               activeProfile: activeProfile,
               profileConnections: context.read<ProfileConnectionRegistry>(),
               serverManager: context.read<MultiServerProvider>().serverManager,
+              accountPreferences: context.read<AccountPreferencesController>(),
             );
             return provider;
           },

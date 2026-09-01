@@ -221,20 +221,24 @@ void main() {
       expect(focusLabel(), 'PlayerSurface');
     });
 
-    playerTest('Enter raises the chrome and toggles playback without taking focus', (tester) async {
+    playerTest('a first Enter with the chrome down only raises it, without pausing', (tester) async {
       await press(tester, LogicalKeyboardKey.enter);
 
       expect(chrome.controlsVisible, isTrue, reason: 'Select is the show-me-the-controls affordance');
-      expect(toggles, 1);
+      expect(toggles, 0, reason: 'the first press must reveal the overlay, not pause underneath it');
       expect(focusLabel(), 'PlayerSurface', reason: 'a keyboard Enter must not start a focus session');
       expect(currentMode(tester), InputMode.pointer, reason: 'and must not arm focus chrome app-wide');
     });
 
-    playerTest('Enter keeps toggling once the chrome is up', (tester) async {
+    playerTest('Enter toggles once the chrome is already up, and keeps toggling', (tester) async {
       await press(tester, LogicalKeyboardKey.enter);
-      await press(tester, LogicalKeyboardKey.enter);
+      expect(toggles, 0, reason: 'first press only raises the chrome');
 
-      expect(toggles, 2, reason: 'Select must not become a one-shot key when the chrome is visible');
+      await press(tester, LogicalKeyboardKey.enter);
+      expect(toggles, 1, reason: 'second press, chrome already up, toggles playback');
+
+      await press(tester, LogicalKeyboardKey.enter);
+      expect(toggles, 2, reason: 'Select must not become a one-shot key once the chrome is visible');
       expect(focusLabel(), 'PlayerSurface');
     });
 
@@ -272,11 +276,11 @@ void main() {
   group('player navigation enabled', () {
     setUp(() => setNavigationEnabled(true));
 
-    playerTest('Enter shows the chrome and toggles, leaving focus put', (tester) async {
+    playerTest('Enter shows the chrome without pausing, leaving focus put', (tester) async {
       await press(tester, LogicalKeyboardKey.enter);
 
       expect(chrome.controlsVisible, isTrue);
-      expect(toggles, 1);
+      expect(toggles, 0, reason: 'the first press must reveal the overlay, not pause underneath it');
       // Opting into player navigation buys arrow keys, not a focus session from
       // a plain Enter: focus and input mode move together or not at all.
       expect(focusLabel(), 'PlayerSurface');
@@ -594,7 +598,16 @@ void main() {
 
         await press(tester, LogicalKeyboardKey.select);
 
-        expect(toggles, 1, reason: 'one press must toggle playback, not merely raise the chrome');
+        expect(
+          chrome.controlsVisible,
+          isTrue,
+          reason: 'the surface handler fired and raised the chrome, not a screen-node self-heal',
+        );
+        expect(toggles, 0, reason: 'the chrome was down, so this press only reveals it');
+
+        await press(tester, LogicalKeyboardKey.select);
+
+        expect(toggles, 1, reason: 'chrome already up, so this press toggles playback');
       },
     );
   });

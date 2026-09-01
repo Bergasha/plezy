@@ -9,6 +9,10 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
     widget.toastController.show(Symbols.photo_camera_rounded, t.videoControls.screenshotSaved);
   }
 
+  void _togglePerformanceOverlay() {
+    unawaited(_settings.write(SettingsService.showPerformanceOverlay, !_showPerformanceOverlay));
+  }
+
   bool _isDirectionalKey(LogicalKeyboardKey key) {
     return key == LogicalKeyboardKey.arrowUp ||
         key == LogicalKeyboardKey.arrowDown ||
@@ -66,6 +70,31 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
     return event is KeyDownEvent ? _transportCommandFor(event) : null;
   }
 
+  void _cycleSubtitleTracks() {
+    if (!widget.canControl) return;
+    final tracks = widget.player.state.tracks.subtitle;
+    if (tracks.isEmpty) {
+      widget.toastController.show(Symbols.subtitles_off_rounded, t.videoControls.subtitlesNoneAvailable);
+      return;
+    }
+    final nextIndex = _subtitlesVisible ? _subtitleCycleIndex + 1 : 0;
+    if (nextIndex >= tracks.length) {
+      widget.player.selectSubtitleTrack(SubtitleTrack.off);
+      _onSubtitleTrackChanged(SubtitleTrack.off);
+      _setSubtitleVisibility(false);
+      _subtitleCycleIndex = -1;
+      widget.toastController.show(Symbols.subtitles_off_rounded, t.videoControls.subtitlesOff);
+    } else {
+      final targetTrack = tracks[nextIndex];
+      widget.player.selectSubtitleTrack(targetTrack);
+      _onSubtitleTrackChanged(targetTrack);
+      _setSubtitleVisibility(true);
+      _subtitleCycleIndex = nextIndex;
+      final label = targetTrack.title ?? targetTrack.language ?? '${nextIndex + 1}';
+      widget.toastController.show(Symbols.subtitles_rounded, t.videoControls.subtitlesTrack(label: label));
+    }
+  }
+
   /// The player surface's Select action.
   ///
   /// [requestFocus] is the caller's `eventRequestsFocusNavigation` answer, so a
@@ -83,9 +112,13 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
       _activateSkipMarker();
       return;
     }
-    // Raise the chrome *before* toggling: Select is the deliberate "show me the
-    // controls" affordance, and the visible chrome suppresses the transient
-    // transport disc that would otherwise flash underneath it.
+    // With the chrome hidden, Select's only job is revealing it — the first
+    // press just shows the overlay without touching playback. Only a second
+    // press, with the chrome already up, toggles play/pause.
+    if (!_showControls) {
+      _showControlsWithFocus(requestFocus: requestFocus);
+      return;
+    }
     _showControlsWithFocus(requestFocus: requestFocus);
     unawaited(_playOrPause());
   }
@@ -157,7 +190,7 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
       event,
       widget.player,
       _toggleFullscreen,
-      _toggleSubtitles,
+      _cycleSubtitleTracks,
       _nextAudioTrack,
       _nextSubtitleTrack,
       _nextChapter,
@@ -166,6 +199,7 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
       canNavigateMediaItems: widget.canNavigateMediaItems,
       onPlayPause: () => unawaited(_playOrPause()),
       onToggleShader: _toggleShader,
+      onTogglePerformanceOverlay: _togglePerformanceOverlay,
       onSkipMarker: onSkipMarker,
       onNextEpisode: _abandoningBurst(widget.onNext),
       onPreviousEpisode: _abandoningBurst(widget.onPrevious),

@@ -23,9 +23,6 @@ import '../widgets/auth_error_banner.dart';
 import '../widgets/app_icon.dart';
 import '../utils/provider_extensions.dart';
 import '../utils/platform_detector.dart';
-import '../utils/platform_http_client_stub.dart'
-    if (dart.library.io) '../utils/platform_http_client_io.dart'
-    show warmUpPlatformHttpClient;
 import '../utils/snackbar_helper.dart';
 import '../utils/update_dialog.dart';
 import '../utils/video_player_navigation.dart';
@@ -65,6 +62,7 @@ import '../focus/dpad_navigator.dart';
 import '../focus/key_event_utils.dart';
 import 'discover_screen.dart';
 import 'explore_screen.dart';
+import 'watchlist_screen.dart';
 import 'libraries/library_quick_picker_sheet.dart';
 import 'libraries/libraries_screen.dart';
 import 'livetv/live_tv_screen.dart';
@@ -83,14 +81,14 @@ import '../watch_together/watch_together.dart';
 // browse rail can import the scope without an import cycle through this file.
 
 @visibleForTesting
-bool shouldHandleDesktopRootEscape({
-  required bool isDesktop,
+bool shouldHandleMacOsRootEscape({
+  required bool isMacOS,
   required bool isPhysicalKeyboardEvent,
   required LogicalKeyboardKey logicalKey,
   required bool isCurrentRoute,
   required bool isHomeTab,
 }) {
-  return isDesktop && isPhysicalKeyboardEvent && logicalKey == LogicalKeyboardKey.escape && isCurrentRoute && isHomeTab;
+  return isMacOS && isPhysicalKeyboardEvent && logicalKey == LogicalKeyboardKey.escape && isCurrentRoute && isHomeTab;
 }
 
 /// Whether a lifecycle resume should raise the "ask for a profile on open"
@@ -102,7 +100,10 @@ bool shouldHandleDesktopRootEscape({
 /// mid-stream must resume the stream, not stack the root-navigator picker
 /// over the live player route, whose focus self-heal fights the picker for
 /// the remote (#2034) — the playback session already belongs to the profile
-/// that started it.
+/// that started it. Likewise never during a live companion-remote session:
+/// a phone driving another device backgrounds and sleeps constantly, and
+/// the picker + PIN would bury a session that already belongs to the
+/// profile that started it (#2087).
 @visibleForTesting
 bool shouldShowProfileSelectionOnResume({
   required bool resumedFromBackground,
@@ -110,12 +111,14 @@ bool shouldShowProfileSelectionOnResume({
   required bool alreadyShowingProfileSelection,
   required bool isMobilePlatform,
   required bool hasActiveVideoPlayback,
+  required bool hasActiveCompanionRemoteSession,
 }) {
   return resumedFromBackground &&
       !isOffline &&
       !alreadyShowingProfileSelection &&
       isMobilePlatform &&
-      !hasActiveVideoPlayback;
+      !hasActiveVideoPlayback &&
+      !hasActiveCompanionRemoteSession;
 }
 
 /// Latches whether the app has genuinely left the foreground since the last
@@ -242,6 +245,21 @@ List<NavigationTab> mainScreenBottomNavigationTabs({
     if (tab.id != NavigationTabId.settings) return true;
     return isOffline || currentTab == NavigationTabId.settings;
   }).toList();
+}
+
+/// Above Material's comfortable destination count, `alwaysShow` forces every
+/// label into a column too narrow for its text and wraps (e.g. "Downloads"
+/// breaking onto two lines) — `onlyShowSelected` keeps a label for context
+/// without every destination needing to fit one at once. Below that count,
+/// honour the user's showNavBarLabels preference as-is.
+@visibleForTesting
+const int comfortableBottomNavigationTabCount = 5;
+
+@visibleForTesting
+NavigationDestinationLabelBehavior bottomNavigationLabelBehavior({required bool hideLabels, required int tabCount}) {
+  if (hideLabels) return NavigationDestinationLabelBehavior.alwaysHide;
+  if (tabCount > comfortableBottomNavigationTabCount) return NavigationDestinationLabelBehavior.onlyShowSelected;
+  return NavigationDestinationLabelBehavior.alwaysShow;
 }
 
 @visibleForTesting
@@ -397,6 +415,7 @@ class _MainScreenState extends State<MainScreen>
   RouteObserver<PageRoute<dynamic>>? _profileRouteObserver;
   bool _lastHasLiveTv = false;
   bool _lastHasExplore = false;
+  bool _lastHasWatchlist = false;
 
   /// Whether a reconnection attempt is in progress
   bool _isReconnecting = false;
@@ -520,6 +539,11 @@ class _MainScreenState extends State<MainScreen>
     } catch (_) {
       _lastHasExplore = false;
     }
+    try {
+      _lastHasWatchlist = context.read<CatalogSourcesProvider>().watchlistCapableSource != null;
+    } catch (_) {
+      _lastHasWatchlist = false;
+    }
     // Re-evaluate Explore tab visibility when the appearance toggle flips
     // mid-session; the catalog-sources listener covers source changes.
     _showExploreTabListenable = SettingsService.instanceOrNull?.listenable(SettingsService.showExploreTab);
@@ -573,12 +597,6 @@ class _MainScreenState extends State<MainScreen>
       // keeps its cached Plex Home users without reaching the network.
       // `_handleOfflineStatusChanged` starts it if we come online later.
       if (!_isOffline) unawaited(_plexHomeService!.start());
-      // Cronet's first `CronetEngine.build()` costs ~460 ms of synchronous JNI
-      // work (Play services Dynamite + GMS HTTP flags) and used to land between
-      // `database_ready` and `credentials_loaded`, i.e. squarely on the path to
-      // this screen. Android clients start on the tuned IOClient and swap to
-      // Cronet once this completes.
-      unawaited(warmUpPlatformHttpClient());
       final manager = context.read<MultiServerProvider>().serverManager;
       // Read the binder so the Provider's `lazy: false` create has fired
       // for sure; start only in online mode so explicit startup offline does
@@ -1140,6 +1158,12 @@ class _MainScreenState extends State<MainScreen>
       alreadyShowingProfileSelection: _isShowingProfileSelection,
       isMobilePlatform: Platform.isAndroid || Platform.isIOS,
       hasActiveVideoPlayback: VideoPlayerScreenState.activeGlobalKey != null,
+      // Short-circuit on resumedFromBackground: the provider is lazy and
+      // otherwise unused on phones, so an unconditional read would create it
+      // on the first lifecycle event for users who never open the remote.
+      // isInSession, not isConnected: on resume the held reconnect cycle
+      // means the session is typically still `reconnecting` (#2035).
+      hasActiveCompanionRemoteSession: resumedFromBackground && context.read<CompanionRemoteProvider>().isInSession,
     )) {
       _showProfileSelectionOnResume();
     }
@@ -1152,10 +1176,11 @@ class _MainScreenState extends State<MainScreen>
   /// without this the tabs keep showing the in-memory content from the previous
   /// session — the Libraries grid could sit hours stale until the user switched
   /// libraries (#2043). Goes through [Refreshable.refresh], each screen's
-  /// non-destructive refetch: Discover refreshes Continue Watching in place,
-  /// Libraries refetches the selected library's loaded tabs, Search re-runs a
-  /// non-empty query. Skipped while playback is up — nothing content-stale is
-  /// on screen and the playback path must stay quiet.
+  /// non-destructive refetch: Discover refreshes Continue Watching in place
+  /// (plus a full hub pass when the hub list has gone stale, #1646), Libraries
+  /// refetches the selected library's loaded tabs, Search re-runs a non-empty
+  /// query. Skipped while playback is up — nothing content-stale is on screen
+  /// and the playback path must stay quiet.
   void _refreshContentAfterStaleResume() {
     if (_isOffline || !_startupServicesPrimed || !mounted) return;
     if (VideoPlayerScreenState.activeGlobalKey != null) return;
@@ -1204,6 +1229,7 @@ class _MainScreenState extends State<MainScreen>
 
     return switch (tab) {
       NavigationTabId.discover => DiscoverScreen(key: _screenKeys[tab]),
+      NavigationTabId.watchlist => WatchlistScreen(key: _screenKeys[tab]),
       NavigationTabId.explore => ExploreScreen(key: _screenKeys[tab]),
       NavigationTabId.libraries => LibrariesScreen(
         key: _screenKeys[tab],
@@ -1229,6 +1255,7 @@ class _MainScreenState extends State<MainScreen>
     isOffline: isOffline,
     hasLiveTv: _hasLiveTv,
     hasExplore: _lastHasExplore,
+    hasWatchlist: _lastHasWatchlist,
     preferredStartup: SettingsService.instanceOrNull?.read(SettingsService.startupSection),
   );
 
@@ -1308,8 +1335,10 @@ class _MainScreenState extends State<MainScreen>
 
   void _handleCatalogSourcesChanged() {
     final hasExplore = (_catalogSourcesProvider?.hasAnySource ?? false) && _showExploreTabSetting;
-    if (hasExplore == _lastHasExplore) return;
+    final hasWatchlist = _catalogSourcesProvider?.watchlistCapableSource != null;
+    if (hasExplore == _lastHasExplore && hasWatchlist == _lastHasWatchlist) return;
     _lastHasExplore = hasExplore;
+    _lastHasWatchlist = hasWatchlist;
 
     _handleTabAvailabilityChanged();
   }
@@ -1499,13 +1528,35 @@ class _MainScreenState extends State<MainScreen>
     final lastBackPressAt = _lastBackPressAt;
     if (lastBackPressAt != null && now.difference(lastBackPressAt) < _backExitWindow) {
       _lastBackPressAt = null;
-      unawaited(AppExitService.requestExit());
+      unawaited(_exitFromBackGesture());
       return KeyEventResult.handled;
     }
 
     _lastBackPressAt = now;
     showMainSnackBar(t.common.pressBackAgainToExit, duration: _backExitWindow);
     return KeyEventResult.handled;
+  }
+
+  /// Exit from the press-back-twice gesture. `AppExitService.requestExit`
+  /// uses a `required` platform exit, which — unlike the graceful/cancelable
+  /// exit `_exitOnWindowClose` uses — skips Dart-side teardown entirely and
+  /// tells the native side to terminate immediately. On desktop that can
+  /// leave a just-torn-down native player surface (mpv's GPU-next/D3D11
+  /// context, WASAPI exclusive audio) mid-teardown, hanging the process with
+  /// a blank window instead of closing. Route desktop through the same
+  /// graceful-with-fallback path the window close button already uses;
+  /// other platforms keep the existing immediate-exit behavior.
+  Future<void> _exitFromBackGesture() async {
+    if (!PlatformDetector.isDesktopOS()) {
+      unawaited(AppExitService.requestExit());
+      return;
+    }
+    try {
+      await AppExitService.requestGracefulExit().timeout(const Duration(seconds: 5));
+    } catch (e, st) {
+      appLogger.w('Graceful exit from back gesture failed; exiting immediately', error: e, stackTrace: st);
+    }
+    exit(0);
   }
 
   KeyEventResult _handleMainBackKeyAction(KeyEvent event) {
@@ -1572,16 +1623,13 @@ class _MainScreenState extends State<MainScreen>
     return KeyEventResult.handled;
   }
 
-  /// Desktop physical-keyboard Escape at root Home is reserved for leaving
-  /// window fullscreen; it never arms the press-back-again quit, so an Escape
-  /// aimed at fullscreen can't close the app (#1748). Remotes, gamepad B, and
-  /// system back keep the double-press exit path. On macOS this also keeps
-  /// player Escape away from native fullscreen, which is window state shared
-  /// by every route.
-  KeyEventResult _handleDesktopRootEscape(KeyEvent event) {
+  /// On macOS, native fullscreen is window state shared by every route.
+  /// Player Escape therefore leaves it alone; only root Home owns the
+  /// conventional Escape-to-leave-fullscreen behavior.
+  KeyEventResult _handleMacOsRootEscape(KeyEvent event) {
     final tabs = _getVisibleTabs(_isOffline);
-    final shouldHandle = shouldHandleDesktopRootEscape(
-      isDesktop: PlatformDetector.isDesktopOS(),
+    final shouldHandle = shouldHandleMacOsRootEscape(
+      isMacOS: Platform.isMacOS,
       isPhysicalKeyboardEvent: event.isPhysicalKeyboardEvent,
       logicalKey: event.logicalKey,
       isCurrentRoute: ModalRoute.of(context)?.isCurrent == true,
@@ -1882,7 +1930,12 @@ class _MainScreenState extends State<MainScreen>
 
   /// Get navigation tabs filtered by offline mode
   List<NavigationTab> _getVisibleTabs(bool isOffline) {
-    return NavigationTab.getVisibleTabs(isOffline: isOffline, hasLiveTv: _hasLiveTv, hasExplore: _lastHasExplore);
+    return NavigationTab.getVisibleTabs(
+      isOffline: isOffline,
+      hasLiveTv: _hasLiveTv,
+      hasExplore: _lastHasExplore,
+      hasWatchlist: _lastHasWatchlist,
+    );
   }
 
   List<NavigationTab> _getBottomNavigationTabs(BuildContext context) {
@@ -1929,9 +1982,7 @@ class _MainScreenState extends State<MainScreen>
       onDestinationSelected: (i) {
         if (i >= 0 && i < tabs.length) _selectTab(tabs[i].id);
       },
-      labelBehavior: hideLabels
-          ? NavigationDestinationLabelBehavior.alwaysHide
-          : NavigationDestinationLabelBehavior.alwaysShow,
+      labelBehavior: bottomNavigationLabelBehavior(hideLabels: hideLabels, tabCount: tabs.length),
       destinations: tabs.map((tab) => tab.toDestination()).toList(),
     );
 
@@ -2010,7 +2061,7 @@ class _MainScreenState extends State<MainScreen>
             canPop: false,
             child: Focus(
               onKeyEvent: (node, event) {
-                final rootEscapeResult = _handleDesktopRootEscape(event);
+                final rootEscapeResult = _handleMacOsRootEscape(event);
                 if (rootEscapeResult == KeyEventResult.handled) return rootEscapeResult;
                 final fullscreenResult = _handleFullscreenShortcut(event);
                 if (fullscreenResult == KeyEventResult.handled) return fullscreenResult;

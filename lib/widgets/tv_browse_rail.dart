@@ -9,7 +9,9 @@ import '../focus/card_focus_scope.dart';
 import '../focus/dpad_navigator.dart';
 import '../focus/dpad_select_long_press_controller.dart';
 import '../focus/focus_theme.dart';
+import '../focus/input_mode_tracker.dart';
 import '../focus/key_event_utils.dart';
+import '../focus/focus_navigation_intent.dart';
 import '../focus/locked_hub_controller.dart';
 import '../i18n/strings.g.dart';
 import '../media/ids.dart';
@@ -31,6 +33,7 @@ import 'focus_builders.dart';
 import 'horizontal_scroll_with_arrows.dart';
 import 'listenable_selector.dart';
 import 'media_card.dart';
+import 'media_context_menu.dart';
 import 'optimized_media_image.dart';
 import 'rasterized_gradient.dart';
 import 'settings_builder.dart';
@@ -44,6 +47,10 @@ class TvBrowseRailLayoutMetrics {
   final double focusExtra;
   final double railEdgePadding;
   final double itemGap;
+
+  /// Whether the hub has a leading options card in the negative-offset region
+  /// before the row's scroll anchor (see [TvBrowseRailLayout.minScrollExtentFor]).
+  final bool hasLeading;
   final double cardWidth;
   final double posterWidth;
   final double posterHeight;
@@ -57,6 +64,7 @@ class TvBrowseRailLayoutMetrics {
     required this.focusExtra,
     required this.railEdgePadding,
     required this.itemGap,
+    this.hasLeading = false,
     required this.cardWidth,
     required this.posterWidth,
     required this.posterHeight,
@@ -81,10 +89,6 @@ class TvBrowseRailLayout {
   static double railInteractionExpansionForScale(double scale) => (12 * scale).clamp(8, 18).toDouble();
 
   static double fullCardItemGapForScale(double scale) => (12 * scale).clamp(8, 18).toDouble();
-
-  static double viewAllItemWidthForScale(double scale) => (104 * scale).clamp(88, 132).toDouble();
-
-  static double viewAllPillHeightForScale(double scale) => (44 * scale).clamp(36, 54).toDouble();
 
   static double hubStripHeightForScale(double scale) => 30 * scale;
 
@@ -128,6 +132,7 @@ class TvBrowseRailLayout {
     bool fullCardLayout = false,
     double tallPosterScale = 1.0,
     double widePosterScale = 1.0,
+    bool hasLeading = false,
   }) {
     final focusExtra = FocusTheme.focusBorderWidth * 2 * scale;
     final railEdgePadding = focusExtra + (12 * scale);
@@ -170,6 +175,7 @@ class TvBrowseRailLayout {
       focusExtra: focusExtra,
       railEdgePadding: railEdgePadding,
       itemGap: itemGap,
+      hasLeading: hasLeading,
       cardWidth: cardWidth,
       posterWidth: posterWidth,
       posterHeight: posterHeight,
@@ -215,9 +221,18 @@ class TvBrowseRailLayout {
   }) {
     final showTrailing = hasTrailing ?? hub.more;
     final itemCount = hub.items.length + (showTrailing ? 1 : 0);
+    // The leading options card lives BEFORE the scroll anchor (negative
+    // offsets, see [minScrollExtentFor]); it never contributes here.
     final contentWidth = (metrics.railEdgePadding * 2) + (itemCount * (metrics.cardWidth + metrics.itemGap));
     return (contentWidth - viewportWidth).clamp(0.0, double.infinity).toDouble();
   }
+
+  /// Scroll extent of the region before the anchor: the hub's leading options
+  /// card plus its edge padding. Zero for hubs without a leading slot, so the
+  /// row rests with its first item at the rail start and the options card
+  /// sits off-screen until focus (or a drag) reveals it.
+  static double minScrollExtentFor(TvBrowseRailLayoutMetrics metrics) =>
+      metrics.hasLeading ? -(metrics.railEdgePadding + metrics.cardWidth) : 0.0;
 
   static double itemExtentForIndex({required int index, required TvBrowseRailLayoutMetrics metrics}) {
     assert(index >= 0);
@@ -233,12 +248,14 @@ class TvBrowseRailLayout {
     bool? hasTrailing,
   }) {
     final showTrailing = hasTrailing ?? hub.more;
-    final totalCount = hub.items.length + (showTrailing ? 1 : 0);
+    final leadingCount = metrics.hasLeading ? 1 : 0;
+    final totalCount = leadingCount + hub.items.length + (showTrailing ? 1 : 0);
     if (totalCount == 0) return 0;
 
     final clampedIndex = index.clamp(0, totalCount - 1).toInt();
+    if (metrics.hasLeading && clampedIndex == 0) return minScrollExtentFor(metrics);
     final itemExtent = metrics.cardWidth + metrics.itemGap;
-    final targetCenter = metrics.railEdgePadding + ((clampedIndex + 0.5) * itemExtent);
+    final targetCenter = metrics.railEdgePadding + ((clampedIndex - leadingCount + 0.5) * itemExtent);
     return (targetCenter - (viewportWidth / 2)).clamp(0.0, maxScrollExtent).toDouble();
   }
 
@@ -304,10 +321,23 @@ class TvBrowseRail extends StatefulWidget {
   /// rail keeps the legacy "[MediaHub.more] → View All" behavior.
   final TvRailTrailing Function(MediaHub hub)? trailingForHub;
 
+  /// Optional per-hub leading slot: a compact options button before the first
+  /// item that opens the context menu for the returned [MediaItem] (the media
+  /// detail screen returns each episode hub's season). Presence must be stable
+  /// per hub key across rebuilds — slot indices are not remapped when a hub
+  /// gains or loses its leading slot.
+  final MediaItem? Function(MediaHub hub)? leadingItemForHub;
+
   /// Invoked when the user activates a hub's trailing retry tile.
   final void Function(MediaHub hub)? onRetryHub;
   final void Function(MediaHub hub, int index)? onActiveHubChanged;
   final VoidCallback? onNavigateUp;
+
+  /// Invoked when DOWN is pressed while the last hub is active — the
+  /// symmetric counterpart to [onNavigateUp], which fires at the first hub.
+  /// Null (the default) preserves the rail's original behavior of simply
+  /// clamping at the last hub.
+  final VoidCallback? onNavigateDown;
   final VoidCallback? onNavigateToSidebar;
   final VoidCallback? onBack;
   final FutureOr<bool> Function(MediaHub hub, MediaItem item)? onActivateItem;
@@ -338,9 +368,11 @@ class TvBrowseRail extends StatefulWidget {
     this.usesContinueWatchingAction,
     this.loadMoreItems,
     this.trailingForHub,
+    this.leadingItemForHub,
     this.onRetryHub,
     this.onActiveHubChanged,
     this.onNavigateUp,
+    this.onNavigateDown,
     this.onNavigateToSidebar,
     this.onBack,
     this.onActivateItem,
@@ -359,14 +391,18 @@ class TvBrowseRail extends StatefulWidget {
 }
 
 class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixin {
-  static const _navigationScrollDuration = Duration(milliseconds: 130);
-  static const _repeatNavigationScrollDuration = Duration(milliseconds: 65);
+  // Native tvOS focus-engine scroll settles over ~450-900ms of ease-out
+  // (FocusProbe capture, issue #2006). Successive steps — including
+  // hold-repeats — retarget the animation, so a sustained drag trails the
+  // focused index slightly and catches up in one continuous glide on
+  // release, exactly like the native engine's scrollable containers.
+  static const _navigationScrollDuration = Duration(milliseconds: 500);
   static const _scrollCatchUpViewportDistance = 2.5;
   // Equivalent to the former whole-rail Opacity(0.6) without keeping a
   // full-viewport saveLayer alive.
   static const _unfocusedRailDimAlpha = 0.4;
 
-  final FocusNode _focusNode = FocusNode(debugLabel: 'tv_browse_rail');
+  late final FocusNode _focusNode = LockedFocusRowNode(debugLabel: 'tv_browse_rail', focusedItemRect: _focusedCardRect);
   final Map<String, ScrollController> _scrollControllers = {};
   final ScrollController _verticalController = ScrollController();
   final SnapshotController _verticalScrollSnapshotController = SnapshotController();
@@ -374,6 +410,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   final Map<String, GlobalKey<MediaCardState>> _mediaCardKeys = {};
   final Map<String, TvBrowseRailLayoutMetrics> _metricsByHub = {};
   final Map<String, TvRailTrailing> _lastTrailingByHubKey = {};
+  final Map<String, GlobalKey<MediaContextMenuState>> _leadingMenuKeys = {};
   final Map<int, _HubArtworkDim> _artworkDims = {};
 
   int _hubIndex = 0;
@@ -392,6 +429,11 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   int _verticalScrollGeneration = 0;
   bool _hasUserChangedItem = false;
 
+  /// Hub key whose leading slot took focus only because the hub had no items
+  /// yet (the clamp in [_moveHub]); when items arrive, focus advances to the
+  /// first item so entering a not-yet-fetched hub still lands on item 1.
+  String? _pendingLeadingAutoAdvanceHubKey;
+
   MediaHub? get _activeHub => widget.hubs.isEmpty ? null : widget.hubs[_hubIndex.clamp(0, widget.hubs.length - 1)];
 
   void requestFocus() {
@@ -403,6 +445,8 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   void initState() {
     super.initState();
     _focusNode.addListener(_handleFocusChange);
+    final startHub = _activeHub;
+    if (startHub != null) _itemIndex = _defaultSlotFor(startHub);
     _selectInitialHubIfPossible();
     final selectedInitialItem = _selectInitialItemIfPossible();
     _focusModel.set(_hubIndex, _itemIndex, notify: false);
@@ -444,9 +488,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
 
     final oldActiveHub = oldWidget.hubs.isEmpty ? null : oldWidget.hubs[_hubIndex.clamp(0, oldWidget.hubs.length - 1)];
     final oldActiveHubKey = oldActiveHub == null ? null : _hubKey(oldActiveHub);
-    final oldFocusedItem = oldActiveHub != null && _itemIndex < oldActiveHub.items.length
-        ? oldActiveHub.items[_itemIndex]
-        : null;
+    final oldFocusedItem = oldActiveHub == null ? null : _itemAtSlot(oldActiveHub, _itemIndex);
 
     if (widget.hubs.isEmpty) {
       _hubIndex = 0;
@@ -478,12 +520,22 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
       // left the list, follow its series' replacement entry (finished episode
       // → next episode); otherwise fall through to the positional clamp.
       final followedIndex = followItemIndex(hub.items, oldFocusedItem);
-      if (followedIndex != -1 && followedIndex != _itemIndex) {
-        _itemIndex = followedIndex;
+      final followedSlot = followedIndex == -1 ? -1 : followedIndex + _leadingCountFor(hub);
+      if (followedSlot != -1 && followedSlot != _itemIndex) {
+        _itemIndex = followedSlot;
         followedFocusedItem = true;
       }
     }
     _itemIndex = _itemIndex.clamp(0, _totalItemCount(hub) == 0 ? 0 : _totalItemCount(hub) - 1);
+    var autoAdvancedFromLeading = false;
+    if (_pendingLeadingAutoAdvanceHubKey == _hubKey(hub) && hub.items.isNotEmpty) {
+      if (_isLeadingSlot(hub, _itemIndex)) {
+        _itemIndex = _defaultSlotFor(hub);
+        widget.focusMemory.remapForHub(_hubKey(hub), _itemIndex);
+        autoAdvancedFromLeading = true;
+      }
+      _pendingLeadingAutoAdvanceHubKey = null;
+    }
     final selectedInitialItem = _selectInitialItemIfPossible();
     // notify:false — this runs during the build phase and the enclosing
     // rebuild already refreshes every selector.
@@ -498,7 +550,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     _rememberTrailingStates();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      if (selectedInitialItem || followedFocusedItem) _scrollToItem(animate: false);
+      if (selectedInitialItem || followedFocusedItem || autoAdvancedFromLeading) _scrollToItem(animate: false);
       if (shouldJumpAlignActiveHub) {
         _scrollActiveHubToTop(animate: false);
       } else if (shouldAnimateAlignActiveHub) {
@@ -584,14 +636,39 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
 
   bool _hasTrailingFor(MediaHub hub) => _trailingFor(hub) != TvRailTrailing.none;
 
-  int _totalItemCount(MediaHub hub) => hub.items.length + (_hasTrailingFor(hub) ? 1 : 0);
+  MediaItem? _leadingItemFor(MediaHub hub) => widget.leadingItemForHub?.call(hub);
+
+  bool _hasLeadingFor(MediaHub hub) => _leadingItemFor(hub) != null;
+
+  int _leadingCountFor(MediaHub hub) => _hasLeadingFor(hub) ? 1 : 0;
+
+  bool _isLeadingSlot(MediaHub hub, int slot) => slot == 0 && _hasLeadingFor(hub);
+
+  bool _isTrailingSlot(MediaHub hub, int slot) =>
+      _hasTrailingFor(hub) && slot == _leadingCountFor(hub) + hub.items.length;
+
+  /// The media item shown at [slot], or null for the leading/trailing slots.
+  MediaItem? _itemAtSlot(MediaHub hub, int slot) {
+    final index = slot - _leadingCountFor(hub);
+    return index >= 0 && index < hub.items.length ? hub.items[index] : null;
+  }
+
+  /// Where focus lands in [hub] with no remembered position: the first media
+  /// item, so a leading slot never adds a step to normal navigation.
+  int _defaultSlotFor(MediaHub hub) {
+    final total = _totalItemCount(hub);
+    return total == 0 ? 0 : _leadingCountFor(hub).clamp(0, total - 1);
+  }
+
+  int _totalItemCount(MediaHub hub) => _leadingCountFor(hub) + hub.items.length + (_hasTrailingFor(hub) ? 1 : 0);
 
   bool _isPersonHub(MediaHub hub) => TvBrowseRailLayout.isPersonHub(hub);
 
   void _notifyFocusedItem() {
     final hub = _activeHub;
-    if (hub == null || hub.items.isEmpty || _itemIndex >= hub.items.length) return;
-    final item = hub.items[_itemIndex];
+    if (hub == null) return;
+    final item = _itemAtSlot(hub, _itemIndex);
+    if (item == null) return;
     widget.onFocusedItemChanged?.call(item);
     widget.onFocusedHubItemChanged?.call(hub, item);
   }
@@ -617,7 +694,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     if (initialIndex == -1) return false;
     if (initialIndex != _hubIndex) {
       _hubIndex = initialIndex;
-      _itemIndex = 0;
+      _itemIndex = _defaultSlotFor(widget.hubs[initialIndex]);
     }
     return true;
   }
@@ -630,7 +707,8 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     }
     final initialIndex = hub.items.indexWhere((item) => item.id == initialItemId);
     if (initialIndex == -1) return false;
-    if (initialIndex != _itemIndex) _itemIndex = initialIndex;
+    final initialSlot = initialIndex + _leadingCountFor(hub);
+    if (initialSlot != _itemIndex) _itemIndex = initialSlot;
     return true;
   }
 
@@ -670,7 +748,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
 
     if (key.isLeftKey) {
       if (_itemIndex > 0) {
-        _moveItem(-1, duration: event is KeyRepeatEvent ? _repeatNavigationScrollDuration : _navigationScrollDuration);
+        _moveItem(-1);
       } else {
         widget.onNavigateToSidebar?.call();
       }
@@ -679,7 +757,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
 
     if (key.isRightKey) {
       if (_itemIndex < _totalItemCount(hub) - 1) {
-        _moveItem(1, duration: event is KeyRepeatEvent ? _repeatNavigationScrollDuration : _navigationScrollDuration);
+        _moveItem(1);
       }
       return KeyEventResult.handled;
     }
@@ -694,7 +772,11 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     }
 
     if (key.isDownKey) {
-      _moveHub(1);
+      if (_hubIndex >= widget.hubs.length - 1) {
+        widget.onNavigateDown?.call();
+      } else {
+        _moveHub(1);
+      }
       return KeyEventResult.handled;
     }
 
@@ -717,6 +799,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     // observe the selection through _focusModel.
     _itemIndex = next;
     _hasUserChangedItem = true;
+    _pendingLeadingAutoAdvanceHubKey = null;
     _focusModel.set(_hubIndex, _itemIndex);
     _rememberFocus(hub);
     _notifyFocusedItem();
@@ -731,13 +814,22 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     final currentHub = _activeHub;
     if (currentHub != null) _rememberFocus(currentHub);
     final nextHub = widget.hubs[next];
-    final remembered = widget.focusMemory.getForHubOnly(_hubKey(nextHub), _totalItemCount(nextHub));
+    final remembered = widget.focusMemory.getForHubOnly(
+      _hubKey(nextHub),
+      _totalItemCount(nextHub),
+      fallback: _defaultSlotFor(nextHub),
+    );
     // No setState: the active-hub change is observed through _focusModel
     // selectors (cards, headers, artwork dim), so a hub move repaints only the
     // two affected rows instead of rebuilding every visible card. Section
     // extents don't depend on the active hub, so no relayout is needed.
     _hubIndex = next;
     _itemIndex = remembered.clamp(0, _totalItemCount(nextHub) == 0 ? 0 : _totalItemCount(nextHub) - 1);
+    // Landing on the leading slot only because the hub has no items yet is a
+    // clamp artifact, not a choice: advance to the first item once they load.
+    _pendingLeadingAutoAdvanceHubKey = nextHub.items.isEmpty && _isLeadingSlot(nextHub, _itemIndex)
+        ? _hubKey(nextHub)
+        : null;
     _hasUserChangedHub = true;
     _focusModel.set(_hubIndex, _itemIndex);
     _notifyFocusedItem();
@@ -753,11 +845,8 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
         final target = _sectionOffsets[_hubIndex].clamp(0.0, _sectionMaxScrollExtent).toDouble();
         if (animate) {
           _startVerticalScrollAnimation(
-            () => _verticalController.animateTo(
-              target,
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-            ),
+            () =>
+                _verticalController.animateTo(target, duration: _navigationScrollDuration, curve: Curves.easeOutCubic),
           );
         } else {
           _verticalScrollGeneration++;
@@ -776,7 +865,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
           () => Scrollable.ensureVisible(
             context,
             alignment: 0,
-            duration: const Duration(milliseconds: 250),
+            duration: _navigationScrollDuration,
             curve: Curves.easeOutCubic,
           ),
         );
@@ -813,13 +902,19 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   }
 
   void _setHoveredItem(MediaHub hub, int index) {
+    // A stationary cursor can end up "inside" a card that scrolls underneath
+    // it during d-pad navigation — Flutter re-hit-tests every frame, so that
+    // fires onEnter with no real mouse movement. Only trust hover as an
+    // intentional focus change while we're actually in pointer mode.
+    if (InputModeTracker.isKeyboardMode(context, listen: false)) return;
     final active = _activeHub;
-    if (active == null || _hubKey(active) != _hubKey(hub) || index >= hub.items.length || _itemIndex == index) {
+    if (active == null || _hubKey(active) != _hubKey(hub) || _itemAtSlot(hub, index) == null || _itemIndex == index) {
       return;
     }
     _hasUserInteracted = true;
     _itemIndex = index;
     _hasUserChangedItem = true;
+    _pendingLeadingAutoAdvanceHubKey = null;
     _focusModel.set(_hubIndex, _itemIndex);
     _rememberFocus(hub);
     _notifyFocusedItem();
@@ -839,6 +934,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     _itemIndex = clampedItemIndex;
     _hasUserChangedHub = true;
     _hasUserChangedItem = true;
+    _pendingLeadingAutoAdvanceHubKey = null;
     _focusModel.set(_hubIndex, _itemIndex);
     _rememberFocus(hub);
     _notifyFocusedItem();
@@ -894,6 +990,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     double viewportWidth,
     int initialItemIndex, {
     required bool hasTrailing,
+    required bool isActiveHub,
   }) {
     return _scrollControllers.putIfAbsent(_hubKey(hub), () {
       final maxScrollExtent = TvBrowseRailLayout.estimatedMaxScrollExtent(
@@ -910,7 +1007,13 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
         maxScrollExtent: maxScrollExtent,
         hasTrailing: hasTrailing,
       );
-      return ScrollController(initialScrollOffset: initialScrollOffset);
+      // Only the active hub may rest in the negative region that reveals the
+      // leading options card: an inactive row (e.g. a not-yet-fetched season
+      // whose only slot IS the card) must still rest anchored on its first
+      // item so the card stays off-screen.
+      return ScrollController(
+        initialScrollOffset: isActiveHub ? initialScrollOffset : math.max(0.0, initialScrollOffset),
+      );
     });
   }
 
@@ -924,15 +1027,40 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     return _mediaCardKeys.putIfAbsent('${_hubKey(hub)}:$itemIndex', () => GlobalKey<MediaCardState>());
   }
 
+  /// Global rect of the active hub's selected card, pricing one swipe step by
+  /// the card's geometry instead of the rail-wide focus node's (see
+  /// [LockedFocusRowNode]).
+  Rect? _focusedCardRect() {
+    final hub = _activeHub;
+    if (hub == null || _itemAtSlot(hub, _itemIndex) == null) return null;
+    final context = _cardKeyFor(hub, _itemIndex).currentContext;
+    final box = context?.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
+  }
+
   bool _isContinueWatchingHub(MediaHub hub) => widget.isContinueWatchingHub?.call(hub) ?? false;
 
   bool _usesContinueWatchingAction(MediaHub hub) {
     return widget.usesContinueWatchingAction?.call(hub) ?? _isContinueWatchingHub(hub);
   }
 
+  GlobalKey<MediaContextMenuState> _leadingMenuKeyFor(MediaHub hub) {
+    return _leadingMenuKeys.putIfAbsent(_hubKey(hub), () => GlobalKey<MediaContextMenuState>());
+  }
+
+  void _showLeadingContextMenu(MediaHub hub, {Offset? position}) {
+    _leadingMenuKeyFor(hub).currentState?.showContextMenu(context, position: position);
+  }
+
   void _showContextMenuForCurrentItem() {
     final hub = _activeHub;
-    if (hub == null || _itemIndex >= hub.items.length) return;
+    if (hub == null) return;
+    if (_isLeadingSlot(hub, _itemIndex)) {
+      _showLeadingContextMenu(hub);
+      return;
+    }
+    if (_itemAtSlot(hub, _itemIndex) == null) return;
     if (_isPersonHub(hub)) return;
     _cardKeyFor(hub, _itemIndex).currentState?.showContextMenu();
   }
@@ -940,7 +1068,11 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   Future<void> _activateCurrentItem() async {
     final hub = _activeHub;
     if (hub == null) return;
-    if (_itemIndex == hub.items.length && _hasTrailingFor(hub)) {
+    if (_isLeadingSlot(hub, _itemIndex)) {
+      _showLeadingContextMenu(hub);
+      return;
+    }
+    if (_isTrailingSlot(hub, _itemIndex)) {
       switch (_trailingFor(hub)) {
         case TvRailTrailing.error:
           widget.onRetryHub?.call(hub);
@@ -953,8 +1085,8 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
       }
       return;
     }
-    if (_itemIndex >= hub.items.length) return;
-    final item = hub.items[_itemIndex];
+    final item = _itemAtSlot(hub, _itemIndex);
+    if (item == null) return;
     final handled = await widget.onActivateItem?.call(hub, item);
     if (handled == true) return;
     if (!mounted) return;
@@ -1024,6 +1156,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
                 fullCardLayout: fullCardLayout,
                 tallPosterScale: widget.tallPosterScale,
                 widePosterScale: wideScales[i],
+                hasLeading: _hasLeadingFor(widget.hubs[i]),
               ),
           ];
           final sectionHeights = [
@@ -1228,11 +1361,11 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
         final hub = widget.hubs[hubIndex];
         final itemIndex = position.$2;
         final trailing = _trailingFor(hub);
-        final hasTrailing = trailing != TvRailTrailing.none;
-        final totalCount = hub.items.length + (hasTrailing ? 1 : 0);
-        final hasItem = itemIndex < hub.items.length;
-        final isTrailing = itemIndex == hub.items.length && hasTrailing;
-        final actionable = hasItem || (isTrailing && trailing != TvRailTrailing.loading);
+        final totalCount = _totalItemCount(hub);
+        final item = _itemAtSlot(hub, itemIndex);
+        final isLeading = _isLeadingSlot(hub, itemIndex);
+        final isTrailing = _isTrailingSlot(hub, itemIndex);
+        final actionable = item != null || isLeading || (isTrailing && trailing != TvRailTrailing.loading);
 
         // The enclosing Focus publishes its focused state independently. Keeping
         // that state out of this selector avoids rebuilding the label and actions
@@ -1245,7 +1378,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
           button: actionable,
           label: _semanticSelectionLabel(hub, itemIndex, trailing),
           onTap: actionable ? () => unawaited(_activateCurrentItem()) : null,
-          onLongPress: hasItem && !_isPersonHub(hub) ? _showContextMenuForCurrentItem : null,
+          onLongPress: (item != null || isLeading) && !_isPersonHub(hub) ? _showContextMenuForCurrentItem : null,
           onScrollLeft: itemIndex > 0 ? () => _moveItem(-1) : null,
           onScrollRight: itemIndex < totalCount - 1 ? () => _moveItem(1) : null,
           onScrollUp: hubIndex > 0 ? () => _moveHub(-1) : null,
@@ -1258,13 +1391,15 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
 
   String _semanticSelectionLabel(MediaHub hub, int itemIndex, TvRailTrailing trailing) {
     String selection;
-    if (itemIndex < hub.items.length) {
-      final item = hub.items[itemIndex];
+    final item = _itemAtSlot(hub, itemIndex);
+    if (item != null) {
       if (_isPersonHub(hub)) {
         selection = [item.displayTitle, if (item.parentTitle?.isNotEmpty == true) item.parentTitle!].join(', ');
       } else {
         selection = mediaCardSemanticLabel(item);
       }
+    } else if (_isLeadingSlot(hub, itemIndex)) {
+      selection = t.common.options;
     } else {
       selection = switch (trailing) {
         TvRailTrailing.loading => t.common.loading,
@@ -1354,8 +1489,8 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   }) {
     final isActiveHub = hubIndex == _hubIndex;
     final hasTrailing = _hasTrailingFor(hub);
-    final totalCount = hub.items.length + (hasTrailing ? 1 : 0);
-    final inactiveIndex = widget.focusMemory.getForHubOnly(_hubKey(hub), totalCount);
+    final totalCount = _totalItemCount(hub);
+    final inactiveIndex = widget.focusMemory.getForHubOnly(_hubKey(hub), totalCount, fallback: _defaultSlotFor(hub));
     final focusedIndex = isActiveHub ? _itemIndex : inactiveIndex;
     final scrollController = _scrollControllerForHub(
       hub,
@@ -1363,6 +1498,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
       railViewportWidth,
       focusedIndex,
       hasTrailing: hasTrailing,
+      isActiveHub: isActiveHub,
     );
     _metricsByHub[_hubKey(hub)] = metrics;
 
@@ -1405,100 +1541,139 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     required ScrollController scrollController,
     required int totalCount,
   }) {
+    final leadingCount = _leadingCountFor(hub);
+    const centerSliverKey = ValueKey('tv_browse_rail_row_center');
     return HorizontalScrollWithArrows(
       controller: scrollController,
-      builder: (scrollController) => ListView.builder(
+      builder: (scrollController) => CustomScrollView(
         controller: scrollController,
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        addAutomaticKeepAlives: false,
-        addSemanticIndexes: false,
-        padding: .fromLTRB(metrics.railEdgePadding, 2 * scale, metrics.railEdgePadding, 6 * scale),
-        // A fixed extent keeps all sliver offset and child-index math O(1).
-        itemExtent: TvBrowseRailLayout.itemExtentForIndex(index: 0, metrics: metrics),
-        itemCount: totalCount,
-        itemBuilder: (context, itemIndex) {
-          // Focus is observed through _focusModel so a d-pad move or a
-          // rail focus flip rebuilds only the cheap wrapper of the two
-          // affected cards; the card content below is passed through as
-          // a stable child.
-          bool isItemFocused() => _focusModel.railHasFocus && _focusModel.position == (hubIndex, itemIndex);
-
-          if (itemIndex == hub.items.length) {
-            return Padding(
-              padding: .only(right: metrics.itemGap),
-              child: Align(
-                alignment: .centerLeft,
-                child: ListenableSelector<bool>(
-                  listenable: _focusModel,
-                  selector: isItemFocused,
-                  builder: (context, isFocused, _) =>
-                      _buildTrailingSlot(context, hub, hubIndex, itemIndex, isFocused: isFocused, scale: scale),
+        // The row anchors at its first media item. The leading options card
+        // occupies the negative-offset region before the anchor, so at rest it
+        // sits off-screen and never pushes the hub's content right; focusing
+        // it (or dragging) scrolls it into view.
+        center: centerSliverKey,
+        slivers: [
+          if (leadingCount > 0)
+            SliverPadding(
+              padding: .fromLTRB(metrics.railEdgePadding, 2 * scale, 0, 6 * scale),
+              sliver: SliverToBoxAdapter(
+                child: Align(
+                  alignment: .topLeft,
+                  child: ListenableSelector<bool>(
+                    listenable: _focusModel,
+                    selector: () => _focusModel.railHasFocus && _focusModel.position == (hubIndex, 0),
+                    builder: (context, isFocused, _) =>
+                        _buildLeadingSlot(context, hub, hubIndex, metrics: metrics, isFocused: isFocused, scale: scale),
+                  ),
                 ),
               ),
-            );
-          }
+            ),
+          SliverPadding(
+            key: centerSliverKey,
+            padding: .fromLTRB(metrics.railEdgePadding, 2 * scale, metrics.railEdgePadding, 6 * scale),
+            sliver: SliverFixedExtentList(
+              // A fixed extent keeps all sliver offset and child-index math O(1).
+              itemExtent: TvBrowseRailLayout.itemExtentForIndex(index: 0, metrics: metrics),
+              delegate: SliverChildBuilderDelegate(
+                addAutomaticKeepAlives: false,
+                addSemanticIndexes: false,
+                childCount: totalCount - leadingCount,
+                (context, childIndex) {
+                  final itemIndex = childIndex + leadingCount;
+                  // Focus is observed through _focusModel so a d-pad move or a
+                  // rail focus flip rebuilds only the cheap wrapper of the two
+                  // affected cards; the card content below is passed through as
+                  // a stable child.
+                  bool isItemFocused() => _focusModel.railHasFocus && _focusModel.position == (hubIndex, itemIndex);
 
-          final item = hub.items[itemIndex];
-          // Record: (focused, glow shown). The glow is additionally gated on
-          // the vertical scroll being idle — it paints in the root overlay,
-          // unclipped by the rail's viewport, so on UP moves it would flash
-          // over the spotlight while the target row is still offscreen. The
-          // selection collapses to (false, false) for unfocused cards, so the
-          // flag flip repaints only the focused card.
-          final focusableCard = ListenableSelector<(bool, bool)>(
-            listenable: _focusModel,
-            selector: () {
-              final isFocused = isItemFocused();
-              return (isFocused, isFocused && !_focusModel.verticalScrollActive);
-            },
-            builder: (context, focus, child) => FocusBuilders.buildLockedFocusWrapper(
-              context: context,
-              isFocused: focus.$1,
-              borderRadius: tokens(context).radiusSm,
-              focusScale: fullCardLayout ? TvBrowseRailLayout.fullCardFocusScale : FocusTheme.focusScale,
-              useFocusGlow: fullCardLayout,
-              showGlow: focus.$2,
-              // The card draws the border itself (poster rect for
-              // standard cards, whole card when full-bleed).
-              delegateFocusBorder: true,
-              glowSize: fullCardLayout ? Size(metrics.cardWidth, metrics.posterHeight) : null,
-              onTap: () {
-                _selectHubItem(hub, hubIndex, itemIndex);
-                unawaited(_activateCurrentItem());
-              },
-              onLongPress: metrics.isPersonHub
-                  ? null
-                  : () {
-                      _selectHubItem(hub, hubIndex, itemIndex);
-                      _cardKeyFor(hub, itemIndex).currentState?.showContextMenu();
+                  if (_isTrailingSlot(hub, itemIndex)) {
+                    return Padding(
+                      padding: .only(right: metrics.itemGap),
+                      child: Align(
+                        alignment: .topLeft,
+                        child: ListenableSelector<bool>(
+                          listenable: _focusModel,
+                          selector: isItemFocused,
+                          builder: (context, isFocused, _) => _buildTrailingSlot(
+                            context,
+                            hub,
+                            hubIndex,
+                            itemIndex,
+                            metrics: metrics,
+                            isFocused: isFocused,
+                            scale: scale,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final item = hub.items[childIndex];
+                  // Record: (focused, glow shown). The glow is additionally gated on
+                  // the vertical scroll being idle — it paints in the root overlay,
+                  // unclipped by the rail's viewport, so on UP moves it would flash
+                  // over the spotlight while the target row is still offscreen. The
+                  // selection collapses to (false, false) for unfocused cards, so the
+                  // flag flip repaints only the focused card.
+                  final focusableCard = ListenableSelector<(bool, bool)>(
+                    listenable: _focusModel,
+                    selector: () {
+                      final isFocused = isItemFocused();
+                      return (isFocused, isFocused && !_focusModel.verticalScrollActive);
                     },
-              child: child!,
-            ),
-            // MergeSemantics: one node per card (MediaCard merges
-            // internally) — the per-frame semantics pass scales with
-            // node count on TV boxes with an accessibility service.
-            child: _buildHubCard(
-              context,
-              hub: hub,
-              hubIndex: hubIndex,
-              item: item,
-              itemIndex: itemIndex,
-              episodePosterMode: episodePosterMode,
-              metrics: metrics,
-              scale: scale,
-              fullCardLayout: fullCardLayout,
-            ),
-          );
+                    builder: (context, focus, child) => FocusBuilders.buildLockedFocusWrapper(
+                      context: context,
+                      isFocused: focus.$1,
+                      borderRadius: tokens(context).radiusSm,
+                      focusScale: fullCardLayout ? TvBrowseRailLayout.fullCardFocusScale : FocusTheme.focusScale,
+                      useFocusGlow: fullCardLayout,
+                      showGlow: focus.$2,
+                      // The card draws the border itself (poster rect for
+                      // standard cards, whole card when full-bleed).
+                      delegateFocusBorder: true,
+                      glowSize: fullCardLayout ? Size(metrics.cardWidth, metrics.posterHeight) : null,
+                      onTap: () {
+                        _selectHubItem(hub, hubIndex, itemIndex);
+                        unawaited(_activateCurrentItem());
+                      },
+                      onLongPress: metrics.isPersonHub
+                          ? null
+                          : () {
+                              _selectHubItem(hub, hubIndex, itemIndex);
+                              _cardKeyFor(hub, itemIndex).currentState?.showContextMenu();
+                            },
+                      child: child!,
+                    ),
+                    // MergeSemantics: one node per card (MediaCard merges
+                    // internally) — the per-frame semantics pass scales with
+                    // node count on TV boxes with an accessibility service.
+                    child: _buildHubCard(
+                      context,
+                      hub: hub,
+                      hubIndex: hubIndex,
+                      item: item,
+                      itemIndex: itemIndex,
+                      episodePosterMode: episodePosterMode,
+                      metrics: metrics,
+                      scale: scale,
+                      fullCardLayout: fullCardLayout,
+                    ),
+                  );
 
-          return Padding(
-            padding: .only(right: metrics.itemGap),
-            child: MouseRegion(
-              onEnter: (_) => _setHoveredItem(hub, itemIndex),
-              child: Align(alignment: .topLeft, child: focusableCard),
+                  return Padding(
+                    padding: .only(right: metrics.itemGap),
+                    child: MouseRegion(
+                      onEnter: (_) => _setHoveredItem(hub, itemIndex),
+                      child: Align(alignment: .topLeft, child: focusableCard),
+                    ),
+                  );
+                },
+              ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -1683,141 +1858,172 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   TvRailTrailing _trailingFor(MediaHub hub) =>
       widget.trailingForHub?.call(hub) ?? (hub.more ? TvRailTrailing.viewAll : TvRailTrailing.none);
 
+  /// The full-size options card occupying a hub's leading slot. Opens the
+  /// context menu for the hub's leading item (e.g. the season an episode hub
+  /// shows). Wrapped in the [MediaContextMenu] so keyboard/D-pad activation
+  /// and pointer taps share one menu instance.
+  Widget _buildLeadingSlot(
+    BuildContext context,
+    MediaHub hub,
+    int hubIndex, {
+    required TvBrowseRailLayoutMetrics metrics,
+    required bool isFocused,
+    required double scale,
+  }) {
+    final leadingItem = _leadingItemFor(hub);
+    if (leadingItem == null) return const SizedBox.shrink();
+    Offset? tapPosition;
+
+    return MediaContextMenu(
+      key: _leadingMenuKeyFor(hub),
+      item: leadingItem,
+      onRefresh: widget.onRefresh,
+      child: ClickableCursor(
+        child: GestureDetector(
+          onTap: () {
+            _selectHubItem(hub, hubIndex, 0);
+            _showLeadingContextMenu(hub);
+          },
+          onSecondaryTapDown: (details) => tapPosition = details.globalPosition,
+          onSecondaryTap: () {
+            _selectHubItem(hub, hubIndex, 0);
+            _showLeadingContextMenu(hub, position: tapPosition);
+          },
+          child: _buildActionCard(
+            context,
+            metrics: metrics,
+            isFocused: isFocused,
+            scale: scale,
+            icon: Symbols.more_horiz_rounded,
+            label: t.common.options,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTrailingSlot(
     BuildContext context,
     MediaHub hub,
     int hubIndex,
     int itemIndex, {
+    required TvBrowseRailLayoutMetrics metrics,
     required bool isFocused,
     required double scale,
   }) {
     switch (_trailingFor(hub)) {
       case TvRailTrailing.loading:
-        return _buildTrailingSpinner(context, isFocused: isFocused, scale: scale);
+        return _buildActionCard(context, metrics: metrics, isFocused: isFocused, scale: scale, spinner: true);
       case TvRailTrailing.error:
-        return _buildViewAllButton(
-          context,
-          isFocused: isFocused,
-          scale: scale,
-          label: t.common.retry,
-          icon: Symbols.refresh_rounded,
-          onTap: () {
-            _selectHubItem(hub, hubIndex, itemIndex);
-            widget.onRetryHub?.call(hub);
-          },
+        return ClickableCursor(
+          child: GestureDetector(
+            onTap: () {
+              _selectHubItem(hub, hubIndex, itemIndex);
+              widget.onRetryHub?.call(hub);
+            },
+            child: _buildActionCard(
+              context,
+              metrics: metrics,
+              isFocused: isFocused,
+              scale: scale,
+              icon: Symbols.refresh_rounded,
+              label: t.common.retry,
+            ),
+          ),
         );
       case TvRailTrailing.viewAll:
-        return _buildViewAllButton(
-          context,
-          isFocused: isFocused,
-          scale: scale,
-          onTap: () {
-            _selectHubItem(hub, hubIndex, itemIndex);
-            _navigateToHubDetail(hub);
-          },
+        return ClickableCursor(
+          child: GestureDetector(
+            onTap: () {
+              _selectHubItem(hub, hubIndex, itemIndex);
+              _navigateToHubDetail(hub);
+            },
+            child: _buildActionCard(
+              context,
+              metrics: metrics,
+              isFocused: isFocused,
+              scale: scale,
+              icon: Symbols.arrow_forward_rounded,
+              label: t.common.viewAll,
+            ),
+          ),
         );
       case TvRailTrailing.none:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildTrailingSpinner(BuildContext context, {required bool isFocused, required double scale}) {
+  /// Shared full-size action card used by the leading options slot and the
+  /// trailing View All / retry / loading slots: it matches the hub's card
+  /// footprint so the row reads as cards end-to-end instead of mixing in
+  /// compact pills.
+  Widget _buildActionCard(
+    BuildContext context, {
+    required TvBrowseRailLayoutMetrics metrics,
+    required bool isFocused,
+    required double scale,
+    IconData? icon,
+    String? label,
+    bool spinner = false,
+  }) {
     final theme = Theme.of(context);
     final duration = FocusTheme.getAnimationDuration(context);
-    final width = TvBrowseRailLayout.viewAllItemWidthForScale(scale);
-    final height = TvBrowseRailLayout.viewAllPillHeightForScale(scale);
     final foreground = isFocused ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.78);
     final background = isFocused
         ? theme.colorScheme.primary.withValues(alpha: 0.2)
-        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.18);
+        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: spinner ? 0.18 : 0.42);
+
     return AnimatedScale(
-      scale: isFocused ? 1.04 : 1.0,
+      scale: isFocused ? FocusTheme.focusScale : 1.0,
       duration: duration,
       curve: Curves.easeOutCubic,
       child: AnimatedContainer(
         duration: duration,
         curve: Curves.easeOutCubic,
-        width: width,
-        height: height,
+        width: metrics.cardWidth,
+        height: metrics.posterHeight,
         decoration: BoxDecoration(
           color: background,
-          borderRadius: BorderRadius.circular(height / 2),
+          borderRadius: BorderRadius.circular(tokens(context).radiusSm),
+          border: Border.all(
+            color: isFocused ? theme.colorScheme.primary : Colors.transparent,
+            width: FocusTheme.focusBorderWidth,
+          ),
           boxShadow: isFocused
               ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.2), blurRadius: 18, spreadRadius: 1)]
               : null,
         ),
-        child: Center(
-          child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: foreground)),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildViewAllButton(
-    BuildContext context, {
-    required bool isFocused,
-    required double scale,
-    required VoidCallback onTap,
-    String? label,
-    IconData icon = Symbols.arrow_forward_rounded,
-  }) {
-    final theme = Theme.of(context);
-    final duration = FocusTheme.getAnimationDuration(context);
-    final width = TvBrowseRailLayout.viewAllItemWidthForScale(scale);
-    final height = TvBrowseRailLayout.viewAllPillHeightForScale(scale);
-    final foreground = isFocused ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.78);
-    final background = isFocused
-        ? theme.colorScheme.primary.withValues(alpha: 0.2)
-        : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.42);
-
-    return ClickableCursor(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedScale(
-          scale: isFocused ? 1.04 : 1.0,
-          duration: duration,
-          curve: Curves.easeOutCubic,
-          child: AnimatedContainer(
-            duration: duration,
-            curve: Curves.easeOutCubic,
-            width: width,
-            height: height,
-            padding: .symmetric(horizontal: (12 * scale).clamp(10, 16).toDouble()),
-            decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(height / 2),
-              boxShadow: isFocused
-                  ? [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                        blurRadius: 18,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              mainAxisAlignment: .center,
-              children: [
-                Flexible(
-                  child: Text(
-                    label ?? t.common.viewAll,
-                    maxLines: 1,
-                    overflow: .ellipsis,
-                    style: TextStyle(
-                      color: foreground,
-                      fontSize: (13 * scale).clamp(12, 16).toDouble(),
-                      fontWeight: .w800,
-                      letterSpacing: 0.1,
-                    ),
-                  ),
+        child: spinner
+            ? Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: foreground),
                 ),
-                SizedBox(width: (5 * scale).clamp(4, 7).toDouble()),
-                AppIcon(icon, fill: 1, size: (18 * scale).clamp(16, 22).toDouble(), color: foreground),
-              ],
-            ),
-          ),
-        ),
+              )
+            : Center(
+                child: Column(
+                  mainAxisSize: .min,
+                  children: [
+                    AppIcon(icon!, fill: 1, size: (26 * scale).clamp(22, 32).toDouble(), color: foreground),
+                    SizedBox(height: (6 * scale).clamp(4, 9).toDouble()),
+                    Padding(
+                      padding: .symmetric(horizontal: (10 * scale).clamp(8, 14).toDouble()),
+                      child: Text(
+                        label!,
+                        maxLines: 1,
+                        overflow: .ellipsis,
+                        style: TextStyle(
+                          color: foreground,
+                          fontSize: (13 * scale).clamp(12, 16).toDouble(),
+                          fontWeight: .w800,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }

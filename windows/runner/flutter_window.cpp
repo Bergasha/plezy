@@ -102,7 +102,9 @@ static void DebounceSaveWindowPlacement(HWND hwnd) {
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project) : project_(project) {}
 
-FlutterWindow::~FlutterWindow() {}
+FlutterWindow::~FlutterWindow() {
+  is_destroying_flutter_controller_ = true;
+}
 
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
@@ -161,6 +163,7 @@ void FlutterWindow::OnDestroy() {
   window_channel_ = nullptr;
 
   if (flutter_controller_) {
+    is_destroying_flutter_controller_ = true;
     flutter_controller_ = nullptr;
   }
 
@@ -170,7 +173,7 @@ void FlutterWindow::OnDestroy() {
 LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message, WPARAM const wparam, LPARAM const lparam) noexcept {
   // Give Flutter, including plugins, an opportunity to handle window messages.
-  if (flutter_controller_) {
+  if (flutter_controller_ && !is_destroying_flutter_controller_) {
     std::optional<LRESULT> result = flutter_controller_->HandleTopLevelWindowProc(hwnd, message, wparam, lparam);
     if (result) {
       return *result;

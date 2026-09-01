@@ -18,9 +18,9 @@ ThemeData monoTheme({required bool dark, bool oled = false}) {
 
 ThemeData _buildMonoTheme({required bool dark, required bool oled, required TargetPlatform platform}) {
   // neutral greys tuned for crisp contrast
-  final ({Color bg, Color surface, Color outline, Color text, Color textMuted}) c;
+  final ({Color bg, Color surface, Color outline, Color text, Color textMuted}) raw;
   if (oled) {
-    c = (
+    raw = (
       bg: const Color(0xFF000000), // Pure black for OLED
       surface: const Color(0xFF0A0A0A), // Very dark gray
       outline: const Color(0x1FFFFFFF),
@@ -28,7 +28,7 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
       textMuted: const Color(0x99EDEDED),
     );
   } else if (dark) {
-    c = (
+    raw = (
       bg: const Color(0xFF0E0F12),
       surface: const Color(0xFF15171C),
       outline: const Color(0x1FFFFFFF),
@@ -36,7 +36,7 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
       textMuted: const Color(0x99EDEDED),
     );
   } else {
-    c = (
+    raw = (
       bg: const Color(0xFFF7F7F8),
       surface: const Color(0xFFFFFFFF),
       outline: const Color(0x19000000),
@@ -46,6 +46,21 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
   }
 
   final isDark = dark || oled;
+  // OLED only: a dark crimson accent stands in for the neutral palettes'
+  // monochrome one, so the focus ring, the sidebar/menu selection pill, and
+  // anything else keyed off colorScheme.primary (server-name labels, switches,
+  // progress bars, shuffle/repeat toggles, ...) pick up crimson instead of
+  // white-on-black. Every other mode keeps accent == text, so nothing about
+  // them changes.
+  final c = (
+    bg: raw.bg,
+    surface: raw.surface,
+    outline: raw.outline,
+    text: raw.text,
+    textMuted: raw.textMuted,
+    accent: oled ? const Color(0xFF8E1B26) : raw.text,
+    onAccent: oled ? Colors.white : (isDark ? raw.bg : Colors.white),
+  );
   final clickableCursor = WidgetStateProperty.resolveWith<MouseCursor>(
     (states) => states.contains(WidgetState.disabled) ? MouseCursor.defer : SystemMouseCursors.click,
   );
@@ -65,16 +80,16 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
     brightness: isDark ? Brightness.dark : Brightness.light,
     colorScheme: ColorScheme(
       brightness: isDark ? Brightness.dark : Brightness.light,
-      primary: c.text,
-      onPrimary: isDark ? c.bg : Colors.white,
-      secondary: c.text,
-      onSecondary: c.bg,
+      primary: c.accent,
+      onPrimary: c.onAccent,
+      secondary: c.accent,
+      onSecondary: c.onAccent,
       surface: c.surface,
       onSurface: c.text,
       error: const Color(0xFFB00020),
       onError: Colors.white,
-      tertiary: c.text,
-      onTertiary: c.bg,
+      tertiary: c.accent,
+      onTertiary: c.onAccent,
       primaryContainer: c.surface,
       onPrimaryContainer: c.text,
       secondaryContainer: c.surface,
@@ -95,7 +110,7 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
     highlightColor: Colors.transparent,
     // Explicit mono-derived tile highlights: ListTile's native focus/hover
     // fill is the dpad focus visual inside M3E grouped-list cards.
-    focusColor: c.text.withValues(alpha: 0.12),
+    focusColor: c.accent.withValues(alpha: 0.12),
     hoverColor: c.text.withValues(alpha: 0.05),
     dividerColor: c.outline,
     scaffoldBackgroundColor: c.bg,
@@ -190,6 +205,7 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
         outline: c.outline,
         text: c.text,
         textMuted: c.textMuted,
+        accent: c.accent,
       ),
     ],
   );

@@ -1,16 +1,17 @@
 name: plezy
-description: "A beautiful Plex and Jellyfin client for Flutter"
+description: "Makes Shayflix way better"
 publish_to: "none"
-version: 2.17.0+145
+version: 2.15.12+155
 
 environment:
+  # Dart floor stays 3.12: freezed 3.x emits `final` constructor parameters,
+  # which language 3.13 removed. Raise together with a freezed 4 migration.
   sdk: ">=3.12.0 <4.0.0"
-  flutter: ">=3.44.0"
+  flutter: ">=3.47.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  clock: ^1.1.2
   intl: ^0.20.2
   json_annotation: ^4.12.0
   shared_preferences: ^2.5.4
@@ -67,8 +68,6 @@ dependencies:
       url: https://github.com/edde746/auto_updater
       path: packages/auto_updater
       ref: 9e150f7
-  cupertino_http: ^3.0.2
-  cronet_http: ^1.6.0
   win_http: ^0.2.2
   collection: ^1.18.0
   freezed_annotation: ^3.1.0

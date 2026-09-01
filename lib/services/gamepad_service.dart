@@ -156,6 +156,26 @@ class GamepadService with WindowListener {
   StreamSubscription<GamepadEvent>? _subscription;
   final GamepadDuplicateInputGuard _duplicateInputGuard;
 
+  /// Notified on every gamepad button press or significant axis movement.
+  /// A listener list (not a single settable callback) so independent
+  /// consumers — idle-activity tracking (InputModeTracker now uses
+  /// [InputModeTracker.reportNonPointerInput] directly instead) — can
+  /// coexist without clobbering each other's registration.
+  static final List<VoidCallback> _gamepadInputListeners = [];
+
+  static void addGamepadInputListener(VoidCallback listener) => _gamepadInputListeners.add(listener);
+
+  static void removeGamepadInputListener(VoidCallback listener) => _gamepadInputListeners.remove(listener);
+
+  static void _notifyGamepadInput() {
+    for (final listener in List<VoidCallback>.of(_gamepadInputListeners)) {
+      listener();
+    }
+  }
+
+  @visibleForTesting
+  static void debugNotifyGamepadInput() => _notifyGamepadInput();
+
   static final Map<Object, ({VoidCallback previous, VoidCallback next, bool Function() isActive})>
   _tabNavigationHandlers = {};
 
@@ -432,6 +452,7 @@ class GamepadService with WindowListener {
 
     // Switch to keyboard mode on any button press
     if (event.pressed) {
+      _notifyGamepadInput();
       InputModeTracker.reportNonPointerInput();
     }
     // Ensure a frame is scheduled so addPostFrameCallback-based key
@@ -564,6 +585,7 @@ class GamepadService with WindowListener {
     // Promotion must fire on the same event that navigates: gating below the
     // real deadzone would let analog-stick drift hide the desktop cursor.
     if (event.value.abs() > _stickDeadzone) {
+      _notifyGamepadInput();
       InputModeTracker.reportNonPointerInput();
     }
 

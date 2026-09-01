@@ -6,6 +6,7 @@ import '../focus/dpad_navigator.dart';
 import '../focus/dpad_select_long_press_controller.dart';
 import '../focus/focus_theme.dart';
 import '../focus/input_mode_tracker.dart';
+import '../focus/focus_navigation_intent.dart';
 import '../focus/key_event_utils.dart';
 import '../services/settings_service.dart';
 import 'settings_builder.dart';
@@ -149,12 +150,16 @@ class HubSectionState extends State<HubSection> with MountedSetStateMixin, Skele
     return serverId == null ? widget.hub.id : '$serverId:${widget.hub.id}';
   }
 
+  // Native tvOS focus-engine scroll settles over ~450-900ms of ease-out
+  // (FocusProbe capture, issue #2006); successive steps retarget the
+  // animation so a drag chains into one continuous glide.
+  static const _navigationScrollDuration = Duration(milliseconds: 500);
   final _selectLongPress = DpadSelectLongPressController();
 
   @override
   void initState() {
     super.initState();
-    _hubFocusNode = FocusNode(debugLabel: 'hub_${widget.hub.id}');
+    _hubFocusNode = LockedFocusRowNode(debugLabel: 'hub_${widget.hub.id}', focusedItemRect: _focusedItemRect);
     _hubFocusNode.addListener(_onFocusChange);
   }
 
@@ -261,8 +266,8 @@ class HubSectionState extends State<HubSection> with MountedSetStateMixin, Skele
       Scrollable.ensureVisible(
         context,
         alignment: widget.focusScrollAlignment,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+        duration: _navigationScrollDuration,
+        curve: Curves.easeOutCubic,
       );
     });
   }
@@ -278,6 +283,8 @@ class HubSectionState extends State<HubSection> with MountedSetStateMixin, Skele
       itemExtent: _itemExtent,
       leadingPadding: _leadingPadding,
       animate: animate,
+      duration: _navigationScrollDuration,
+      curve: Curves.easeOutCubic,
     );
     if (index >= 0 && index < _totalItemCount) {
       scrollKeyedChildToHorizontalCenter(
@@ -285,6 +292,8 @@ class HubSectionState extends State<HubSection> with MountedSetStateMixin, Skele
         _itemKeyFor(index),
         animate: animate,
         isCurrent: () => _focusedIndex == index && index < _totalItemCount,
+        duration: _navigationScrollDuration,
+        curve: Curves.easeOutCubic,
       );
     }
   }
@@ -374,6 +383,15 @@ class HubSectionState extends State<HubSection> with MountedSetStateMixin, Skele
 
   GlobalKey _itemKeyFor(int index) {
     return _itemKeys.putIfAbsent(index, () => GlobalKey());
+  }
+
+  /// Global rect of the selected card, pricing one swipe step by the card's
+  /// geometry instead of the row-wide focus node's (see [LockedFocusRowNode]).
+  Rect? _focusedItemRect() {
+    final context = _itemKeys[_focusedIndex]?.currentContext;
+    final box = context?.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
   }
 
   GlobalKey<MediaCardState> _getMediaCardKey(int index) {
@@ -585,8 +603,14 @@ class HubSectionState extends State<HubSection> with MountedSetStateMixin, Skele
 
                     final containerHeight = posterHeight + (isTv ? 48 : 33);
                     final focusBorderWidth = FocusTheme.focusBorderWidth;
-                    final focusExtra = focusBorderWidth * 2; // border on both sides
-                    _itemExtent = cardWidth + focusExtra + 4;
+                    final focusExtra = focusBorderWidth * 2; // border on both sides, for container height only
+                    // Real per-item pitch in the list below: cardWidth plus its own
+                    // 2px+2px padding. The focus border is paint-only (see
+                    // CardFocusScope) and must not be folded in here — it would
+                    // overstate every preceding item's width, and the error compounds
+                    // with index until the precise post-frame correction in
+                    // _scrollToIndex has to visibly yank the scroll position back.
+                    _itemExtent = cardWidth + 4;
 
                     // Everything the card closures capture; a change flushes
                     // the memo so cached cards can't carry stale geometry.

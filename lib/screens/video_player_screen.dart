@@ -1,7 +1,6 @@
 import 'dart:async';
 import '../media/ids.dart';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:plezy/widgets/app_icon.dart';
@@ -35,6 +34,7 @@ import '../media/media_source_info.dart';
 import '../mixins/mounted_set_state_mixin.dart';
 import '../providers/download_provider.dart';
 import '../providers/multi_server_provider.dart';
+import '../providers/offline_mode_provider.dart';
 import '../providers/playback_state_provider.dart';
 import '../providers/companion_remote_provider.dart';
 import '../services/fullscreen_state_manager.dart';
@@ -429,6 +429,16 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   static String? get activeGlobalKey => _activeRouteGuard.activeGlobalKey;
 
   static bool isNavigationActive(VideoPlayerLaunchIdentity identity) => _activeRouteGuard.blocks(identity);
+
+  /// Whether the active player is actually playing right now, as opposed to
+  /// merely mounted — [activeGlobalKey] alone doesn't distinguish a paused
+  /// player from a playing one, so callers that only want to avoid
+  /// interrupting *active* playback (e.g. the idle screensaver) should check
+  /// this too. Mirrors the player's own `streams.playing`, so it reflects a
+  /// pause however it happened (user, sleep timer, lifecycle, audio focus).
+  static bool _isActivelyPlaying = false;
+
+  static bool get isActivelyPlaying => activeGlobalKey != null && _isActivelyPlaying;
 
   Player? player;
   VideoVolumeController? _volumeController;
@@ -1227,7 +1237,6 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       _autoPipEnabled = settingsService.read(SettingsService.autoPip);
       _exitFullscreenOnPlayerClose = settingsService.read(SettingsService.exitFullscreenOnPlayerClose);
       _rewindOnResume = settingsService.read(SettingsService.rewindOnResume);
-      final bufferSizeMB = settingsService.read(SettingsService.bufferSize);
       final playbackBufferTier = settingsService.read(SettingsService.playbackBufferTier);
       final enableHardwareDecoding = settingsService.read(SettingsService.enableHardwareDecoding);
       final debugLoggingEnabled = settingsService.read(SettingsService.enableDebugLogging);
@@ -1242,8 +1251,8 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       // the context (providers), which is still safe to touch here because no
       // async gaps invalidate it between the guard after the settings await
       // and the reads below.
-      // Skipped for live TV (has its own tune path) and offline (its own
-      // branch in _startPlayback).
+      // Skipped for live TV (has its own tune path — only the quality preset
+      // is resolved below) and offline (its own branch in _startPlayback).
       if (!widget.isLive && !_offlineLibraryMode) {
         // Backend-neutral lookup so Jellyfin items also flow through here.
         // Plex-specific transcoder caching is gated on capabilities below;
@@ -1254,16 +1263,19 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
           throw StateError('No client registered for ${_currentMetadata.serverId}');
         }
         // Single source of truth for showing quality controls and applying the
-        // saved startup quality. Backends that cannot transcode always start at
-        // Original even if the user picked a lower default quality.
+        // saved startup quality. An explicit per-play pick wins; otherwise the
+        // saved default applies, which on a cellular-only connection is the
+        // cellular one when set. The connection type piggybacks on the app's
+        // single connectivity subscription in OfflineModeProvider.
         _serverSupportsTranscoding = genericClient.capabilities.videoTranscoding;
-        if (widget.selectedQualityPreset == null) {
-          _selectedQualityPreset = _serverSupportsTranscoding
-              ? settingsService.read(SettingsService.defaultQualityPreset)
-              : TranscodeQualityPreset.original;
-        } else {
-          _selectedQualityPreset = widget.selectedQualityPreset!;
-        }
+        _selectedQualityPreset =
+            widget.selectedQualityPreset ??
+            TranscodeQualityPreset.resolveStartupDefault(
+              serverSupportsTranscoding: _serverSupportsTranscoding,
+              onCellularOnly: context.read<OfflineModeProvider>().isCellularOnly,
+              cellularDefault: settingsService.read(SettingsService.cellularQualityPreset),
+              generalDefault: settingsService.read(SettingsService.defaultQualityPreset),
+            );
         final playbackResolver = PlaybackSourceResolver(
           serverManager: context.read<MultiServerProvider>().serverManager,
           database: context.read<AppDatabase>(),
@@ -1287,6 +1299,20 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         // tell Dart we've "handled" the future so it's not reported as an
         // unhandled async error. The later `await` still receives the error.
         _playbackDataFuture!.ignore();
+      }
+      if (widget.isLive) {
+        // Live TV skips the resolver but honors the same saved quality
+        // default: on Original the backend may direct-play the channel, on a
+        // capped preset it transcodes at that ceiling (#2198). Both live
+        // backends can transcode, so the capability gate is moot here.
+        _selectedQualityPreset =
+            widget.selectedQualityPreset ??
+            TranscodeQualityPreset.resolveStartupDefault(
+              serverSupportsTranscoding: true,
+              onCellularOnly: context.read<OfflineModeProvider>().isCellularOnly,
+              cellularDefault: settingsService.read(SettingsService.cellularQualityPreset),
+              generalDefault: settingsService.read(SettingsService.defaultQualityPreset),
+            );
       }
 
       if (Platform.isWindows) {
@@ -1324,60 +1350,17 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         final tunneledPlayback = settingsService.read(SettingsService.tunneledPlayback);
         await currentPlayer.setProperty('tunneled-playback', tunneledPlayback ? 'yes' : 'no');
         await currentPlayer.setProperty('exo-buffer-tier', playbackBufferTier.nativeValue);
-        await currentPlayer.setProperty('demuxer-mode', settingsService.read(SettingsService.demuxerMode).nativeValue);
       }
-      if ((Platform.isAndroid && useExoPlayer) || Platform.isIOS || Platform.isMacOS) {
+      if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) {
         final dvConversionMode = settingsService.read(SettingsService.dvConversionMode);
         await currentPlayer.setProperty('dv-conversion-mode', dvConversionMode.nativeValue);
       }
       if (Platform.isIOS || Platform.isMacOS) {
         await currentPlayer.setProperty('dv-conversion-log', debugLoggingEnabled ? 'yes' : 'no');
       }
-      if (bufferSizeMB > 0) {
-        final bufferSizeBytes = bufferSizeMB * 1024 * 1024;
-        await currentPlayer.setProperty('demuxer-max-bytes', bufferSizeBytes.toString());
-        final backBytes = bufferSizeBytes ~/ 4;
-        await currentPlayer.setProperty('demuxer-max-back-bytes', backBytes.toString());
-      }
-      if (Platform.isAndroid) {
-        // Cap demuxer buffers based on device heap to prevent OOM crashes.
-        // Without limits, mpv defaults can consume 225MB+ just for demuxer
-        // buffering, which combined with decoded frames and GPU textures
-        // exhausts the process address space on memory-constrained devices.
-        final heapMB = await PlayerAndroid.getHeapSize();
-        if (!_isPlayerInitializationCurrent(generation)) return;
-        if (heapMB > 0) {
-          int autoBackMB;
-          if (heapMB <= 256) {
-            autoBackMB = 16;
-          } else if (heapMB <= 512) {
-            autoBackMB = 32;
-          } else {
-            autoBackMB = 48;
-          }
-          if (bufferSizeMB == 0) {
-            int autoForwardMB;
-            if (heapMB <= 256) {
-              autoForwardMB = 32;
-            } else if (heapMB <= 512) {
-              autoForwardMB = 64;
-            } else {
-              autoForwardMB = 100;
-            }
-            await currentPlayer.setProperty('demuxer-max-bytes', '${autoForwardMB * 1024 * 1024}');
-            await currentPlayer.setProperty('demuxer-max-back-bytes', '${autoBackMB * 1024 * 1024}');
-            // These tiers size mpv's demuxer. ExoPlayer's LoadControl allocator is a
-            // different consumer — a flat byte cap there collapses to a few seconds of
-            // read-ahead on a 100 Mbps remux — so let the native side derive its own
-            // target on Auto (#1618).
-            await currentPlayer.setProperty('demuxer-max-bytes-auto', 'yes');
-          } else {
-            // Manual mode: cap back-buffer relative to heap if 1/4 ratio is too high
-            final maxBackBytes = min(bufferSizeMB * 1024 * 1024 ~/ 4, autoBackMB * 1024 * 1024);
-            await currentPlayer.setProperty('demuxer-max-back-bytes', maxBackBytes.toString());
-          }
-        }
-      }
+      // Android demuxer memory is owned natively: MpvPlayerCore caps its
+      // demuxer cache off the device heap class at init (DemuxerBudget), and
+      // ExoPlayer's LoadControlPolicy derives its own target the same way.
       // requestAudioFocus initializes Android players, so start it only after
       // init-time ExoPlayer options above have been cached.
       if (Platform.isAndroid && !widget.isLive) {
@@ -1389,6 +1372,18 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         await currentPlayer.setLogLevel(debugLoggingEnabled ? 'v' : 'warn');
       }
       await currentPlayer.setProperty('hwdec', _getHwdecValue(enableHardwareDecoding));
+
+      // Deinterlacing (#2149) is mpv-only by design — ExoPlayer has no filter
+      // chain. `auto` deinterlaces only content flagged interlaced. Wrapped:
+      // a preference must never abort player initialization (an older core
+      // that rejects `auto` just keeps its default).
+      if (!(Platform.isAndroid && useExoPlayer) && settingsService.read(SettingsService.deinterlace)) {
+        try {
+          await currentPlayer.setProperty('deinterlace', 'auto');
+        } catch (e) {
+          appLogger.w('VideoPlayerScreen: deinterlace not applied', error: e);
+        }
+      }
 
       // Subtitle styling is a preference, never a reason to fail playback.
       // mpv 0.40's OPT_COLOR parser accepts only #RRGGBB/#AARRGGBB (or
@@ -2006,7 +2001,13 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       // player→player handoff; the replacement screen primes its own.
       unawaited(playerToDispose.dispose(preserveDisplayMode: isReplacingWithVideo));
     }
-    _activeRouteGuard.clear(this);
+    // A player→player handoff (e.g. episode transition) pushes a replacement
+    // screen that activates and starts playing before this one disposes — an
+    // unconditional reset here would stomp the replacement's already-correct
+    // _isActivelyPlaying with this instance's stale false. clear(this) only
+    // succeeds (and only then should the flag reset) when this instance is
+    // still the current owner, exactly like activeGlobalKey already handles.
+    if (_activeRouteGuard.clear(this)) _isActivelyPlaying = false;
     super.dispose();
   }
 
@@ -2449,6 +2450,12 @@ String _getHwdecValue(bool enabled) {
   if (Platform.isMacOS || Platform.isIOS) {
     return 'videotoolbox';
   } else if (Platform.isAndroid) {
+    // The fork vo=mediacodec takes MediaCodec decoder buffers straight to the
+    // video plane and copies software frames into the Surface's gralloc buffer
+    // when the frame is not a decoder handle (vo_mediacodec.c sw_present), so
+    // -copy displays correctly on the plane. It is also the only hardware path
+    // left under the GL vos below API 26, where the direct AImageReader interop
+    // mediacodec needs does not exist (minSdk 25 for Fire OS 6).
     return 'mediacodec,mediacodec-copy';
   } else {
     return 'auto'; // Windows, Linux

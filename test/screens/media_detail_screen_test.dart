@@ -42,6 +42,7 @@ import 'package:plezy/utils/video_player_navigation.dart';
 import 'package:plezy/widgets/collapsible_text.dart';
 import 'package:plezy/widgets/cycling_media_backdrop.dart';
 import 'package:plezy/widgets/episode_card.dart';
+import 'package:plezy/widgets/fitting_title_text.dart';
 import 'package:plezy/widgets/tv_browse_rail.dart';
 import 'package:plezy/widgets/media_details_sheet.dart';
 import 'package:provider/provider.dart';
@@ -478,6 +479,105 @@ void main() {
     expect(find.text('Season 1'), findsOneWidget);
     expect(find.text('Specials'), findsNothing);
     expect(find.text('S1E1'), findsOneWidget);
+  });
+
+  testWidgets('TV detail exposes each season as its episode hub leading options item', (tester) async {
+    await SettingsService.getInstance();
+
+    final show = testMediaItem(
+      id: 'show_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.show,
+      title: 'The Show',
+      serverId: 'server_1',
+      serverName: 'Server',
+    );
+    final season1 = testMediaItem(
+      id: 'season_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.season,
+      title: 'Season 1',
+      index: 1,
+      parentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final season2 = testMediaItem(
+      id: 'season_2',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.season,
+      title: 'Season 2',
+      index: 2,
+      parentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final episode1 = testMediaItem(
+      id: 'episode_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.episode,
+      title: 'Episode 1',
+      index: 1,
+      parentId: season1.id,
+      parentIndex: season1.index,
+      grandparentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final episode2 = testMediaItem(
+      id: 'episode_2',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.episode,
+      title: 'Episode 2',
+      index: 1,
+      parentId: season2.id,
+      parentIndex: season2.index,
+      grandparentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+
+    final client = _FakeMediaServerClient(
+      show: show,
+      childrenByParent: {
+        show.id: [season1, season2],
+        season1.id: [episode1],
+        season2.id: [episode2],
+      },
+    );
+    final provider = testMultiServer(clients: [client]).provider;
+
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: ChangeNotifierProvider<MultiServerProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            theme: monoTheme(dark: true),
+            home: withProfileNavigationScope(
+              child: SizedBox(width: 1280, height: 720, child: MediaDetailScreen(metadata: show)),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // Every season hub surfaces its own season as the leading options item —
+    // the D-pad path to mark a whole season watched/unwatched (#2156).
+    final rail = tester.widget<TvBrowseRail>(find.byType(TvBrowseRail));
+    expect(rail.leadingItemForHub, isNotNull);
+    final seasonHubs = rail.hubs.where((hub) => hub.id.startsWith('detail_season_')).toList();
+    expect(seasonHubs, hasLength(2));
+    expect(rail.leadingItemForHub!(seasonHubs[0])?.id, season1.id);
+    expect(rail.leadingItemForHub!(seasonHubs[1])?.id, season2.id);
+
+    // Non-season hubs (flatten episodes, actors, extras, related) get none.
+    const flattenHub = MediaHub(id: 'detail_episodes', title: 'Episodes', type: 'episode', items: <MediaItem>[]);
+    expect(rail.leadingItemForHub!(flattenHub), isNull);
   });
   testWidgets('TV detail reveal still waits for the supplemental sections', (tester) async {
     // Counterpart to the test above: the early paint does NOT move the TV
@@ -1042,6 +1142,7 @@ void main() {
       int? initialSeasonIndex,
       String? initialEpisodeId,
       NavigatorObserver? observer,
+      ThemeData? theme,
     }) async {
       TvDetectionService.debugSetAppleTVOverride(false);
       await SettingsService.getInstance();
@@ -1089,7 +1190,7 @@ void main() {
             ],
             child: MaterialApp(
               navigatorObservers: [?observer],
-              theme: monoTheme(dark: true),
+              theme: theme ?? monoTheme(dark: true),
               home: withProfileNavigationScope(
                 child: MediaDetailScreen(
                   metadata: show,
@@ -1140,6 +1241,20 @@ void main() {
         },
       );
     }
+
+    testWidgets('phone hero title fallback uses the light theme foreground', (tester) async {
+      // The hero scrim washes artwork toward the near-white light background;
+      // the old hard-coded white title vanished into it on bright covers.
+      final show = buildShow();
+      final theme = monoTheme(dark: false);
+      await pumpPhoneDetail(tester, singleSeasonClient(show), show, theme: theme);
+
+      final heroTitle = tester.widget<FittingTitleText>(find.byType(FittingTitleText).first);
+      expect(heroTitle.style?.color, theme.colorScheme.onSurface);
+      final shadow = heroTitle.style?.shadows?.single;
+      expect(shadow, isNotNull);
+      expect(shadow!.color.computeLuminance(), greaterThan(0.5), reason: 'light theme halos with a light shadow');
+    });
 
     testWidgets('paints the item before the on-deck lookup settles', (tester) async {
       // Jellyfin needs a second round trip for on-deck; the phone/desktop

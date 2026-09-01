@@ -1,6 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../media/media_item.dart';
+
+/// True when [extra] is a trailer, per Plex's extra-type metadata (checked
+/// via the neutral [MediaItem] pattern where available, falling back to the
+/// raw `ExtraType`/`Type` fields for other shapes).
+bool isTrailerExtra(MediaItem extra) {
+  if (extra case PlexMediaItem(:final subtype?)) {
+    return subtype.toLowerCase() == 'trailer';
+  }
+  final raw = extra.raw;
+  final extraType = raw?['ExtraType'] as String?;
+  final type = raw?['Type'] as String?;
+  return extraType?.toLowerCase() == 'trailer' || type?.toLowerCase() == 'trailer';
+}
+
 class ContentTypes {
   ContentTypes._();
 

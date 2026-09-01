@@ -24,15 +24,18 @@ import '../providers/trackers_provider.dart';
 import '../providers/watch_state_store.dart';
 import '../database/app_database.dart';
 import '../screens/main_screen.dart';
+import '../screens/video_player_screen.dart';
 import '../services/api_cache.dart';
 import '../services/catalog/catalog_library_matcher.dart';
 import '../services/music/music_playback_service.dart';
 import '../services/music/music_playback_service_impl.dart';
+import '../services/music/music_session_store.dart';
 import '../services/offline_watch_sync_service.dart';
 import '../services/storage_service.dart';
 import '../services/system_shelf_service.dart';
 import '../utils/app_logger.dart';
 import '../watch_together/providers/watch_together_provider.dart';
+import '../widgets/idle_screensaver_overlay.dart';
 import '../widgets/music/mini_player.dart';
 import 'profile_navigation_scope.dart';
 import 'settings_shortcut.dart';
@@ -231,6 +234,9 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                     // stays valid for as long as this provider does.
                     watchStateStore: context.read<WatchStateStore>(),
                     isProfileBinding: () => activeProfile.isBinding,
+                    // Defers push-triggered hub refetches while the player is
+                    // up — same playback-quiet policy as the resume gate.
+                    isRefreshBlocked: () => VideoPlayerScreenState.activeGlobalKey != null,
                     profileId: activeId,
                   );
                 },
@@ -244,6 +250,11 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                   serverManager: context.read<MultiServerProvider>().serverManager,
                   database: context.read<AppDatabase>(),
                   offlineWatchService: context.read<OfflineWatchSyncService>(),
+                  // Last-session restore (#2148) is per profile; no profile,
+                  // nothing to restore.
+                  sessionStore: activeId == null
+                      ? null
+                      : MusicSessionStore(database: context.read<AppDatabase>(), profileId: activeId),
                 ),
               ),
               ChangeNotifierProvider(create: (context) => WatchTogetherProvider()),
@@ -350,6 +361,9 @@ class _ProfileSessionNavigatorState extends State<_ProfileSessionNavigator> {
                   onGenerateRoute: _onGenerateRoute,
                 ),
                 const Positioned.fill(child: MusicMiniPlayerOverlay()),
+                // Topmost: must cover every content route, including the mini
+                // player, once idle.
+                const Positioned.fill(child: IdleScreensaverOverlay()),
               ],
             ),
           ),

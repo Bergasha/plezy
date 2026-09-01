@@ -222,12 +222,19 @@ class PlayerChromeController extends ChangeNotifier implements ValueListenable<b
 class PlayerChromeInteractionRegion extends StatelessWidget {
   final PlayerChromeController controller;
   final bool hideOnExit;
+
+  /// Whether passive mouse movement should bring the chrome back. Callers
+  /// wire this to the user's "show controls on mouse move" preference;
+  /// deliberate interactions (clicks, scroll) go through the controller
+  /// directly and are unaffected.
+  final bool wakeOnHover;
   final Widget child;
 
   const PlayerChromeInteractionRegion({
     super.key,
     required this.controller,
     required this.hideOnExit,
+    this.wakeOnHover = true,
     required this.child,
   });
 
@@ -238,7 +245,7 @@ class PlayerChromeInteractionRegion extends StatelessWidget {
       builder: (context, _) {
         return MouseRegion(
           cursor: controller.controlsVisible ? SystemMouseCursors.basic : SystemMouseCursors.none,
-          onHover: (_) => controller.recordPointerActivity(),
+          onHover: wakeOnHover ? (_) => controller.recordPointerActivity() : null,
           onExit: (_) {
             if (!hideOnExit) return;
             controller.cancelAutoHide();

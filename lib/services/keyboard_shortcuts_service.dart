@@ -194,6 +194,7 @@ class KeyboardShortcutsService extends ChangeNotifier {
     required bool canNavigateMediaItems,
     VoidCallback? onPlayPause,
     VoidCallback? onToggleShader,
+    VoidCallback? onTogglePerformanceOverlay,
     VoidCallback? onSkipMarker,
     VoidCallback? onNextEpisode,
     VoidCallback? onPreviousEpisode,
@@ -350,6 +351,8 @@ class KeyboardShortcutsService extends ChangeNotifier {
             player.command(['sub-seek', '-1']);
           case ShortcutAction.shaderToggle:
             onToggleShader?.call();
+          case ShortcutAction.performanceOverlayToggle:
+            onTogglePerformanceOverlay?.call();
           case ShortcutAction.skipMarker:
             onSkipMarker?.call();
           case ShortcutAction.screenshot:

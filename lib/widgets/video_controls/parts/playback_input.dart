@@ -279,7 +279,12 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
     final hit = _edgeAdjustmentSurfaceHit(event.position);
     _handleEdgeAdjustmentEvent(
       _mobileTouchGesturesAllowed && hit != null
-          ? _edgeAdjustmentTracker.pointerDown(event.pointer, hit.position, hit.size)
+          ? _edgeAdjustmentTracker.pointerDown(
+              event.pointer,
+              hit.position,
+              hit.size,
+              isSideEnabled: _edgeAdjustmentGestureEnabled,
+            )
           : const MobileEdgeAdjustmentEvent.none(),
     );
   }
@@ -347,15 +352,53 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
     return (position: renderObject.globalToLocal(globalPosition), size: renderObject.size);
   }
 
+  /// Whether a global touch position sits in an edge zone that can actually
+  /// start a gesture — a disabled swipe (#1810) must not keep stealing the
+  /// content-strip drag.
   bool _isGlobalPositionInEdgeAdjustmentZone(Offset globalPosition) {
     final hit = _edgeAdjustmentSurfaceHit(globalPosition);
     if (hit == null) return false;
-    return mobileEdgeAdjustmentZoneForPosition(position: hit.position, size: hit.size) != null;
+    final side = mobileEdgeAdjustmentZoneForPosition(position: hit.position, size: hit.size);
+    return side != null && _edgeAdjustmentGestureEnabled(side);
   }
+
+  /// Left edge adjusts brightness, right edge volume — mirror that split for
+  /// the per-gesture prefs.
+  bool _edgeAdjustmentGestureEnabled(MobileEdgeAdjustmentSide side) => SettingsService.instance.read(
+    side == MobileEdgeAdjustmentSide.left ? SettingsService.gestureBrightnessSwipe : SettingsService.gestureVolumeSwipe,
+  );
 
   void _refreshDeviceAdjustmentValues() {
     unawaited(_readEdgeAdjustmentValue(MobileEdgeAdjustmentSide.left));
     unawaited(_readEdgeAdjustmentValue(MobileEdgeAdjustmentSide.right));
+  }
+
+  /// Player entry and resume both funnel here: reapply the remembered swipe
+  /// brightness (#2178) before re-reading the gesture baselines, so the next
+  /// swipe starts from the level actually on screen.
+  void _handleDeviceAdjustmentResume() => unawaited(_applyRememberedBrightnessThenRefresh());
+
+  Future<void> _applyRememberedBrightnessThenRefresh() async {
+    final settings = SettingsService.instance;
+    if (settings.read(SettingsService.rememberBrightnessLevel) &&
+        settings.read(SettingsService.gestureBrightnessSwipe)) {
+      final value = settings.read(SettingsService.rememberedBrightnessLevel);
+      // Negative means "never set"; the write below only stores 0.0-1.0.
+      if (value >= 0.0 && value <= 1.0) {
+        // Await the queued set so the baseline read cannot race past it.
+        await _deviceAdjustmentService.setBrightness(value);
+      }
+    }
+    if (mounted) _refreshDeviceAdjustmentValues();
+  }
+
+  /// Persist the level a finished brightness swipe settled on (#2178). Runs
+  /// once per gesture, not per write, to spare SharedPreferences the drag spam.
+  void _persistRememberedBrightness() {
+    if (!SettingsService.instance.read(SettingsService.rememberBrightnessLevel)) return;
+    final value = _lastKnownBrightness;
+    if (value == null) return;
+    unawaited(SettingsService.instance.write(SettingsService.rememberedBrightnessLevel, value));
   }
 
   Future<double?> _readEdgeAdjustmentValue(MobileEdgeAdjustmentSide side) {
@@ -481,6 +524,7 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
     _edgeAdjustmentIndicatorHideTimer?.cancel();
     _edgeAdjustmentIndicatorClearTimer?.cancel();
     _edgeAdjustmentWasActive = true;
+    _edgeAdjustmentActiveSide = side;
     _edgeAdjustmentStartValue = startValue;
     _lastEdgeAdjustmentWriteAt = null;
     _lastEdgeAdjustmentWriteValue = null;
@@ -527,7 +571,11 @@ extension _PlexVideoControlsPlaybackInputMethods on _PlexVideoControlsState {
 
   void _finishEdgeAdjustment({required bool suppressTap}) {
     if (suppressTap) _suppressTouchTaps();
+    if (_edgeAdjustmentWasActive && _edgeAdjustmentActiveSide == MobileEdgeAdjustmentSide.left) {
+      _persistRememberedBrightness();
+    }
     _edgeAdjustmentWasActive = false;
+    _edgeAdjustmentActiveSide = null;
     _edgeAdjustmentStartValue = null;
     _lastEdgeAdjustmentWriteAt = null;
     _lastEdgeAdjustmentWriteValue = null;

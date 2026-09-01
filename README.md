@@ -3,6 +3,8 @@
   Plezy
 </h1>
 
+## Forked from [edde746/plezy](https://github.com/edde746/plezy)
+
 A modern client for Plex, Jellyfin, and Emby on desktop, mobile, and TV. Built with Flutter for native performance and a clean interface.
 
 <p>
@@ -148,7 +150,7 @@ Package managers:
 ## Building from Source
 
 ### Prerequisites
-- Flutter SDK 3.44.0+
+- Flutter SDK 3.47.0+
 - A Plex account, or a Jellyfin or Emby server with user credentials
 
 ### Setup

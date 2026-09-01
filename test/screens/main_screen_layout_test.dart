@@ -86,16 +86,16 @@ void main() {
     expect(shouldPass(hasVisibleTabs: false), isFalse);
   });
 
-  test('desktop physical Escape is reserved for window fullscreen only at root Home', () {
+  test('macOS physical Escape is reserved for native fullscreen only at root Home', () {
     bool shouldHandle({
-      bool isDesktop = true,
+      bool isMacOS = true,
       bool isPhysicalKeyboardEvent = true,
       LogicalKeyboardKey logicalKey = LogicalKeyboardKey.escape,
       bool isCurrentRoute = true,
       bool isHomeTab = true,
     }) {
-      return shouldHandleDesktopRootEscape(
-        isDesktop: isDesktop,
+      return shouldHandleMacOsRootEscape(
+        isMacOS: isMacOS,
         isPhysicalKeyboardEvent: isPhysicalKeyboardEvent,
         logicalKey: logicalKey,
         isCurrentRoute: isCurrentRoute,
@@ -106,10 +106,8 @@ void main() {
     expect(shouldHandle(), isTrue);
     expect(shouldHandle(isHomeTab: false), isFalse);
     expect(shouldHandle(isCurrentRoute: false), isFalse);
-    // A remote/gamepad-synthesized escape is not a physical keyboard Escape;
-    // it keeps the press-back-again exit path.
     expect(shouldHandle(isPhysicalKeyboardEvent: false), isFalse);
-    expect(shouldHandle(isDesktop: false), isFalse);
+    expect(shouldHandle(isMacOS: false), isFalse);
     expect(shouldHandle(logicalKey: LogicalKeyboardKey.gameButtonB), isFalse);
   });
 
@@ -147,13 +145,14 @@ void main() {
     );
   });
 
-  test('resume prompt is suppressed during active video playback (#2034)', () {
+  test('resume prompt is suppressed during playback (#2034) and companion sessions (#2087)', () {
     bool should({
       bool resumedFromBackground = true,
       bool isOffline = false,
       bool alreadyShowingProfileSelection = false,
       bool isMobilePlatform = true,
       bool hasActiveVideoPlayback = false,
+      bool hasActiveCompanionRemoteSession = false,
     }) {
       return shouldShowProfileSelectionOnResume(
         resumedFromBackground: resumedFromBackground,
@@ -161,6 +160,7 @@ void main() {
         alreadyShowingProfileSelection: alreadyShowingProfileSelection,
         isMobilePlatform: isMobilePlatform,
         hasActiveVideoPlayback: hasActiveVideoPlayback,
+        hasActiveCompanionRemoteSession: hasActiveCompanionRemoteSession,
       );
     }
 
@@ -168,6 +168,9 @@ void main() {
     // Waking the device mid-stream resumes the stream; the picker would
     // fight the player's focus self-heal for the remote.
     expect(should(hasActiveVideoPlayback: true), isFalse);
+    // A phone driving another device backgrounds constantly; the picker +
+    // PIN would bury the live remote session.
+    expect(should(hasActiveCompanionRemoteSession: true), isFalse);
     expect(should(resumedFromBackground: false), isFalse);
     expect(should(isOffline: true), isFalse);
     expect(should(alreadyShowingProfileSelection: true), isFalse);
