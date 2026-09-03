@@ -8,14 +8,23 @@ import 'package:plezy/utils/media_server_http_client.dart';
 import 'package:plezy/utils/platform_detector.dart';
 import 'base_shared_preferences_service.dart';
 
-/// Service to check for new versions on GitHub
-/// Only enabled when ENABLE_UPDATE_CHECK build flag is set
+/// Service to check for new versions of this fork, self-hosted rather than
+/// upstream's GitHub-releases/Sparkle-appcast setup: a small static JSON
+/// manifest at [_updateManifestUrl] (uploaded by hand alongside each new
+/// build) names the current version and where to download it per platform.
+/// Enabled by default — [isUpdateCheckEnabled] can still turn it off via
+/// the ENABLE_UPDATE_CHECK build flag if ever needed.
 ///
-/// On macOS (non-Homebrew) and installed Windows: delegates to Sparkle/WinSparkle
-/// via auto_updater for native update dialogs and in-app installs.
-/// On all other platforms: falls back to GitHub API check + browser link dialog.
+/// No native Sparkle/WinSparkle path: that needs a signed appcast per
+/// release, which this fork's simpler self-hosted setup doesn't produce.
+/// Every platform gets the same in-app "update available" dialog with a
+/// download link (see lib/utils/update_dialog.dart) — Android downloads the
+/// APK and the user installs it as usual; Windows downloads the installer.
 class UpdateService {
-  static const String _githubRepo = 'edde746/plezy';
+  static const String _updateManifestUrl = 'https://plezy.shayno.net/latest.json';
+  // Unused while useNativeUpdater is hardcoded false below, but
+  // initNativeUpdater/checkForUpdatesNative still reference it — dead call
+  // sites in main_screen.dart/settings_screen.dart still have to compile.
   static const String _feedUrl = 'https://cdn.jsdelivr.net/gh/edde746/plezy@appcast/appcast.xml';
 
   static const String _keySkippedVersion = 'update_skipped_version';
@@ -28,24 +37,21 @@ class UpdateService {
 
   /// Check if update checking is enabled via build flag
   static bool get isUpdateCheckEnabled {
-    return const bool.fromEnvironment('ENABLE_UPDATE_CHECK', defaultValue: false);
+    return const bool.fromEnvironment('ENABLE_UPDATE_CHECK', defaultValue: true);
   }
 
   /// Whether any in-app update path applies to this install.
   /// False inside a packaged (MSIX/Store) install: the Store owns updates and
-  /// the package directory is read-only, so neither WinSparkle nor the GitHub
-  /// fallback dialog has anything it can do. Gates the settings entry too, so
-  /// no dead affordance ships.
+  /// the package directory is read-only, so the download-link dialog has
+  /// nothing it can do. Gates the settings entry too, so no dead affordance
+  /// ships.
   static bool get isUpdateCheckAvailable => isUpdateCheckEnabled && !PlatformDetector.isPackagedInstall();
 
-  /// Whether the native auto_updater (Sparkle/WinSparkle) should be used.
-  /// True on macOS (non-Homebrew) and installed Windows (has uninstaller).
-  static bool get useNativeUpdater {
-    if (!isUpdateCheckAvailable) return false;
-    if (Platform.isMacOS) return !_isHomebrewInstall();
-    if (Platform.isWindows) return _isInstalledApp() && !_isWingetInstall();
-    return false;
-  }
+  /// No native updater on this fork — see the class doc. Kept as a getter
+  /// (rather than deleting every call site) so re-adding a signed appcast
+  /// later is a one-line change here instead of touching main_screen.dart
+  /// and settings_screen.dart again.
+  static bool get useNativeUpdater => false;
 
   /// Initialize the native auto_updater (Sparkle/WinSparkle).
   /// Call once at startup if [useNativeUpdater] is true.
@@ -72,27 +78,6 @@ class UpdateService {
     } catch (error, stackTrace) {
       appLogger.e('Native update check failed', error: error, stackTrace: stackTrace);
     }
-  }
-
-  /// Check if the macOS app was installed via Homebrew.
-  /// Homebrew casks live under /opt/homebrew/Caskroom/ or /usr/local/Caskroom/.
-  static bool _isHomebrewInstall() {
-    final execPath = Platform.resolvedExecutable;
-    return execPath.contains('/Caskroom/') || execPath.contains('/homebrew/');
-  }
-
-  /// Check if the Windows app was installed via winget.
-  /// The Inno Setup installer writes a .winget marker file when invoked with /WINGET=1.
-  static bool _isWingetInstall() {
-    final exeDir = File(Platform.resolvedExecutable).parent.path;
-    return File('$exeDir\\.winget').existsSync();
-  }
-
-  /// Check if the Windows app is an installed copy (not portable).
-  /// The Inno Setup installer places unins000.exe next to the executable.
-  static bool _isInstalledApp() {
-    final exeDir = File(Platform.resolvedExecutable).parent.path;
-    return File('$exeDir\\unins000.exe').existsSync();
   }
 
   static Future<void> skipVersion(String version) async {
@@ -150,14 +135,11 @@ class UpdateService {
         await _updateLastCheckTime();
       }
 
-      final response = await (client ?? httpClient).get(
-        'https://api.github.com/repos/$_githubRepo/releases/latest',
-        headers: {'Accept': 'application/vnd.github+json'},
-      );
+      final response = await (client ?? httpClient).get(_updateManifestUrl);
 
       if (response.statusCode == 200) {
-        final data = response.data;
-        final latestVersion = data['tag_name'] as String;
+        final data = response.data as Map<String, dynamic>;
+        final latestVersion = data['version'] as String;
 
         // Remove 'v' prefix if present
         final cleanVersion = latestVersion.startsWith('v') ? latestVersion.substring(1) : latestVersion;
@@ -171,14 +153,24 @@ class UpdateService {
             return null;
           }
 
+          // Only Android and Windows builds are actually produced right
+          // now (see plezy-windows-installer.exe / app-release.apk); no
+          // entry for this platform means nothing to offer.
+          final downloadUrl = Platform.isAndroid
+              ? data['apk_url'] as String?
+              : Platform.isWindows
+              ? data['windows_url'] as String?
+              : null;
+          if (downloadUrl == null) return null;
+
           return {
             'hasUpdate': true,
             'currentVersion': currentVersion,
             'latestVersion': cleanVersion,
-            'releaseUrl': data['html_url'] as String,
-            'releaseName': data['name'] as String? ?? 'Version $cleanVersion',
-            'releaseNotes': data['body'] as String? ?? '',
-            'publishedAt': data['published_at'] as String,
+            'releaseUrl': downloadUrl,
+            'releaseName': data['name'] as String? ?? 'Plezy $cleanVersion',
+            'releaseNotes': data['notes'] as String? ?? '',
+            'publishedAt': data['published_at'] as String? ?? '',
           };
         }
       }

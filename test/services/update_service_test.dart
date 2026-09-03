@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -95,4 +97,64 @@ void main() {
       );
     });
   }
+
+  http.Response manifestResponse(Map<String, dynamic> body, {int status = 200}) =>
+      http.Response(jsonEncode(body), status, headers: {'content-type': 'application/json'});
+
+  test('a newer manifest version surfaces the platform-appropriate download URL', () async {
+    final client = MediaServerHttpClient(
+      client: MockClient(
+        (_) async => manifestResponse({
+          'version': '9.9.9',
+          'name': 'Plezy 9.9.9',
+          'notes': 'Big release',
+          'published_at': '2026-01-01T00:00:00Z',
+          'apk_url': 'https://plezy.shayno.net/plezy-latest.apk',
+          'windows_url': 'https://plezy.shayno.net/plezy-windows-installer.exe',
+        }),
+      ),
+    );
+    addTearDown(client.close);
+
+    final result = await UpdateService.debugPerformUpdateCheck(respectCooldown: false, client: client);
+
+    expect(result, isNotNull);
+    expect(result!['hasUpdate'], isTrue);
+    expect(result['latestVersion'], '9.9.9');
+    expect(result['currentVersion'], '1.0.0');
+    expect(result['releaseName'], 'Plezy 9.9.9');
+    expect(result['releaseNotes'], 'Big release');
+    final expectedUrl = Platform.isAndroid
+        ? 'https://plezy.shayno.net/plezy-latest.apk'
+        : 'https://plezy.shayno.net/plezy-windows-installer.exe';
+    expect(result['releaseUrl'], expectedUrl);
+  });
+
+  test('a manifest version no newer than the current one reports no update', () async {
+    final client = MediaServerHttpClient(
+      client: MockClient((_) async => manifestResponse({'version': '1.0.0', 'apk_url': 'x', 'windows_url': 'x'})),
+    );
+    addTearDown(client.close);
+
+    expect(await UpdateService.debugPerformUpdateCheck(respectCooldown: false, client: client), isNull);
+  });
+
+  test('a skipped version is not offered again even though it is newer', () async {
+    await UpdateService.skipVersion('9.9.9');
+    final client = MediaServerHttpClient(
+      client: MockClient((_) async => manifestResponse({'version': '9.9.9', 'apk_url': 'x', 'windows_url': 'x'})),
+    );
+    addTearDown(client.close);
+
+    expect(await UpdateService.debugPerformUpdateCheck(respectCooldown: false, client: client), isNull);
+  });
+
+  test('a manifest with no download URL for this platform reports no update rather than a broken link', () async {
+    final client = MediaServerHttpClient(
+      client: MockClient((_) async => manifestResponse({'version': '9.9.9', 'notes': 'no builds for you'})),
+    );
+    addTearDown(client.close);
+
+    expect(await UpdateService.debugPerformUpdateCheck(respectCooldown: false, client: client), isNull);
+  });
 }
