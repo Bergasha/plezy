@@ -38,6 +38,8 @@ import '../profiles/profile.dart';
 import '../profiles/profile_activation.dart';
 import '../profiles/profile_avatar.dart';
 import '../services/settings_service.dart';
+import '../services/update_service.dart';
+import '../utils/update_dialog.dart';
 import '../widgets/settings_builder.dart';
 import '../widgets/fitting_title_text.dart';
 import '../widgets/tv_browse_rail.dart';
@@ -92,6 +94,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   String? get _errorMessage => _discover.errorMessage == null ? null : t.errors.unableToLoad(context: t.discover.title);
 
   bool _switchingProfile = false;
+  bool _isCheckingForUpdate = false;
   final PageController _heroController = PageController();
   final ScrollController _scrollController = ScrollController();
   int _currentHeroIndex = 0;
@@ -743,6 +746,35 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     }
   }
 
+  Future<void> _handleCheckForUpdates() async {
+    if (_isCheckingForUpdate) return;
+    setState(() => _isCheckingForUpdate = true);
+
+    try {
+      final updateInfo = await UpdateService.checkForUpdates();
+      if (!mounted) return;
+      setState(() => _isCheckingForUpdate = false);
+
+      if (updateInfo != null && updateInfo['hasUpdate'] == true) {
+        await showUpdateAvailableDialog(
+          context,
+          updateInfo,
+          title: t.update.available,
+          dismissLabel: t.common.later,
+          showSkipVersion: true,
+        );
+      } else {
+        showAppSnackBar(context, t.update.latestVersion);
+      }
+    } catch (e) {
+      appLogger.e('Error checking for updates', error: e);
+      if (mounted) {
+        setState(() => _isCheckingForUpdate = false);
+        showErrorSnackBar(context, t.update.checkFailed);
+      }
+    }
+  }
+
   Widget _buildOverlaidAppBar() {
     final colorScheme = Theme.of(context).colorScheme;
     final foregroundColor = colorScheme.onSurface;
@@ -783,6 +815,13 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       }
                     },
                   ),
+                  if (UpdateService.isUpdateCheckAvailable)
+                    FocusableAction(
+                      icon: Symbols.system_update_rounded,
+                      iconColor: foregroundColor,
+                      tooltip: t.settings.checkForUpdates,
+                      onPressed: _isCheckingForUpdate ? null : _handleCheckForUpdates,
+                    ),
                   // Watch Together
                   FocusableAction(
                     tooltip: t.watchTogether.title,
