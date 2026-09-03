@@ -46,20 +46,27 @@ ThemeData _buildMonoTheme({required bool dark, required bool oled, required Targ
   }
 
   final isDark = dark || oled;
-  // OLED only: a dark crimson accent stands in for the neutral palettes'
+  // OLED only: an amber accent stands in for the neutral palettes'
   // monochrome one, so the focus ring, the sidebar/menu selection pill, and
   // anything else keyed off colorScheme.primary (server-name labels, switches,
-  // progress bars, shuffle/repeat toggles, ...) pick up crimson instead of
+  // progress bars, shuffle/repeat toggles, ...) pick up amber instead of
   // white-on-black. Every other mode keeps accent == text, so nothing about
   // them changes.
+  //
+  // Deliberately not red or green: the shared media-vote feature borders a
+  // card's poster crimson/green for a bad/good vote tally, and a red or
+  // green focus ring on top of that would read as part of the vote color
+  // instead of as focus. Amber sits well clear of both, which also keeps
+  // focus legible for red-green color-blind viewers regardless of how a
+  // card is voted.
   final c = (
     bg: raw.bg,
     surface: raw.surface,
     outline: raw.outline,
     text: raw.text,
     textMuted: raw.textMuted,
-    accent: oled ? const Color(0xFF8E1B26) : raw.text,
-    onAccent: oled ? Colors.white : (isDark ? raw.bg : Colors.white),
+    accent: oled ? const Color(0xFFE5A00D) : raw.text,
+    onAccent: oled ? Colors.black : (isDark ? raw.bg : Colors.white),
   );
   final clickableCursor = WidgetStateProperty.resolveWith<MouseCursor>(
     (states) => states.contains(WidgetState.disabled) ? MouseCursor.defer : SystemMouseCursors.click,
