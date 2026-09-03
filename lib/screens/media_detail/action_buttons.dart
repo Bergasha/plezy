@@ -324,14 +324,12 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
     // rather than only when selected — that's the whole point, they should
     // read as "the green one" and "the red one" at a glance. Selection
     // (this is *my* vote) is shown by going from a light tint to a solid
-    // fill with white text, not by introducing a third color.
+    // fill with white text, not by introducing a third color. Visuals live
+    // in the shared _buildVoteButton below (also used by the phone-only
+    // dedicated vote row, _buildVoteButtonsRow) — only the row-specific
+    // width estimate stays local here.
     final voteTextStyle = TextStyle(fontSize: isTv ? 15 * tvScale : 14, fontWeight: .w600);
     final voteIconSize = isTv ? 21.0 * tvScale : 20.0;
-
-    String voteLabel(bool isGood, int count) {
-      final base = isGood ? t.tooltips.voteGood : t.tooltips.voteBad;
-      return count > 0 ? '$base ($count)' : base;
-    }
 
     double voteButtonWidthEstimate(String label) {
       final textPainter = TextPainter(
@@ -344,40 +342,6 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
       final horizontalPadding = isTv ? 30.0 * tvScale : 28.0;
       final iconGap = isTv ? 7.0 * tvScale : 8.0;
       return horizontalPadding + voteIconSize + iconGap + textWidth;
-    }
-
-    Widget voteButton(
-      FocusableActionBuildState state, {
-      required bool isGood,
-      required String label,
-      required bool selected,
-      required VoidCallback onPressed,
-    }) {
-      final baseColor = isGood ? Colors.green : Colors.red;
-      final background = selected ? baseColor.shade600 : baseColor.withValues(alpha: 0.15);
-      final foreground = selected ? Colors.white : baseColor.shade700;
-      return SizedBox(
-        height: actionSize,
-        child: FilledButton.icon(
-          onPressed: onPressed,
-          icon: AppIcon(isGood ? Symbols.thumb_up_rounded : Symbols.thumb_down_rounded, fill: selected ? 1 : 0),
-          label: Text(label, style: voteTextStyle, overflow: .ellipsis),
-          style: ButtonStyle(
-            backgroundColor: WidgetStatePropertyAll(background),
-            foregroundColor: WidgetStatePropertyAll(foreground),
-            iconColor: WidgetStatePropertyAll(foreground),
-            padding: WidgetStatePropertyAll(
-              EdgeInsets.symmetric(horizontal: isTv ? 15 * tvScale : 14, vertical: isTv ? 9 * tvScale : 0),
-            ),
-            shape: WidgetStatePropertyAll(
-              StadiumBorder(
-                side: state.showFocus ? BorderSide(color: FocusTheme.getFocusBorderColor(context), width: 2.5) : .none,
-              ),
-            ),
-            overlayColor: WidgetStatePropertyAll(Colors.white.withValues(alpha: 0.1)),
-          ),
-        ),
-      );
     }
 
     // Shared good/bad votes, synced through a self-hosted plezy-ratings
@@ -400,20 +364,25 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         ? null
         : votesProvider.aggregateFor(itemServerId, metadata.id);
     final myVote = voteAggregate?.mine;
-    final goodVoteLabel = voteLabel(true, voteAggregate?.good ?? 0);
-    final badVoteLabel = voteLabel(false, voteAggregate?.bad ?? 0);
+    final goodVoteLabel = _voteLabel(true, voteAggregate?.good ?? 0);
+    final badVoteLabel = _voteLabel(false, voteAggregate?.bad ?? 0);
     final voteGoodAction = (votesProvider == null || !votesProvider.isEnabled || itemServerId == null)
         ? null
         : FocusableAction(
             debugLabel: 'detail_vote_good',
             spacingBefore: gap,
             onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.good, myVote)),
-            builder: (context, state) => voteButton(
-              state,
+            builder: (context, state) => _buildVoteButton(
+              context,
               isGood: true,
               label: goodVoteLabel,
               selected: myVote == VoteDirection.good,
               onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.good, myVote)),
+              showFocus: state.showFocus,
+              height: actionSize,
+              fontSize: isTv ? 15 * tvScale : 14,
+              iconSize: voteIconSize,
+              horizontalPadding: isTv ? 15 * tvScale : 14,
             ),
           );
     final voteBadAction = (votesProvider == null || !votesProvider.isEnabled || itemServerId == null)
@@ -421,12 +390,17 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         : FocusableAction(
             debugLabel: 'detail_vote_bad',
             onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.bad, myVote)),
-            builder: (context, state) => voteButton(
-              state,
+            builder: (context, state) => _buildVoteButton(
+              context,
               isGood: false,
               label: badVoteLabel,
               selected: myVote == VoteDirection.bad,
               onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.bad, myVote)),
+              showFocus: state.showFocus,
+              height: actionSize,
+              fontSize: isTv ? 15 * tvScale : 14,
+              iconSize: voteIconSize,
+              horizontalPadding: isTv ? 15 * tvScale : 14,
             ),
           );
 
@@ -618,6 +592,107 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
     } catch (e) {
       if (mounted) showErrorSnackBar(context, t.messages.voteUpdateFailed);
     }
+  }
+
+  String _voteLabel(bool isGood, int count) {
+    final base = isGood ? t.tooltips.voteGood : t.tooltips.voteBad;
+    return count > 0 ? '$base ($count)' : base;
+  }
+
+  /// The good/bad vote pill shared by the in-row button (TV, where the row
+  /// never gets squeezed so it renders here directly) and the dedicated
+  /// phone-only row below (_buildVoteButtonsRow) — phones drop these from
+  /// the main action row's compact tiers before they'd ever fit alongside
+  /// Play/Download/etc, so they need a row of their own there instead.
+  Widget _buildVoteButton(
+    BuildContext context, {
+    required bool isGood,
+    required String label,
+    required bool selected,
+    required VoidCallback onPressed,
+    required bool showFocus,
+    required double height,
+    required double fontSize,
+    required double iconSize,
+    required double horizontalPadding,
+  }) {
+    final baseColor = isGood ? Colors.green : Colors.red;
+    final background = selected ? baseColor.shade600 : baseColor.withValues(alpha: 0.15);
+    final foreground = selected ? Colors.white : baseColor.shade700;
+    return SizedBox(
+      height: height,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        icon: AppIcon(
+          isGood ? Symbols.thumb_up_rounded : Symbols.thumb_down_rounded,
+          fill: selected ? 1 : 0,
+          size: iconSize,
+        ),
+        label: Text(
+          label,
+          style: TextStyle(fontSize: fontSize, fontWeight: .w600),
+          overflow: .ellipsis,
+        ),
+        style: ButtonStyle(
+          backgroundColor: WidgetStatePropertyAll(background),
+          foregroundColor: WidgetStatePropertyAll(foreground),
+          iconColor: WidgetStatePropertyAll(foreground),
+          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: horizontalPadding)),
+          shape: WidgetStatePropertyAll(
+            StadiumBorder(
+              side: showFocus ? BorderSide(color: FocusTheme.getFocusBorderColor(context), width: 2.5) : .none,
+            ),
+          ),
+          overlayColor: WidgetStatePropertyAll(Colors.white.withValues(alpha: 0.1)),
+        ),
+      ),
+    );
+  }
+
+  /// Whether [metadata] has enabled, applicable vote buttons at all — used
+  /// by the phone hero layout to decide whether to reserve height for
+  /// _buildVoteButtonsRow before it's built, since that layout budgets
+  /// pixel-exact heights up front rather than measuring after the fact.
+  bool _hasVoteButtons(MediaItem metadata) {
+    final itemServerId = serverIdOrNull(metadata.serverId);
+    final votesProvider = context.watch<MediaVotesProvider?>();
+    return votesProvider != null && votesProvider.isEnabled && itemServerId != null;
+  }
+
+  /// The phone-only dedicated vote row (see _hasVoteButtons doc). Evenly
+  /// splits the two buttons across the available width via Expanded so
+  /// longer labels (a high vote count) don't overflow a narrow phone.
+  Widget _buildVoteButtonsRow(MediaItem metadata) {
+    final itemServerId = serverIdOrNull(metadata.serverId);
+    final votesProvider = context.watch<MediaVotesProvider?>();
+    if (votesProvider == null || !votesProvider.isEnabled || itemServerId == null) {
+      return const SizedBox.shrink();
+    }
+    final voteAggregate = votesProvider.aggregateFor(itemServerId, metadata.id);
+    final myVote = voteAggregate?.mine;
+
+    Widget button(bool isGood) => _buildVoteButton(
+      context,
+      isGood: isGood,
+      label: _voteLabel(isGood, (isGood ? voteAggregate?.good : voteAggregate?.bad) ?? 0),
+      selected: myVote == (isGood ? VoteDirection.good : VoteDirection.bad),
+      onPressed: () => unawaited(
+        _handleVotePressed(itemServerId, metadata.id, isGood ? VoteDirection.good : VoteDirection.bad, myVote),
+      ),
+      showFocus: false,
+      height: 40,
+      fontSize: 14,
+      iconSize: 18,
+      horizontalPadding: 12,
+    );
+
+    return Row(
+      children: [
+        Expanded(child: button(true)),
+        const SizedBox(width: 8),
+        Expanded(child: button(false)),
+      ],
+    );
   }
 
   Widget _buildWatchedToggleButton(

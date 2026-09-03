@@ -5219,6 +5219,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         const desiredLogoHeight = 120.0;
         const desiredLogoWidth = 400.0;
         const actionHeight = 48.0;
+        // Good/bad vote buttons never fit in the main action row on a phone
+        // width (they're wide, labeled pills, dropped from every compact
+        // tier in _buildActionButtons — see _hasVoteButtons's doc), so they
+        // get a dedicated row here instead, budgeted as part of the same
+        // "actions" priority tier as the icon row itself.
+        const voteRowHeight = 40.0;
+        const voteRowGap = 8.0;
         // Fitted to a single run: chips shed by usefulness instead of
         // wrapping onto a second run the height clip below would hide.
         final chips = _buildFittedHeroChips(context, metadata, constraints.maxWidth);
@@ -5226,7 +5233,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         final genreChips = [for (final genre in metadata.genres ?? const <String>[]) _buildMetadataChip(genre)];
 
         final showActions = availableHeight >= actionHeight;
-        final remainingAfterActions = availableHeight - (showActions ? actionHeight : 0);
+        final showVoteButtons =
+            showActions && _hasVoteButtons(metadata) && availableHeight >= actionHeight + voteRowGap + voteRowHeight;
+        final actionsBlockHeight =
+            (showActions ? actionHeight : 0.0) + (showVoteButtons ? voteRowGap + voteRowHeight : 0.0);
+        final remainingAfterActions = availableHeight - actionsBlockHeight;
         final showChips = chips.isNotEmpty && remainingAfterActions >= 88;
         const chipHeight = 32.0;
         final chipBlockHeight = showChips ? chipHeight : 0.0;
@@ -5254,7 +5265,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
             chipBlockHeight +
             genreBlockHeight +
             chipActionGap +
-            (showActions ? actionHeight : 0.0);
+            actionsBlockHeight;
 
         return ClipRect(
           child: SizedBox(
@@ -5311,6 +5322,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                       ],
                       if (chipActionGap > 0) SizedBox(height: chipActionGap),
                       if (showActions) SizedBox(height: actionHeight, child: _buildActionButtons(metadata)),
+                      if (showVoteButtons) ...[
+                        const SizedBox(height: voteRowGap),
+                        SizedBox(height: voteRowHeight, child: _buildVoteButtonsRow(metadata)),
+                      ],
                     ],
                   ),
                 ),
