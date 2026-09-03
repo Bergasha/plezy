@@ -320,6 +320,66 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
             ),
           );
 
+    // Good/bad vote buttons: always tinted in their brand color (green/red)
+    // rather than only when selected — that's the whole point, they should
+    // read as "the green one" and "the red one" at a glance. Selection
+    // (this is *my* vote) is shown by going from a light tint to a solid
+    // fill with white text, not by introducing a third color.
+    final voteTextStyle = TextStyle(fontSize: isTv ? 15 * tvScale : 14, fontWeight: .w600);
+    final voteIconSize = isTv ? 21.0 * tvScale : 20.0;
+
+    String voteLabel(bool isGood, int count) {
+      final base = isGood ? t.tooltips.voteGood : t.tooltips.voteBad;
+      return count > 0 ? '$base ($count)' : base;
+    }
+
+    double voteButtonWidthEstimate(String label) {
+      final textPainter = TextPainter(
+        text: TextSpan(text: label, style: voteTextStyle),
+        maxLines: 1,
+        textDirection: Directionality.of(context),
+      )..layout();
+      final textWidth = textPainter.width;
+      textPainter.dispose();
+      final horizontalPadding = isTv ? 30.0 * tvScale : 28.0;
+      final iconGap = isTv ? 7.0 * tvScale : 8.0;
+      return horizontalPadding + voteIconSize + iconGap + textWidth;
+    }
+
+    Widget voteButton(
+      FocusableActionBuildState state, {
+      required bool isGood,
+      required String label,
+      required bool selected,
+      required VoidCallback onPressed,
+    }) {
+      final baseColor = isGood ? Colors.green : Colors.red;
+      final background = selected ? baseColor.shade600 : baseColor.withValues(alpha: 0.15);
+      final foreground = selected ? Colors.white : baseColor.shade700;
+      return SizedBox(
+        height: actionSize,
+        child: FilledButton.icon(
+          onPressed: onPressed,
+          icon: AppIcon(isGood ? Symbols.thumb_up_rounded : Symbols.thumb_down_rounded, fill: selected ? 1 : 0),
+          label: Text(label, style: voteTextStyle, overflow: .ellipsis),
+          style: ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll(background),
+            foregroundColor: WidgetStatePropertyAll(foreground),
+            iconColor: WidgetStatePropertyAll(foreground),
+            padding: WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: isTv ? 15 * tvScale : 14, vertical: isTv ? 9 * tvScale : 0),
+            ),
+            shape: WidgetStatePropertyAll(
+              StadiumBorder(
+                side: state.showFocus ? BorderSide(color: FocusTheme.getFocusBorderColor(context), width: 2.5) : .none,
+              ),
+            ),
+            overlayColor: WidgetStatePropertyAll(Colors.white.withValues(alpha: 0.1)),
+          ),
+        ),
+      );
+    }
+
     // Shared good/bad votes, synced through a self-hosted plezy-ratings
     // instance (MediaVotesProvider). Nullable watch: this screen is built in
     // many widget tests outside the profile-session provider tree that
@@ -340,17 +400,20 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         ? null
         : votesProvider.aggregateFor(itemServerId, metadata.id);
     final myVote = voteAggregate?.mine;
+    final goodVoteLabel = voteLabel(true, voteAggregate?.good ?? 0);
+    final badVoteLabel = voteLabel(false, voteAggregate?.bad ?? 0);
     final voteGoodAction = (votesProvider == null || !votesProvider.isEnabled || itemServerId == null)
         ? null
         : FocusableAction(
             debugLabel: 'detail_vote_good',
+            spacingBefore: gap,
             onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.good, myVote)),
-            builder: (context, state) => iconActionButton(
+            builder: (context, state) => voteButton(
               state,
+              isGood: true,
+              label: goodVoteLabel,
+              selected: myVote == VoteDirection.good,
               onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.good, myVote)),
-              icon: AppIcon(Symbols.thumb_up_rounded, fill: myVote == VoteDirection.good ? 1 : 0),
-              tooltip: myVote == VoteDirection.good ? t.tooltips.removeVote : t.tooltips.voteGood,
-              foregroundColor: myVote == VoteDirection.good ? Colors.green : null,
             ),
           );
     final voteBadAction = (votesProvider == null || !votesProvider.isEnabled || itemServerId == null)
@@ -358,12 +421,12 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         : FocusableAction(
             debugLabel: 'detail_vote_bad',
             onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.bad, myVote)),
-            builder: (context, state) => iconActionButton(
+            builder: (context, state) => voteButton(
               state,
+              isGood: false,
+              label: badVoteLabel,
+              selected: myVote == VoteDirection.bad,
               onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.bad, myVote)),
-              icon: AppIcon(Symbols.thumb_down_rounded, fill: myVote == VoteDirection.bad ? 1 : 0),
-              tooltip: myVote == VoteDirection.bad ? t.tooltips.removeVote : t.tooltips.voteBad,
-              foregroundColor: myVote == VoteDirection.bad ? Colors.red : null,
             ),
           );
 
@@ -411,11 +474,19 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
     }
 
     final estimatedPlayWidth = playButtonWidthEstimate();
+    final estimatedGoodVoteWidth = voteButtonWidthEstimate(goodVoteLabel);
+    final estimatedBadVoteWidth = voteButtonWidthEstimate(badVoteLabel);
     double estimatedRowWidth(List<FocusableAction> actions) {
       if (actions.isEmpty) return 0;
       var width = estimatedPlayWidth;
       for (var i = 1; i < actions.length; i++) {
-        final actionWidth = identical(actions[i], versionAction) ? versionSegmentWidth : actionSize;
+        final actionWidth = identical(actions[i], versionAction)
+            ? versionSegmentWidth
+            : identical(actions[i], voteGoodAction)
+            ? estimatedGoodVoteWidth
+            : identical(actions[i], voteBadAction)
+            ? estimatedBadVoteWidth
+            : actionSize;
         width += (actions[i].spacingBefore ?? gap) + actionWidth;
       }
       return width;
