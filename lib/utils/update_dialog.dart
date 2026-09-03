@@ -47,6 +47,7 @@ Future<void> showUpdateAvailableDialog(
               label: t.update.skipVersion,
             ),
           DialogActionButton(
+            autofocus: true,
             onPressed: () async {
               final url = Uri.parse(releaseUrl);
               if (await canLaunchUrl(url)) {

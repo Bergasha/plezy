@@ -370,8 +370,8 @@ class Translations$update$en {
 	/// en: 'Skip This Version'
 	String get skipVersion => 'Skip This Version';
 
-	/// en: 'View Release'
-	String get viewRelease => 'View Release';
+	/// en: 'Update'
+	String get viewRelease => 'Update';
 
 	/// en: 'You are on the latest version'
 	String get latestVersion => 'You are on the latest version';
@@ -7197,7 +7197,7 @@ extension on Translations {
 			'update.versionAvailable' => ({required Object version}) => 'Version ${version} is available',
 			'update.currentVersion' => ({required Object version}) => 'Current: ${version}',
 			'update.skipVersion' => 'Skip This Version',
-			'update.viewRelease' => 'View Release',
+			'update.viewRelease' => 'Update',
 			'update.latestVersion' => 'You are on the latest version',
 			'update.checkFailed' => 'Failed to check for updates',
 			'settings.title' => 'Settings',
