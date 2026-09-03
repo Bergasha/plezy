@@ -21,6 +21,7 @@ import '../models/catalog/catalog_item.dart';
 import '../models/catalog/catalog_labels.dart';
 import '../models/catalog/catalog_metadata.dart';
 import '../providers/download_provider.dart';
+import '../providers/media_votes_provider.dart';
 import '../providers/watch_state_store.dart';
 import '../services/download_storage_service.dart';
 import '../services/settings_service.dart';
@@ -285,6 +286,28 @@ class MediaCardState extends State<MediaCard> with ContextMenuTapMixin<MediaCard
   int? _cachedSemanticDurationMs;
 
   CatalogItem? get _catalogItem => _cachedCatalogItem;
+
+  /// Border color from the item's shared good/bad vote tally, or null when
+  /// votes aren't loaded/enabled/applicable. `watch<MediaVotesProvider?>()`
+  /// (nullable) so a card rendered outside the profile-session provider tree
+  /// — an isolated widget test, say — degrades to "no vote border" instead
+  /// of a ProviderNotFoundError, the same defensive pattern used elsewhere
+  /// for optional per-item providers.
+  Color? _voteBorderColorFor(BuildContext context, Object item) {
+    if (item is! MediaItem) return null;
+    final serverId = item.serverId;
+    if (serverId == null) return null;
+    final votes = context.watch<MediaVotesProvider?>();
+    if (votes == null) return null;
+    // One rating_key per call rather than a page-level batch: ensureLoaded
+    // already dedupes against its own cache/in-flight set, so this is safe
+    // and correct to call from every card's build, just not as network-
+    // efficient as a real batched page fetch would be. Fine for a friend
+    // group's library sizes; worth batching at the grid layout level later
+    // if it ever needs to scale further.
+    unawaited(votes.ensureLoaded(serverId, [item.id]));
+    return votes.aggregateFor(serverId, item.id)?.borderColor;
+  }
 
   @override
   void initState() {
@@ -564,31 +587,35 @@ class MediaCardState extends State<MediaCard> with ContextMenuTapMixin<MediaCard
         onSecondaryTap: showContextMenuFromTap,
         borderRadius: BorderRadius.circular(tokens(context).radiusSm),
         child: ExcludeSemantics(
-          child: _CatalogFocusBorder(
-            accentColor: _catalogAccent,
+          child: _VoteBorder(
+            color: _voteBorderColorFor(context, item),
             borderRadius: _posterFocusRadius(context, item),
-            child: _clipPosterImage(
-              context,
-              item,
-              Stack(
-                fit: StackFit.expand,
-                children: [
-                  _buildPosterImage(
-                    context,
-                    item,
-                    isOffline: widget.isOffline,
-                    localPosterPath: localPosterPath,
-                    mixedHubContext: widget.mixedHubContext,
-                    episodePosterModeOverride: widget.episodePosterModeOverride,
-                    cardShapeOverride: widget.cardShapeOverride,
-                    catalogItem: _catalogItem,
-                    knownWidth: width,
-                    knownHeight: height,
-                    artworkDim: widget.artworkDim,
-                  ),
-                  if (item is MediaItem && _showsWatchedIndicator(item)) WatchedIndicator(item: item),
-                  if (badgeLabels.isNotEmpty) _CatalogBadges(labels: badgeLabels),
-                ],
+            child: _CatalogFocusBorder(
+              accentColor: _catalogAccent,
+              borderRadius: _posterFocusRadius(context, item),
+              child: _clipPosterImage(
+                context,
+                item,
+                Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _buildPosterImage(
+                      context,
+                      item,
+                      isOffline: widget.isOffline,
+                      localPosterPath: localPosterPath,
+                      mixedHubContext: widget.mixedHubContext,
+                      episodePosterModeOverride: widget.episodePosterModeOverride,
+                      cardShapeOverride: widget.cardShapeOverride,
+                      catalogItem: _catalogItem,
+                      knownWidth: width,
+                      knownHeight: height,
+                      artworkDim: widget.artworkDim,
+                    ),
+                    if (item is MediaItem && _showsWatchedIndicator(item)) WatchedIndicator(item: item),
+                    if (badgeLabels.isNotEmpty) _CatalogBadges(labels: badgeLabels),
+                  ],
+                ),
               ),
             ),
           ),
@@ -610,31 +637,35 @@ class MediaCardState extends State<MediaCard> with ContextMenuTapMixin<MediaCard
     // The focus border hugs the poster (captions stay outside it), matching
     // the full-bleed card treatment.
     final poster = ExcludeSemantics(
-      child: _CatalogFocusBorder(
-        accentColor: _catalogAccent,
+      child: _VoteBorder(
+        color: _voteBorderColorFor(context, item),
         borderRadius: _posterFocusRadius(context, item),
-        child: Stack(
-          children: [
-            _clipPosterImage(
-              context,
-              item,
-              _buildPosterImage(
+        child: _CatalogFocusBorder(
+          accentColor: _catalogAccent,
+          borderRadius: _posterFocusRadius(context, item),
+          child: Stack(
+            children: [
+              _clipPosterImage(
                 context,
                 item,
-                isOffline: widget.isOffline,
-                localPosterPath: localPosterPath,
-                mixedHubContext: widget.mixedHubContext,
-                episodePosterModeOverride: widget.episodePosterModeOverride,
-                cardShapeOverride: widget.cardShapeOverride,
-                catalogItem: _catalogItem,
-                knownWidth: _catalogItem != null ? posterWidth : (posterHeight != null ? posterWidth : null),
-                knownHeight: posterHeight,
-                artworkDim: widget.artworkDim,
+                _buildPosterImage(
+                  context,
+                  item,
+                  isOffline: widget.isOffline,
+                  localPosterPath: localPosterPath,
+                  mixedHubContext: widget.mixedHubContext,
+                  episodePosterModeOverride: widget.episodePosterModeOverride,
+                  cardShapeOverride: widget.cardShapeOverride,
+                  catalogItem: _catalogItem,
+                  knownWidth: _catalogItem != null ? posterWidth : (posterHeight != null ? posterWidth : null),
+                  knownHeight: posterHeight,
+                  artworkDim: widget.artworkDim,
+                ),
               ),
-            ),
-            if (item is MediaItem && _showsWatchedIndicator(item)) WatchedIndicator(item: item),
-            if (badgeLabels.isNotEmpty) _CatalogBadges(labels: badgeLabels),
-          ],
+              if (item is MediaItem && _showsWatchedIndicator(item)) WatchedIndicator(item: item),
+              if (badgeLabels.isNotEmpty) _CatalogBadges(labels: badgeLabels),
+            ],
+          ),
         ),
       ),
     );
@@ -1446,6 +1477,32 @@ class _CatalogBadges extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Persistent (not focus-gated) border from the item's shared good/bad vote
+/// tally — see [MediaVotesProvider]. Drawn outside the poster bounds
+/// (`strokeAlignOutside`) so it never eats into the artwork, and as an outer
+/// wrapper around [_CatalogFocusBorder] so it stays visible regardless of
+/// which of that widget's two focus-ring branches is active underneath.
+class _VoteBorder extends StatelessWidget {
+  final Color? color;
+  final double borderRadius;
+  final Widget child;
+
+  const _VoteBorder({required this.color, required this.borderRadius, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final voteColor = color;
+    if (voteColor == null) return child;
+    return Container(
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: voteColor, width: 2, strokeAlign: BorderSide.strokeAlignOutside),
+      ),
+      child: child,
     );
   }
 }

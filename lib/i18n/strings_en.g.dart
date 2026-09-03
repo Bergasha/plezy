@@ -745,6 +745,18 @@ class Translations$settings$en {
 	/// en: 'Enter a valid HTTP or HTTPS relay base URL.'
 	String get watchTogetherRelayInvalid => 'Enter a valid HTTP or HTTPS relay base URL.';
 
+	/// en: 'Ratings Service'
+	String get ratingsService => 'Ratings Service';
+
+	/// en: 'Good/bad votes sync automatically. Only change this if you're self-hosting your own ratings service.'
+	String get ratingsServiceDescription => 'Good/bad votes sync automatically. Only change this if you\'re self-hosting your own ratings service.';
+
+	/// en: 'https://my-ratings.example.com'
+	String get ratingsServiceHint => 'https://my-ratings.example.com';
+
+	/// en: 'Enter a valid HTTP or HTTPS ratings service base URL.'
+	String get ratingsServiceInvalid => 'Enter a valid HTTP or HTTPS ratings service base URL.';
+
 	/// en: 'Crash Reporting'
 	String get crashReporting => 'Crash Reporting';
 
@@ -2006,6 +2018,15 @@ class Translations$tooltips$en {
 
 	/// en: 'Mark as unwatched'
 	String get markAsUnwatched => 'Mark as unwatched';
+
+	/// en: 'This was Good'
+	String get voteGood => 'This was Good';
+
+	/// en: 'This was Shit'
+	String get voteBad => 'This was Shit';
+
+	/// en: 'Remove your vote'
+	String get removeVote => 'Remove your vote';
 }
 
 // Path: audioTracks
@@ -2317,6 +2338,9 @@ class Translations$messages$en {
 
 	/// en: 'Removed from Continue Watching'
 	String get removedFromContinueWatching => 'Removed from Continue Watching';
+
+	/// en: 'Couldn't update your vote'
+	String get voteUpdateFailed => 'Couldn\'t update your vote';
 
 	/// en: 'Error: ${error}'
 	String errorLoading({required Object error}) => 'Error: ${error}';
@@ -7295,6 +7319,10 @@ extension on Translations {
 			'settings.watchTogetherRelayDescription' => 'Set a custom relay. Everyone must use the same server.',
 			'settings.watchTogetherRelayHint' => 'https://my-relay.example.com',
 			'settings.watchTogetherRelayInvalid' => 'Enter a valid HTTP or HTTPS relay base URL.',
+			'settings.ratingsService' => 'Ratings Service',
+			'settings.ratingsServiceDescription' => 'Good/bad votes sync automatically. Only change this if you\'re self-hosting your own ratings service.',
+			'settings.ratingsServiceHint' => 'https://my-ratings.example.com',
+			'settings.ratingsServiceInvalid' => 'Enter a valid HTTP or HTTPS ratings service base URL.',
 			'settings.crashReporting' => 'Crash Reporting',
 			'settings.crashReportingDescription' => 'Send crash reports to help improve the app',
 			'settings.debugLogging' => 'Debug Logging',
@@ -7582,6 +7610,8 @@ extension on Translations {
 			'fileInfo.dolbyVisionLayers' => 'Dolby Vision Layers',
 			'fileInfo.baseLayerCompatibility' => 'Base Layer Compatibility',
 			'fileInfo.avcBitstream' => 'AVC Bitstream',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.nalLengthSize' => 'NAL Length Size',
 			'fileInfo.scalingMatrix' => 'Custom Scaling Matrix',
 			'fileInfo.streamIdentifier' => 'Stream Identifier',
@@ -7613,12 +7643,8 @@ extension on Translations {
 			'fileInfo.previewIndex' => 'Preview Index',
 			'fileInfo.packetLength' => 'Packet Length',
 			'fileInfo.filePresent' => 'File Present',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.fileReadable' => 'Readable by Server',
 			'fileInfo.streamPath' => 'Stream Path',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.optimizedForStreaming' => 'Optimized for Streaming',
 			'fileInfo.has64bitOffsets' => '64-bit Offsets',
 			'fileInfo.protocol' => 'Protocol',
@@ -7718,6 +7744,9 @@ extension on Translations {
 			'tooltips.playTrailer' => 'Play trailer',
 			'tooltips.markAsWatched' => 'Mark as watched',
 			'tooltips.markAsUnwatched' => 'Mark as unwatched',
+			'tooltips.voteGood' => 'This was Good',
+			'tooltips.voteBad' => 'This was Shit',
+			'tooltips.removeVote' => 'Remove your vote',
 			'audioTracks.track' => ({required Object n}) => 'Audio Track ${n}',
 			'videoControls.audioLabel' => 'Audio',
 			'videoControls.subtitlesLabel' => 'Subtitles',
@@ -7819,6 +7848,7 @@ extension on Translations {
 			'messages.autoRemovedWatchedDownload' => ({required Object title}) => 'Auto-removed: ${title}',
 			'messages.autoRemovedWatchedDownloads' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Auto-removed ${n} watched download', other: 'Auto-removed ${n} watched downloads', ), 
 			'messages.removedFromContinueWatching' => 'Removed from Continue Watching',
+			'messages.voteUpdateFailed' => 'Couldn\'t update your vote',
 			'messages.errorLoading' => ({required Object error}) => 'Error: ${error}',
 			'messages.searchPartialResults' => 'Some media servers could not be searched. Showing available results.',
 			'messages.streamInterrupted' => 'The stream was interrupted. Press play or seek to retry.',
@@ -8094,6 +8124,8 @@ extension on Translations {
 			'libraries.trashEmptied' => ({required Object title}) => 'Trash emptied for "${title}"',
 			'libraries.failedToEmptyTrash' => ({required Object error}) => 'Failed to empty trash: ${error}',
 			'libraries.analyzing' => ({required Object title}) => 'Analyzing "${title}"...',
+			_ => null,
+		} ?? switch (path) {
 			'libraries.analysisStarted' => ({required Object title}) => 'Analysis started for "${title}"',
 			'libraries.failedToAnalyze' => ({required Object error}) => 'Failed to analyze library: ${error}',
 			'libraries.noLibrariesFound' => 'No libraries found',
@@ -8138,8 +8170,6 @@ extension on Translations {
 			'libraries.groupings.tracks' => 'Tracks',
 			'libraries.groupings.folders' => 'Folders',
 			'libraries.filterCategories.genre' => 'Genre',
-			_ => null,
-		} ?? switch (path) {
 			'libraries.filterCategories.year' => 'Year',
 			'libraries.filterCategories.contentRating' => 'Content Rating',
 			'libraries.filterCategories.tag' => 'Tag',
@@ -8188,8 +8218,6 @@ extension on Translations {
 			'startup.phaseLabel' => 'Step',
 			'startup.showDetails' => 'Show details',
 			'startup.hideDetails' => 'Hide details',
-			_ => null,
-		} ?? switch (path) {
 			'startup.copyDetails' => 'Copy details',
 			'startup.detailsCopied' => 'Details copied to clipboard',
 			'startup.uploadDetails' => 'Upload details',
@@ -8610,6 +8638,8 @@ extension on Translations {
 			'downloads.title' => 'Downloads',
 			'downloads.manage' => 'Manage',
 			'downloads.tvShows' => 'TV Shows',
+			_ => null,
+		} ?? switch (path) {
 			'downloads.movies' => 'Movies',
 			'downloads.music' => 'Music',
 			'downloads.tracksQueued' => ({required Object count}) => '${count} tracks queued for download',
@@ -8657,8 +8687,6 @@ extension on Translations {
 			'downloads.editSyncRule' => 'Edit sync rule',
 			'downloads.removeSyncRule' => 'Remove sync rule',
 			'downloads.removeSyncRuleConfirm' => ({required Object title}) => 'Stop syncing "${title}"? Downloaded episodes will be kept.',
-			_ => null,
-		} ?? switch (path) {
 			'downloads.removeListSyncRuleConfirm' => ({required Object title}) => 'Stop syncing "${title}"?',
 			'downloads.deleteSyncRuleDownloads' => 'Also delete associated downloads',
 			'downloads.deleteSyncRuleDownloadsDescription' => 'Downloads used by another sync rule or profile will be kept.',
@@ -8718,8 +8746,6 @@ extension on Translations {
 			'downloads.errorPostProcessing' => ({required Object error}) => 'Post-processing failed: ${error}',
 			'downloads.notificationDownloading' => 'Downloading...',
 			'downloads.notificationComplete' => 'Download complete',
-			_ => null,
-		} ?? switch (path) {
 			'downloads.notificationPaused' => 'Download paused',
 			'shaders.title' => 'Shaders',
 			'shaders.noShaderDescription' => 'No video enhancement',

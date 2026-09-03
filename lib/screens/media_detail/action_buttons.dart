@@ -293,7 +293,8 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
     // the button (matching the ⋮ menu's optimistic-until-proven-empty entry)
     // rather than hiding it until an async fetch happens to land first.
     final watchlistStates = [
-      for (final candidate in _watchlistCandidates ?? const []) candidate.source.isOnWatchlist(metadata.kind, candidate.ids),
+      for (final candidate in _watchlistCandidates ?? const [])
+        candidate.source.isOnWatchlist(metadata.kind, candidate.ids),
     ];
     final bool? onWatchlist = watchlistStates.contains(true)
         ? true
@@ -316,6 +317,53 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
                 ),
                 tooltip: (onWatchlist ?? false) ? t.explore.removeFromWatchlist : t.explore.addToWatchlist,
               ),
+            ),
+          );
+
+    // Shared good/bad votes, synced through a self-hosted plezy-ratings
+    // instance (MediaVotesProvider). Nullable watch: this screen is built in
+    // many widget tests outside the profile-session provider tree that
+    // registers MediaVotesProvider, and a card rendered there should just
+    // show no vote buttons rather than throw — same defensive pattern
+    // media_card.dart uses for the same provider. Hidden entirely when no
+    // service is configured (isEnabled false) rather than shown disabled —
+    // there is nothing a press could do. Not in the compact tiers, same
+    // treatment as the watchlist toggle: it drops first on narrow screens.
+    final votesProvider = context.watch<MediaVotesProvider?>();
+    if (votesProvider != null && itemServerId != null) {
+      // Idempotent: no-ops once cached or while already in flight, so
+      // calling it on every build here is safe and needs no separate
+      // "loaded once" lifecycle hook.
+      unawaited(votesProvider.ensureLoaded(itemServerId, [metadata.id]));
+    }
+    final voteAggregate = (votesProvider == null || itemServerId == null)
+        ? null
+        : votesProvider.aggregateFor(itemServerId, metadata.id);
+    final myVote = voteAggregate?.mine;
+    final voteGoodAction = (votesProvider == null || !votesProvider.isEnabled || itemServerId == null)
+        ? null
+        : FocusableAction(
+            debugLabel: 'detail_vote_good',
+            onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.good, myVote)),
+            builder: (context, state) => iconActionButton(
+              state,
+              onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.good, myVote)),
+              icon: AppIcon(Symbols.thumb_up_rounded, fill: myVote == VoteDirection.good ? 1 : 0),
+              tooltip: myVote == VoteDirection.good ? t.tooltips.removeVote : t.tooltips.voteGood,
+              foregroundColor: myVote == VoteDirection.good ? Colors.green : null,
+            ),
+          );
+    final voteBadAction = (votesProvider == null || !votesProvider.isEnabled || itemServerId == null)
+        ? null
+        : FocusableAction(
+            debugLabel: 'detail_vote_bad',
+            onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.bad, myVote)),
+            builder: (context, state) => iconActionButton(
+              state,
+              onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.bad, myVote)),
+              icon: AppIcon(Symbols.thumb_down_rounded, fill: myVote == VoteDirection.bad ? 1 : 0),
+              tooltip: myVote == VoteDirection.bad ? t.tooltips.removeVote : t.tooltips.voteBad,
+              foregroundColor: myVote == VoteDirection.bad ? Colors.red : null,
             ),
           );
 
@@ -343,6 +391,8 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
       ?downloadAction,
       watchedAction,
       ?watchlistAction,
+      ?voteGoodAction,
+      ?voteBadAction,
       ?moreActionsAction,
     ];
 
@@ -477,6 +527,25 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
       if (mounted) {
         showErrorSnackBar(context, t.messages.errorLoading(error: e.toString()));
       }
+    }
+  }
+
+  /// Pressing the button that's already your vote clears it; pressing the
+  /// other one switches to it. `context.read` here (not `watch`) since this
+  /// runs from a callback, not build.
+  Future<void> _handleVotePressed(
+    String serverId,
+    String ratingKey,
+    VoteDirection pressed,
+    VoteDirection? currentMine,
+  ) async {
+    final votesProvider = context.read<MediaVotesProvider?>();
+    if (votesProvider == null) return;
+    final next = currentMine == pressed ? null : pressed;
+    try {
+      await votesProvider.vote(serverId, ratingKey, next);
+    } catch (e) {
+      if (mounted) showErrorSnackBar(context, t.messages.voteUpdateFailed);
     }
   }
 

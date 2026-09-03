@@ -66,8 +66,10 @@ import '../services/settings_service.dart';
 import '../services/watch_actions.dart';
 import '../widgets/settings_builder.dart';
 import '../utils/layout_constants.dart';
+import '../models/ratings/media_vote.dart';
 import '../providers/catalog_sources_provider.dart';
 import '../providers/download_provider.dart';
+import '../providers/media_votes_provider.dart';
 import '../providers/multi_server_provider.dart';
 import '../providers/offline_watch_provider.dart';
 import '../providers/watch_state_store.dart';
@@ -3670,7 +3672,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                               ],
 
                               // Ratings & Reviews (Plex community fan reviews)
-                              if (!widget.isOffline && _ratingsAndReviews != null && _ratingsAndReviews!.isNotEmpty) ...[
+                              if (!widget.isOffline &&
+                                  _ratingsAndReviews != null &&
+                                  _ratingsAndReviews!.isNotEmpty) ...[
                                 Text(key: _reviewsSectionKey, t.discover.ratingsAndReviews, style: sectionTitleStyle),
                                 const SizedBox(height: 12),
                                 PlexReviewStrip(
@@ -4333,7 +4337,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// Extras: TvBrowseRail stacks every hub it's given into one shared
   /// vertical navigation model, so Extras living inside it (alongside Cast)
   /// made that ordering impossible.
-  Widget _buildTvDetailExtrasSection(List<MediaItem> extras, {required double scale, required VoidCallback onNavigateUp}) {
+  Widget _buildTvDetailExtrasSection(
+    List<MediaItem> extras, {
+    required double scale,
+    required VoidCallback onNavigateUp,
+  }) {
     final theme = Theme.of(context);
     final horizontalInset = (24 * scale).clamp(18.0, 40.0).toDouble();
 

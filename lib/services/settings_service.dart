@@ -36,6 +36,7 @@ import '../navigation/navigation_tabs.dart';
 import '../utils/platform_detector.dart';
 import 'trackers/tracker_constants.dart';
 import '../profiles/profile.dart';
+import 'ratings/ratings_service_endpoint.dart';
 import '../watch_together/services/watch_together_relay_endpoint.dart';
 
 enum ThemeMode { system, light, dark, oled }
@@ -316,6 +317,15 @@ String? _normalizeRelayBaseUrl(String? value) {
   final endpoint = WatchTogetherRelayEndpoint.tryParseCustom(value);
   if (endpoint == null) {
     throw FormatException('Invalid Watch Together relay base URL');
+  }
+  return endpoint.canonicalBaseUrl;
+}
+
+String? _normalizeRatingsServiceUrl(String? value) {
+  if (value == null || value.trim().isEmpty) return null;
+  final endpoint = RatingsServiceEndpoint.tryParseCustom(value);
+  if (endpoint == null) {
+    throw FormatException('Invalid ratings service base URL');
   }
   return endpoint.canonicalBaseUrl;
 }
@@ -646,6 +656,7 @@ class SettingsService extends BaseSharedPreferencesService {
   static const autoPip = _AutoPipPref();
   static const customDownloadPath = NullableStringPref('custom_download_path');
   static final customRelayUrl = NullableStringPref('custom_relay_url', transform: _normalizeRelayBaseUrl);
+  static final ratingsServiceUrl = NullableStringPref('ratings_service_url', transform: _normalizeRatingsServiceUrl);
 
   static NullableStringPref recentRoomsForProfile(String profileId) {
     if (profileId.trim().isEmpty) {
@@ -876,12 +887,23 @@ class SettingsService extends BaseSharedPreferencesService {
     await prefs.remove(_legacyUseExoPlayerKey);
 
     final storedRelay = readNullableString(customRelayUrl.key);
-    if (storedRelay == null) return;
-    final endpoint = WatchTogetherRelayEndpoint.tryParseCustom(storedRelay);
-    if (endpoint == null) {
-      await prefs.remove(customRelayUrl.key);
-    } else if (endpoint.canonicalBaseUrl != storedRelay) {
-      await prefs.setString(customRelayUrl.key, endpoint.canonicalBaseUrl);
+    if (storedRelay != null) {
+      final endpoint = WatchTogetherRelayEndpoint.tryParseCustom(storedRelay);
+      if (endpoint == null) {
+        await prefs.remove(customRelayUrl.key);
+      } else if (endpoint.canonicalBaseUrl != storedRelay) {
+        await prefs.setString(customRelayUrl.key, endpoint.canonicalBaseUrl);
+      }
+    }
+
+    final storedRatingsUrl = readNullableString(ratingsServiceUrl.key);
+    if (storedRatingsUrl != null) {
+      final endpoint = RatingsServiceEndpoint.tryParseCustom(storedRatingsUrl);
+      if (endpoint == null) {
+        await prefs.remove(ratingsServiceUrl.key);
+      } else if (endpoint.canonicalBaseUrl != storedRatingsUrl) {
+        await prefs.setString(ratingsServiceUrl.key, endpoint.canonicalBaseUrl);
+      }
     }
   }
 
@@ -1256,6 +1278,7 @@ class SettingsService extends BaseSharedPreferencesService {
     selectedExternalPlayer,
     customExternalPlayers,
     customRelayUrl,
+    ratingsServiceUrl,
     companionRemoteLastHostAddress,
     rememberedBrightnessLevel,
   ];

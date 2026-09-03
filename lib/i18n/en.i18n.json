@@ -235,6 +235,10 @@
     "watchTogetherRelayDescription": "Set a custom relay. Everyone must use the same server.",
     "watchTogetherRelayHint": "https://my-relay.example.com",
     "watchTogetherRelayInvalid": "Enter a valid HTTP or HTTPS relay base URL.",
+    "ratingsService": "Ratings Service",
+    "ratingsServiceDescription": "Good/bad votes sync automatically. Only change this if you're self-hosting your own ratings service.",
+    "ratingsServiceHint": "https://my-ratings.example.com",
+    "ratingsServiceInvalid": "Enter a valid HTTP or HTTPS ratings service base URL.",
     "crashReporting": "Crash Reporting",
     "crashReportingDescription": "Send crash reports to help improve the app",
     "debugLogging": "Debug Logging",
@@ -680,7 +684,10 @@
     "shufflePlay": "Shuffle play",
     "playTrailer": "Play trailer",
     "markAsWatched": "Mark as watched",
-    "markAsUnwatched": "Mark as unwatched"
+    "markAsUnwatched": "Mark as unwatched",
+    "voteGood": "This was Good",
+    "voteBad": "This was Shit",
+    "removeVote": "Remove your vote"
   },
   "audioTracks": {
     "track": "Audio Track ${n}"
@@ -794,6 +801,7 @@
       "other": "Auto-removed ${n} watched downloads"
     },
     "removedFromContinueWatching": "Removed from Continue Watching",
+    "voteUpdateFailed": "Couldn't update your vote",
     "errorLoading": "Error: ${error}",
     "searchPartialResults": "Some media servers could not be searched. Showing available results.",
     "streamInterrupted": "The stream was interrupted. Press play or seek to retry.",

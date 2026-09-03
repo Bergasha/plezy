@@ -53,6 +53,7 @@ import '../../widgets/settings_section.dart';
 import '../../widgets/system_bottom_inset.dart';
 import '../../profiles/active_profile_provider.dart';
 import '../../profiles/profile.dart';
+import '../../services/ratings/ratings_service_endpoint.dart';
 import '../../watch_together/services/watch_together_relay_endpoint.dart';
 import 'about_screen.dart';
 import 'add_connection_screen.dart';
@@ -121,6 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
   static const _kAutoCheckUpdatesOnStartup = 'auto_check_updates_on_startup';
   static const _kAbout = 'about';
   static const _kWatchTogetherRelay = 'watch_together_relay';
+  static const _kRatingsService = 'ratings_service';
   static const _kExportSettings = 'export_settings';
   static const _kImportSettings = 'import_settings';
   static const _kAccountPreferences = 'account_preferences';
@@ -542,6 +544,13 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           subtitle: t.settings.watchTogetherRelayDescription,
           onTap: () => _showRelayUrlDialog(),
         ),
+        SettingNavigationTile(
+          focusNode: _focusTracker.get(_kRatingsService),
+          icon: Symbols.thumbs_up_down_rounded,
+          title: t.settings.ratingsService,
+          subtitle: t.settings.ratingsServiceDescription,
+          onTap: () => _showRatingsUrlDialog(),
+        ),
         SettingSwitchTile(
           focusNode: _focusTracker.get(_kCrashReporting),
           pref: settings.SettingsService.crashReporting,
@@ -809,6 +818,13 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
     );
   }
 
+  Future<void> _showRatingsUrlDialog() async {
+    await showScopedDialog<void>(
+      context: context,
+      builder: (_) => _RatingsUrlDialog(settingsService: _settingsService),
+    );
+  }
+
   Future<void> _showClearImageCacheDialog() async {
     final confirmed = await showConfirmDialog(
       context,
@@ -1073,6 +1089,88 @@ class _RelayUrlDialogState extends State<_RelayUrlDialog> {
         onChanged: (_) {
           if (_relayUrlInvalid) {
             setState(() => _relayUrlInvalid = false);
+          }
+        },
+        onEditingComplete: () => _saveFocusNode.requestFocus(),
+        onNavigateDown: _saveFocusNode.requestFocus,
+      ),
+      actions: [
+        DialogActionButton(onPressed: _reset, label: t.settings.resetToDefault),
+        DialogActionButton(onPressed: () => Navigator.pop(context), label: t.common.cancel),
+        DialogActionButton(focusNode: _saveFocusNode, onPressed: _save, label: t.common.save),
+      ],
+    );
+  }
+}
+
+class _RatingsUrlDialog extends StatefulWidget {
+  final settings.SettingsService settingsService;
+
+  const _RatingsUrlDialog({required this.settingsService});
+
+  @override
+  State<_RatingsUrlDialog> createState() => _RatingsUrlDialogState();
+}
+
+class _RatingsUrlDialogState extends State<_RatingsUrlDialog> {
+  late final TextEditingController _controller;
+  final _saveFocusNode = FocusNode(debugLabel: 'RatingsServiceSave');
+  bool _ratingsUrlInvalid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.settingsService.read(settings.SettingsService.ratingsServiceUrl) ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _saveFocusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _reset() async {
+    _controller.clear();
+    await widget.settingsService.write(settings.SettingsService.ratingsServiceUrl, null);
+    if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _save() async {
+    final value = _controller.text;
+    if (value.trim().isEmpty) {
+      await widget.settingsService.write(settings.SettingsService.ratingsServiceUrl, null);
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+
+    final endpoint = RatingsServiceEndpoint.tryParseCustom(value);
+    if (endpoint == null) {
+      setState(() => _ratingsUrlInvalid = true);
+      return;
+    }
+    await widget.settingsService.write(settings.SettingsService.ratingsServiceUrl, endpoint.canonicalBaseUrl);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(t.settings.ratingsService),
+      content: FocusableTextField(
+        controller: _controller,
+        decoration: InputDecoration(
+          labelText: t.common.url,
+          hintText: t.settings.ratingsServiceHint,
+          errorText: _ratingsUrlInvalid ? t.settings.ratingsServiceInvalid : null,
+        ),
+        autofocus: true,
+        textInputAction: TextInputAction.done,
+        onChanged: (_) {
+          if (_ratingsUrlInvalid) {
+            setState(() => _ratingsUrlInvalid = false);
           }
         },
         onEditingComplete: () => _saveFocusNode.requestFocus(),

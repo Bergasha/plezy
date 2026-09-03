@@ -17,6 +17,7 @@ import '../providers/discover_provider.dart';
 import '../providers/explore_provider.dart';
 import '../providers/hidden_libraries_provider.dart';
 import '../providers/libraries_provider.dart';
+import '../providers/media_votes_provider.dart';
 import '../providers/multi_server_provider.dart';
 import '../providers/playback_state_provider.dart';
 import '../providers/seerr_account_provider.dart';
@@ -179,6 +180,16 @@ class _ProfileSessionScreenState extends State<ProfileSessionScreen> {
                   );
                   return provider;
                 },
+              ),
+              ChangeNotifierProvider(
+                create: (context) => MediaVotesProvider(
+                  plexTokenSupplier: buildRatingsPlexTokenSupplier(
+                    activeProfile: context.read<ActiveProfileProvider>(),
+                    connections: context.read<ConnectionRegistry>(),
+                    profileConnections: context.read<ProfileConnectionRegistry>(),
+                  ),
+                ),
+                lazy: true,
               ),
               ChangeNotifierProxyProvider3<
                 TrackersProvider,
