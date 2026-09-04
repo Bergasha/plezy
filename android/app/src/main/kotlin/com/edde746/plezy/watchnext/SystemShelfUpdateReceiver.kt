@@ -5,11 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.work.WorkManager
+import com.edde746.plezy.MainActivity
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-/** Migrates versioned shelf state after updates and restores volatile launcher grants after boot. */
+/**
+ * Reopens the app and migrates versioned shelf state after an update, and
+ * restores volatile launcher grants after boot.
+ */
 class SystemShelfUpdateReceiver private constructor(
   private val executor: Executor,
   private val ownsExecutor: Boolean
@@ -33,6 +37,20 @@ class SystemShelfUpdateReceiver private constructor(
   override fun onReceive(context: Context, intent: Intent) {
     val action = intent.action
     if (action != Intent.ACTION_MY_PACKAGE_REPLACED && action != Intent.ACTION_BOOT_COMPLETED) return
+
+    // Reopen right where we left off - PackageInstaller kills the running
+    // process to apply the update, so without this the user is dropped on
+    // whatever screen they were on (home, another app) once it's done.
+    // Must happen synchronously here, before any async work below: Android's
+    // background-activity-start exemption for this broadcast only covers the
+    // duration of onReceive itself, not work continued after goAsync().
+    // Never fires for a fresh install (only a replace of an already-installed
+    // build), so this only ever fires when the user was already in the app
+    // triggering it via our in-app updater.
+    if (action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+      relaunchApp(context)
+    }
+
     val pending = goAsync()
     executor.execute {
       try {
@@ -47,6 +65,18 @@ class SystemShelfUpdateReceiver private constructor(
         pending?.finish()
         if (ownsExecutor) (executor as ExecutorService).shutdown()
       }
+    }
+  }
+
+  /** Best-effort: a failed relaunch just leaves the user where the install left them. */
+  private fun relaunchApp(context: Context) {
+    try {
+      val launchIntent = Intent(context, MainActivity::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+      }
+      context.startActivity(launchIntent)
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to relaunch after update", e)
     }
   }
 
