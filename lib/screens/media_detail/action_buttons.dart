@@ -42,14 +42,15 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
         : null;
 
     Future<void> onPlayPressed() async {
-      // For TV shows, play the OnDeck episode if available
-      // Otherwise, play the first episode of the first season
+      // For TV shows, play the episode the hero describes (focused on TV,
+      // otherwise on-deck); with neither, the first episode of the first season.
       if (metadata.isShow) {
-        if (_onDeckEpisode != null) {
-          appLogger.d('Playing on deck episode: ${_onDeckEpisode!.title}');
+        final episode = _showPlayEpisode();
+        if (episode != null) {
+          appLogger.d('Playing episode: ${episode.title}');
           await navigateToVideoPlayerWithRefresh(
             context,
-            metadata: _onDeckEpisode!,
+            metadata: episode,
             isOffline: widget.isOffline,
             onRefresh: _refreshWatchState,
           );
@@ -492,17 +493,39 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
       );
     }
 
-    // TV screens are wide and D-pad focus should see every direct action.
-    // On smaller online screens, hidden actions remain available from ⋮.
-    if (isTv) return actionBar(allActions);
+    // Off TV the track status sits at the row's far end, right-aligned so it
+    // reads as information about the row rather than a sixth button. It takes
+    // only the leftover width and is the first thing to go, so the buttons
+    // never compact because of it. On TV the hero is a 60% column, so the
+    // status is placed at the screen edge by _buildTvDetailScreen instead.
+    Widget? tracksStatusFor(List<FocusableAction> actions, double maxWidth) {
+      if (isTv || !maxWidth.isFinite) return null;
+      final remaining = maxWidth - estimatedRowWidth(actions) - gap;
+      if (remaining < 160) return null;
+      return _buildPlaybackTracksStatus(context, metadata, isTv: false, tvScale: tvScale, maxWidth: remaining);
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
-        if (!maxWidth.isFinite || estimatedRowWidth(allActions) <= maxWidth) {
-          return actionBar(allActions);
-        }
-        return actionBar(compactActionsFor(maxWidth));
+        // TV screens are wide and D-pad focus should see every direct action.
+        // On smaller online screens, hidden actions remain available from ⋮.
+        final actions = isTv || !maxWidth.isFinite || estimatedRowWidth(allActions) <= maxWidth
+            ? allActions
+            : compactActionsFor(maxWidth);
+        final status = tracksStatusFor(actions, maxWidth);
+        if (status == null) return actionBar(actions);
+        return SizedBox(
+          height: actionSize,
+          child: Row(
+            children: [
+              actionBar(actions),
+              Expanded(
+                child: Align(alignment: .centerRight, child: status),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -854,38 +877,20 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
 
       final client = _getMediaClientForMetadata(context);
       if (client == null) return;
-      try {
-        final result = await showDownloadOptionsAndQueue(
-          context,
-          metadata: metadata,
-          client: client,
-          downloadProvider: downloadProvider,
-          onDelete: confirmAndDelete,
-        );
-        if (result == null || !mounted) return;
-        showSuccessSnackBar(context, result.toSnackBarMessage());
-      } on CellularDownloadBlockedException {
-        if (mounted) showErrorSnackBar(context, t.settings.cellularDownloadBlocked);
-      }
+      await queueDownloadWithFeedback(
+        context,
+        metadata: metadata,
+        client: client,
+        downloadProvider: downloadProvider,
+        onDelete: confirmAndDelete,
+      );
       return;
     }
 
     final client = _getMediaClientForMetadata(context);
     if (client == null) return;
 
-    try {
-      final result = await showDownloadOptionsAndQueue(
-        context,
-        metadata: metadata,
-        client: client,
-        downloadProvider: downloadProvider,
-      );
-      if (result == null || !mounted) return;
-
-      showSuccessSnackBar(context, result.toSnackBarMessage());
-    } on CellularDownloadBlockedException {
-      if (mounted) showErrorSnackBar(context, t.settings.cellularDownloadBlocked);
-    }
+    await queueDownloadWithFeedback(context, metadata: metadata, client: client, downloadProvider: downloadProvider);
   }
 
   Widget _buildDownloadButton(

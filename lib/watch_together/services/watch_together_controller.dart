@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../mpv/mpv.dart';
 import '../../utils/app_logger.dart';
+import '../../utils/serial_future_queue.dart';
 import '../models/playback_state.dart';
 import '../models/sync_message.dart';
 import '../models/watch_session.dart';
@@ -83,7 +84,7 @@ class WatchTogetherController {
   String? _attachedServerId;
   String? _attachedMediaTitle;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
-  Future<void> _messageQueue = Future.value();
+  final SerialFutureQueue _messageQueue = SerialFutureQueue();
   bool _disposed = false;
 
   /// Protocol versions learned from join messages (absent ⇒ v1).
@@ -104,6 +105,13 @@ class WatchTogetherController {
   bool get hasPlayer => _attachedPlayer != null;
 
   PlaybackPhase? get phase => _session.isHost ? _coordinator?.phase : _reconciler?.latestState?.phase;
+
+  /// The room's current playback rate, or null before the room has one.
+  double? get roomRate => _session.isHost ? _coordinator?.rate : _reconciler?.latestState?.rate;
+
+  /// Whether the sync layer is temporarily driving the player's rate (a
+  /// guest drift nudge). Player rate events are not user feedback while true.
+  bool get syncOwnsRate => _reconciler?.nudging ?? false;
 
   /// Update the session (e.g. when the control mode changes).
   void updateSession(WatchSession session) {
@@ -156,6 +164,8 @@ class WatchTogetherController {
           // changed; anything else (playing, a stall, mid-load) carries the
           // intent to (re)start.
           intendPlaying: lastState == null || lastState.phase != PlaybackPhase.paused,
+          // The room's rate, not this player's: it may be mid-nudge.
+          rate: lastState?.rate,
         );
       }
       // Seed the roster so the fresh epoch gates on the peers we already
@@ -299,6 +309,17 @@ class WatchTogetherController {
     }
   }
 
+  /// User rate change applied locally (screen hook). The only way a rate
+  /// change reaches the room: the sync layer never infers rate intent from
+  /// the player's rate stream.
+  void onLocalRate(double rate) {
+    if (_session.isHost) {
+      _coordinator?.onLocalRateIntent(rate);
+    } else {
+      _reconciler?.onLocalRateIntent(rate);
+    }
+  }
+
   void setBackgrounded(bool value) {
     _coordinator?.setBackgrounded(value);
     _reconciler?.setBackgrounded(value);
@@ -388,12 +409,15 @@ class WatchTogetherController {
   }
 
   void _enqueueMessage(SyncMessage message) {
-    _messageQueue = _messageQueue.then((_) => _handleMessage(message)).catchError((
-      Object error,
-      StackTrace stackTrace,
-    ) {
-      appLogger.e('WatchTogether: Failed to handle ${message.type.name} message', error: error, stackTrace: stackTrace);
-    });
+    unawaited(
+      _messageQueue.run(() => _handleMessage(message)).catchError((Object error, StackTrace stackTrace) {
+        appLogger.e(
+          'WatchTogether: Failed to handle ${message.type.name} message',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }),
+    );
   }
 
   Future<void> _handleMessage(SyncMessage message) async {

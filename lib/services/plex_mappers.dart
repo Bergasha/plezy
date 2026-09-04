@@ -126,7 +126,8 @@ List<MediaStream> _mediaStreamsFromPlexPart(Object? raw, {Map<String, dynamic>? 
         languageCode: stream['languageCode']?.toString(),
         title: stream['title']?.toString(),
         displayTitle: stream['displayTitle']?.toString() ?? stream['extendedDisplayTitle']?.toString(),
-        selected: flexibleBool(stream['selected']) || flexibleBool(stream['default']),
+        selected: flexibleBool(stream['selected']),
+        isDefault: flexibleBool(stream['default']),
         channels: flexibleInt(stream['channels']),
         frameRate: flexibleDouble(stream['frameRate']),
         hdr: isHdr,
@@ -649,10 +650,6 @@ class PlexMetadataDto {
   final List<String>? format;
   @JsonKey(name: 'Subformat', fromJson: _tagListFromJson, includeToJson: false)
   final List<String>? subformat;
-  final String? audioLanguage;
-  final String? subtitleLanguage;
-  @JsonKey(fromJson: flexibleInt)
-  final int? subtitleMode;
   @JsonKey(fromJson: flexibleInt)
   final int? playlistItemID;
   @JsonKey(fromJson: flexibleInt)
@@ -732,9 +729,6 @@ class PlexMetadataDto {
     this.mood,
     this.format,
     this.subformat,
-    this.audioLanguage,
-    this.subtitleLanguage,
-    this.subtitleMode,
     this.playlistItemID,
     this.playQueueItemID,
     this.librarySectionID,
@@ -859,9 +853,6 @@ class PlexMetadataDto {
     List<String>? mood,
     List<String>? format,
     List<String>? subformat,
-    String? audioLanguage,
-    String? subtitleLanguage,
-    int? subtitleMode,
     int? playlistItemID,
     int? playQueueItemID,
     int? librarySectionID,
@@ -933,9 +924,6 @@ class PlexMetadataDto {
       mood: mood ?? this.mood,
       format: format ?? this.format,
       subformat: subformat ?? this.subformat,
-      audioLanguage: audioLanguage ?? this.audioLanguage,
-      subtitleLanguage: subtitleLanguage ?? this.subtitleLanguage,
-      subtitleMode: subtitleMode ?? this.subtitleMode,
       playlistItemID: playlistItemID ?? this.playlistItemID,
       playQueueItemID: playQueueItemID ?? this.playQueueItemID,
       librarySectionID: librarySectionID ?? this.librarySectionID,
@@ -1140,8 +1128,6 @@ class PlexMappers {
       mediaVersions: dto.mediaVersions?.map(mediaVersion).toList(),
       libraryId: dto.librarySectionID?.toString(),
       libraryTitle: dto.librarySectionTitle,
-      audioLanguage: dto.audioLanguage,
-      subtitleLanguage: dto.subtitleLanguage,
       trailerKey: dto.primaryExtraKey,
       playlistItemId: dto.playlistItemID,
       playQueueItemId: dto.playQueueItemID,

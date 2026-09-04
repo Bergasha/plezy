@@ -18,6 +18,8 @@ import 'package:plezy/media/media_item.dart';
 import 'package:plezy/media/media_kind.dart';
 import 'package:plezy/media/media_rating.dart';
 import 'package:plezy/media/media_version.dart';
+import 'package:plezy/media/media_part.dart';
+import 'package:plezy/media/media_stream.dart';
 import 'package:plezy/media/media_server_client.dart';
 import 'package:plezy/media/server_capabilities.dart';
 import 'package:plezy/providers/download_provider.dart';
@@ -42,8 +44,10 @@ import 'package:plezy/utils/video_player_navigation.dart';
 import 'package:plezy/widgets/collapsible_text.dart';
 import 'package:plezy/widgets/cycling_media_backdrop.dart';
 import 'package:plezy/widgets/episode_card.dart';
+import 'package:plezy/widgets/fitted_metadata_line.dart';
 import 'package:plezy/widgets/fitting_title_text.dart';
 import 'package:plezy/widgets/tv_browse_rail.dart';
+import 'package:plezy/widgets/media_card.dart';
 import 'package:plezy/widgets/media_details_sheet.dart';
 import 'package:provider/provider.dart';
 
@@ -326,7 +330,7 @@ void main() {
     expect(find.byType(SvgPicture), findsOneWidget);
   });
 
-  testWidgets('TV detail metadata line keeps quality labels visible beside a full set of scores', (tester) async {
+  testWidgets('TV detail metadata line keeps quality labels for the sheet and every field on screen', (tester) async {
     await SettingsService.getInstance();
     tester.view.physicalSize = const Size(1280, 720);
     tester.view.devicePixelRatio = 1;
@@ -368,17 +372,21 @@ void main() {
     // Year opens the line; the type label is gone.
     expect(find.text('Movie'), findsNothing);
     expect(find.text('2017'), findsOneWidget);
-    expect(find.text('1080p'), findsOneWidget);
+    // Stream quality describes the file, not the title: off the hero line,
+    // on the action row's playback status instead (#2217).
+    final information = find.byKey(const ValueKey('tv_detail_information_semantics'));
+    expect(find.descendant(of: information, matching: find.text('1080p')), findsNothing);
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('detail_playback_tracks')), matching: find.text('1080p')),
+      findsOneWidget,
+    );
 
-    // The quality label sits fully on screen. Under the old clip-at-the-edge
-    // line the widget still existed but was painted past the right edge.
-    expect(tester.getBottomRight(find.text('1080p')).dx, lessThanOrEqualTo(1280));
-
-    // Desktop chip order: year, certification, runtime, quality.
+    // Desktop chip order: year, certification, runtime.
     final fieldXs = [
-      for (final text in ['2017', 'PG-13', '1h 46min', '1080p']) tester.getTopLeft(find.text(text)).dx,
+      for (final text in ['2017', 'PG-13', '1h 46min']) tester.getTopLeft(find.text(text)).dx,
     ];
     expect(fieldXs, orderedEquals([...fieldXs]..sort()));
+    expect(tester.getBottomRight(find.text('1h 46min')).dx, lessThanOrEqualTo(1280));
 
     // The test font's 1 em/char advance roughly doubles text width, so at this
     // viewport most of the ratings slot legitimately gives way — shed as the
@@ -387,6 +395,16 @@ void main() {
     for (final rating in find.byType(SvgPicture).evaluate()) {
       expect(tester.getBottomRight(find.byWidget(rating.widget)).dx, lessThanOrEqualTo(1280));
     }
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump();
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'tv_detail_info');
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaDetailsSheet), findsOneWidget);
+    expect(find.descendant(of: find.byType(MediaDetailsSheet), matching: find.textContaining('1080p')), findsOneWidget);
   });
 
   testWidgets('TV detail defaults to first regular season when specials precede it', (tester) async {
@@ -980,13 +998,267 @@ void main() {
     await tester.pump();
     await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowDown);
     await tester.pump();
-    expect(find.text('Episode 2'), findsNothing);
+    expect(find.descendant(of: find.byType(MediaCard), matching: find.text('Episode 2')), findsNothing);
 
     season2Completer.complete([episode2]);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('Episode 2'), findsOneWidget);
+    expect(find.descendant(of: find.byType(MediaCard), matching: find.text('Episode 2')), findsOneWidget);
+  });
+
+  testWidgets('TV detail hero, rail cards, and Play all follow the focused episode', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await SettingsService.getInstance();
+    tester.view.physicalSize = const Size(1280, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final show = testMediaItem(
+      id: 'show_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.show,
+      title: 'The Show',
+      summary: 'The show summary.',
+      genres: ['Drama', 'Mystery'],
+      serverId: 'server_1',
+      serverName: 'Server',
+    );
+    final season = testMediaItem(
+      id: 'season_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.season,
+      title: 'Season 1',
+      index: 1,
+      parentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final episode = testMediaItem(
+      id: 'episode_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.episode,
+      title: 'The One Where the Title Matters',
+      summary: 'The episode summary.',
+      index: 1,
+      durationMs: 1380000,
+      parentId: season.id,
+      parentIndex: season.index,
+      grandparentId: show.id,
+      grandparentTitle: show.title,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final episode2 = testMediaItem(
+      id: 'episode_2',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.episode,
+      title: 'The One After',
+      index: 2,
+      durationMs: 1500000,
+      parentId: season.id,
+      parentIndex: season.index,
+      grandparentId: show.id,
+      grandparentTitle: show.title,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final client = _FakeMediaServerClient(
+      show: show,
+      childrenByParent: {
+        show.id: [season],
+        season.id: [episode, episode2],
+      },
+    );
+    final provider = testMultiServer(clients: [client]).provider;
+
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: ChangeNotifierProvider<MultiServerProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            theme: monoTheme(dark: true),
+            home: withProfileNavigationScope(
+              child: SizedBox(width: 1280, height: 720, child: MediaDetailScreen(metadata: show)),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    tester.state<TvBrowseRailState>(find.byType(TvBrowseRail)).requestFocus();
+    await tester.pump();
+
+    final heroTitle = find.byKey(const ValueKey('tv_detail_episode_title'));
+    final information = find.bySemanticsIdentifier('tv_detail_information');
+
+    // The hero line is the readable copy of the title (#2217).
+    expect(heroTitle, findsOneWidget);
+    expect(tester.widget<Text>(heroTitle).data, 'The One Where the Title Matters');
+    expect(find.text('The episode summary.'), findsOneWidget);
+    // The title sits above the episode's metadata line, inside the block that
+    // opens the details sheet.
+    final metadataLine = find.byType(FittedMetadataLine);
+    expect(tester.getBottomLeft(heroTitle).dy, lessThanOrEqualTo(tester.getTopLeft(metadataLine).dy));
+    expect(
+      find.descendant(of: find.byKey(const ValueKey('tv_detail_information_semantics')), matching: heroTitle),
+      findsOneWidget,
+    );
+    expect(tester.getSemantics(information).label, contains('The Show, The One Where the Title Matters, S1 E1'));
+
+    // Genres are the show's and never change while browsing: not a hero row.
+    // They stay in the announcement because the sheet the block opens has them.
+    expect(find.text('Drama  •  Mystery'), findsNothing);
+    expect(tester.getSemantics(information).label, contains('Drama, Mystery'));
+
+    // Rail cards sit inside their own show: the episode title is the headline
+    // and the subtitle identifies it by number and runtime — no show name.
+    final cards = find.byType(MediaCard);
+    expect(find.descendant(of: cards, matching: find.text('The One Where the Title Matters')), findsOneWidget);
+    expect(find.descendant(of: cards, matching: find.text('S1 E1 · 23min')), findsOneWidget);
+    expect(find.descendant(of: cards, matching: find.text('The One After')), findsOneWidget);
+    expect(find.descendant(of: cards, matching: find.text('S1 E2 · 25min')), findsOneWidget);
+    expect(find.descendant(of: cards, matching: find.text('The Show')), findsNothing);
+
+    // Play agrees with the hero: the focused episode, not a stale on-deck.
+    expect(find.text('S1E1'), findsOneWidget);
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump();
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(tester.widget<Text>(heroTitle).data, 'The One After');
+    expect(find.text('S1E2'), findsOneWidget);
+    expect(find.text('S1E1'), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('TV detail action row ends with the tracks Play will use, off the focus path', (tester) async {
+    await SettingsService.getInstance();
+    tester.view.physicalSize = const Size(1920, 1080);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    const streams = [
+      MediaStream(id: '1', kind: MediaStreamKind.video, index: 0, codec: 'hevc'),
+      MediaStream(
+        id: '101',
+        kind: MediaStreamKind.audio,
+        index: 1,
+        codec: 'truehd',
+        languageCode: 'eng',
+        channels: 8,
+        selected: true,
+      ),
+      MediaStream(id: '102', kind: MediaStreamKind.audio, index: 2, codec: 'aac', languageCode: 'jpn', channels: 2),
+      MediaStream(id: '201', kind: MediaStreamKind.subtitle, index: 3, codec: 'srt', languageCode: 'eng'),
+    ];
+    const version = MediaVersion(
+      id: 'v1',
+      videoResolution: '1080',
+      videoCodec: 'hevc',
+      parts: [MediaPart(id: 'p1', streams: streams)],
+    );
+    final show = testMediaItem(
+      id: 'show_1',
+      backend: MediaBackend.plex,
+      kind: MediaKind.show,
+      title: 'The Show',
+      serverId: 'server_1',
+      serverName: 'Server',
+    );
+    final season = testMediaItem(
+      id: 'season_1',
+      backend: MediaBackend.plex,
+      kind: MediaKind.season,
+      title: 'Season 1',
+      index: 1,
+      parentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final episode = testMediaItem(
+      id: 'episode_1',
+      backend: MediaBackend.plex,
+      kind: MediaKind.episode,
+      title: 'Pilot',
+      index: 1,
+      parentId: season.id,
+      parentIndex: season.index,
+      grandparentId: show.id,
+      grandparentTitle: show.title,
+      serverId: show.serverId,
+      serverName: show.serverName,
+      mediaVersions: const [version],
+    );
+    final client = _FakeMediaServerClient(
+      show: show,
+      childrenByParent: {
+        show.id: [season],
+        season.id: [episode],
+      },
+    );
+    final provider = testMultiServer(clients: [client]).provider;
+
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: ChangeNotifierProvider<MultiServerProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            theme: monoTheme(dark: true),
+            home: withProfileNavigationScope(
+              child: SizedBox(width: 1920, height: 1080, child: MediaDetailScreen(metadata: show)),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // The row's trailing status is the player's own ladder run over the
+    // server rows: Plex-selected English audio, subtitles off (no row selected).
+    final status = find.byKey(const ValueKey('detail_playback_tracks'));
+    expect(status, findsOneWidget);
+    expect(
+      tester.widget<Semantics>(status).properties.label,
+      'Audio & Subtitles: 1080p, HEVC, English · TrueHD · 7.1, Off',
+    );
+    // The test font's 1 em/char advance sheds the codec detail at this width; the
+    // track itself stays.
+    final audioText = find.textContaining('English');
+    expect(audioText, findsOneWidget);
+
+    // At the screen's right edge — outside the hero's 60% text column, not
+    // right-aligned within it — sitting on the action row's baseline, in the
+    // hero's own ink rather than the muted chip colour.
+    final bar = tester.getRect(find.byType(FocusableActionBar));
+    final statusRect = tester.getRect(status);
+    expect(statusRect.right, closeTo(1920 - 24, 1)); // spotlightLeft at this scale
+    expect(statusRect.left, greaterThan(1920 * 0.60));
+    expect(statusRect.bottom, closeTo(bar.bottom, 1));
+    expect(statusRect.center.dy, greaterThan(bar.center.dy));
+    final ink = tester.widget<Text>(audioText).style!.color!;
+    expect(ink.a, 1.0);
+
+    // It is information, not a sixth button: RIGHT past the last action stays
+    // on the last action.
+    tester.state<TvBrowseRailState>(find.byType(TvBrowseRail)).requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump();
+    for (var i = 0; i < 8; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+    }
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'detail_more');
   });
 
   testWidgets('TV detail episode activation bypasses the open-details preference', (tester) async {
@@ -1082,7 +1354,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    expect(find.text('Episode 1'), findsOneWidget);
+    expect(find.descendant(of: find.byType(MediaCard), matching: find.text('Episode 1')), findsOneWidget);
     observer.pushedRouteNames.clear();
     tester.state<TvBrowseRailState>(find.byType(TvBrowseRail)).requestFocus();
     await tester.pump();

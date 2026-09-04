@@ -73,7 +73,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
           _live.markStreamRestartedAtLiveEdge();
         }
 
-        await currentPlayer.setProperty('force-seekable', 'no');
+        await _setLiveStreamOptions(currentPlayer);
         await currentPlayer.open(
           Media(streamUrl, headers: const {'Accept-Language': 'en'}),
           play: !PlatformDetector.isAutomotive(),
@@ -215,7 +215,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         resolveShouldAutoStart: (wtOwnsStart) => !wtOwnsStart,
         resumePosition: () => resumePosition,
         plexClient: () => plexClientForTracks,
-        getProfileSettings: () => context.read<UserProfileProvider>().profileSettings,
+        getProfileSettings: () => context.read<AccountPreferencesController>().activePreferences,
         preferredAudioTrack: _preferredAudioTrack,
         primarySubtitleTranscoding: () => _isTranscoding,
         ensureAudioFocus: ensureAudioFocus,

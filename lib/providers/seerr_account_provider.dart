@@ -12,6 +12,7 @@ import '../services/seerr/seerr_auth_service.dart';
 import '../services/seerr/seerr_client.dart';
 import '../services/seerr/seerr_session_store.dart';
 import '../utils/app_logger.dart';
+import '../utils/serial_future_queue.dart';
 
 /// Resolve the active profile's Plex token for Seerr sign-in/re-auth:
 /// the profile's per-user token when a bind exists (a Home user's Seerr
@@ -51,16 +52,11 @@ class SeerrAccountProvider extends ChangeNotifier with DisposableChangeNotifierM
   /// Store writes go through one queue: save() awaits an AES-GCM protect
   /// step, so two rapid unawaited writes could otherwise persist
   /// last-started-first (and a clear could lose to a still-pending save).
-  Future<void> _pendingPersistence = Future<void>.value();
+  final SerialFutureQueue _persistence = SerialFutureQueue();
 
-  Future<void> _enqueuePersistence(Future<void> Function() op) {
-    final run = _pendingPersistence.then((_) => op());
-    _pendingPersistence = run.then<void>(
-      (_) {},
-      onError: (Object e) => appLogger.w('Seerr: session persistence failed', error: e),
-    );
-    return run;
-  }
+  Future<void> _enqueuePersistence(Future<void> Function() op) => _persistence.run(op);
+
+  void _logPersistenceFailure(Object e) => appLogger.w('Seerr: session persistence failed', error: e);
 
   SeerrSession? _session;
   String _activeUserUuid = '';
@@ -97,6 +93,24 @@ class SeerrAccountProvider extends ChangeNotifier with DisposableChangeNotifierM
     _activeUserUuid = userUuid;
     final loaded = await _store.load(userUuid);
     _setSessionAndRebind(userUuid, generation, loaded);
+    unawaited(_refreshUser(userUuid, generation));
+  }
+
+  /// A stored session's permissions and display name date from sign-in;
+  /// re-read them on bind so admin-side changes — and sessions persisted by
+  /// builds that stored local logins as permission-less (#2213) — reach the
+  /// Request action without a reconnect. Best-effort: while the instance is
+  /// unreachable the session keeps working on its snapshot, and a rejected
+  /// cookie re-auths or unlinks through the client's own path.
+  Future<void> _refreshUser(String userUuid, int generation) async {
+    if (!_isCurrentBinding(userUuid, generation)) return;
+    final client = _catalogClient;
+    if (client == null) return;
+    try {
+      await client.refreshUser();
+    } catch (e, stackTrace) {
+      appLogger.w('Seerr: user refresh failed', error: e, stackTrace: stackTrace);
+    }
   }
 
   /// Persist and bind a session the connect screen established.
@@ -127,6 +141,9 @@ class SeerrAccountProvider extends ChangeNotifier with DisposableChangeNotifierM
             onSessionUpdated: (next) => _handleSessionUpdated(userUuid, generation, next),
             plexTokenSupplier: () async => _plexTokenSupplier?.call(),
             authService: authService,
+            // The auth service's client factory is a test seam (null in
+            // production); sharing it lets one MockClient serve both.
+            httpClient: authService.httpClientFactory?.call(),
           );
     safeNotifyListeners();
   }
@@ -138,7 +155,7 @@ class SeerrAccountProvider extends ChangeNotifier with DisposableChangeNotifierM
   void _handleSessionUpdated(String userUuid, int generation, SeerrSession session) {
     if (!_isCurrentBinding(userUuid, generation)) return;
     _session = session;
-    unawaited(_enqueuePersistence(() => _store.save(userUuid, session)));
+    unawaited(_enqueuePersistence(() => _store.save(userUuid, session)).catchError(_logPersistenceFailure));
     safeNotifyListeners();
   }
 
@@ -147,7 +164,7 @@ class SeerrAccountProvider extends ChangeNotifier with DisposableChangeNotifierM
   void _handleSessionInvalidated(String userUuid, int generation) {
     if (!_isCurrentBinding(userUuid, generation)) return;
     final nextGeneration = ++_bindingGeneration;
-    unawaited(_enqueuePersistence(() => _store.clear(userUuid)));
+    unawaited(_enqueuePersistence(() => _store.clear(userUuid)).catchError(_logPersistenceFailure));
     _setSessionAndRebind(userUuid, nextGeneration, null);
   }
 

@@ -46,8 +46,9 @@
              anime-list mappings (anime_lists_mapping_store.dart:37,
              fribb_mapping_store.dart:49). -->
         <domain includeSubdomains="true">jsdelivr.net</domain>
-        <!-- Release check (lib/services/update_service.dart:161). -->
-        <domain includeSubdomains="true">api.github.com</domain>
+        <!-- plezy.shayno.net: this fork's self-hosted update manifest
+             (lib/services/update_service.dart). -->
+        <domain includeSubdomains="true">plezy.shayno.net</domain>
         <!-- TMDB artwork (lib/services/catalog/seerr_catalog_source.dart:163). -->
         <domain includeSubdomains="true">image.tmdb.org</domain>
         <trust-anchors>

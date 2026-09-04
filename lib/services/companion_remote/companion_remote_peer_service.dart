@@ -10,8 +10,10 @@ import '../../i18n/strings.g.dart';
 import '../../models/companion_remote/remote_command.dart';
 import '../../models/companion_remote/remote_session.dart';
 import '../../utils/app_logger.dart';
+import '../../utils/happy_eyeballs.dart';
 import '../../utils/serial_future_queue.dart';
 import '../base_peer_service.dart';
+import '../trackers/future_coalescer.dart';
 import 'remote_auth_context.dart';
 import 'remote_auth_service.dart';
 
@@ -80,7 +82,11 @@ class CompanionRemotePeerService with KeepaliveMixin {
        _raceProbeFactory = raceProbeFactory ?? _openRaceProbe;
 
   static _RaceProbeConnection _openRaceProbe(Uri uri) {
-    final channel = IOWebSocketChannel.connect(uri, connectTimeout: const Duration(seconds: 5));
+    final channel = IOWebSocketChannel.connect(
+      uri,
+      connectTimeout: const Duration(seconds: 5),
+      customClient: happyEyeballsHttpClient,
+    );
     var connected = false;
     unawaited(
       channel.ready.then((_) {
@@ -128,11 +134,11 @@ class CompanionRemotePeerService with KeepaliveMixin {
   final Map<String, int> _hostAdmissionsBySource = {};
   int _hostAdmissionCount = 0;
   int _authenticationCommitGeneration = 0;
-  Future<void> _hostAuthenticationCommitTail = Future<void>.value();
+  final SerialFutureQueue _hostAuthCommitQueue = SerialFutureQueue();
   bool _acceptingHostConnections = false;
   bool _isDisconnecting = false;
-  Future<void>? _disconnectInProgress;
-  Future<void>? _disposeInProgress;
+  final FutureCoalescer<void> _disconnectCoalescer = FutureCoalescer();
+  final FutureCoalescer<void> _disposeCoalescer = FutureCoalescer();
   bool _disposed = false;
 
   // Client-side (remote) fields
@@ -602,11 +608,7 @@ class CompanionRemotePeerService with KeepaliveMixin {
     );
   }
 
-  Future<void> _serializeHostAuthenticationCommit(Future<void> Function() commit) {
-    final operation = _hostAuthenticationCommitTail.then((_) => commit());
-    _hostAuthenticationCommitTail = operation.catchError((Object _, StackTrace _) {});
-    return operation;
-  }
+  Future<void> _serializeHostAuthenticationCommit(Future<void> Function() commit) => _hostAuthCommitQueue.run(commit);
 
   Future<void> _commitAuthenticatedHostAdmission({
     required _HostAdmission admission,
@@ -826,7 +828,11 @@ class CompanionRemotePeerService with KeepaliveMixin {
 
       _connectionStateController.add(RemoteSessionStatus.connecting);
 
-      final channel = IOWebSocketChannel.connect(Uri.parse(url), connectTimeout: _remoteConnectTimeout);
+      final channel = IOWebSocketChannel.connect(
+        Uri.parse(url),
+        connectTimeout: _remoteConnectTimeout,
+        customClient: happyEyeballsHttpClient,
+      );
       attemptedChannel = channel;
       _channel = channel;
       _channelConnected = false;
@@ -1389,17 +1395,7 @@ class CompanionRemotePeerService with KeepaliveMixin {
 
   Future<void> disconnect() {
     if (_disposed) return Future<void>.value();
-    final existing = _disconnectInProgress;
-    if (existing != null) return existing;
-
-    late final Future<void> tracked;
-    tracked = _disconnect().whenComplete(() {
-      if (identical(_disconnectInProgress, tracked)) {
-        _disconnectInProgress = null;
-      }
-    });
-    _disconnectInProgress = tracked;
-    return tracked;
+    return _disconnectCoalescer.run(_disconnect);
   }
 
   Future<void> _disconnect() async {
@@ -1482,18 +1478,8 @@ class CompanionRemotePeerService with KeepaliveMixin {
   bool get isServerRunning => _server != null;
 
   Future<void> dispose() {
-    final existing = _disposeInProgress;
-    if (existing != null) return existing;
     if (_disposed) return Future<void>.value();
-
-    late final Future<void> tracked;
-    tracked = _dispose().whenComplete(() {
-      if (identical(_disposeInProgress, tracked)) {
-        _disposeInProgress = null;
-      }
-    });
-    _disposeInProgress = tracked;
-    return tracked;
+    return _disposeCoalescer.run(_dispose);
   }
 
   Future<void> _dispose() async {

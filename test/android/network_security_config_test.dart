@@ -13,7 +13,7 @@ const _expectedDomains = <String>{
   'simkl.com',
   'simkl.in',
   'jsdelivr.net',
-  'api.github.com',
+  'plezy.shayno.net',
   'image.tmdb.org',
 };
 const _fixedEndpointSourcePaths = <String>[
