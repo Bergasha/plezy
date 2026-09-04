@@ -7,6 +7,7 @@ import '../i18n/strings.g.dart';
 import '../services/update_service.dart';
 import '../widgets/dialog_action_button.dart';
 import 'dialogs.dart';
+import 'notification_permission.dart';
 
 Future<void> showUpdateAvailableDialog(
   BuildContext context,
@@ -69,6 +70,13 @@ class _UpdateDialogState extends State<_UpdateDialog> {
       _progress = null;
       _failed = false;
     });
+
+    // Best-effort, while the app is still alive and interactive: the
+    // relaunch-after-install notification (SystemShelfUpdateReceiver) can't
+    // ask for this itself, since by the time it needs to post, the update
+    // has already killed this process. Already-granted or already-denied
+    // resolves instantly (see NotificationPermission.ensure).
+    await NotificationPermission.ensure();
 
     try {
       await UpdateService.downloadAndInstallAndroidUpdate(
