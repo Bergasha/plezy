@@ -116,7 +116,8 @@
     "checkFailed": "Failed to check for updates",
     "downloading": "Downloading update…",
     "downloadingPercent": "Downloading update… ${percent}%",
-    "downloadFailed": "Couldn't download the update"
+    "downloadFailed": "Couldn't download the update",
+    "mayCloseWhileInstalling": "Plezy may close while installing the update"
   },
   "settings": {
     "title": "Settings",

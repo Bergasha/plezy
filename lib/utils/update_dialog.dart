@@ -122,6 +122,13 @@ class _UpdateDialogState extends State<_UpdateDialog> {
                     : t.update.downloading,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              const SizedBox(height: 8),
+              Text(
+                t.update.mayCloseWhileInstalling,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
             ],
             if (_failed) ...[
               const SizedBox(height: 8),

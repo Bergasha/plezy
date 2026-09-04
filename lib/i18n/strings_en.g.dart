@@ -387,6 +387,9 @@ class Translations$update$en {
 
 	/// en: 'Couldn't download the update'
 	String get downloadFailed => 'Couldn\'t download the update';
+
+	/// en: 'Plezy may close while installing the update'
+	String get mayCloseWhileInstalling => 'Plezy may close while installing the update';
 }
 
 // Path: settings
@@ -7239,6 +7242,7 @@ extension on Translations {
 			'update.downloading' => 'Downloading update…',
 			'update.downloadingPercent' => ({required Object percent}) => 'Downloading update… ${percent}%',
 			'update.downloadFailed' => 'Couldn\'t download the update',
+			'update.mayCloseWhileInstalling' => 'Plezy may close while installing the update',
 			'settings.title' => 'Settings',
 			'settings.supportDeveloper' => 'Support Plezy',
 			'settings.supportDeveloperDescription' => 'Donate via Liberapay to fund development',
@@ -7645,9 +7649,9 @@ extension on Translations {
 			'fileInfo.dynamicRange' => 'Dynamic Range',
 			'fileInfo.dolbyVision' => 'Dolby Vision',
 			'fileInfo.dolbyVisionLevel' => 'Dolby Vision Level',
-			'fileInfo.dolbyVisionVersion' => 'Dolby Vision Version',
 			_ => null,
 		} ?? switch (path) {
+			'fileInfo.dolbyVisionVersion' => 'Dolby Vision Version',
 			'fileInfo.dolbyVisionLayers' => 'Dolby Vision Layers',
 			'fileInfo.baseLayerCompatibility' => 'Base Layer Compatibility',
 			'fileInfo.avcBitstream' => 'AVC Bitstream',
@@ -8159,9 +8163,9 @@ extension on Translations {
 			'libraries.scanLibraryFiles' => 'Scan Library Files',
 			'libraries.scanLibrary' => 'Scan Library',
 			'libraries.analyze' => 'Analyze',
-			'libraries.analyzeLibrary' => 'Analyze Library',
 			_ => null,
 		} ?? switch (path) {
+			'libraries.analyzeLibrary' => 'Analyze Library',
 			'libraries.refreshMetadata' => 'Refresh Metadata',
 			'libraries.emptyTrash' => 'Empty Trash',
 			'libraries.emptyingTrash' => ({required Object title}) => 'Emptying trash for "${title}"...',
@@ -8673,9 +8677,9 @@ extension on Translations {
 			'watchTogether.removeRoom' => 'Remove',
 			'watchTogether.guestSwitchUnavailable' => 'Couldn\'t switch — server unavailable for sync',
 			'watchTogether.guestSwitchFailed' => 'Couldn\'t switch — content not found on this server',
-			'watchTogether.defaultDisplayName' => 'User',
 			_ => null,
 		} ?? switch (path) {
+			'watchTogether.defaultDisplayName' => 'User',
 			'watchTogether.errors.timedOut' => 'The relay did not respond in time',
 			'watchTogether.errors.connectionLost' => 'The connection closed before the session was ready',
 			'watchTogether.errors.invalidRelayResponse' => 'The relay sent an unexpected response',
@@ -9187,6 +9191,8 @@ extension on Translations {
 			'addServer.redirectUnsupported' => 'The server redirected to an unsupported URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'The server redirected to a different host. Enter the final ${product} URL directly.',
 			'addServer.redirectInsecure' => 'The server redirected from HTTPS to an insecure URL',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'The server redirected to an unsupported URL. Enter the final ${product} URL directly.',
 			_ => null,
 		};
