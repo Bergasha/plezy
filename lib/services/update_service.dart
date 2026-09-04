@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:auto_updater/auto_updater.dart';
+import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:plezy/exceptions/media_server_exceptions.dart';
 import 'package:plezy/utils/app_logger.dart';
 import 'package:plezy/utils/media_server_http_client.dart';
 import 'package:plezy/utils/platform_detector.dart';
@@ -199,6 +204,80 @@ class UpdateService {
   /// Returns update info if available, null otherwise
   static Future<Map<String, dynamic>?> checkForUpdatesOnStartup() {
     return _performUpdateCheck(respectCooldown: true);
+  }
+
+  static const MethodChannel _appInstallerChannel = MethodChannel('com.plezy/app_installer');
+
+  /// Downloads [url] to app-private cache storage (reporting progress as a
+  /// 0.0-1.0 fraction, or null while the total size is unknown) and hands it
+  /// to Android's own PackageInstaller — no browser, no separate sideloading
+  /// app, just the system's normal "Install this app?" screen. See
+  /// AppInstallerChannel.kt for the native half.
+  ///
+  /// Android-only: callers are expected to check `Platform.isAndroid` first
+  /// (other platforms still use the plain download-link flow).
+  static Future<void> downloadAndInstallAndroidUpdate({
+    required String url,
+    required void Function(double? fraction) onProgress,
+    http.Client? client,
+  }) async {
+    final targetFile = await _prepareUpdateDownloadTarget();
+
+    final request = http.Request('GET', Uri.parse(url));
+    final response = await (client ?? httpClient.inner).send(request);
+    if (response.statusCode != 200) {
+      throw MediaServerHttpException(
+        type: MediaServerHttpErrorType.unknown,
+        statusCode: response.statusCode,
+        message: 'HTTP ${response.statusCode}',
+      );
+    }
+
+    final total = response.contentLength;
+    var received = 0;
+    final sink = targetFile.openWrite();
+    try {
+      await response.stream.listen((chunk) {
+        sink.add(chunk);
+        received += chunk.length;
+        onProgress(total != null && total > 0 ? received / total : null);
+      }).asFuture<void>();
+    } finally {
+      await sink.close();
+    }
+
+    try {
+      await _appInstallerChannel.invokeMethod<bool>('install', {'filePath': targetFile.path});
+    } finally {
+      // Safe to delete unconditionally: by the time the platform call
+      // returns, PackageInstaller's session already holds its own copy of
+      // the bytes (see AppInstallerChannel.commitInstallSession), so this
+      // app's copy is redundant whether or not the user goes on to confirm
+      // the install.
+      unawaited(targetFile.delete().catchError((_) => targetFile));
+    }
+  }
+
+  /// The folder this app's own update downloads live in, one file at a
+  /// time. Swept clean before every new download starts (rather than only
+  /// after a successful install) so a killed app, a cancelled confirmation
+  /// screen, or any other interruption can never leave more than one stale
+  /// installer sitting in cache.
+  static Future<File> _prepareUpdateDownloadTarget() async {
+    final cacheDir = await getTemporaryDirectory();
+    final updateDir = Directory('${cacheDir.path}/plezy-update');
+    if (await updateDir.exists()) {
+      await for (final entity in updateDir.list()) {
+        if (entity is File) {
+          try {
+            await entity.delete();
+          } catch (_) {}
+        }
+      }
+    } else {
+      await updateDir.create(recursive: true);
+    }
+    return File('${updateDir.path}/plezy-update.apk');
   }
 
   /// Parse version string into list of integers

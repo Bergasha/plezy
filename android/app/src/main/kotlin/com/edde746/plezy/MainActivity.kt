@@ -116,6 +116,7 @@ class MainActivity : FlutterActivity() {
   private var flutterSurfaceReconnectPending = false
   private var activityStarted = false
   private val externalPlayerChannel = ExternalPlayerChannel(this)
+  private val appInstallerChannel = AppInstallerChannel(this)
   private val exitDiagnosticsRequested = AtomicBoolean(false)
 
   private inline fun logTextInputDiag(message: () -> String) {
@@ -591,6 +592,7 @@ class MainActivity : FlutterActivity() {
 
   override fun onDestroy() {
     externalPlayerChannel.dispose()
+    appInstallerChannel.dispose()
     endNativeTextInputSession()
     imeVisibilityListener?.let { window.decorView.viewTreeObserver.removeOnGlobalLayoutListener(it) }
     imeVisibilityListener = null
@@ -837,6 +839,7 @@ class MainActivity : FlutterActivity() {
     }
 
     externalPlayerChannel.attach(flutterEngine.dartExecutor.binaryMessenger)
+    appInstallerChannel.attach(flutterEngine.dartExecutor.binaryMessenger)
 
     // Splash screen theme: persist user's chosen theme for next launch (API 31+)
     MethodChannel(flutterEngine.dartExecutor.binaryMessenger, THEME_CHANNEL).setMethodCallHandler { call, result ->

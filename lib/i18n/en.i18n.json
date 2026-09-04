@@ -113,7 +113,10 @@
     "skipVersion": "Skip This Version",
     "viewRelease": "Update",
     "latestVersion": "You are on the latest version",
-    "checkFailed": "Failed to check for updates"
+    "checkFailed": "Failed to check for updates",
+    "downloading": "Downloading update…",
+    "downloadingPercent": "Downloading update… ${percent}%",
+    "downloadFailed": "Couldn't download the update"
   },
   "settings": {
     "title": "Settings",

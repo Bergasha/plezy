@@ -378,6 +378,15 @@ class Translations$update$en {
 
 	/// en: 'Failed to check for updates'
 	String get checkFailed => 'Failed to check for updates';
+
+	/// en: 'Downloading update…'
+	String get downloading => 'Downloading update…';
+
+	/// en: 'Downloading update… ${percent}%'
+	String downloadingPercent({required Object percent}) => 'Downloading update… ${percent}%';
+
+	/// en: 'Couldn't download the update'
+	String get downloadFailed => 'Couldn\'t download the update';
 }
 
 // Path: settings
@@ -7227,6 +7236,9 @@ extension on Translations {
 			'update.viewRelease' => 'Update',
 			'update.latestVersion' => 'You are on the latest version',
 			'update.checkFailed' => 'Failed to check for updates',
+			'update.downloading' => 'Downloading update…',
+			'update.downloadingPercent' => ({required Object percent}) => 'Downloading update… ${percent}%',
+			'update.downloadFailed' => 'Couldn\'t download the update',
 			'settings.title' => 'Settings',
 			'settings.supportDeveloper' => 'Support Plezy',
 			'settings.supportDeveloperDescription' => 'Donate via Liberapay to fund development',
@@ -7634,11 +7646,11 @@ extension on Translations {
 			'fileInfo.dolbyVision' => 'Dolby Vision',
 			'fileInfo.dolbyVisionLevel' => 'Dolby Vision Level',
 			'fileInfo.dolbyVisionVersion' => 'Dolby Vision Version',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.dolbyVisionLayers' => 'Dolby Vision Layers',
 			'fileInfo.baseLayerCompatibility' => 'Base Layer Compatibility',
 			'fileInfo.avcBitstream' => 'AVC Bitstream',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.nalLengthSize' => 'NAL Length Size',
 			'fileInfo.scalingMatrix' => 'Custom Scaling Matrix',
 			'fileInfo.streamIdentifier' => 'Stream Identifier',
@@ -8148,11 +8160,11 @@ extension on Translations {
 			'libraries.scanLibrary' => 'Scan Library',
 			'libraries.analyze' => 'Analyze',
 			'libraries.analyzeLibrary' => 'Analyze Library',
+			_ => null,
+		} ?? switch (path) {
 			'libraries.refreshMetadata' => 'Refresh Metadata',
 			'libraries.emptyTrash' => 'Empty Trash',
 			'libraries.emptyingTrash' => ({required Object title}) => 'Emptying trash for "${title}"...',
-			_ => null,
-		} ?? switch (path) {
 			'libraries.trashEmptied' => ({required Object title}) => 'Trash emptied for "${title}"',
 			'libraries.failedToEmptyTrash' => ({required Object error}) => 'Failed to empty trash: ${error}',
 			'libraries.analyzing' => ({required Object title}) => 'Analyzing "${title}"...',
@@ -8662,11 +8674,11 @@ extension on Translations {
 			'watchTogether.guestSwitchUnavailable' => 'Couldn\'t switch — server unavailable for sync',
 			'watchTogether.guestSwitchFailed' => 'Couldn\'t switch — content not found on this server',
 			'watchTogether.defaultDisplayName' => 'User',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.errors.timedOut' => 'The relay did not respond in time',
 			'watchTogether.errors.connectionLost' => 'The connection closed before the session was ready',
 			'watchTogether.errors.invalidRelayResponse' => 'The relay sent an unexpected response',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.errors.sessionEnded' => 'The host ended the session',
 			'downloads.title' => 'Downloads',
 			'downloads.manage' => 'Manage',

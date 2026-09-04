@@ -2,18 +2,25 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plezy/exceptions/media_server_exceptions.dart';
 import 'package:plezy/utils/media_server_http_client.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plezy/services/base_shared_preferences_service.dart';
 import 'package:plezy/services/update_service.dart';
 
+import '../test_helpers/io_fakes.dart';
 import '../test_helpers/prefs.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   const lastCheckKey = 'update_last_check_time';
+  const installerChannel = MethodChannel('com.plezy/app_installer');
 
   setUp(resetSharedPreferencesForTest);
   PackageInfo.setMockInitialValues(
@@ -156,5 +163,123 @@ void main() {
     addTearDown(client.close);
 
     expect(await UpdateService.debugPerformUpdateCheck(respectCooldown: false, client: client), isNull);
+  });
+
+  group('downloadAndInstallAndroidUpdate', () {
+    late Directory tmpRoot;
+    late PathProviderPlatform previousPathProvider;
+
+    setUp(() async {
+      tmpRoot = await Directory.systemTemp.createTemp('update_service_test_');
+      previousPathProvider = PathProviderPlatform.instance;
+      PathProviderPlatform.instance = FakePathProvider(tmpRoot);
+    });
+
+    tearDown(() async {
+      PathProviderPlatform.instance = previousPathProvider;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        installerChannel,
+        null,
+      );
+      if (await tmpRoot.exists()) {
+        await tmpRoot.delete(recursive: true);
+      }
+    });
+
+    test(
+      'streams the download to app-private cache, reports progress, and hands the path to the installer channel',
+      () async {
+        final bytes = List<int>.generate(1000, (i) => i % 256);
+        final client = MockClient((_) async => http.Response.bytes(bytes, 200));
+
+        final progressValues = <double?>[];
+        String? installedPath;
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(installerChannel, (
+          call,
+        ) async {
+          expect(call.method, 'install');
+          installedPath = (call.arguments as Map)['filePath'] as String;
+          return true;
+        });
+
+        await UpdateService.downloadAndInstallAndroidUpdate(
+          url: 'https://plezy.shayno.net/app-release.apk',
+          onProgress: progressValues.add,
+          client: client,
+        );
+
+        expect(progressValues, isNotEmpty);
+        expect(progressValues.last, 1.0);
+        expect(installedPath, isNotNull);
+        expect(installedPath, contains('plezy-update.apk'));
+        // The app's own copy is deleted once the platform call returns — the
+        // installer session already holds its own copy of the bytes by then.
+        expect(await File(installedPath!).exists(), isFalse);
+      },
+    );
+
+    test('sweeps a stale file left over from an earlier interrupted download before starting a new one', () async {
+      final updateDir = Directory('${tmpRoot.path}/temp/plezy-update');
+      await updateDir.create(recursive: true);
+      final staleFile = File('${updateDir.path}/plezy-update.apk');
+      await staleFile.writeAsBytes(List<int>.filled(10, 1));
+      expect(await staleFile.exists(), isTrue);
+
+      final client = MockClient((_) async => http.Response.bytes([1, 2, 3], 200));
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        installerChannel,
+        (call) async => true,
+      );
+
+      await UpdateService.downloadAndInstallAndroidUpdate(
+        url: 'https://plezy.shayno.net/app-release.apk',
+        onProgress: (_) {},
+        client: client,
+      );
+
+      // Swept before the new download started, and the new download's own
+      // file is gone too once the install call returns.
+      expect(await staleFile.exists(), isFalse);
+    });
+
+    test('propagates a download failure and never reaches the installer channel', () async {
+      final client = MockClient((_) async => http.Response('server error', 500));
+      var installCalled = false;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(installerChannel, (
+        call,
+      ) async {
+        installCalled = true;
+        return true;
+      });
+
+      await expectLater(
+        UpdateService.downloadAndInstallAndroidUpdate(
+          url: 'https://plezy.shayno.net/app-release.apk',
+          onProgress: (_) {},
+          client: client,
+        ),
+        throwsA(isA<MediaServerHttpException>()),
+      );
+
+      expect(installCalled, isFalse);
+    });
+
+    test('propagates an installer-channel failure to the caller', () async {
+      final client = MockClient((_) async => http.Response.bytes([1, 2, 3], 200));
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(installerChannel, (
+        call,
+      ) async {
+        throw PlatformException(code: 'INSTALL_FAILED', message: 'boom');
+      });
+
+      await expectLater(
+        UpdateService.downloadAndInstallAndroidUpdate(
+          url: 'https://plezy.shayno.net/app-release.apk',
+          onProgress: (_) {},
+          client: client,
+        ),
+        throwsA(isA<PlatformException>()),
+      );
+    });
   });
 }
