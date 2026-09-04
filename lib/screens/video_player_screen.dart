@@ -550,7 +550,6 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   late final LiveSeekAccumulator _liveSeek = LiveSeekAccumulator(
     seek: _runLiveSeek,
     currentEpoch: () => _rawPositionEpoch,
-    positionSeconds: () => player?.state.position.inSeconds ?? 0,
     bounds: _liveSeekBounds,
     onChanged: _onLiveSeekTargetChanged,
   );
@@ -1868,6 +1867,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     _stillWatchingCountdown.dispose();
 
     _liveSeek.dispose();
+    _live.cancelClockOpens();
 
     _playNextCancelFocusNode.dispose();
     _playNextConfirmFocusNode.dispose();
