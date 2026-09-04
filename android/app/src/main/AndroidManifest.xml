@@ -22,6 +22,11 @@
          it through a browser or a separate sideloading app. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
+    <!-- Lets the post-update relaunch notification (SystemShelfUpdateReceiver)
+         actually take over the screen when Android judges that safe, instead
+         of only ever showing as a tap-to-open notification. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+
     <!-- Explicitly remove media permissions that media_kit may add -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
