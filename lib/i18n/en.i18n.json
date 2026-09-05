@@ -106,6 +106,9 @@
     "mpvConfig": "mpv.conf",
     "logs": "Logs"
   },
+  "whatsNew": {
+    "title": "What's New"
+  },
   "update": {
     "available": "Update Available",
     "versionAvailable": "Version ${version} is available",

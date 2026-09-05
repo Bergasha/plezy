@@ -1,7 +1,7 @@
 name: plezy
 description: "Makes Shayflix way better"
 publish_to: "none"
-version: 2.17.14+177
+version: 2.17.16+179
 
 environment:
   # Dart floor stays 3.12: freezed 3.x emits `final` constructor parameters,
@@ -134,6 +134,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/plezy.png
+    - assets/shayno_thumbsup.png
     - assets/plezy_adaptive_foreground.svg
     - assets/plex_chevron.svg
     - assets/jellyfin_icon.svg

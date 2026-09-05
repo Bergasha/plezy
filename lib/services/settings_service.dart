@@ -671,6 +671,12 @@ class SettingsService extends BaseSharedPreferencesService {
   static final tautulliBaseUrl = NullableStringPref('tautulli_base_url', transform: _normalizeTautulliBaseUrl);
   static const tautulliApiKey = NullableStringPref('tautulli_api_key');
 
+  /// The app version (semantic, no build number) last seen at startup, used
+  /// to detect "just updated" for [WhatsNewService]. Null on a fresh
+  /// install, which deliberately suppresses the first-ever What's New popup
+  /// — it's for people who just updated, not people who just installed.
+  static const lastSeenAppVersion = NullableStringPref('last_seen_app_version');
+
   static NullableStringPref recentRoomsForProfile(String profileId) {
     if (profileId.trim().isEmpty) {
       throw ArgumentError.value(profileId, 'profileId', 'Must not be empty');

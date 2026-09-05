@@ -18,6 +18,8 @@ import '../i18n/strings.g.dart';
 import '../services/app_exit_service.dart';
 import '../services/tvos_system_navigation_service.dart';
 import '../services/update_service.dart';
+import '../services/whats_new_service.dart';
+import '../utils/whats_new_dialog.dart';
 import '../utils/app_logger.dart';
 import '../widgets/auth_error_banner.dart';
 import '../widgets/app_icon.dart';
@@ -631,8 +633,10 @@ class _MainScreenState extends State<MainScreen>
 
       _updateTvosMenuPassthrough();
 
-      // Check for updates on startup
-      unawaited(_checkForUpdatesOnStartup());
+      // What's New first (about the update that just happened), then check
+      // for a further update (about one that hasn't happened yet) — kept
+      // sequential so the two dialogs never stack.
+      unawaited(_checkWhatsNewOnStartup().then((_) => _checkForUpdatesOnStartup()));
     });
   }
 
@@ -833,6 +837,18 @@ class _MainScreenState extends State<MainScreen>
     if (!mounted) return;
     _isShowingProfileSelection = false;
     _updateTvosMenuPassthrough();
+  }
+
+  Future<void> _checkWhatsNewOnStartup() async {
+    if (!mounted) return;
+    try {
+      final points = await WhatsNewService.checkAndConsume();
+      if (points != null && points.isNotEmpty && mounted) {
+        await showWhatsNewDialog(context, points);
+      }
+    } catch (e) {
+      appLogger.e('Error checking What\'s New', error: e);
+    }
   }
 
   Future<void> _checkForUpdatesOnStartup() async {
