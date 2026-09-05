@@ -2028,13 +2028,7 @@
     "yearHint": "年",
     "search": "検索",
     "noMatchesFound": "一致する項目がありません"
-  },
-  "serverTasks": {
-    "title": "サーバータスク",
-    "failedToLoad": "タスクの読み込みに失敗しました",
-    "noTasks": "実行中のタスクはありません"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "接続済み",
     "connectedAs": "@${username}として接続済み",

@@ -87,7 +87,6 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$externalPlayer$en externalPlayer = Translations$externalPlayer$en.internal(_root);
 	late final Translations$metadataEdit$en metadataEdit = Translations$metadataEdit$en.internal(_root);
 	late final Translations$matchScreen$en matchScreen = Translations$matchScreen$en.internal(_root);
-	late final Translations$serverTasks$en serverTasks = Translations$serverTasks$en.internal(_root);
 	late final Translations$tautulli$en tautulli = Translations$tautulli$en.internal(_root);
 	late final Translations$seerrIssue$en seerrIssue = Translations$seerrIssue$en.internal(_root);
 	late final Translations$trakt$en trakt = Translations$trakt$en.internal(_root);
@@ -5277,24 +5276,6 @@ class Translations$matchScreen$en {
 	String get noMatchesFound => 'No matches found';
 }
 
-// Path: serverTasks
-class Translations$serverTasks$en {
-	Translations$serverTasks$en.internal(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// en: 'Server Tasks'
-	String get title => 'Server Tasks';
-
-	/// en: 'Failed to load tasks'
-	String get failedToLoad => 'Failed to load tasks';
-
-	/// en: 'No tasks running'
-	String get noTasks => 'No tasks running';
-}
-
 // Path: tautulli
 class Translations$tautulli$en {
 	Translations$tautulli$en.internal(this._root);
@@ -9148,9 +9129,6 @@ extension on Translations {
 			'matchScreen.yearHint' => 'Year',
 			'matchScreen.search' => 'Search',
 			'matchScreen.noMatchesFound' => 'No matches found',
-			'serverTasks.title' => 'Server Tasks',
-			'serverTasks.failedToLoad' => 'Failed to load tasks',
-			'serverTasks.noTasks' => 'No tasks running',
 			'tautulli.activeStreams' => 'Active Streams',
 			'tautulli.failedToLoad' => 'Failed to load active streams from Tautulli',
 			'tautulli.noActiveStreams' => 'No active streams',
@@ -9286,11 +9264,11 @@ extension on Translations {
 			'addServer.addConnectionTitle' => 'Add connection',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => 'Add to ${name}',
 			'addServer.signInWithPlexCard' => 'Sign in with Plex',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.signInWithPlexCardSubtitle' => 'Authorize this device. Shared servers are added.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Authorize a Plex account. Home users become profiles.',
 			'addServer.connectToMediaBrowserCard' => ({required Object product}) => 'Connect to ${product}',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.connectToMediaBrowserCardSubtitle' => 'Enter your server URL, username, and password.',
 			'addServer.connectToMediaBrowserCardSubtitleScoped' => ({required Object product, required Object name}) => 'Sign in to your ${product} server. Binds to ${name}.',
 			'addServer.borrowFromAnotherProfile' => 'Borrow from another profile',

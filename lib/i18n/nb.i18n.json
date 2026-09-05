@@ -2038,13 +2038,7 @@
     "yearHint": "År",
     "search": "Søk",
     "noMatchesFound": "Ingen treff funnet"
-  },
-  "serverTasks": {
-    "title": "Serveroppgaver",
-    "failedToLoad": "Kunne ikke laste oppgaver",
-    "noTasks": "Ingen oppgaver kjører"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Tilkoblet",
     "connectedAs": "Tilkoblet som @${username}",

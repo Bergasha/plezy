@@ -2038,13 +2038,7 @@
     "yearHint": "Jaar",
     "search": "Zoeken",
     "noMatchesFound": "Geen overeenkomsten gevonden"
-  },
-  "serverTasks": {
-    "title": "Servertaken",
-    "failedToLoad": "Taken konden niet worden geladen",
-    "noTasks": "Geen actieve taken"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Verbonden",
     "connectedAs": "Verbonden als @${username}",

@@ -2038,13 +2038,7 @@
     "yearHint": "Jahr",
     "search": "Suchen",
     "noMatchesFound": "Keine Treffer gefunden"
-  },
-  "serverTasks": {
-    "title": "Serveraufgaben",
-    "failedToLoad": "Aufgaben konnten nicht geladen werden",
-    "noTasks": "Keine laufenden Aufgaben"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Verbunden",
     "connectedAs": "Verbunden als @${username}",

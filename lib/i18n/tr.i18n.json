@@ -2038,13 +2038,7 @@
     "yearHint": "Yıl",
     "search": "Ara",
     "noMatchesFound": "Eşleşme bulunamadı"
-  },
-  "serverTasks": {
-    "title": "Sunucu Görevleri",
-    "failedToLoad": "Görevler yüklenemedi",
-    "noTasks": "Çalışan görev yok"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Bağlandı",
     "connectedAs": "@${username} olarak bağlandı",

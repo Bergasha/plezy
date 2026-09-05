@@ -85,7 +85,6 @@ class TranslationsAz extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$externalPlayer$az externalPlayer = _Translations$externalPlayer$az._(_root);
 	@override late final _Translations$metadataEdit$az metadataEdit = _Translations$metadataEdit$az._(_root);
 	@override late final _Translations$matchScreen$az matchScreen = _Translations$matchScreen$az._(_root);
-	@override late final _Translations$serverTasks$az serverTasks = _Translations$serverTasks$az._(_root);
 	@override late final _Translations$trakt$az trakt = _Translations$trakt$az._(_root);
 	@override late final _Translations$seerr$az seerr = _Translations$seerr$az._(_root);
 	@override late final _Translations$services$az services = _Translations$services$az._(_root);
@@ -2050,18 +2049,6 @@ class _Translations$matchScreen$az extends Translations$matchScreen$en {
 	@override String get yearHint => 'İl';
 	@override String get search => 'Axtar';
 	@override String get noMatchesFound => 'Uyğunluq tapılmadı';
-}
-
-// Path: serverTasks
-class _Translations$serverTasks$az extends Translations$serverTasks$en {
-	_Translations$serverTasks$az._(TranslationsAz root) : this._root = root, super.internal(root);
-
-	final TranslationsAz _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Server tapşırıqları';
-	@override String get failedToLoad => 'Tapşırıqlar yüklənə bilmədi';
-	@override String get noTasks => 'İcra olunan tapşırıq yoxdur';
 }
 
 // Path: trakt
@@ -4781,9 +4768,6 @@ extension on TranslationsAz {
 			'matchScreen.yearHint' => 'İl',
 			'matchScreen.search' => 'Axtar',
 			'matchScreen.noMatchesFound' => 'Uyğunluq tapılmadı',
-			'serverTasks.title' => 'Server tapşırıqları',
-			'serverTasks.failedToLoad' => 'Tapşırıqlar yüklənə bilmədi',
-			'serverTasks.noTasks' => 'İcra olunan tapşırıq yoxdur',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Qoşuldu',
 			'trakt.connectedAs' => ({required Object username}) => '@${username} olaraq qoşuldu',

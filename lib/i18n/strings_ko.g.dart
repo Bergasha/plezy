@@ -85,7 +85,6 @@ class TranslationsKo extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$externalPlayer$ko externalPlayer = _Translations$externalPlayer$ko._(_root);
 	@override late final _Translations$metadataEdit$ko metadataEdit = _Translations$metadataEdit$ko._(_root);
 	@override late final _Translations$matchScreen$ko matchScreen = _Translations$matchScreen$ko._(_root);
-	@override late final _Translations$serverTasks$ko serverTasks = _Translations$serverTasks$ko._(_root);
 	@override late final _Translations$trakt$ko trakt = _Translations$trakt$ko._(_root);
 	@override late final _Translations$seerr$ko seerr = _Translations$seerr$ko._(_root);
 	@override late final _Translations$services$ko services = _Translations$services$ko._(_root);
@@ -2042,18 +2041,6 @@ class _Translations$matchScreen$ko extends Translations$matchScreen$en {
 	@override String get yearHint => '연도';
 	@override String get search => '검색';
 	@override String get noMatchesFound => '일치하는 항목이 없습니다';
-}
-
-// Path: serverTasks
-class _Translations$serverTasks$ko extends Translations$serverTasks$en {
-	_Translations$serverTasks$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => '서버 작업';
-	@override String get failedToLoad => '작업을 불러올 수 없습니다';
-	@override String get noTasks => '실행 중인 작업 없음';
 }
 
 // Path: trakt
@@ -4771,9 +4758,6 @@ extension on TranslationsKo {
 			'matchScreen.yearHint' => '연도',
 			'matchScreen.search' => '검색',
 			'matchScreen.noMatchesFound' => '일치하는 항목이 없습니다',
-			'serverTasks.title' => '서버 작업',
-			'serverTasks.failedToLoad' => '작업을 불러올 수 없습니다',
-			'serverTasks.noTasks' => '실행 중인 작업 없음',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => '연결됨',
 			'trakt.connectedAs' => ({required Object username}) => '@${username}(으)로 연결됨',

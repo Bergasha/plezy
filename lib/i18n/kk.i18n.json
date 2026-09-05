@@ -2038,13 +2038,7 @@
     "yearHint": "Жыл",
     "search": "Іздеу",
     "noMatchesFound": "Сәйкестіктер табылмады"
-  },
-  "serverTasks": {
-    "title": "Сервер тапсырмалары",
-    "failedToLoad": "Тапсырмаларды жүктеу мүмкін болмады",
-    "noTasks": "Орындалып жатқан тапсырмалар жоқ"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Қосылды",
     "connectedAs": "@${username} ретінде қосылды",

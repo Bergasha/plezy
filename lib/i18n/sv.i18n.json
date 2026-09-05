@@ -2038,13 +2038,7 @@
     "yearHint": "År",
     "search": "Sök",
     "noMatchesFound": "Inga matchningar hittades"
-  },
-  "serverTasks": {
-    "title": "Serveruppgifter",
-    "failedToLoad": "Kunde inte ladda uppgifter",
-    "noTasks": "Inga pågående uppgifter"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Ansluten",
     "connectedAs": "Ansluten som @${username}",

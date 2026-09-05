@@ -2038,13 +2038,7 @@
     "yearHint": "Година",
     "search": "Търсене",
     "noMatchesFound": "Няма намерени съвпадения"
-  },
-  "serverTasks": {
-    "title": "Задачи на сървъра",
-    "failedToLoad": "Неуспешно зареждане на задачи",
-    "noTasks": "Няма изпълняващи се задачи"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Свързан",
     "connectedAs": "Свързан като @${username}",

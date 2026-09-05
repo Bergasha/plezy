@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../focus/focusable_button.dart';
+import '../focus/focusable_text_field.dart';
 import '../i18n/strings.g.dart';
 import '../media/media_item.dart';
 import '../media/media_kind.dart';
@@ -46,8 +48,12 @@ enum _LoadState { loading, ready, unavailable, failed }
 class _SeerrIssueSheetState extends State<SeerrIssueSheet> {
   _LoadState _loadState = _LoadState.loading;
   int? _seerrMediaId;
+  int _problemSeason = 0;
+  int _problemEpisode = 0;
   SeerrIssueType? _selectedType;
   late final TextEditingController _messageController;
+  final _messageFocusNode = FocusNode(debugLabel: 'SeerrIssueMessage');
+  final _submitFocusNode = FocusNode(debugLabel: 'SeerrIssueSubmit');
   bool _submitting = false;
 
   @override
@@ -60,6 +66,8 @@ class _SeerrIssueSheetState extends State<SeerrIssueSheet> {
   @override
   void dispose() {
     _messageController.dispose();
+    _messageFocusNode.dispose();
+    _submitFocusNode.dispose();
     super.dispose();
   }
 
@@ -72,6 +80,16 @@ class _SeerrIssueSheetState extends State<SeerrIssueSheet> {
       if (lookupId == null) {
         if (mounted) setState(() => _loadState = _LoadState.unavailable);
         return;
+      }
+
+      if (item.kind == MediaKind.episode) {
+        // The item handed to the context menu can be a lighter row than a
+        // full detail fetch (missing parentIndex/index), which silently sent
+        // 0/0 - Seerr's "whole show" convention - instead of the actual
+        // episode. Re-fetch the authoritative copy rather than trust it.
+        final fresh = await widget.mediaClient.fetchItem(item.id);
+        _problemSeason = fresh?.parentIndex ?? item.parentIndex ?? 0;
+        _problemEpisode = fresh?.index ?? item.index ?? 0;
       }
 
       final externalIds = await widget.mediaClient.fetchExternalIds(lookupId);
@@ -106,6 +124,7 @@ class _SeerrIssueSheetState extends State<SeerrIssueSheet> {
       _selectedType = type;
       _messageController.text = type == SeerrIssueType.other ? '' : _defaultMessage(type);
     });
+    _messageFocusNode.requestFocus();
   }
 
   String _defaultMessage(SeerrIssueType type) => switch (type) {
@@ -126,12 +145,11 @@ class _SeerrIssueSheetState extends State<SeerrIssueSheet> {
 
     setState(() => _submitting = true);
     try {
-      final item = widget.item;
       await widget.seerrClient.createIssue(
         mediaId: mediaId,
         issueType: type,
-        problemSeason: item.kind == MediaKind.episode ? (item.parentIndex ?? 0) : 0,
-        problemEpisode: item.kind == MediaKind.episode ? (item.index ?? 0) : 0,
+        problemSeason: _problemSeason,
+        problemEpisode: _problemEpisode,
         message: message,
       );
       if (mounted) {
@@ -213,22 +231,34 @@ class _SeerrIssueSheetState extends State<SeerrIssueSheet> {
           ],
         ),
         const SizedBox(height: 16),
-        TextField(
+        FocusableTextField(
           controller: _messageController,
+          focusNode: _messageFocusNode,
           minLines: 2,
           maxLines: 4,
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(hintText: t.seerrIssue.messageHint, border: const OutlineInputBorder()),
+          textInputAction: TextInputAction.done,
+          // The submit button sits right below in the tree, but a plain
+          // TextField traps dpad/keyboard focus inside itself with nowhere
+          // to go next - both let it escape downward to Send.
+          onEditingComplete: () => _submitFocusNode.requestFocus(),
+          onNavigateDown: _submitFocusNode.requestFocus,
         ),
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
-          child: FilledButton.icon(
+          child: FocusableButton(
+            focusNode: _submitFocusNode,
+            useBackgroundFocus: true,
             onPressed: _canSubmit ? _submit : null,
-            icon: _submitting
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                : const AppIcon(Symbols.send_rounded),
-            label: Text(t.seerrIssue.submit),
+            child: FilledButton.icon(
+              onPressed: _canSubmit ? _submit : null,
+              icon: _submitting
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const AppIcon(Symbols.send_rounded),
+              label: Text(t.seerrIssue.submit),
+            ),
           ),
         ),
       ],

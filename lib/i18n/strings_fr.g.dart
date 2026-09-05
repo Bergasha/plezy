@@ -85,7 +85,6 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$externalPlayer$fr externalPlayer = _Translations$externalPlayer$fr._(_root);
 	@override late final _Translations$metadataEdit$fr metadataEdit = _Translations$metadataEdit$fr._(_root);
 	@override late final _Translations$matchScreen$fr matchScreen = _Translations$matchScreen$fr._(_root);
-	@override late final _Translations$serverTasks$fr serverTasks = _Translations$serverTasks$fr._(_root);
 	@override late final _Translations$trakt$fr trakt = _Translations$trakt$fr._(_root);
 	@override late final _Translations$seerr$fr seerr = _Translations$seerr$fr._(_root);
 	@override late final _Translations$services$fr services = _Translations$services$fr._(_root);
@@ -2050,18 +2049,6 @@ class _Translations$matchScreen$fr extends Translations$matchScreen$en {
 	@override String get yearHint => 'Année';
 	@override String get search => 'Rechercher';
 	@override String get noMatchesFound => 'Aucune correspondance';
-}
-
-// Path: serverTasks
-class _Translations$serverTasks$fr extends Translations$serverTasks$en {
-	_Translations$serverTasks$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Tâches du serveur';
-	@override String get failedToLoad => 'Échec du chargement des tâches';
-	@override String get noTasks => 'Aucune tâche en cours';
 }
 
 // Path: trakt
@@ -4781,9 +4768,6 @@ extension on TranslationsFr {
 			'matchScreen.yearHint' => 'Année',
 			'matchScreen.search' => 'Rechercher',
 			'matchScreen.noMatchesFound' => 'Aucune correspondance',
-			'serverTasks.title' => 'Tâches du serveur',
-			'serverTasks.failedToLoad' => 'Échec du chargement des tâches',
-			'serverTasks.noTasks' => 'Aucune tâche en cours',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connecté',
 			'trakt.connectedAs' => ({required Object username}) => 'Connecté en tant que @${username}',

@@ -2028,13 +2028,7 @@
     "yearHint": "年份",
     "search": "搜尋",
     "noMatchesFound": "找不到符合的配對"
-  },
-  "serverTasks": {
-    "title": "伺服器工作",
-    "failedToLoad": "載入工作失敗",
-    "noTasks": "目前沒有執行中的工作"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "已連線",
     "connectedAs": "已以 @${username} 身分連線",

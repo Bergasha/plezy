@@ -2038,13 +2038,7 @@
     "yearHint": "Anno",
     "search": "Cerca",
     "noMatchesFound": "Nessun risultato"
-  },
-  "serverTasks": {
-    "title": "Attività del server",
-    "failedToLoad": "Impossibile caricare le attività",
-    "noTasks": "Nessuna attività in corso"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Connesso",
     "connectedAs": "Connesso come @${username}",

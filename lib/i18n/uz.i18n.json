@@ -2038,13 +2038,7 @@
     "yearHint": "Yil",
     "search": "Qidiruv",
     "noMatchesFound": "Mosliklar topilmadi"
-  },
-  "serverTasks": {
-    "title": "Server vazifalari",
-    "failedToLoad": "Vazifalarni yuklab boʻlmadi",
-    "noTasks": "Bajarilayotgan vazifalar yoʻq"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Ulandi",
     "connectedAs": "@${username} sifatida ulandi",

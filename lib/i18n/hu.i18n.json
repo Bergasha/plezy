@@ -2038,13 +2038,7 @@
     "yearHint": "Év",
     "search": "Keresés",
     "noMatchesFound": "Nincsenek egyezések"
-  },
-  "serverTasks": {
-    "title": "Szerverfeladatok",
-    "failedToLoad": "Nem sikerült a feladatok betöltése",
-    "noTasks": "Nincsenek futó feladatok"
-  },
-  "trakt": {
+  },  "trakt": {
     "title": "Trakt",
     "connected": "Csatlakoztatva",
     "connectedAs": "@${username} néven csatlakoztatva",
