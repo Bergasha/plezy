@@ -16,7 +16,7 @@ import 'settings_service.dart';
 /// only when a release ships something a non-technical user would actually
 /// notice — plain language, a handful of bullets at most.
 const Map<String, List<String>> _whatsNewByVersion = {
-  '2.17.16': ['Long-press a movie or show to report a problem straight to Shayno'],
+  '2.17.17': ['Long-press a movie or show to report a problem straight to Shayno'],
 };
 
 abstract final class WhatsNewService {
