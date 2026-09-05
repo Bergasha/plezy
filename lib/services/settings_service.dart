@@ -330,6 +330,17 @@ String? _normalizeRatingsServiceUrl(String? value) {
   return endpoint.canonicalBaseUrl;
 }
 
+String? _normalizeTautulliBaseUrl(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  final uri = Uri.tryParse(trimmed);
+  if (uri == null || !uri.isAbsolute || (uri.scheme != 'http' && uri.scheme != 'https') || uri.host.isEmpty) {
+    throw FormatException('Invalid Tautulli base URL');
+  }
+  final path = uri.path.endsWith('/') ? uri.path.substring(0, uri.path.length - 1) : uri.path;
+  return uri.replace(path: path).toString();
+}
+
 String _legacyMpvEntriesToText(List<dynamic> entries) {
   final lines = <String>[];
   for (final item in entries) {
@@ -657,6 +668,8 @@ class SettingsService extends BaseSharedPreferencesService {
   static const customDownloadPath = NullableStringPref('custom_download_path');
   static final customRelayUrl = NullableStringPref('custom_relay_url', transform: _normalizeRelayBaseUrl);
   static final ratingsServiceUrl = NullableStringPref('ratings_service_url', transform: _normalizeRatingsServiceUrl);
+  static final tautulliBaseUrl = NullableStringPref('tautulli_base_url', transform: _normalizeTautulliBaseUrl);
+  static const tautulliApiKey = NullableStringPref('tautulli_api_key');
 
   static NullableStringPref recentRoomsForProfile(String profileId) {
     if (profileId.trim().isEmpty) {

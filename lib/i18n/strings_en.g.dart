@@ -88,6 +88,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$metadataEdit$en metadataEdit = Translations$metadataEdit$en.internal(_root);
 	late final Translations$matchScreen$en matchScreen = Translations$matchScreen$en.internal(_root);
 	late final Translations$serverTasks$en serverTasks = Translations$serverTasks$en.internal(_root);
+	late final Translations$tautulli$en tautulli = Translations$tautulli$en.internal(_root);
+	late final Translations$seerrIssue$en seerrIssue = Translations$seerrIssue$en.internal(_root);
 	late final Translations$trakt$en trakt = Translations$trakt$en.internal(_root);
 	late final Translations$seerr$en seerr = Translations$seerr$en.internal(_root);
 	late final Translations$services$en services = Translations$services$en.internal(_root);
@@ -768,6 +770,21 @@ class Translations$settings$en {
 
 	/// en: 'Enter a valid HTTP or HTTPS ratings service base URL.'
 	String get ratingsServiceInvalid => 'Enter a valid HTTP or HTTPS ratings service base URL.';
+
+	/// en: 'Tautulli Server'
+	String get tautulliService => 'Tautulli Server';
+
+	/// en: 'Shows a live active-streams panel sourced from your own Tautulli instance. Leave blank to disable.'
+	String get tautulliServiceDescription => 'Shows a live active-streams panel sourced from your own Tautulli instance. Leave blank to disable.';
+
+	/// en: 'http://my-tautulli.example.com:8181'
+	String get tautulliServiceHint => 'http://my-tautulli.example.com:8181';
+
+	/// en: 'Enter a valid HTTP or HTTPS Tautulli base URL.'
+	String get tautulliServiceInvalid => 'Enter a valid HTTP or HTTPS Tautulli base URL.';
+
+	/// en: 'Tautulli API Key'
+	String get tautulliApiKeyLabel => 'Tautulli API Key';
 
 	/// en: 'Crash Reporting'
 	String get crashReporting => 'Crash Reporting';
@@ -1781,6 +1798,9 @@ class Translations$mediaMenu$en {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// en: 'Report an Issue'
+	String get reportIssue => 'Report an Issue';
 
 	/// en: 'Mark as Watched'
 	String get markAsWatched => 'Mark as Watched';
@@ -5275,6 +5295,81 @@ class Translations$serverTasks$en {
 	String get noTasks => 'No tasks running';
 }
 
+// Path: tautulli
+class Translations$tautulli$en {
+	Translations$tautulli$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Active Streams'
+	String get activeStreams => 'Active Streams';
+
+	/// en: 'Failed to load active streams from Tautulli'
+	String get failedToLoad => 'Failed to load active streams from Tautulli';
+
+	/// en: 'No active streams'
+	String get noActiveStreams => 'No active streams';
+
+	/// en: 'TRANSCODE'
+	String get transcode => 'TRANSCODE';
+
+	/// en: 'DIRECT'
+	String get directPlay => 'DIRECT';
+}
+
+// Path: seerrIssue
+class Translations$seerrIssue$en {
+	Translations$seerrIssue$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Report an Issue'
+	String get title => 'Report an Issue';
+
+	/// en: 'Video'
+	String get typeVideo => 'Video';
+
+	/// en: 'Audio'
+	String get typeAudio => 'Audio';
+
+	/// en: 'Subtitles'
+	String get typeSubtitles => 'Subtitles';
+
+	/// en: 'Other'
+	String get typeOther => 'Other';
+
+	/// en: 'This won't play'
+	String get presetVideo => 'This won\'t play';
+
+	/// en: 'Audio is not English'
+	String get presetAudio => 'Audio is not English';
+
+	/// en: 'Subtitles are missing or wrong'
+	String get presetSubtitles => 'Subtitles are missing or wrong';
+
+	/// en: 'Describe the issue'
+	String get messageHint => 'Describe the issue';
+
+	/// en: 'Send Report'
+	String get submit => 'Send Report';
+
+	/// en: 'Issue reported — thanks!'
+	String get submitted => 'Issue reported — thanks!';
+
+	/// en: 'Couldn't send the report'
+	String get submitFailed => 'Couldn\'t send the report';
+
+	/// en: 'Can't report an issue for this title yet.'
+	String get unavailable => 'Can\'t report an issue for this title yet.';
+
+	/// en: 'Couldn't check this title against Seerr.'
+	String get loadFailed => 'Couldn\'t check this title against Seerr.';
+}
+
 // Path: trakt
 class Translations$trakt$en {
 	Translations$trakt$en.internal(this._root);
@@ -7366,6 +7461,11 @@ extension on Translations {
 			'settings.ratingsServiceDescription' => 'Good/bad votes sync automatically. Only change this if you\'re self-hosting your own ratings service.',
 			'settings.ratingsServiceHint' => 'https://my-ratings.example.com',
 			'settings.ratingsServiceInvalid' => 'Enter a valid HTTP or HTTPS ratings service base URL.',
+			'settings.tautulliService' => 'Tautulli Server',
+			'settings.tautulliServiceDescription' => 'Shows a live active-streams panel sourced from your own Tautulli instance. Leave blank to disable.',
+			'settings.tautulliServiceHint' => 'http://my-tautulli.example.com:8181',
+			'settings.tautulliServiceInvalid' => 'Enter a valid HTTP or HTTPS Tautulli base URL.',
+			'settings.tautulliApiKeyLabel' => 'Tautulli API Key',
 			'settings.crashReporting' => 'Crash Reporting',
 			'settings.crashReportingDescription' => 'Send crash reports to help improve the app',
 			'settings.debugLogging' => 'Debug Logging',
@@ -7644,13 +7744,13 @@ extension on Translations {
 			'fileInfo.chromaLocation' => 'Chroma Location',
 			'fileInfo.scanType' => 'Scan Type',
 			'fileInfo.interlaced' => 'Interlaced',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.anamorphic' => 'Anamorphic',
 			'fileInfo.referenceFrames' => 'Reference Frames',
 			'fileInfo.dynamicRange' => 'Dynamic Range',
 			'fileInfo.dolbyVision' => 'Dolby Vision',
 			'fileInfo.dolbyVisionLevel' => 'Dolby Vision Level',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.dolbyVisionVersion' => 'Dolby Vision Version',
 			'fileInfo.dolbyVisionLayers' => 'Dolby Vision Layers',
 			'fileInfo.baseLayerCompatibility' => 'Base Layer Compatibility',
@@ -7716,6 +7816,7 @@ extension on Translations {
 			'fileInfo.flagOriginal' => 'Original',
 			'fileInfo.channelsMono' => 'Mono',
 			'fileInfo.dolbyVisionProfile' => ({required Object profile}) => 'Profile ${profile}',
+			'mediaMenu.reportIssue' => 'Report an Issue',
 			'mediaMenu.markAsWatched' => 'Mark as Watched',
 			'mediaMenu.markAsUnwatched' => 'Mark as Unwatched',
 			'mediaMenu.removeFromContinueWatching' => 'Remove from Continue Watching',
@@ -8157,14 +8258,14 @@ extension on Translations {
 			'errors.failedToVerifyToken' => ({required Object error}) => 'Failed to verify token: ${error}',
 			'errors.failedToSwitchProfile' => ({required Object displayName}) => 'Failed to switch to ${displayName}',
 			'errors.failedToDeleteProfile' => ({required Object displayName}) => 'Failed to delete ${displayName}',
+			_ => null,
+		} ?? switch (path) {
 			'errors.failedToRate' => 'Couldn\'t update rating',
 			'libraries.title' => 'Libraries',
 			'libraries.fallbackTitle' => 'Library',
 			'libraries.scanLibraryFiles' => 'Scan Library Files',
 			'libraries.scanLibrary' => 'Scan Library',
 			'libraries.analyze' => 'Analyze',
-			_ => null,
-		} ?? switch (path) {
 			'libraries.analyzeLibrary' => 'Analyze Library',
 			'libraries.refreshMetadata' => 'Refresh Metadata',
 			'libraries.emptyTrash' => 'Empty Trash',
@@ -8671,14 +8772,14 @@ extension on Translations {
 			'watchTogether.participantNeedsUpdate' => ({required Object name}) => '${name} is on an older app version — sync unavailable',
 			'watchTogether.resumingWithout' => ({required Object name}) => 'Resuming without ${name}',
 			'watchTogether.waitingForParticipants' => 'Waiting for others to load...',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.waitingForName' => ({required Object name}) => 'Waiting for ${name}...',
 			'watchTogether.recentRooms' => 'Recent Rooms',
 			'watchTogether.renameRoom' => 'Rename Room',
 			'watchTogether.removeRoom' => 'Remove',
 			'watchTogether.guestSwitchUnavailable' => 'Couldn\'t switch — server unavailable for sync',
 			'watchTogether.guestSwitchFailed' => 'Couldn\'t switch — content not found on this server',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.defaultDisplayName' => 'User',
 			'watchTogether.errors.timedOut' => 'The relay did not respond in time',
 			'watchTogether.errors.connectionLost' => 'The connection closed before the session was ready',
@@ -9050,6 +9151,25 @@ extension on Translations {
 			'serverTasks.title' => 'Server Tasks',
 			'serverTasks.failedToLoad' => 'Failed to load tasks',
 			'serverTasks.noTasks' => 'No tasks running',
+			'tautulli.activeStreams' => 'Active Streams',
+			'tautulli.failedToLoad' => 'Failed to load active streams from Tautulli',
+			'tautulli.noActiveStreams' => 'No active streams',
+			'tautulli.transcode' => 'TRANSCODE',
+			'tautulli.directPlay' => 'DIRECT',
+			'seerrIssue.title' => 'Report an Issue',
+			'seerrIssue.typeVideo' => 'Video',
+			'seerrIssue.typeAudio' => 'Audio',
+			'seerrIssue.typeSubtitles' => 'Subtitles',
+			'seerrIssue.typeOther' => 'Other',
+			'seerrIssue.presetVideo' => 'This won\'t play',
+			'seerrIssue.presetAudio' => 'Audio is not English',
+			'seerrIssue.presetSubtitles' => 'Subtitles are missing or wrong',
+			'seerrIssue.messageHint' => 'Describe the issue',
+			'seerrIssue.submit' => 'Send Report',
+			'seerrIssue.submitted' => 'Issue reported — thanks!',
+			'seerrIssue.submitFailed' => 'Couldn\'t send the report',
+			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
+			'seerrIssue.loadFailed' => 'Couldn\'t check this title against Seerr.',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connected',
 			'trakt.connectedAs' => ({required Object username}) => 'Connected as @${username}',
@@ -9166,6 +9286,8 @@ extension on Translations {
 			'addServer.addConnectionTitle' => 'Add connection',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => 'Add to ${name}',
 			'addServer.signInWithPlexCard' => 'Sign in with Plex',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.signInWithPlexCardSubtitle' => 'Authorize this device. Shared servers are added.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Authorize a Plex account. Home users become profiles.',
 			'addServer.connectToMediaBrowserCard' => ({required Object product}) => 'Connect to ${product}',
@@ -9191,8 +9313,6 @@ extension on Translations {
 			'addServer.redirectUnsupported' => 'The server redirected to an unsupported URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'The server redirected to a different host. Enter the final ${product} URL directly.',
 			'addServer.redirectInsecure' => 'The server redirected from HTTPS to an insecure URL',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'The server redirected to an unsupported URL. Enter the final ${product} URL directly.',
 			_ => null,
 		};

@@ -6,6 +6,7 @@ import '../../i18n/app_locale_utils.dart';
 import '../../i18n/strings.g.dart';
 
 import '../../models/seerr/seerr_details.dart';
+import '../../models/seerr/seerr_issue.dart';
 import '../../models/seerr/seerr_media.dart';
 import '../../models/seerr/seerr_page.dart';
 import '../../models/seerr/seerr_public_settings.dart';
@@ -191,9 +192,39 @@ class SeerrClient {
     if (map['id'] == null) {
       final message = map['message'] as String?;
       appLogger.w('Seerr: createRequest response missing id', error: map);
-      throw SeerrApiException((message?.isNotEmpty ?? false) ? message! : 'Seerr did not confirm the request', statusCode: 200);
+      throw SeerrApiException(
+        (message?.isNotEmpty ?? false) ? message! : 'Seerr did not confirm the request',
+        statusCode: 200,
+      );
     }
     return SeerrRequest.fromJson(map);
+  }
+
+  // ---------- Issues ----------
+
+  /// [mediaId] is Seerr's own internal database id for the title (from
+  /// `getMovie`/`getTv`'s `mediaInfo?.id`), not its TMDB id — Seerr's
+  /// `/issue` endpoint looks it up directly rather than resolving a tmdbId
+  /// the way `/request` does. [problemSeason]/[problemEpisode] are 0 for a
+  /// movie or a show-level (non-episode-specific) report.
+  Future<void> createIssue({
+    required int mediaId,
+    required SeerrIssueType issueType,
+    int problemSeason = 0,
+    int problemEpisode = 0,
+    required String message,
+  }) async {
+    await _request(
+      'POST',
+      '/issue',
+      body: {
+        'mediaId': mediaId,
+        'issueType': issueType.wireValue,
+        'problemSeason': problemSeason,
+        'problemEpisode': problemEpisode,
+        'message': message,
+      },
+    );
   }
 
   // ---------- Sonarr / Radarr options (request sheet advanced pickers) ----------

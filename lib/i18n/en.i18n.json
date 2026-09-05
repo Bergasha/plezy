@@ -243,6 +243,11 @@
     "ratingsServiceDescription": "Good/bad votes sync automatically. Only change this if you're self-hosting your own ratings service.",
     "ratingsServiceHint": "https://my-ratings.example.com",
     "ratingsServiceInvalid": "Enter a valid HTTP or HTTPS ratings service base URL.",
+    "tautulliService": "Tautulli Server",
+    "tautulliServiceDescription": "Shows a live active-streams panel sourced from your own Tautulli instance. Leave blank to disable.",
+    "tautulliServiceHint": "http://my-tautulli.example.com:8181",
+    "tautulliServiceInvalid": "Enter a valid HTTP or HTTPS Tautulli base URL.",
+    "tautulliApiKeyLabel": "Tautulli API Key",
     "crashReporting": "Crash Reporting",
     "crashReportingDescription": "Send crash reports to help improve the app",
     "debugLogging": "Debug Logging",
@@ -603,6 +608,7 @@
     "dolbyVisionProfile": "Profile ${profile}"
   },
   "mediaMenu": {
+    "reportIssue": "Report an Issue",
     "markAsWatched": "Mark as Watched",
     "markAsUnwatched": "Mark as Unwatched",
     "removeFromContinueWatching": "Remove from Continue Watching",
@@ -2096,6 +2102,29 @@
     "title": "Server Tasks",
     "failedToLoad": "Failed to load tasks",
     "noTasks": "No tasks running"
+  },
+  "tautulli": {
+    "activeStreams": "Active Streams",
+    "failedToLoad": "Failed to load active streams from Tautulli",
+    "noActiveStreams": "No active streams",
+    "transcode": "TRANSCODE",
+    "directPlay": "DIRECT"
+  },
+  "seerrIssue": {
+    "title": "Report an Issue",
+    "typeVideo": "Video",
+    "typeAudio": "Audio",
+    "typeSubtitles": "Subtitles",
+    "typeOther": "Other",
+    "presetVideo": "This won't play",
+    "presetAudio": "Audio is not English",
+    "presetSubtitles": "Subtitles are missing or wrong",
+    "messageHint": "Describe the issue",
+    "submit": "Send Report",
+    "submitted": "Issue reported — thanks!",
+    "submitFailed": "Couldn't send the report",
+    "unavailable": "Can't report an issue for this title yet.",
+    "loadFailed": "Couldn't check this title against Seerr."
   },
   "trakt": {
     "title": "Trakt",

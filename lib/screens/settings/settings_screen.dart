@@ -123,6 +123,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
   static const _kAbout = 'about';
   static const _kWatchTogetherRelay = 'watch_together_relay';
   static const _kRatingsService = 'ratings_service';
+  static const _kTautulliService = 'tautulli_service';
   static const _kExportSettings = 'export_settings';
   static const _kImportSettings = 'import_settings';
   static const _kAccountPreferences = 'account_preferences';
@@ -551,6 +552,13 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           subtitle: t.settings.ratingsServiceDescription,
           onTap: () => _showRatingsUrlDialog(),
         ),
+        SettingNavigationTile(
+          focusNode: _focusTracker.get(_kTautulliService),
+          icon: Symbols.monitor_heart_rounded,
+          title: t.settings.tautulliService,
+          subtitle: t.settings.tautulliServiceDescription,
+          onTap: () => _showTautulliDialog(),
+        ),
         SettingSwitchTile(
           focusNode: _focusTracker.get(_kCrashReporting),
           pref: settings.SettingsService.crashReporting,
@@ -822,6 +830,13 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
     await showScopedDialog<void>(
       context: context,
       builder: (_) => _RatingsUrlDialog(settingsService: _settingsService),
+    );
+  }
+
+  Future<void> _showTautulliDialog() async {
+    await showScopedDialog<void>(
+      context: context,
+      builder: (_) => _TautulliDialog(settingsService: _settingsService),
     );
   }
 
@@ -1175,6 +1190,114 @@ class _RatingsUrlDialogState extends State<_RatingsUrlDialog> {
         },
         onEditingComplete: () => _saveFocusNode.requestFocus(),
         onNavigateDown: _saveFocusNode.requestFocus,
+      ),
+      actions: [
+        DialogActionButton(onPressed: _reset, label: t.settings.resetToDefault),
+        DialogActionButton(onPressed: () => Navigator.pop(context), label: t.common.cancel),
+        DialogActionButton(focusNode: _saveFocusNode, onPressed: _save, label: t.common.save),
+      ],
+    );
+  }
+}
+
+class _TautulliDialog extends StatefulWidget {
+  final settings.SettingsService settingsService;
+
+  const _TautulliDialog({required this.settingsService});
+
+  @override
+  State<_TautulliDialog> createState() => _TautulliDialogState();
+}
+
+class _TautulliDialogState extends State<_TautulliDialog> {
+  late final TextEditingController _urlController;
+  late final TextEditingController _keyController;
+  final _keyFocusNode = FocusNode(debugLabel: 'TautulliApiKey');
+  final _saveFocusNode = FocusNode(debugLabel: 'TautulliSave');
+  bool _urlInvalid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _urlController = TextEditingController(
+      text: widget.settingsService.read(settings.SettingsService.tautulliBaseUrl) ?? '',
+    );
+    _keyController = TextEditingController(
+      text: widget.settingsService.read(settings.SettingsService.tautulliApiKey) ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _keyFocusNode.dispose();
+    _saveFocusNode.dispose();
+    _urlController.dispose();
+    _keyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _reset() async {
+    _urlController.clear();
+    _keyController.clear();
+    await widget.settingsService.write(settings.SettingsService.tautulliBaseUrl, null);
+    await widget.settingsService.write(settings.SettingsService.tautulliApiKey, null);
+    if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _save() async {
+    final url = _urlController.text;
+    final key = _keyController.text.trim();
+
+    if (url.trim().isEmpty) {
+      await widget.settingsService.write(settings.SettingsService.tautulliBaseUrl, null);
+      await widget.settingsService.write(settings.SettingsService.tautulliApiKey, null);
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+
+    try {
+      await widget.settingsService.write(settings.SettingsService.tautulliBaseUrl, url);
+    } on FormatException {
+      setState(() => _urlInvalid = true);
+      return;
+    }
+    await widget.settingsService.write(settings.SettingsService.tautulliApiKey, key.isEmpty ? null : key);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(t.settings.tautulliService),
+      content: Column(
+        mainAxisSize: .min,
+        children: [
+          FocusableTextField(
+            controller: _urlController,
+            decoration: InputDecoration(
+              labelText: t.common.url,
+              hintText: t.settings.tautulliServiceHint,
+              errorText: _urlInvalid ? t.settings.tautulliServiceInvalid : null,
+            ),
+            autofocus: true,
+            textInputAction: TextInputAction.next,
+            onChanged: (_) {
+              if (_urlInvalid) setState(() => _urlInvalid = false);
+            },
+            onEditingComplete: () => _keyFocusNode.requestFocus(),
+            onNavigateDown: _keyFocusNode.requestFocus,
+          ),
+          const SizedBox(height: 12),
+          FocusableTextField(
+            controller: _keyController,
+            focusNode: _keyFocusNode,
+            decoration: InputDecoration(labelText: t.settings.tautulliApiKeyLabel),
+            obscureText: true,
+            textInputAction: TextInputAction.done,
+            onEditingComplete: () => _saveFocusNode.requestFocus(),
+            onNavigateDown: _saveFocusNode.requestFocus,
+          ),
+        ],
       ),
       actions: [
         DialogActionButton(onPressed: _reset, label: t.settings.resetToDefault),

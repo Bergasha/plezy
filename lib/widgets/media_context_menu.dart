@@ -54,6 +54,8 @@ import '../widgets/overlay_sheet.dart';
 import 'watchlist_source_chooser.dart';
 import '../widgets/rating_bottom_sheet.dart';
 import '../i18n/strings.g.dart';
+import '../providers/seerr_account_provider.dart';
+import 'seerr_issue_sheet.dart';
 
 class _MenuAction {
   final String value;
@@ -514,6 +516,16 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         menuActions.add(_MenuAction(value: 'rate', icon: Symbols.star_rounded, label: t.mediaMenu.rate));
       }
 
+      // Movie/show/episode only — a season has no tmdbId of its own to
+      // resolve against Seerr, and reporting against the whole show covers
+      // the same need.
+      if ((mediaKind == MediaKind.movie || mediaKind == MediaKind.show || mediaKind == MediaKind.episode) &&
+          context.read<SeerrAccountProvider?>()?.isConnected == true) {
+        menuActions.add(
+          _MenuAction(value: 'report_issue', icon: Symbols.report_rounded, label: t.mediaMenu.reportIssue),
+        );
+      }
+
       // Edit Metadata — admin-only and backend-capability gated.
       if (canEditMetadata) {
         menuActions.add(
@@ -791,6 +803,25 @@ class MediaContextMenuState extends State<MediaContextMenu> {
             try {
               final client = _getMediaClientForItem();
               await _showRatingSheet(context, mediaItem!, client);
+            } catch (e) {
+              if (context.mounted) {
+                showErrorSnackBar(context, t.messages.errorLoading(error: e.toString()));
+              }
+            }
+          }
+          break;
+
+        case 'report_issue':
+          if (context.mounted) {
+            final seerrClient = context.read<SeerrAccountProvider?>()?.catalogClient;
+            if (seerrClient == null) break;
+            try {
+              final client = _getMediaClientForItem();
+              // Presented from the menu's own context so a screen-level
+              // OverlaySheetHost is found (see _showRatingSheet above).
+              if (mounted) {
+                await showSeerrIssueSheet(this.context, item: mediaItem!, mediaClient: client, seerrClient: seerrClient);
+              }
             } catch (e) {
               if (context.mounted) {
                 showErrorSnackBar(context, t.messages.errorLoading(error: e.toString()));

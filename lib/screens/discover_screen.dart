@@ -6,6 +6,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:plezy/widgets/app_icon.dart';
 import '../widgets/server_activities_button.dart';
+import '../widgets/tautulli_activity_button.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import '../focus/focusable_action_bar.dart';
@@ -120,6 +121,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   late FocusNode _heroFocusNode;
   final _actionBarKey = GlobalKey<FocusableActionBarState>();
   final _serverActivitiesButtonKey = GlobalKey<ServerActivitiesButtonState>();
+  final _tautulliActivityButtonKey = GlobalKey<TautulliActivityButtonState>();
   final _userMenuKey = GlobalKey<AppMenuButtonState<String>>();
 
   /// Backend-neutral hero client lookup. Returns the actual
@@ -935,6 +937,23 @@ class _DiscoverScreenState extends State<DiscoverScreen>
                       onPressed: () => _serverActivitiesButtonKey.currentState?.togglePanel(),
                       child: ServerActivitiesButton(key: _serverActivitiesButtonKey),
                     ),
+                  // Tautulli active-streams panel — only ever visible on
+                  // whichever device has Settings > Advanced > Tautulli
+                  // Server actually configured. Nothing else gates this: no
+                  // other user's copy of the app shares that setting, so it
+                  // naturally stays admin-only without a separate permission
+                  // system.
+                  if (context.settingsRead(SettingsService.tautulliBaseUrl) != null &&
+                      context.settingsRead(SettingsService.tautulliApiKey) != null)
+                    FocusableAction(
+                      tooltip: t.tautulli.activeStreams,
+                      onPressed: () => _tautulliActivityButtonKey.currentState?.togglePanel(),
+                      child: TautulliActivityButton(
+                        key: _tautulliActivityButtonKey,
+                        baseUrl: context.settingsRead(SettingsService.tautulliBaseUrl)!,
+                        apiKey: context.settingsRead(SettingsService.tautulliApiKey)!,
+                      ),
+                    ),
                   // User menu — profiles + sign out
                   _buildUserMenuAction(context),
                 ],
@@ -951,12 +970,14 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   Widget build(BuildContext context) {
     return SettingsBuilder(
-      prefs: const [
+      prefs: [
         SettingsService.showServerNameOnHubs,
         SettingsService.showHeroSection,
         SettingsService.hideSpoilers,
         SettingsService.libraryDensity,
         SettingsService.episodePosterMode,
+        SettingsService.tautulliBaseUrl,
+        SettingsService.tautulliApiKey,
       ],
       builder: (context) => _buildContent(context),
     );

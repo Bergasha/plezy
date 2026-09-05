@@ -8,6 +8,7 @@ import 'package:plezy/i18n/app_locale_utils.dart';
 import 'package:plezy/i18n/strings.g.dart';
 import 'package:plezy/models/seerr/seerr_media.dart';
 import 'package:plezy/models/seerr/seerr_page.dart';
+import 'package:plezy/models/seerr/seerr_issue.dart';
 import 'package:plezy/models/seerr/seerr_request.dart';
 import 'package:plezy/models/seerr/seerr_session.dart';
 import 'package:plezy/services/seerr/seerr_auth_service.dart';
@@ -781,6 +782,46 @@ void main() {
       expect(bodies[0].containsKey('tags'), isFalse);
       expect(bodies[1]['tags'], isEmpty);
       expect(bodies[2]['tags'], [5, 9]);
+    });
+
+    test('createIssue posts the numeric issueType wire value and the internal media id', () async {
+      late Map<String, dynamic> body;
+      final client = clientWith(
+        MockClient((request) async {
+          expect(request.method, 'POST');
+          expect(request.url.path, '/api/v1/issue');
+          body = jsonDecode(request.body) as Map<String, dynamic>;
+          return _json({'id': 1}, status: 201);
+        }),
+      );
+      await client.createIssue(mediaId: 42, issueType: SeerrIssueType.audio, message: 'Audio is not English');
+      expect(body, {
+        'mediaId': 42,
+        'issueType': 2,
+        'problemSeason': 0,
+        'problemEpisode': 0,
+        'message': 'Audio is not English',
+      });
+    });
+
+    test('createIssue carries season/episode numbers for an episode-level report', () async {
+      late Map<String, dynamic> body;
+      final client = clientWith(
+        MockClient((request) async {
+          body = jsonDecode(request.body) as Map<String, dynamic>;
+          return _json({'id': 1}, status: 201);
+        }),
+      );
+      await client.createIssue(
+        mediaId: 42,
+        issueType: SeerrIssueType.video,
+        problemSeason: 2,
+        problemEpisode: 5,
+        message: "This won't play",
+      );
+      expect(body['problemSeason'], 2);
+      expect(body['problemEpisode'], 5);
+      expect(body['issueType'], 1);
     });
 
     test('getSonarrService parses the anime defaults and tag options', () async {
