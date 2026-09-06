@@ -21,6 +21,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
     'Vote "This was Good" or "This was Shit" on anything you watch',
     'Plezy now updates itself — no more downloading a new version by hand',
   ],
+  '2.17.19': ['Bug fixes and improvements'],
 };
 
 abstract final class WhatsNewService {
