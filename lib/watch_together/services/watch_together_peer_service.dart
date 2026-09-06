@@ -17,11 +17,6 @@ import 'watch_together_relay_endpoint.dart';
 // Re-export so existing callers that import from here keep working.
 export '../../services/base_peer_service.dart' show PeerError, PeerErrorType;
 
-class _PinnedHostChangedError extends PeerError {
-  const _PinnedHostChangedError()
-    : super(type: PeerErrorType.serverError, message: 'Relay returned an invalid joined response');
-}
-
 /// Service for managing Watch Together connections via a WebSocket relay
 ///
 /// This service handles:
@@ -72,9 +67,11 @@ class WatchTogetherPeerService with KeepaliveMixin {
   final Set<String> _connectedPeers = {};
   String? _sessionId;
   String? _myPeerId;
-  bool _isHost = false;
+  bool _announcedAsHost = false;
   String? _reconnectToken;
   String? _hostPeerId;
+  bool _relayEnforcesHostTransfer = false;
+  final Set<String> _hostTransferTargets = {};
 
   // Stream controllers for events
   final _peerConnectedController = StreamController<String>.broadcast();
@@ -84,6 +81,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
   final _connectionStateController = StreamController<bool>.broadcast();
   final _sessionEndedController = StreamController<void>.broadcast();
   final _hostChangedController = StreamController<String>.broadcast();
+  final _hostTransferEligibilityController = StreamController<void>.broadcast();
 
   // Reconnection state
   int _reconnectAttempts = 0;
@@ -131,6 +129,23 @@ class WatchTogetherPeerService with KeepaliveMixin {
   /// updated when this fires.
   Stream<String> get onHostChanged => _hostChangedController.stream;
 
+  /// Relay-authoritative eligibility changed; no sync-join capability cache
+  /// participates in transfer authorization.
+  Stream<void> get onHostTransferEligibilityChanged => _hostTransferEligibilityController.stream;
+
+  bool canTransferHostTo(String peerId) =>
+      !_teardownInProgress &&
+      _channel != null &&
+      _isHost &&
+      _relayEnforcesHostTransfer &&
+      _hostTransferTargets.contains(peerId);
+
+  void _clearHostTransferEligibility({bool resetFeature = false}) {
+    if (resetFeature) _relayEnforcesHostTransfer = false;
+    _hostTransferTargets.clear();
+    _safeAdd(_hostTransferEligibilityController, null);
+  }
+
   /// Current session ID (null if not in a session)
   String? get sessionId => _sessionId;
 
@@ -140,7 +155,15 @@ class WatchTogetherPeerService with KeepaliveMixin {
   /// Relay-declared peer ID whose messages carry host authority.
   String? get hostPeerId => _hostPeerId;
 
-  /// Whether this peer is the host
+  /// Whether this peer is the host.
+  ///
+  /// Derived, never stored: the relay is the authority on host identity and
+  /// names it in every admission and every `hostChanged`. Before it has
+  /// admitted us there is no authority yet, so the role is the one we
+  /// announced — which is what a release of a possibly-committed setup has to
+  /// go by.
+  bool get _isHost => _hostPeerId == null ? _announcedAsHost : _hostPeerId == _myPeerId;
+
   bool get isHost => _isHost;
 
   /// Whether currently connected to a session
@@ -211,6 +234,9 @@ class WatchTogetherPeerService with KeepaliveMixin {
     final completer = Completer<void>();
     _setupCompleter = completer;
     _setupRequestType = type;
+    if (type == RelayProtocol.create || type == RelayProtocol.join) {
+      _clearHostTransferEligibility(resetFeature: true);
+    }
     final reconnectToken = _reconnectToken;
     _sendRaw({
       'type': type,
@@ -218,6 +244,10 @@ class WatchTogetherPeerService with KeepaliveMixin {
       'peerId': _myPeerId,
       'reconnectToken': ?reconnectToken,
       'protocolVersion': _relayProtocolVersion,
+      if (type == RelayProtocol.create || type == RelayProtocol.join) ...{
+        'syncProtocolVersion': SyncMessage.protocolVersion,
+        'capabilities': [RelayProtocol.hostTransferCapability],
+      },
     });
     return completer;
   }
@@ -274,17 +304,12 @@ class WatchTogetherPeerService with KeepaliveMixin {
         responseSessionId != _sessionId ||
         hostPeerId is! String ||
         !RelayProtocol.isValidPeerId(hostPeerId) ||
-        (_isHost && hostPeerId != _myPeerId) ||
+        (type == RelayProtocol.created && hostPeerId != _myPeerId) ||
         reconnectToken is! String ||
         reconnectToken != _reconnectToken ||
         !RelayProtocol.isValidReconnectToken(reconnectToken) ||
         protocolVersion != _relayProtocolVersion) {
       throw _invalidSetupResponse(type);
-    }
-
-    final establishedHostPeerId = _hostPeerId;
-    if (!_isHost && _reconnectToken != null && establishedHostPeerId != null && hostPeerId != establishedHostPeerId) {
-      throw const _PinnedHostChangedError();
     }
 
     final rawPeers = msg['peers'];
@@ -301,6 +326,9 @@ class WatchTogetherPeerService with KeepaliveMixin {
 
     _hostPeerId = hostPeerId;
     _reconnectToken = reconnectToken;
+    final features = msg['features'];
+    _relayEnforcesHostTransfer = features is List && features.contains(RelayProtocol.atomicHostTransferFeature);
+    _clearHostTransferEligibility();
     return peers;
   }
 
@@ -320,30 +348,6 @@ class WatchTogetherPeerService with KeepaliveMixin {
       _setupRequestType = null;
       completer.completeError(error);
     }
-  }
-
-  void _rejectAdmittedGuestSetup(_PinnedHostChangedError error) {
-    _safeAdd(_errorController, error);
-    final rejectedSetup = _setupCompleter;
-    if (rejectedSetup == null || rejectedSetup.isCompleted) return;
-
-    final leaveCompleter = _announce(RelayProtocol.leave);
-    unawaited(() async {
-      try {
-        await leaveCompleter.future.namedTimeout(
-          const Duration(seconds: 10),
-          operation: 'WatchTogether rejected reconnect leave',
-        );
-      } catch (releaseError) {
-        appLogger.d('WatchTogether: rejected reconnect leave ignored', error: releaseError);
-      } finally {
-        if (identical(_setupCompleter, leaveCompleter)) {
-          _setupCompleter = null;
-          _setupRequestType = null;
-        }
-        if (!rejectedSetup.isCompleted) rejectedSetup.completeError(error);
-      }
-    }());
   }
 
   bool _isExhaustedGuestReconnectRoomNotFound(String code) =>
@@ -380,12 +384,10 @@ class WatchTogetherPeerService with KeepaliveMixin {
 
       switch (type) {
         case RelayProtocol.created || RelayProtocol.joined:
+          final previousHostPeerId = _hostPeerId;
           late final List<String> peers;
           try {
             peers = _acceptSetupResponse(msg, type!);
-          } on _PinnedHostChangedError catch (error) {
-            _rejectAdmittedGuestSetup(error);
-            break;
           } on PeerError catch (error) {
             _failSetup(error);
             break;
@@ -401,6 +403,13 @@ class WatchTogetherPeerService with KeepaliveMixin {
             _setupCompleter = null;
             _setupRequestType = null;
             completer.complete();
+          }
+          // A reconnecting guest learns of a transfer it was offline for from
+          // the admission itself: the relay only broadcasts hostChanged to
+          // peers connected at the time. Same authority, same handling.
+          if (previousHostPeerId != null && _hostPeerId != previousHostPeerId) {
+            appLogger.d('WatchTogether: Host authority moved to $_hostPeerId while disconnected');
+            _safeAdd(_hostChangedController, _hostPeerId!);
           }
 
         case RelayProtocol.peerJoined:
@@ -482,8 +491,23 @@ class WatchTogetherPeerService with KeepaliveMixin {
           if (newHostPeerId == _hostPeerId) break; // Duplicate delivery.
           appLogger.d('WatchTogether: Host authority moved to $newHostPeerId');
           _hostPeerId = newHostPeerId;
-          _isHost = newHostPeerId == _myPeerId;
+          _clearHostTransferEligibility();
           _safeAdd(_hostChangedController, newHostPeerId);
+
+        case RelayProtocol.hostTransferEligibility:
+          final targets = msg['hostTransferTargets'];
+          if (!_relayEnforcesHostTransfer ||
+              msg['sessionId'] != _sessionId ||
+              msg['hostPeerId'] != _hostPeerId ||
+              targets is! List ||
+              targets.any((target) => target is! String || !RelayProtocol.isValidPeerId(target))) {
+            _clearHostTransferEligibility();
+            break;
+          }
+          _hostTransferTargets
+            ..clear()
+            ..addAll(targets.cast<String>());
+          _safeAdd(_hostTransferEligibilityController, null);
 
         case RelayProtocol.error:
           final code = msg['code'] as String? ?? 'unknown';
@@ -549,6 +573,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
     _channelSubscription = null;
     _channel = null;
     if (channel != null) unawaited(channel.sink.close());
+    _clearHostTransferEligibility(resetFeature: true);
 
     for (final peerId in _connectedPeers.toList()) {
       _safeAdd(_peerDisconnectedController, peerId);
@@ -637,6 +662,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
     _channel = null;
     _setupCompleter = null;
     _setupRequestType = null;
+    _clearHostTransferEligibility(resetFeature: true);
     await subscription?.cancel();
     try {
       await channel?.sink.close();
@@ -693,7 +719,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
         'Must be 1–${RelayProtocol.maxSessionIdLength} letters, digits, _ or -',
       );
     }
-    _isHost = true;
+    _announcedAsHost = true;
     _sessionId = resolvedSessionId;
     _myPeerId = const Uuid().v4();
     _reconnectToken = _mintReconnectToken();
@@ -731,7 +757,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
         'Must be 1–${RelayProtocol.maxSessionIdLength} letters, digits, _ or -',
       );
     }
-    _isHost = false;
+    _announcedAsHost = false;
     _sessionId = resolvedSessionId;
     _myPeerId = const Uuid().v4();
     _reconnectToken = _mintReconnectToken();
@@ -771,12 +797,24 @@ class WatchTogetherPeerService with KeepaliveMixin {
 
   /// Ask the relay to reassign host authority to [peerId] (host only).
   ///
-  /// The relay answers with a `hostChanged` broadcast on success or a
-  /// `not_host`/`peer_not_found` error on the error stream; local role state
-  /// only flips when the broadcast arrives.
+  /// Requires the relay's atomic-transfer acknowledgment and authoritative
+  /// target list. Older relays remain usable for ordinary rooms, but cannot
+  /// receive a transfer request that they would commit without roster checks.
+  /// Local role state only flips when the relay's broadcast arrives.
   void transferHost(String peerId) {
     if (!RelayProtocol.isValidPeerId(peerId)) {
       throw ArgumentError.value(peerId, 'peerId', 'Must be 1–${RelayProtocol.maxPeerIdLength} letters, digits, _ or -');
+    }
+    if (!canTransferHostTo(peerId)) {
+      _safeAdd(
+        _errorController,
+        PeerError(
+          type: PeerErrorType.serverError,
+          message: t.watchTogether.errors.invalidRelayResponse,
+          serverCode: RelayProtocol.hostTransferUnavailableCode,
+        ),
+      );
+      return;
     }
     _sendRaw({'type': RelayProtocol.transferHost, 'to': peerId, 'protocolVersion': _relayProtocolVersion});
   }
@@ -858,11 +896,12 @@ class WatchTogetherPeerService with KeepaliveMixin {
       setupCompleter.completeError(StateError('Watch Together connection cancelled'));
     }
     _connectedPeers.clear();
+    _clearHostTransferEligibility(resetFeature: true);
     _sessionId = null;
     _myPeerId = null;
     _reconnectToken = null;
     _hostPeerId = null;
-    _isHost = false;
+    _announcedAsHost = false;
     _reconnectAttempts = 0;
     _teardownInProgress = false;
 
@@ -882,6 +921,7 @@ class WatchTogetherPeerService with KeepaliveMixin {
     unawaited(disconnect());
 
     _hostChangedController.close();
+    _hostTransferEligibilityController.close();
     _peerConnectedController.close();
     _peerDisconnectedController.close();
     _messageReceivedController.close();

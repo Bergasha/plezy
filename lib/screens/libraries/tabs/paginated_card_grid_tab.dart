@@ -28,8 +28,8 @@ import 'base_library_tab.dart';
 abstract class PaginatedCardGridTabState<T extends Object, W extends BaseLibraryTab<T>>
     extends BaseLibraryTabState<T, W>
     with
-        LibraryTabFocusMixin<W>,
         GridFocusNodeMixin<W>,
+        LibraryTabFocusMixin<W>,
         PaginatedItemLoader<T, W>,
         StandardPaginatedView<T, W>,
         SkeletonUpgradeScheduler<W> {
@@ -53,6 +53,8 @@ abstract class PaginatedCardGridTabState<T extends Object, W extends BaseLibrary
 
   @override
   Future<void> loadItems() {
+    cleanupGridFocusNodes(0);
+    _cardMemo.clear();
     // This pipeline bypasses [beginLibraryLoad]; capture the epoch here so
     // [markItemsLoaded]'s record marks load-start data, not a mid-fetch push.
     snapshotLibraryContentEpoch();
@@ -65,7 +67,8 @@ abstract class PaginatedCardGridTabState<T extends Object, W extends BaseLibrary
 
   /// Server push while this grid is visible (#1646): refetch the loaded span
   /// in place so the old cards stay rendered — no spinner, no scroll reset,
-  /// no focus churn. The clearing [loadItems] path is reserved for surfaces
+  /// no focus churn. Item-owned nodes retain active and covered restoration
+  /// focus across the merge. The clearing [loadItems] path is reserved for surfaces
   /// with nothing visible to preserve (error or empty states, where it is
   /// also the only way a first item can appear live).
   @override
@@ -77,6 +80,16 @@ abstract class PaginatedCardGridTabState<T extends Object, W extends BaseLibrary
     if (result == null || !mounted) return;
     recordLibraryContentEpoch();
     setState(() => items = loadedItems.values.toList());
+    reconcileGridFocusNodes({for (final entry in loadedItems.entries) idOf(entry.value): entry.key});
+  }
+
+  /// Index currently holding the item with [id], or null when it is no longer
+  /// loaded.
+  int? _loadedIndexOfId(String id) {
+    for (final entry in loadedItems.entries) {
+      if (idOf(entry.value) == id) return entry.key;
+    }
+    return null;
   }
 
   @override
@@ -111,6 +124,7 @@ abstract class PaginatedCardGridTabState<T extends Object, W extends BaseLibrary
       viewMode: viewMode,
       itemCount: totalSize,
       density: density,
+      findChildIndexCallback: (key) => _loadedIndexOfId((key as ValueKey<String>).value),
       padding: _effectivePadding,
       fullBleedImage: useFullCardLayout,
       shape: shape,
@@ -174,10 +188,16 @@ abstract class PaginatedCardGridTabState<T extends Object, W extends BaseLibrary
       onNavigateLeft: navigateLeft,
       onNavigateRight: navigateRight,
       onBack: widget.onBack,
+      onFocusChange: (hasFocus) => trackGridItemFocus(index, hasFocus),
     );
   }
 
-  FocusNode _cardFocusNode(int index) => focusNodeForIndex(index, firstItemFocusNode, prefix: 'paginated_grid_item');
+  FocusNode _cardFocusNode(int index) => focusNodeForIndex(
+    index,
+    firstItemFocusNode,
+    prefix: 'paginated_grid_item',
+    itemIdentity: loadedItems[index] == null ? null : idOf(loadedItems[index]!),
+  );
 
   /// Move focus to the grid item at [targetIndex]. When the target card is
   /// not yet mounted (being built this frame, or still an unloaded skeleton),

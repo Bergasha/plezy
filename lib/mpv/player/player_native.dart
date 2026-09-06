@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
 import '../../media/media_display_criteria.dart';
+import '../../services/settings_service.dart';
 import '../../utils/app_logger.dart';
 import '../models.dart';
 import 'audio_rendering_mode.dart';
@@ -238,6 +239,8 @@ class PlayerNative extends PlayerBase {
   // to dispose-and-recreate the in-flight core, hanging playback (#930).
   Future<void>? _initFuture;
   Future<void> _audioStateTail = Future<void>.value();
+  String _requestedLogLevel = 'warn';
+  Future<void> _logLevelTail = Future<void>.value();
   Future<void>? _disposeFuture;
   bool _disposing = false;
 
@@ -259,11 +262,19 @@ class PlayerNative extends PlayerBase {
   Future<void> _doInitialize() async {
     try {
       // The video core carries the session's decode intent so Android can
-      // choose its vo before mpv_initialize. `instanceId` names this Dart
-      // instance so a later `dispose` that lost the ownership race is
-      // provably stale; handlers that predate either argument ignore them.
+      // choose its vo before mpv_initialize, and the subtitle "Render
+      // Resolution" fraction for its vo=mediacodec OSD plane (the same knob the
+      // ExoPlayer overlay honors; other platforms size the OSD themselves).
+      // `instanceId` names this Dart instance so a later `dispose` that lost
+      // the ownership race is provably stale; handlers that predate any of
+      // these arguments ignore them.
       final result = await invoke<Object>('initialize', {
         if (!audioOnly) 'hardwareDecoding': _hardwareDecoding,
+        if (!audioOnly && Platform.isAndroid)
+          'subtitleRenderScale': SettingsService.instance
+              .read(SettingsService.subtitleRenderResolution)
+              .androidRenderScale,
+        if (Platform.isAndroid) 'logLevel': _requestedLogLevel,
         'instanceId': nativeInstanceId,
       });
       if (result != true) {
@@ -885,6 +896,18 @@ class PlayerNative extends PlayerBase {
   @override
   Future<void> setLogLevel(String level) async {
     if (_nativeCoreUnavailable) return;
+    if (Platform.isAndroid) {
+      // Carry the preference into native creation, even if another operation
+      // starts initialization before this ordered runtime write gets its turn.
+      _requestedLogLevel = level;
+      final request = _logLevelTail.then((_) async {
+        if (_nativeCoreUnavailable) return;
+        await _ensureInitialized();
+        await invoke('setLogLevel', {'level': level});
+      });
+      _logLevelTail = request.catchError((Object _) {});
+      return request;
+    }
     await _ensureInitialized();
     await invoke('setLogLevel', {'level': level});
   }

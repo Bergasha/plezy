@@ -100,8 +100,8 @@ class LibraryBrowseTab extends BaseLibraryTab<MediaItem> {
 class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrowseTab>
     with
         ItemUpdatable,
-        LibraryTabFocusMixin,
         GridFocusNodeMixin,
+        LibraryTabFocusMixin,
         WatchStateAware,
         DeletionAware,
         DeletionMirrorsWatchState,
@@ -160,6 +160,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     if (matchEntry != null) {
       setState(() {
         removeLoadedItemAndShift(matchEntry.key);
+        reconcileGridFocusNodes({for (final entry in loadedItems.entries) entry.value.id: entry.key});
       });
       return;
     }
@@ -175,6 +176,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
         if (newLeafCount <= 0) {
           setState(() {
             removeLoadedItemAndShift(parentEntry.key);
+            reconcileGridFocusNodes({for (final entry in loadedItems.entries) entry.value.id: entry.key});
           });
         } else {
           setState(() {
@@ -207,7 +209,8 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
   /// place (Plex Web's `repopulateRange`) so new items materialize at their
   /// sorted positions and metadata updates land, then keep the first visible
   /// item stationary by compensating the scroll offset for any index shift
-  /// the merge caused. Folder grouping browses a tree, not the flat index
+  /// the merge caused, and carry the D-pad highlight to wherever the focused
+  /// item moved. Folder grouping browses a tree, not the flat index
   /// space — the activation staleness path owns it there. An error or empty
   /// grid falls back to the clearing reload: nothing visible to preserve,
   /// and it is the only way a first item can appear live.
@@ -239,6 +242,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     // Alpha-bar bucket counts shifted with the content; refresh is cheap and
     // best-effort.
     unawaited(_loadFirstCharacters());
+    reconcileGridFocusNodes({for (final entry in loadedItems.entries) entry.value.id: entry.key});
 
     final oldIndex = result.anchorOldIndex;
     final newIndex = result.anchorNewIndex;
@@ -254,6 +258,16 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     // corrected offset — the anchor item never visibly moves. Uniform grid
     // extents make the arithmetic exact.
     pos.jumpTo((pos.pixels + rowDelta * _scrollMetrics.rowHeight).clamp(0.0, pos.maxScrollExtent));
+  }
+
+  /// Index currently holding the item with [id], or null when [id] is null or
+  /// the item is no longer loaded.
+  int? _loadedIndexOfId(String? id) {
+    if (id == null) return null;
+    for (final entry in loadedItems.entries) {
+      if (entry.value.id == id) return entry.key;
+    }
+    return null;
   }
 
   // Browse-specific state (not in base class)
@@ -289,7 +303,6 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
   /// never outlive the focus nodes its cached cards capture.
   static const int _focusNodeKeepCount = 200;
   double _effectiveTopPadding = _gridTopPadding;
-  final GlobalKey _firstListItemKey = GlobalKey(debugLabel: 'first_library_list_item');
   double? _measuredListRowHeight;
   int? _listMetricsDensity;
   bool? _listMetricsUsesWideRatio;
@@ -346,6 +359,8 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
         oldWidget.library.serverId != widget.library.serverId ||
         oldWidget.library.isShared != widget.library.isShared) {
       _alphaStrategy = _createAlphaStrategy();
+      cleanupGridFocusNodes(0);
+      _cardMemo.clear();
     }
     super.didUpdateWidget(oldWidget);
     if (oldWidget.canGroupByFolders != widget.canGroupByFolders) {
@@ -2089,15 +2104,10 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     );
   }
 
-  Widget _buildMeasuredFirstListItem(Widget child) {
-    WidgetsBinding.instance.addPostFrameCallback((_) => _measureFirstListRowHeight());
-    return KeyedSubtree(key: _firstListItemKey, child: child);
-  }
-
   void _measureFirstListRowHeight() {
     if (!mounted) return;
     if (SettingsService.instanceOrNull?.read(SettingsService.viewMode) != ViewMode.list) return;
-    final height = (_firstListItemKey.currentContext?.findRenderObject() as RenderBox?)?.size.height;
+    final height = (gridItemFocusNodes[0]?.context?.findRenderObject() as RenderBox?)?.size.height;
     if (height == null || height <= 0) return;
     if ((_measuredListRowHeight ?? 0) == height) return;
     _measuredListRowHeight = height;
@@ -2145,6 +2155,7 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
 
     final hasAlphaBarReservation = rightPadding > 8.0;
     return MediaCardSliverLayout(
+      findChildIndexCallback: (key) => _loadedIndexOfId((key as ValueKey<String>).value),
       viewMode: viewMode,
       itemCount: itemCount,
       density: libraryDensity,
@@ -2198,7 +2209,10 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
               itemCount: itemCount,
             ),
           );
-          return index == 0 ? _buildMeasuredFirstListItem(child) : child;
+          if (index == 0) {
+            WidgetsBinding.instance.addPostFrameCallback((_) => _measureFirstListRowHeight());
+          }
+          return child;
         }
 
         return realizeBudgeted(
@@ -2240,9 +2254,9 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
       return const SkeletonMediaCard();
     }
 
-    // Use firstItemFocusNode for index 0 to maintain compatibility with base class
-    // All other items get managed focus nodes for restoration
-    final focusNode = index == 0 ? firstItemFocusNode : getGridItemFocusNode(index, prefix: 'browse_grid_item');
+    // Index 0 routes through firstItemFocusNode for the base class; all other
+    // items get managed focus nodes for restoration.
+    final focusNode = _cardFocusNode(index);
 
     // Explicit row navigation. Default directional focus traversal becomes
     // unreliable while items are mounting/unmounting under fast scrolling and
@@ -2290,11 +2304,14 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
     );
   }
 
+  FocusNode _cardFocusNode(int index) =>
+      focusNodeForIndex(index, firstItemFocusNode, prefix: 'browse_grid_item', itemIdentity: loadedItems[index]?.id);
+
   /// Move focus to the grid item at [targetIndex] (or its skeleton's row).
   /// Used by the explicit dpad navigation handlers.
   void _focusGridItem(int targetIndex) {
     if (targetIndex < 0 || targetIndex >= totalSize) return;
-    final node = targetIndex == 0 ? firstItemFocusNode : getGridItemFocusNode(targetIndex, prefix: 'browse_grid_item');
+    final node = _cardFocusNode(targetIndex);
     if (node.context != null) {
       node.requestFocus();
     } else {

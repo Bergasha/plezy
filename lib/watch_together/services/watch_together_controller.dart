@@ -52,6 +52,13 @@ class WatchTogetherController {
       onRemoteAction: (peer, hint) => onRemoteAction?.call(peer, hint),
       nowMs: _nowMs,
     );
+    // Seed the roster before anything can attach a player: the first epoch
+    // resolves readiness synchronously, so a coordinator that learns the room
+    // afterwards has already decided the room is empty and started alone.
+    for (final entry in _peerVersions.entries) {
+      if (entry.key == _peerService.myPeerId) continue;
+      _coordinator!.onPeerJoined(entry.key, compatible: entry.value == SyncMessage.protocolVersion);
+    }
   }
 
   void _createReconciler() {
@@ -83,12 +90,14 @@ class WatchTogetherController {
   String? _attachedRatingKey;
   String? _attachedServerId;
   String? _attachedMediaTitle;
+  Future<void>? _attachedStartupHold;
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   final SerialFutureQueue _messageQueue = SerialFutureQueue();
   bool _disposed = false;
 
   /// Protocol versions learned from join messages (absent ⇒ v1).
   final Map<String, int> _peerVersions = {};
+
   final Set<String> _updateToastShown = {};
 
   // Provider-facing callbacks.
@@ -118,10 +127,6 @@ class WatchTogetherController {
     _session = session;
     _coordinator?.updateControlMode(session.controlMode);
   }
-
-  /// Whether [peerId] speaks the current sync protocol (drives host-transfer
-  /// eligibility — a peer on an old protocol can't take over the room).
-  bool isPeerCompatible(String peerId) => (_peerVersions[peerId] ?? 1) == SyncMessage.protocolVersion;
 
   /// The relay reassigned host authority: swap the role engine while keeping
   /// the session, message queue, peer knowledge, and player attachment.
@@ -160,6 +165,7 @@ class WatchTogetherController {
           serverId: _attachedServerId!,
           mediaTitle: _attachedMediaTitle,
           hasFirstFrame: firstFrameSeen,
+          startupHold: _attachedStartupHold,
           // A paused room must not start playing just because its host
           // changed; anything else (playing, a stall, mid-load) carries the
           // intent to (re)start.
@@ -167,12 +173,6 @@ class WatchTogetherController {
           // The room's rate, not this player's: it may be mid-nudge.
           rate: lastState?.rate,
         );
-      }
-      // Seed the roster so the fresh epoch gates on the peers we already
-      // know instead of solo-starting before their first status report.
-      for (final entry in _peerVersions.entries) {
-        if (entry.key == _peerService.myPeerId) continue;
-        _coordinator!.onPeerJoined(entry.key, compatible: entry.value == SyncMessage.protocolVersion);
       }
     } else {
       // Demotion: hand the room to the new host and fall in line.
@@ -186,6 +186,7 @@ class WatchTogetherController {
           ratingKey: _attachedRatingKey!,
           serverId: _attachedServerId!,
           hasFirstFrame: localReady,
+          startupHold: _attachedStartupHold,
         );
       }
       requestState();
@@ -227,6 +228,7 @@ class WatchTogetherController {
     _attachedRatingKey = ratingKey;
     _attachedServerId = serverId;
     _attachedMediaTitle = mediaTitle;
+    _attachedStartupHold = startupHold;
 
     if (_session.isHost) {
       _coordinator!.attach(
@@ -258,6 +260,7 @@ class WatchTogetherController {
     _attachedRatingKey = null;
     _attachedServerId = null;
     _attachedMediaTitle = null;
+    _attachedStartupHold = null;
     _coordinator?.detachPlayer(exiting: exiting);
     _reconciler?.detachPlayer();
     unawaited(
@@ -480,7 +483,7 @@ class WatchTogetherController {
         break;
 
       case SyncMessageType.leave:
-        _peerVersions.remove(senderId);
+        _forgetPeer(senderId);
         _coordinator?.onPeerLeft(senderId);
         break;
 
@@ -528,8 +531,12 @@ class WatchTogetherController {
   }
 
   void _handlePeerDisconnected(String peerId) {
-    _peerVersions.remove(peerId);
+    _forgetPeer(peerId);
     _updateToastShown.remove(peerId);
     _coordinator?.onPeerLeft(peerId);
+  }
+
+  void _forgetPeer(String peerId) {
+    _peerVersions.remove(peerId);
   }
 }

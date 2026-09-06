@@ -66,20 +66,21 @@ class _Room {
 
   PlaybackState lastHostState() => hostService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.state).state!;
 
-  void hostStartsMedia({String ratingKey = 'rk1', bool hasFirstFrame = false}) {
+  void hostStartsMedia({String ratingKey = 'rk1', bool hasFirstFrame = false, Future<void>? startupHold}) {
     host.attachPlayer(
       hostPlayer,
       ratingKey: ratingKey,
       serverId: 'srv',
       mediaTitle: 'Ep',
       hasFirstFrame: hasFirstFrame,
+      startupHold: startupHold,
     );
     host.setCurrentMedia(ratingKey: ratingKey, serverId: 'srv', mediaTitle: 'Ep');
     async.flushMicrotasks();
   }
 
-  void guestJoinsMedia({String ratingKey = 'rk1'}) {
-    guest.attachPlayer(guestPlayer, ratingKey: ratingKey, serverId: 'srv');
+  void guestJoinsMedia({String ratingKey = 'rk1', Future<void>? startupHold}) {
+    guest.attachPlayer(guestPlayer, ratingKey: ratingKey, serverId: 'srv', startupHold: startupHold);
     async.flushMicrotasks();
   }
 
@@ -172,6 +173,175 @@ void main() {
       expect(resume.phase, PlaybackPhase.playing);
       expect(resume.ratingKey, 'rk2');
       room.dispose();
+    });
+  });
+
+  group('host media reattachment', () {
+    _Room playingRoom(FakeAsync async, {ControlMode controlMode = ControlMode.hostOnly}) {
+      final room = _Room(async, controlMode: controlMode);
+      room.hostStartsMedia();
+      room.guestJoinsMedia();
+      room.bothBecomeReady();
+      async.elapse(const Duration(seconds: 3));
+      expect(room.hostPlayer.state.playing, isTrue);
+      expect(room.guestPlayer.state.playing, isTrue);
+      return room;
+    }
+
+    for (final hasFirstFrame in [false, true]) {
+      test(
+        hasFirstFrame
+            ? 'a paused rollback stays paused without another first-frame event'
+            : 'a paused same-key reload stays paused when replacement readiness arrives',
+        () {
+          fakeAsync((async) {
+            final room = playingRoom(async);
+            room.hostPlayer.emitPlaying(false);
+            async.flushMicrotasks();
+            expect(room.lastHostState().phase, PlaybackPhase.paused);
+            expect(room.guestPlayer.state.playing, isFalse);
+            room.hostPlayer.commandLog.clear();
+            room.guestPlayer.commandLog.clear();
+            final messagesBefore = room.hostService.outgoingLog.length;
+
+            room.host.detachPlayer();
+            async.flushMicrotasks();
+            // Reload/rollback callers have no intent seed: the room, not the
+            // rebound player's snapshot, owns whether playback should resume.
+            room.host.attachPlayer(room.hostPlayer, ratingKey: 'rk1', serverId: 'srv', hasFirstFrame: hasFirstFrame);
+            async.flushMicrotasks();
+            if (!hasFirstFrame) {
+              async.elapse(const Duration(seconds: 2));
+              expect(room.hostPlayer.state.playing, isFalse);
+              room.hostPlayer.emitPlaybackRestart();
+              async.flushMicrotasks();
+            }
+            async.elapse(const Duration(seconds: 6));
+
+            expect(room.lastHostState().phase, PlaybackPhase.paused);
+            expect(room.hostPlayer.state.playing, isFalse);
+            expect(room.guestPlayer.state.playing, isFalse);
+            expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+            expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+            expect(
+              room.hostService.outgoingLog
+                  .skip(messagesBefore)
+                  .where((m) => m.type == SyncMessageType.state && m.state!.phase == PlaybackPhase.playing),
+              isEmpty,
+            );
+            room.dispose();
+          });
+        },
+      );
+    }
+
+    test('a pause accepted while detached and loading survives reattachment', () {
+      fakeAsync((async) {
+        final room = _Room(async, controlMode: ControlMode.anyone);
+        room.hostStartsMedia();
+        room.guestJoinsMedia();
+        room.guestPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        expect(room.lastHostState().phase, PlaybackPhase.loading);
+
+        room.host.detachPlayer();
+        async.flushMicrotasks();
+        room.guestService.sendTo(
+          'host',
+          SyncMessage.control(const ControlRequest(kind: ControlRequestKind.pause), peerId: 'guest'),
+        );
+        async.flushMicrotasks();
+        // Loading is not a play-intent snapshot: the pause is latched without
+        // publishing a playable anchor before the host has rendered.
+        expect(room.host.phase, PlaybackPhase.loading);
+        room.host.attachPlayer(room.hostPlayer, ratingKey: 'rk1', serverId: 'srv');
+        room.hostPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+
+        expect(room.lastHostState().phase, PlaybackPhase.paused);
+        expect(room.hostPlayer.state.playing, isFalse);
+        expect(room.guestPlayer.state.playing, isFalse);
+        expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        room.dispose();
+      });
+    });
+
+    test('a genuine play accepted during a paused detach gap resumes after readiness', () {
+      fakeAsync((async) {
+        final room = playingRoom(async, controlMode: ControlMode.anyone);
+        room.hostPlayer.emitPlaying(false);
+        async.flushMicrotasks();
+        expect(room.lastHostState().phase, PlaybackPhase.paused);
+
+        room.host.detachPlayer();
+        async.flushMicrotasks();
+        room.guestService.sendTo(
+          'host',
+          SyncMessage.control(const ControlRequest(kind: ControlRequestKind.play), peerId: 'guest'),
+        );
+        async.flushMicrotasks();
+        expect(room.host.phase, PlaybackPhase.paused, reason: 'play waits for a meaningful local anchor');
+        room.host.attachPlayer(room.hostPlayer, ratingKey: 'rk1', serverId: 'srv');
+        async.elapse(const Duration(seconds: 2));
+        expect(room.hostPlayer.state.playing, isFalse);
+        expect(room.guestPlayer.state.playing, isFalse);
+
+        room.hostPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.lastHostState().phase, PlaybackPhase.playing);
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(room.guestPlayer.state.playing, isTrue);
+        room.dispose();
+      });
+    });
+
+    test('a playing same-key reload resumes despite the internal detached pause', () {
+      fakeAsync((async) {
+        final room = playingRoom(async);
+        room.host.detachPlayer();
+        async.flushMicrotasks();
+        room.hostPlayer.emitPlaying(false);
+        async.flushMicrotasks();
+        room.host.attachPlayer(room.hostPlayer, ratingKey: 'rk1', serverId: 'srv');
+        async.elapse(const Duration(seconds: 2));
+        expect(room.hostPlayer.state.playing, isFalse);
+        expect(room.guestPlayer.state.playing, isFalse);
+
+        room.hostPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.lastHostState().phase, PlaybackPhase.playing);
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(room.guestPlayer.state.playing, isTrue);
+        room.dispose();
+      });
+    });
+
+    test('opening a different item starts a previously paused room', () {
+      fakeAsync((async) {
+        final room = playingRoom(async);
+        room.hostPlayer.emitPlaying(false);
+        async.flushMicrotasks();
+        expect(room.lastHostState().phase, PlaybackPhase.paused);
+
+        room.host.detachPlayer();
+        room.guest.detachPlayer();
+        async.flushMicrotasks();
+        room.host.setCurrentMedia(ratingKey: 'rk2', serverId: 'srv');
+        room.host.attachPlayer(room.hostPlayer, ratingKey: 'rk2', serverId: 'srv');
+        room.guestJoinsMedia(ratingKey: 'rk2');
+        room.bothBecomeReady();
+        async.elapse(const Duration(seconds: 3));
+
+        expect(room.lastHostState().mediaKey, 'srv:rk2');
+        expect(room.lastHostState().phase, PlaybackPhase.playing);
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(room.guestPlayer.state.playing, isTrue);
+        room.dispose();
+      });
     });
   });
 
@@ -621,12 +791,12 @@ void main() {
   });
 
   group('host transfer', () {
-    WatchSession sessionAs(SessionRole role) => WatchSession(
+    WatchSession sessionAs(SessionRole role, {String hostPeerId = 'guest'}) => WatchSession(
       sessionId: 'ROOM1',
       role: role,
       controlMode: ControlMode.hostOnly,
       state: SessionState.connected,
-      hostPeerId: 'guest',
+      hostPeerId: hostPeerId,
     );
 
     test('mid-playback: the promoted guest re-anchors the room and the demoted host follows', () {
@@ -696,6 +866,209 @@ void main() {
       });
     });
 
+    test('promotion retains a pending startup hold after the first frame', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        final hold = Completer<void>();
+        room.hostStartsMedia();
+        room.guestJoinsMedia(startupHold: hold.future);
+        room.bothBecomeReady();
+
+        room.host.applyHostChange(sessionAs(SessionRole.guest));
+        room.guest.applyHostChange(sessionAs(SessionRole.host));
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+
+        expect(room.guest.phase, PlaybackPhase.loading);
+        expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+
+        // No second frame is emitted: the frame and the hold are independent
+        // prerequisites belonging to the same surviving attachment.
+        hold.complete();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.guest.phase, PlaybackPhase.playing);
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(room.guestPlayer.state.playing, isTrue);
+        room.dispose();
+      });
+    });
+
+    test('demotion does not advertise readiness from a frame while its startup hold is pending', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        final hold = Completer<void>();
+        room.hostStartsMedia(startupHold: hold.future);
+        room.guestJoinsMedia();
+        room.bothBecomeReady();
+        final messagesBefore = room.hostService.outgoingLog.length;
+
+        room.host.applyHostChange(sessionAs(SessionRole.guest));
+        room.guest.applyHostChange(sessionAs(SessionRole.host));
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+
+        final statuses = room.hostService.outgoingLog
+            .skip(messagesBefore)
+            .where((m) => m.type == SyncMessageType.status)
+            .map((m) => m.status!);
+        expect(statuses, isNotEmpty);
+        expect(statuses.every((status) => !status.ready), isTrue);
+        final waiting = room.guestService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.state).state!;
+        expect(waiting.phase, PlaybackPhase.waitingForPeers);
+        expect(waiting.waitingOn, contains('host'));
+        expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+
+        hold.complete();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.hostService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.status).status!.ready, isTrue);
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(room.guestPlayer.state.playing, isTrue);
+        room.dispose();
+      });
+    });
+
+    test('promotion after hold completion still waits for the first frame', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        final hold = Completer<void>();
+        room.hostStartsMedia(hasFirstFrame: true);
+        room.guestJoinsMedia(startupHold: hold.future);
+        hold.complete();
+        async.flushMicrotasks();
+
+        room.host.applyHostChange(sessionAs(SessionRole.guest));
+        room.guest.applyHostChange(sessionAs(SessionRole.host));
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.guest.phase, PlaybackPhase.loading);
+        expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+
+        room.guestPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.guest.phase, PlaybackPhase.playing);
+        expect(room.guestPlayer.state.playing, isTrue);
+        expect(room.hostPlayer.state.playing, isTrue);
+        room.dispose();
+      });
+    });
+
+    test('demotion before either prerequisite still needs a frame after its hold completes', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        final hold = Completer<void>();
+        room.hostStartsMedia(startupHold: hold.future);
+        room.guestJoinsMedia();
+        room.guestPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+
+        room.host.applyHostChange(sessionAs(SessionRole.guest));
+        room.guest.applyHostChange(sessionAs(SessionRole.host));
+        async.flushMicrotasks();
+        hold.complete();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.hostService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.status).status!.ready, isFalse);
+        expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+
+        room.hostPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(room.guestPlayer.state.playing, isTrue);
+        room.dispose();
+      });
+    });
+
+    test('a pending attachment hold survives repeated promotion and demotion round trips', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        final hold = Completer<void>();
+        room.hostStartsMedia(hasFirstFrame: true);
+        room.guestJoinsMedia(startupHold: hold.future);
+
+        for (final (index, hostPeerId) in ['guest', 'host', 'guest', 'host'].indexed) {
+          room.host.applyHostChange(
+            sessionAs(hostPeerId == 'host' ? SessionRole.host : SessionRole.guest, hostPeerId: hostPeerId),
+          );
+          room.guest.applyHostChange(
+            sessionAs(hostPeerId == 'guest' ? SessionRole.host : SessionRole.guest, hostPeerId: hostPeerId),
+          );
+          async.flushMicrotasks();
+          // The first transfer precedes both prerequisites. Only that first
+          // replacement gets a frame event; later replacements must retain it.
+          if (index == 0) {
+            room.guestPlayer.emitPlaybackRestart();
+            async.flushMicrotasks();
+          }
+          async.elapse(const Duration(seconds: 2));
+          expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+          expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        }
+
+        hold.complete();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.lastHostState().phase, PlaybackPhase.playing);
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(room.guestPlayer.state.playing, isTrue);
+        room.dispose();
+      });
+    });
+
+    test('a replacement keeps its own startup hold when a stale pre-transfer hold completes', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        final oldHold = Completer<void>();
+        final replacementHold = Completer<void>();
+        room.hostStartsMedia();
+        room.guestJoinsMedia(startupHold: oldHold.future);
+        room.bothBecomeReady();
+        room.host.applyHostChange(sessionAs(SessionRole.guest));
+        room.guest.applyHostChange(sessionAs(SessionRole.host));
+        async.flushMicrotasks();
+
+        room.guest.detachPlayer();
+        async.flushMicrotasks();
+        final replacement = FakeSyncPlayer(position: const Duration(minutes: 2));
+        room.guest.attachPlayer(
+          replacement,
+          ratingKey: 'rk1',
+          serverId: 'srv',
+          hasFirstFrame: true,
+          startupHold: replacementHold.future,
+        );
+        async.flushMicrotasks();
+        room.host.applyHostChange(sessionAs(SessionRole.host, hostPeerId: 'host'));
+        room.guest.applyHostChange(sessionAs(SessionRole.guest, hostPeerId: 'host'));
+        async.flushMicrotasks();
+
+        oldHold.complete();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.guestService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.status).status!.ready, isFalse);
+        expect(replacement.commandLog.where((c) => c == 'play'), isEmpty);
+        expect(room.hostPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+
+        replacementHold.complete();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(room.lastHostState().phase, PlaybackPhase.playing);
+        expect(room.hostPlayer.state.playing, isTrue);
+        expect(replacement.state.playing, isTrue);
+        expect(room.guestPlayer.commandLog.where((c) => c == 'play'), isEmpty);
+        room.dispose();
+        unawaited(replacement.dispose());
+        async.flushMicrotasks();
+      });
+    });
+
     test('a promoted guest adopts the room rate, not its own mid-correction player rate', () {
       fakeAsync((async) {
         final room = _Room(async);
@@ -722,6 +1095,89 @@ void main() {
         final adopted = room.guestService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.state).state!;
         expect(adopted.rate, 1.25);
         expect(room.guest.roomRate, 1.25);
+        room.dispose();
+      });
+    });
+
+    test('a promoted guest runs the room rate it never applied while the room was paused', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        room.hostStartsMedia();
+        room.guestJoinsMedia();
+        room.bothBecomeReady();
+        async.elapse(const Duration(seconds: 3));
+
+        // A paused guest holds position, not rate: nothing applies the room's
+        // speed to its player while the room is stopped.
+        room.hostPlayer.emitPlaying(false);
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 1));
+        expect(room.lastHostState().phase, PlaybackPhase.paused);
+        room.host.onLocalRate(1.25);
+        room.hostPlayer.emitRate(1.25);
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 1));
+        expect(room.lastHostState().rate, 1.25);
+        expect(room.guestPlayer.state.rate, 1.0, reason: 'the paused guest never ran the new rate');
+
+        room.host.applyHostChange(sessionAs(SessionRole.guest));
+        room.guest.applyHostChange(sessionAs(SessionRole.host));
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 5));
+
+        // The host player is the room clock: a rate it advertises but does not
+        // run is a permanent drift every guest keeps correcting against.
+        expect(room.guestService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.state).state!.rate, 1.25);
+        expect(room.guestPlayer.state.rate, 1.25);
+        room.dispose();
+      });
+    });
+
+    test('a promoted guest waits for the peers it already knows instead of starting alone', () {
+      fakeAsync((async) {
+        final room = _Room(async);
+        room.hostStartsMedia();
+        room.guestJoinsMedia();
+
+        // Both existing peers have rendered; a third participant has not.
+        final laggardService = room.hub.register('laggard');
+        final laggard = WatchTogetherController(
+          peerService: laggardService,
+          session: WatchSession(
+            sessionId: 'ROOM1',
+            role: SessionRole.guest,
+            controlMode: ControlMode.hostOnly,
+            state: SessionState.connected,
+            hostPeerId: 'host',
+          ),
+          nowMs: room.nowMs,
+        );
+        addTearDown(laggard.dispose);
+        laggard.announceJoin('Laggard');
+        final laggardPlayer = FakeSyncPlayer(position: Duration.zero);
+        laggard.attachPlayer(laggardPlayer, ratingKey: 'rk1', serverId: 'srv');
+        room.hostPlayer.emitPlaybackRestart();
+        room.guestPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 500));
+
+        room.host.applyHostChange(sessionAs(SessionRole.guest));
+        room.guest.applyHostChange(sessionAs(SessionRole.host));
+        laggard.applyHostChange(sessionAs(SessionRole.guest));
+        async.flushMicrotasks();
+
+        // The fresh epoch gates on the roster the new host already has, so the
+        // still-loading participant is waited for rather than left behind.
+        final adopted = room.guestService.outgoingLog.lastWhere((m) => m.type == SyncMessageType.state).state!;
+        expect(adopted.phase, PlaybackPhase.waitingForPeers);
+        expect(adopted.waitingOn, contains('laggard'));
+        expect(room.guestPlayer.state.playing, isFalse);
+
+        // Not a deadlock: the room starts once the laggard renders.
+        laggardPlayer.emitPlaybackRestart();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 5));
+        expect(room.guestPlayer.state.playing, isTrue);
         room.dispose();
       });
     });

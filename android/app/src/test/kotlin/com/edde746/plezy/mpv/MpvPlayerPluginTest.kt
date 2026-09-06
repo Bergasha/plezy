@@ -758,15 +758,53 @@ class MpvPlayerPluginTest {
   }
 
   @Test
-  fun setLogLevelReportsUnsupported() {
+  fun setLogLevelWithoutCoreReportsNotInitializedForVideoAndAudio() {
+    for (plugin in listOf(MpvPlayerPlugin(), MpvAudioPlayerPlugin())) {
+      val result = RecordingResult()
+
+      plugin.onMethodCall(MethodCall("setLogLevel", mapOf("level" to "warn")), result)
+
+      assertEquals("NOT_INITIALIZED", result.errorCode)
+      assertEquals(1, result.completionCount)
+      assertNull(result.successValue)
+    }
+  }
+
+  @Test
+  fun setLogLevelRejectsMissingOrNonStringLevel() {
+    for (level in listOf(null, 42)) {
+      val result = RecordingResult()
+
+      MpvPlayerPlugin().onMethodCall(MethodCall("setLogLevel", mapOf("level" to level)), result)
+
+      assertEquals("INVALID_ARGS", result.errorCode)
+      assertEquals(1, result.completionCount)
+    }
+  }
+
+  @Test
+  fun disposeCompletesQueuedLogLevelChangeOnceWithoutAnActiveNativePlayer() {
+    val blockerStarted = CountDownLatch(1)
+    val releaseBlocker = CountDownLatch(1)
+    val core = testCore { _, _ ->
+      blockerStarted.countDown()
+      check(releaseBlocker.await(2, TimeUnit.SECONDS))
+    }
+    val plugin = MpvPlayerPlugin()
+    installCore(plugin, core)
     val result = RecordingResult()
+    try {
+      core.setProperty("block", "value")
+      assertTrue(blockerStarted.await(1, TimeUnit.SECONDS))
+      plugin.onMethodCall(MethodCall("setLogLevel", mapOf("level" to "v")), result)
+      core.dispose()
+    } finally {
+      releaseBlocker.countDown()
+    }
+    awaitCompletion(result)
 
-    MpvPlayerPlugin().onMethodCall(
-      MethodCall("setLogLevel", mapOf("level" to "warn")),
-      result
-    )
-
-    assertEquals("UNSUPPORTED", result.errorCode)
+    assertEquals("NOT_INITIALIZED", result.errorCode)
+    assertEquals(1, result.completionCount)
     assertNull(result.successValue)
   }
 
@@ -1038,6 +1076,39 @@ class MpvPlayerPluginTest {
     invokeSetGpuVoRequirement(core, GpuVoPolicy.REASON_HDR_SDR, false)
     awaitCondition { lastVo() == "mediacodec" }
     assertEquals("mediacodec", lastVo())
+  }
+
+  @Test
+  fun hwdecWritesParkWhileAPerFileHoldIsActive() {
+    // While DV P5 reshaping or Hi10 routing holds hwdec at `no`, a session
+    // write of a hardware value must not reach mpv (it would re-enable the
+    // decoder that was just refused) but must be kept for the restore.
+    val activity = Robolectric.buildActivity(Activity::class.java).setup().get()
+    val writes = ConcurrentLinkedQueue<Pair<String, String>>()
+    val core = MpvPlayerCore(activity, audioOnly = false, propertyWriter = { name, value ->
+      writes.add(name to value)
+    })
+    setBoolean(core, "isInitialized", true)
+    setBoolean(core, "hwdecHeld", true)
+
+    var outcome: Result<Unit>? = null
+    core.setProperty("hwdec", "mediacodec,mediacodec-copy") { outcome = it }
+    awaitCondition { outcome != null }
+    assertTrue(outcome!!.isSuccess)
+    assertTrue(writes.isEmpty())
+    val parked = MpvPlayerCore::class.java.getDeclaredField("parkedHwdec").run {
+      isAccessible = true
+      @Suppress("UNCHECKED_CAST")
+      (get(core) as java.util.concurrent.atomic.AtomicReference<String?>).get()
+    }
+    assertEquals("mediacodec,mediacodec-copy", parked)
+
+    // Once the hold is gone, hwdec writes flow through again.
+    setBoolean(core, "hwdecHeld", false)
+    outcome = null
+    core.setProperty("hwdec", "no") { outcome = it }
+    awaitCondition { outcome != null }
+    assertEquals(listOf("hwdec" to "no"), writes.toList())
   }
 
   @Test

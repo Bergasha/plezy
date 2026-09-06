@@ -179,31 +179,73 @@ void main() {
 
     test('readiness waits for the startup hold (frame-rate gate)', () {
       fakeAsync((async) {
-        int nowMs() => _epochMs + async.elapsed.inMilliseconds;
-        final sent = <PlaybackState>[];
-        final player = FakeSyncPlayer();
-        final coordinator = HostPlaybackCoordinator(
-          myPeerId: 'host',
-          controlMode: ControlMode.hostOnly,
-          sendState: (state, {toPeerId}) => sent.add(state),
-          nowMs: nowMs,
-        );
-        final attached = AttachedPlayer(player: player, onLost: () {}, nowMs: nowMs);
+        final h = _Harness(async);
         final hold = Completer<void>();
 
-        coordinator.attach(attached, ratingKey: 'rk1', serverId: 'srv', startupHold: hold.future);
+        h.coordinator.attach(h.attached, ratingKey: 'rk1', serverId: 'srv', startupHold: hold.future);
         async.flushMicrotasks();
-        player.emitPlaybackRestart();
+        h.player.emitPlaybackRestart();
         async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
 
-        expect(sent.every((s) => s.phase == PlaybackPhase.loading), isTrue);
+        expect(h.broadcasts.every((s) => s.phase == PlaybackPhase.loading), isTrue);
+        expect(h.player.commandLog.where((c) => c == 'play'), isEmpty);
 
         hold.complete();
         async.flushMicrotasks();
-        expect(sent.last.phase, isNot(PlaybackPhase.loading));
+        async.elapse(Duration.zero);
+        expect(h.last.phase, PlaybackPhase.playing);
+        expect(h.player.state.playing, isTrue);
 
-        coordinator.dispose();
-        attached.dispose();
+        h.dispose();
+      });
+    });
+
+    test('a stale hold cannot release a replacement attachment of the same player', () {
+      fakeAsync((async) {
+        final h = _Harness(async);
+        final oldHold = Completer<void>();
+        final replacementHold = Completer<void>();
+        h.coordinator.attach(
+          h.attached,
+          ratingKey: 'rk1',
+          serverId: 'srv',
+          hasFirstFrame: true,
+          startupHold: oldHold.future,
+        );
+        async.flushMicrotasks();
+
+        h.coordinator.detachPlayer();
+        unawaited(h.attached.dispose());
+        async.flushMicrotasks();
+        final replacement = AttachedPlayer(
+          player: h.player,
+          onLost: () {},
+          nowMs: () => _epochMs + async.elapsed.inMilliseconds,
+        );
+        h.coordinator.attach(
+          replacement,
+          ratingKey: 'rk1',
+          serverId: 'srv',
+          hasFirstFrame: true,
+          startupHold: replacementHold.future,
+        );
+        async.flushMicrotasks();
+
+        oldHold.complete();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+        expect(h.last.phase, PlaybackPhase.loading);
+        expect(h.player.commandLog.where((c) => c == 'play'), isEmpty);
+
+        replacementHold.complete();
+        async.flushMicrotasks();
+        async.elapse(Duration.zero);
+        expect(h.last.phase, PlaybackPhase.playing);
+        expect(h.player.state.playing, isTrue);
+        h.coordinator.dispose();
+        unawaited(replacement.dispose());
+        async.flushMicrotasks();
       });
     });
   });
@@ -281,6 +323,45 @@ void main() {
 
         h.player.setBuffer(const Duration(minutes: 5, seconds: 7));
         async.elapse(const Duration(milliseconds: 600)); // Next 500ms re-check.
+        expect(h.last.phase, PlaybackPhase.playing);
+        h.dispose();
+      });
+    });
+
+    test('host stall near the end: headroom is capped by the media left, not held for what cannot arrive', () {
+      fakeAsync((async) {
+        final h = _Harness(async, duration: const Duration(seconds: 310));
+        h.coordinator.onPeerJoined('guest', compatible: true);
+        h.attachForMedia(async);
+        h.guestReports(async);
+        h.hostBecomesReady(async);
+        async.elapse(Duration(milliseconds: h.last.anchorHostTimeMs - (_epochMs + async.elapsed.inMilliseconds)));
+        h.player.setPosition(const Duration(seconds: 300));
+
+        h.player.emitBuffering(true);
+        async.elapse(const Duration(seconds: 4)); // 4s stall → 12s wanted, but only 10s of media remain.
+        h.player.setBuffer(const Duration(seconds: 310)); // Everything left is buffered.
+        h.player.emitBuffering(false);
+        async.elapse(const Duration(milliseconds: 1500));
+
+        expect(h.last.phase, PlaybackPhase.playing);
+        h.dispose();
+      });
+    });
+
+    test('host stall: a cache that never grows releases the room at the wait deadline', () {
+      fakeAsync((async) {
+        final h = playingRoom(async);
+        h.player.setPosition(const Duration(minutes: 5));
+
+        h.player.emitBuffering(true);
+        async.elapse(const Duration(seconds: 4));
+        h.player.setBuffer(const Duration(minutes: 5, seconds: 3)); // 3s ahead, 12s wanted, and it stays there.
+        h.player.emitBuffering(false);
+        async.elapse(Duration(milliseconds: HostPlaybackCoordinator.selfRecoveryMaxWaitMs - 500));
+        expect(h.last.phase, PlaybackPhase.waitingForPeers);
+
+        async.elapse(const Duration(seconds: 1));
         expect(h.last.phase, PlaybackPhase.playing);
         h.dispose();
       });

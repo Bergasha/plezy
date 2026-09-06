@@ -28,6 +28,7 @@ import 'package:plezy/utils/media_server_http_client.dart';
 import 'package:plezy/utils/library_content_notifier.dart';
 import 'package:plezy/utils/platform_detector.dart';
 import 'package:plezy/widgets/focusable_filter_chip.dart';
+import 'package:plezy/widgets/focusable_media_card.dart';
 
 import '../../test_helpers/library_tab_scaffold.dart';
 import '../../test_helpers/media_items.dart';
@@ -193,44 +194,8 @@ void main() {
     await _pumpUntil(tester, () => client.pageRequestCount >= 1);
     await pumpRequestFrames(tester);
     expect(find.text('Library A'), findsOneWidget);
-    final requestsBefore = client.pageRequestCount;
 
-    // The next page fetch returns the old item plus a new arrival.
-    client.pageResponses.add(
-      () async => LibraryPage<MediaItem>(
-        items: [
-          testMediaItem(
-            id: 'fresh-item',
-            backend: MediaBackend.jellyfin,
-            kind: MediaKind.artist,
-            title: 'Fresh Arrival',
-            serverId: client.serverId.value,
-            serverName: client.serverName,
-          ),
-          testMediaItem(
-            id: '${client.serverId.value}-item',
-            backend: MediaBackend.jellyfin,
-            kind: MediaKind.artist,
-            title: 'Library A',
-            serverId: client.serverId.value,
-            serverName: client.serverName,
-          ),
-        ],
-        totalCount: 2,
-      ),
-    );
-
-    LibraryContentNotifier().notifyChanged(
-      LibraryChangeEvent(serverId: ServerId('server-a'), libraryIds: const {'server-a-library'}, itemsAdded: true),
-    );
-    await tester.pump();
-    // The initial load credited the live pacer's cooldown, so the push
-    // defers to the window's trailing edge; the debounce alone fires nothing.
-    await tester.pump(const Duration(seconds: 4));
-    expect(client.pageRequestCount, requestsBefore, reason: 'push deferred while the just-loaded content is fresh');
-    await tester.pump(const Duration(minutes: 2));
-    await _pumpUntil(tester, () => client.pageRequestCount > requestsBefore);
-    await pumpRequestFrames(tester);
+    await _pushNewFirstItem(tester, client);
 
     // The new item materialized at its server-sorted position and the old
     // item survived — no clearing, no skeleton pass.
@@ -238,6 +203,143 @@ void main() {
     expect(find.text('Library A'), findsOneWidget);
     expect(harness.loadedLibraries, isNotEmpty, reason: 'initial load completed normally');
   });
+
+  testWidgets('a server push keeps the D-pad highlight on the focused title', (tester) async {
+    final client = _BrowseClient('server-a', 'Library A');
+    final harness = _BrowseHarness(clientA: client);
+    addTearDown(harness.dispose);
+
+    await _pumpHarness(tester, harness);
+    await _pumpUntil(tester, () => client.pageRequestCount >= 1);
+    await pumpRequestFrames(tester);
+
+    await _enterKeyboardMode(tester);
+    _cardFor(tester, 'Library A').focusNode!.requestFocus();
+    await pumpRequestFrames(tester);
+    expect(_cardFor(tester, 'Library A').focusNode!.hasPrimaryFocus, isTrue);
+
+    await _pushNewFirstItem(tester, client);
+
+    // The merge inserted an arrival ahead of the item-owned focus node.
+    expect(_cardFor(tester, 'Library A').focusNode!.hasPrimaryFocus, isTrue);
+    expect(_cardFor(tester, 'Fresh Arrival').focusNode!.hasPrimaryFocus, isFalse);
+  });
+
+  testWidgets('a server push does not pull focus back into the grid', (tester) async {
+    final client = _BrowseClient('server-a', 'Library A');
+    final harness = _BrowseHarness(clientA: client);
+    addTearDown(harness.dispose);
+
+    await _pumpHarness(tester, harness);
+    await _pumpUntil(tester, () => client.pageRequestCount >= 1);
+    await pumpRequestFrames(tester);
+
+    // A card was focused earlier, so the tab still remembers its index — but
+    // focus has since left the grid. An ordinary refresh must not drag it back.
+    await _enterKeyboardMode(tester);
+    final card = _cardFor(tester, 'Library A');
+    card.focusNode!.requestFocus();
+    await pumpRequestFrames(tester);
+    card.focusNode!.unfocus();
+    await pumpRequestFrames(tester);
+    final parkedFocus = FocusManager.instance.primaryFocus;
+
+    await _pushNewFirstItem(tester, client);
+
+    expect(FocusManager.instance.primaryFocus, same(parkedFocus));
+    expect(_cardFor(tester, 'Library A').focusNode!.hasFocus, isFalse);
+    expect(_cardFor(tester, 'Fresh Arrival').focusNode!.hasFocus, isFalse);
+  });
+  for (final viewMode in [ViewMode.grid, ViewMode.list]) {
+    testWidgets('covered $viewMode browse restores the item across the first-row measurement boundary', (tester) async {
+      await SettingsService.instance.write(SettingsService.viewMode, viewMode);
+      final client = _BrowseClient('server-a', 'Library A');
+      final harness = _BrowseHarness(clientA: client);
+      addTearDown(harness.dispose);
+      await _pumpHarness(tester, harness);
+      await _pumpUntil(tester, () => client.pageRequestCount >= 1);
+      await pumpRequestFrames(tester);
+      await _enterKeyboardMode(tester);
+      final captured = _cardFor(tester, 'Library A').focusNode!;
+      captured.requestFocus();
+      await pumpRequestFrames(tester);
+      final gate = Completer<void>();
+      await _pushNewFirstItem(tester, client, responseGate: gate.future);
+      final cover = FocusNode();
+      addTearDown(cover.dispose);
+      unawaited(
+        showDialog<void>(
+          context: tester.element(find.byType(LibraryBrowseTab)),
+          builder: (_) => AlertDialog(
+            content: Focus(focusNode: cover, autofocus: true, child: const Text('Cover')),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(cover.hasPrimaryFocus, isTrue);
+      gate.complete();
+      await tester.pumpAndSettle();
+      expect(cover.hasPrimaryFocus, isTrue);
+      expect(_cardFor(tester, 'Library A').focusNode, same(captured));
+      Navigator.of(cover.context!).pop();
+      await tester.pumpAndSettle();
+      expect(_cardFor(tester, 'Library A').focusNode!.hasPrimaryFocus, isTrue);
+      expect(_cardFor(tester, 'Fresh Arrival').focusNode!.hasFocus, isFalse);
+    });
+  }
+}
+
+FocusableMediaCard _cardFor(WidgetTester tester, String title) =>
+    tester.widget<FocusableMediaCard>(find.ancestor(of: find.text(title), matching: find.byType(FocusableMediaCard)));
+
+/// Starts a keyboard/D-pad session so cards render their focus chrome and
+/// focus moves behave like they do on TV.
+Future<void> _enterKeyboardMode(WidgetTester tester) async {
+  await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+  await tester.pump();
+}
+
+/// Stages the next page fetch to return the library's existing item preceded
+/// by a new arrival, pushes a library change, and lets the paced live refresh
+/// land.
+Future<void> _pushNewFirstItem(WidgetTester tester, _BrowseClient client, {Future<void>? responseGate}) async {
+  final requestsBefore = client.pageRequestCount;
+  client.pageResponses.add(() async {
+    await responseGate;
+    return LibraryPage<MediaItem>(
+      items: [
+        testMediaItem(
+          id: 'fresh-item',
+          backend: MediaBackend.jellyfin,
+          kind: MediaKind.artist,
+          title: 'Fresh Arrival',
+          serverId: client.serverId.value,
+          serverName: client.serverName,
+        ),
+        testMediaItem(
+          id: '${client.serverId.value}-item',
+          backend: MediaBackend.jellyfin,
+          kind: MediaKind.artist,
+          title: client.itemTitle,
+          serverId: client.serverId.value,
+          serverName: client.serverName,
+        ),
+      ],
+      totalCount: 2,
+    );
+  });
+
+  LibraryContentNotifier().notifyChanged(
+    LibraryChangeEvent(serverId: ServerId('server-a'), libraryIds: const {'server-a-library'}, itemsAdded: true),
+  );
+  await tester.pump();
+  // The initial load credited the live pacer's cooldown, so the push
+  // defers to the window's trailing edge; the debounce alone fires nothing.
+  await tester.pump(const Duration(seconds: 4));
+  expect(client.pageRequestCount, requestsBefore, reason: 'push deferred while the just-loaded content is fresh');
+  await tester.pump(const Duration(minutes: 2));
+  await _pumpUntil(tester, () => client.pageRequestCount > requestsBefore);
+  await pumpRequestFrames(tester);
 }
 
 Future<void> _pumpHarness(WidgetTester tester, _BrowseHarness harness, {bool settle = true}) async {

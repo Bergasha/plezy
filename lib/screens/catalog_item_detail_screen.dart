@@ -27,9 +27,11 @@ import '../models/catalog/catalog_item.dart';
 import '../models/catalog/catalog_labels.dart';
 import '../models/catalog/catalog_metadata.dart';
 import '../providers/catalog_sources_provider.dart';
+import '../providers/multi_server_provider.dart';
 import '../services/catalog/catalog_library_matcher.dart';
 import '../services/catalog/catalog_source.dart';
 import '../services/catalog/seerr_catalog_source.dart';
+import '../services/data_aggregation_service.dart';
 import '../utils/app_logger.dart';
 import '../utils/catalog_navigation_helper.dart';
 import '../utils/content_utils.dart';
@@ -103,6 +105,12 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
   /// Library items matching this catalog item; null while resolving.
   List<MediaItem>? _matches;
 
+  /// Coverage belongs to the newest launched (detail-enriched) query, not the
+  /// union of historical successes. Verified copies are merged independently.
+  int _resolutionGeneration = 0;
+  bool _resolvingMatches = false;
+  final Set<String> _uncheckedServerIds = {};
+
   /// Cast/characters from the item's own source; null while loading (the
   /// section only renders once loaded non-empty).
   List<CatalogCastMember>? _cast;
@@ -172,17 +180,33 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
   }
 
   Future<void> _resolveMatches(CatalogItem item) async {
-    List<MediaItem> matches;
+    final generation = ++_resolutionGeneration;
+    _resolvingMatches = true;
+    LibraryLookupResult result;
     try {
-      matches = await context.read<CatalogLibraryMatcher>().match(item);
+      result = await context.read<CatalogLibraryMatcher>().match(item);
     } catch (e) {
       appLogger.w('Catalog library match failed for ${item.identityKey}', error: e);
-      // A failed pass is no evidence about copies an earlier pass already
-      // found; only claim "not in your library" when nothing has resolved.
-      if (_matches == null) _mergeMatches(const []);
+      if (!mounted) return;
+      if (generation == _resolutionGeneration) {
+        _resolvingMatches = false;
+        _uncheckedServerIds
+          ..clear()
+          ..addAll(context.read<MultiServerProvider>().expectedServerIds);
+      }
+      _mergeMatches(const []);
       return;
     }
-    _mergeMatches(matches);
+    if (!mounted) return;
+    if (generation == _resolutionGeneration) {
+      _resolvingMatches = false;
+      _uncheckedServerIds
+        ..clear()
+        ..addAll(result.failedServerIds)
+        ..addAll(result.cancelledServerIds)
+        ..addAll(result.unqueriedServerIds);
+    }
+    _mergeMatches(result.items);
   }
 
   /// Fold a resolution pass into the visible copies.
@@ -280,10 +304,16 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
       // full set whenever enrichment added id forms — not just when the bare
       // lookup came back empty: the exact `plex://` guid finds only copies in
       // libraries on the modern agent, while a legacy-agent sibling is
-      // reachable solely through the imdb/tmdb forms (#1754). The result
-      // merges, so a re-ask can only add copies.
+      // reachable solely through the imdb/tmdb forms (#1754). Likewise when
+      // it added title candidates (Trakt aliases and translations, #2098): a
+      // copy filed under a romaji or localized title is reachable only
+      // through that title. The result merges, so a re-ask can only add
+      // copies.
       final gainedIds = !widget.item.ids.allKeys.toSet().containsAll(detail.item.ids.allKeys);
-      if (gainedIds) {
+      final gainedTitles = !CatalogLibraryMatcher.lookupTitles(
+        widget.item,
+      ).toSet().containsAll(CatalogLibraryMatcher.lookupTitles(detail.item));
+      if (gainedIds || gainedTitles) {
         unawaited(_resolveMatches(detail.item));
       }
     } catch (e) {
@@ -656,14 +686,18 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
   }
 
   /// Library availability, resolved in place: a progress row while the
-  /// matcher runs, "Not in your library" when nothing matched, otherwise an
-  /// "In these libraries" list whose rows open the normal media detail
-  /// screen. Rows are focusable tiles (dpad-safe, background focus effect).
+  /// matcher runs, "Not in your library" when every server answered and none
+  /// matched, "Couldn't check n servers" when nothing matched but a server
+  /// never answered, otherwise an "In these libraries" list whose rows open
+  /// the normal media detail screen — with the unchecked count beneath it
+  /// when a server sat the lookup out. Rows are focusable tiles (dpad-safe,
+  /// background focus effect).
   Widget _buildLibrarySection(ThemeData theme) {
-    final mutedStyle = theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5));
+    final mutedColor = theme.colorScheme.onSurface.withValues(alpha: 0.5);
+    final mutedStyle = theme.textTheme.bodyMedium?.copyWith(color: mutedColor);
     final matches = _matches;
 
-    if (matches == null) {
+    if (matches == null || (matches.isEmpty && _resolvingMatches)) {
       return Row(
         children: [
           const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
@@ -673,14 +707,19 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
       );
     }
 
+    final unchecked = _uncheckedServerIds.length;
+    Widget note(String text, {required IconData icon}) => Row(
+      children: [
+        AppIcon(icon, fill: 1, size: 18, color: mutedColor),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, style: mutedStyle)),
+      ],
+    );
+
     if (matches.isEmpty) {
-      return Row(
-        children: [
-          AppIcon(Symbols.info_rounded, fill: 1, size: 18, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
-          const SizedBox(width: 8),
-          Text(t.explore.notInLibrary, style: mutedStyle),
-        ],
-      );
+      return unchecked == 0
+          ? note(t.explore.notInLibrary, icon: Symbols.info_rounded)
+          : note(t.explore.libraryCheckFailed(n: unchecked), icon: Symbols.cloud_off_rounded);
     }
 
     return Column(
@@ -696,6 +735,10 @@ class _CatalogItemDetailScreenState extends State<CatalogItemDetailScreen> {
             for (var index = 0; index < matches.length; index++) _buildLibraryMatchTile(matches[index], index),
           ],
         ),
+        if (unchecked > 0) ...[
+          const SizedBox(height: 8),
+          note(t.explore.libraryCheckFailed(n: unchecked), icon: Symbols.cloud_off_rounded),
+        ],
       ],
     );
   }

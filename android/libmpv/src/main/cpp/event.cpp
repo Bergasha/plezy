@@ -69,6 +69,14 @@ static void sendLogMessageToJava(JNIEnv* env, mpv_event_log_message* msg) {
   if (jtext) env->DeleteLocalRef(jtext);
 }
 
+// A hook holds mpv (playback does not proceed) until Kotlin answers with
+// nativeHookContinue(id); MpvPlayer guarantees that answer for every hook.
+static void sendHookToJava(JNIEnv* env, mpv_event_hook* hook) {
+  jstring jname = new_java_string(env, hook->name);
+  env->CallStaticVoidMethod(mpv_MpvPlayer, mpv_MpvPlayer_onHook, jname, (jlong)hook->id);
+  if (jname) env->DeleteLocalRef(jname);
+}
+
 void* event_thread(void* arg) {
   JNIEnv* env = NULL;
   acquire_jni_env(g_vm, &env);
@@ -91,7 +99,6 @@ void* event_thread(void* arg) {
     switch (mp_event->event_id) {
       case MPV_EVENT_LOG_MESSAGE:
         msg = (mpv_event_log_message*)mp_event->data;
-        ALOGV("[%s:%s] %s", msg->prefix, msg->level, msg->text);
         sendLogMessageToJava(env, msg);
         break;
       case MPV_EVENT_PROPERTY_CHANGE:
@@ -105,20 +112,20 @@ void* event_thread(void* arg) {
         mpv_event_start_file* start_file = (mpv_event_start_file*)mp_event->data;
         has_source_id = start_file != NULL;
         source_id = start_file ? start_file->playlist_entry_id : 0;
-        ALOGV("event: %s\n", mpv_event_name(mp_event->event_id));
         sendEventToJava(env, mp_event->event_id, source_id, has_source_id);
         break;
       }
       case MPV_EVENT_FILE_LOADED:
-        ALOGV("event: %s\n", mpv_event_name(mp_event->event_id));
         sendEventToJava(env, mp_event->event_id, source_id, has_source_id);
+        break;
+      case MPV_EVENT_HOOK:
+        sendHookToJava(env, (mpv_event_hook*)mp_event->data);
         break;
       case MPV_EVENT_PLAYBACK_RESTART: {
         double position_seconds = 0.0;
         const bool has_position_seconds =
             mpv_get_property(g_mpv, "time-pos", MPV_FORMAT_DOUBLE, &position_seconds) >= 0 &&
             std::isfinite(position_seconds);
-        ALOGV("event: %s\n", mpv_event_name(mp_event->event_id));
         sendEventToJava(env, mp_event->event_id, source_id, has_source_id, position_seconds, has_position_seconds);
         break;
       }

@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../media/media_kind.dart';
 import '../utils/app_logger.dart';
 import '../utils/external_ids.dart';
 import '../utils/json_utils.dart';
@@ -261,21 +262,31 @@ class PlexDiscoverClient {
     ];
   }
 
-  /// Discover's matches endpoint only recognizes some guid forms for a given
-  /// title even when the item carries several — a lookup that misses on one
-  /// id can still hit on another, so every id the item has is tried in turn
-  /// rather than giving up after the first.
-  Future<Map<String, dynamic>?> match(ExternalIds ids) async {
+  /// Resolve a library item's external ids to Discover metadata. Discover
+  /// answers a `guid` lookup only when paired with the numeric metadata
+  /// `type` (1 movie, 2 show); a bare guid returns an empty container for
+  /// every item (#1873). Separately, Discover's matches endpoint only
+  /// recognizes some guid forms for a given title even when the item carries
+  /// several — a lookup that misses on one id can still hit on another, so
+  /// every id the item has is tried in turn rather than giving up after the
+  /// first.
+  Future<Map<String, dynamic>?> match(ExternalIds ids, {required MediaKind kind}) async {
+    final type = switch (kind) {
+      MediaKind.movie => 1,
+      MediaKind.show => 2,
+      _ => null,
+    };
+    if (type == null) return null;
     final guids = [
-      if (ids.tmdb case final tmdb?) 'tmdb://$tmdb',
       if (ids.imdb case final imdb?) 'imdb://$imdb',
+      if (ids.tmdb case final tmdb?) 'tmdb://$tmdb',
       if (ids.tvdb case final tvdb?) 'tvdb://$tvdb',
     ];
     for (final guid in guids) {
       final data = await _request(
         'GET',
         '/library/metadata/matches',
-        query: {'guid': guid, 'includeGuids': 1},
+        query: {'type': type, 'guid': guid, 'includeGuids': 1},
         allowNotFound: true,
       );
       if (data == null) continue;
