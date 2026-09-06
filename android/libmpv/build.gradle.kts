@@ -62,6 +62,15 @@ plugins {
 // checksums). This module downloads and extracts them; app/build.gradle.kts
 // reads FFmpeg .so files and the libc++ runtime back out of the extracted
 // trees.
+//
+// All four ABIs must stay extracted here even though the shipped APK only
+// wants arm64-v8a/armeabi-v7a (see app/build.gradle.kts): the app's own
+// CMake targets (dovi_bridge, ffmpegJNI) get configured and built for
+// every ABI AGP knows about regardless of ndk.abiFilters/--target-platform,
+// so trimming this list starves those x86/x86_64 CMake variants of their
+// FFmpeg inputs and fails the build outright. x86/x86_64 are excluded from
+// the final APK at packaging time instead (packaging.jniLibs.excludes in
+// app/build.gradle.kts), which works regardless of what got built.
 val mpvAbis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
 val mpvLockFile = rootProject.file("../mpv-build.lock.json")
 val mpvLockAndroid = run {
@@ -234,6 +243,18 @@ android {
     // nothing in this API or glue uses anything above 25.
     minSdk = 25
     consumerProguardFiles("consumer-rules.pro")
+
+    // Must match app/build.gradle.kts's abiFilters. A library module's own
+    // ndk.abiFilters is what actually restricts which ABIs its CMake glue
+    // build (libplayer.so) targets and which per-ABI jniLibs.srcDir folders
+    // get merged into this module's AAR — the app module's abiFilters alone
+    // does NOT propagate down to dependency library modules, so without this
+    // the x86_64 prebuilt libmpv/FFmpeg tarball contents kept shipping even
+    // after the app was restricted to armeabi-v7a/arm64-v8a.
+    ndk {
+      abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+    }
+
     externalNativeBuild {
       cmake {
         arguments += listOf(

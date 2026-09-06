@@ -80,6 +80,8 @@ val mpvFfmpegDevelopmentDir = layout.buildDirectory.dir("libmpv-ffmpeg-developme
 val prepareMpvFfmpegDevelopment = tasks.register("prepareMpvFfmpegDevelopment") {
   dependsOn(":libmpv:extractLibmpvNative")
   val manifest = File(mpvFfmpegDevelopmentDir, ".manifest")
+  // All four ABIs, matching :libmpv's mpvAbis — see the comment there for
+  // why this can't be trimmed to just the two shipped ABIs.
   val abis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
   val libraries = listOf("avcodec", "avutil", "swresample")
   inputs.dir(libmpvNativeJniDir)
@@ -298,11 +300,19 @@ android {
       }
     }
 
+    // Real devices in this fork's fleet are armeabi-v7a (older/budget
+    // Firesticks, e.g. the current Fire TV Stick HD, which ships 32-bit
+    // Fire OS regardless of chip capability) or arm64-v8a (everything
+    // else: newer Firesticks, Shield, phones). x86_64 is Flutter's default
+    // fat-APK inclusion for emulator compatibility and is the single
+    // largest of the three ABIs (~84MB uncompressed) - pure dead weight
+    // here, since nothing in the actual fleet runs on x86 Android hardware.
+    ndk {
+      abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+    }
+
     if (System.getenv("AMAZON") != null) {
       versionCode = (flutter.versionCode ?: 0) + 3000
-      ndk {
-        abiFilters += listOf("armeabi-v7a", "arm64-v8a")
-      }
     }
   }
 
@@ -384,7 +394,24 @@ android {
       // sourceSets rule below makes the runtime :libmpv extracts from the
       // mpv-build tarballs win for std::from_chars<float>, while older
       // native consumers remain ABI-compatible.
-      pickFirsts.add("lib/*/libc++_shared.so")
+      //
+      // Scoped to just the two shipped ABIs (not a `lib/*/` wildcard): a
+      // wildcard pickFirst resolves the x86_64 duplicate before the
+      // excludes below ever run, so a stray x86_64 libc++_shared.so survives
+      // no matter what those excludes say. With no pickFirst rule touching
+      // x86_64 at all, the exclude removes every x86_64 candidate first and
+      // there's nothing left to merge-conflict over.
+      pickFirsts.add("lib/arm64-v8a/libc++_shared.so")
+      pickFirsts.add("lib/armeabi-v7a/libc++_shared.so")
+
+      // Belt-and-suspenders for the x86_64 exclusion above: ndk.abiFilters
+      // only governs NDK/CMake-built output and does not reliably keep
+      // prebuilt .so files out of the final APK when they arrive via a
+      // sourceSets.jniLibs.srcDir (this app's own libcxx dir below, and
+      // third-party AARs like cronet/sentry that bundle their own prebuilt
+      // per-ABI trees). Excluding the path directly at packaging time is
+      // the only mechanism that has been confirmed to actually drop them.
+      excludes += listOf("lib/x86_64/*.so", "lib/x86/*.so")
     }
   }
 

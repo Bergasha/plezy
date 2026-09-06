@@ -19,6 +19,13 @@ android {
   defaultConfig {
     minSdk = 21
     consumerProguardFiles("consumer-rules.pro")
+
+    // Must match app/build.gradle.kts's abiFilters — see libmpv/build.gradle.kts
+    // for why this can't be inherited from the app module.
+    ndk {
+      abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+    }
+
     externalNativeBuild {
       cmake {
         // HarfBuzz pulls in C++, so the JNI library must use the shared STL that
