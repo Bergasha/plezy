@@ -165,6 +165,7 @@ void main() {
   testWidgets('stays hidden past the idle timeout while disabled', (tester) async {
     final settings = await SettingsService.getInstance();
     await settings.write(SettingsService.screensaverIdleMinutes, 1);
+    await settings.write(SettingsService.screensaverEnabled, false);
     aggregation.libraryResult = [movieLibrary];
     client.libraryContent = [testMediaItem(id: 'a', title: 'Movie A', artPath: '/art/a.jpg', serverId: 'server_1')];
     await tester.runAsync(() => libraries.loadLibraries());
@@ -211,9 +212,7 @@ void main() {
     // Only a kids library is available — the primary-name filter should
     // reject it, leaving nothing to sample from.
     aggregation.libraryResult = [kidsMovieLibrary];
-    client.libraryContent = [
-      testMediaItem(id: 'k', title: 'Kids Movie', artPath: '/art/k.jpg', serverId: 'server_1'),
-    ];
+    client.libraryContent = [testMediaItem(id: 'k', title: 'Kids Movie', artPath: '/art/k.jpg', serverId: 'server_1')];
     await tester.runAsync(() => libraries.loadLibraries());
 
     await pumpOverlay(tester);

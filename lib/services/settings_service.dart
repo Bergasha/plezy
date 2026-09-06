@@ -3,6 +3,7 @@ import '../media/ids.dart';
 import '../media/playback_rate.dart';
 import '../media/media_version_preference.dart';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
@@ -33,6 +34,7 @@ export 'base_shared_preferences_service.dart'
 import '../models/audio_quality_preset.dart';
 import '../models/transcode_quality_preset.dart';
 import '../navigation/navigation_tabs.dart';
+import '../utils/layout_constants.dart';
 import '../utils/platform_detector.dart';
 import 'trackers/tracker_constants.dart';
 import '../profiles/profile.dart';
@@ -238,7 +240,7 @@ class _AutomotiveUiScalePref extends Pref<double> {
 /// Migrates from the legacy `use_season_poster` boolean key.
 class _EpisodePosterModePref extends EnumPref<EpisodePosterMode> {
   const _EpisodePosterModePref()
-    : super('episode_poster_mode', values: EpisodePosterMode.values, defaultValue: EpisodePosterMode.episodeThumbnail);
+    : super('episode_poster_mode', values: EpisodePosterMode.values, defaultValue: EpisodePosterMode.seriesPoster);
 
   @override
   EpisodePosterMode readFrom(BaseSharedPreferencesService svc) {
@@ -508,8 +510,8 @@ class SettingsService extends BaseSharedPreferencesService {
   static const seekTimeLarge = IntPref('seek_time_large', defaultValue: 30);
   static const rewindOnResume = IntPref('rewind_on_resume');
   static const showHeroSection = BoolPref('show_hero_section', defaultValue: true);
-  static const screensaverEnabled = BoolPref('screensaver_enabled');
-  static const screensaverIdleMinutes = IntPref('screensaver_idle_minutes', defaultValue: 5);
+  static const screensaverEnabled = BoolPref('screensaver_enabled', defaultValue: true);
+  static const screensaverIdleMinutes = IntPref('screensaver_idle_minutes', defaultValue: 3);
   static const tvFullCardLayout = BoolPref('tv_full_card_layout', defaultValue: false);
   static const focusGlow = BoolPref('focus_glow', defaultValue: true);
   static const useGlobalHubs = BoolPref('use_global_hubs', defaultValue: true);
@@ -707,7 +709,27 @@ class SettingsService extends BaseSharedPreferencesService {
   static const globalShaderPreset = StringPref('global_shader_preset', defaultValue: 'none');
   static const requireProfileSelectionOnOpen = BoolPref('require_profile_selection_on_open');
   static const useExternalPlayer = _UseExternalPlayerPref();
-  static const forceTvMode = BoolPref('force_tv_mode');
+
+  /// Best-effort "this isn't a phone" signal, used only to pick this pref's
+  /// default. It can't defer to [PlatformDetector.isTV] — this pref is one of
+  /// that detection's own inputs (see main.dart's `_resolveStartupTheme`) —
+  /// so it falls back to the raw physical screen size instead of a
+  /// MediaQuery breakpoint (no BuildContext exists this early). A real
+  /// Android TV/Firestick reports a screen far above phone width; on an
+  /// actual phone this stays off so the layout isn't force-switched.
+  /// Never worse than the previous always-off default: a missing or
+  /// zero-sized view still resolves to off.
+  static bool _forceTvModeDefault() {
+    if (!Platform.isAndroid) return false;
+    final views = ui.PlatformDispatcher.instance.views;
+    if (views.isEmpty) return false;
+    final view = views.first;
+    if (view.physicalSize.isEmpty) return false;
+    final shortestSideDp = view.physicalSize.shortestSide / view.devicePixelRatio;
+    return shortestSideDp >= ScreenBreakpoints.mobile;
+  }
+
+  static const forceTvMode = BoolPref('force_tv_mode', defaultValueProvider: _forceTvModeDefault);
   static const visualEffects = EnumPref<VisualEffectsSetting>(
     'visual_effects',
     values: VisualEffectsSetting.values,
@@ -785,12 +807,7 @@ class SettingsService extends BaseSharedPreferencesService {
   );
   static final displaySwitchDelay = IntPref('display_switch_delay', transform: (v) => v.clamp(0, 10));
 
-  static ThemeMode _tvAwareThemeModeDefault() => PlatformDetector.isTV() ? ThemeMode.oled : ThemeMode.system;
-  static const themeMode = EnumPref<ThemeMode>(
-    'theme_mode',
-    values: ThemeMode.values,
-    defaultValueProvider: _tvAwareThemeModeDefault,
-  );
+  static const themeMode = EnumPref<ThemeMode>('theme_mode', values: ThemeMode.values, defaultValue: ThemeMode.oled);
   static const videoPlayerNavigationEnabled = BoolPref(
     'video_player_navigation_enabled',
     defaultValueProvider: PlatformDetector.isTV,
@@ -815,17 +832,17 @@ class SettingsService extends BaseSharedPreferencesService {
     defaultValue: GridSpacing.tight,
   );
   static const automotiveUiScale = _AutomotiveUiScalePref();
-  static const tvCornerSpotlightBackdrop = BoolPref('tv_corner_spotlight_backdrop');
+  static const tvCornerSpotlightBackdrop = BoolPref('tv_corner_spotlight_backdrop', defaultValue: true);
   static const episodePosterMode = _EpisodePosterModePref();
   static const continueWatchingAction = EnumPref<ContinueWatchingAction>(
     'continue_watching_action',
     values: ContinueWatchingAction.values,
-    defaultValue: ContinueWatchingAction.play,
+    defaultValue: ContinueWatchingAction.details,
   );
   static const episodeAction = EnumPref<EpisodeAction>(
     'episode_action',
     values: EpisodeAction.values,
-    defaultValue: EpisodeAction.play,
+    defaultValue: EpisodeAction.details,
   );
   static const mpvConfigText = _MpvConfigTextPref();
 
