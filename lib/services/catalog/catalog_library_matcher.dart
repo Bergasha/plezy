@@ -67,8 +67,8 @@ class CatalogLibraryMatcher {
     // Namespace by source too: MAL and AniList can share a MAL id while
     // carrying different titles. The id forms and the title candidates join
     // the key because a detail load can enrich an item with external ids its
-    // row form lacked (#1715: Plex rows carry only a rating key) or with the
-    // native title; the richer lookup must not be short-circuited by the
+    // row form lacked (#1715: Plex rows carry only a rating key) or additional
+    // lookup titles; the richer lookup must not be short-circuited by the
     // poorer form's cached negative.
     final key = '${item.source.name}/${item.entryIdentityKey}/${item.ids.allKeys.join(',')}/${titles.join('\u0000')}';
     final cached = _cache[key];
@@ -110,54 +110,66 @@ class CatalogLibraryMatcher {
   /// and their sets pass through so the UI still names them unchecked and
   /// the wave is retried after [negativeTtl]. Everything else is dropped:
   /// a server in none of the four sets is no longer on the account.
+  ///
+  /// Membership is the answering server's to define, but each copy it
+  /// returns again is folded onto its predecessor by [mergeLibraryCopy]:
+  /// the library stamp is best-effort, and a retry that lost it must not
+  /// overwrite a labeled copy with an unlabeled one for the rest of the
+  /// session.
   _Entry _fold(Map<String?, List<MediaItem>>? previous, LibraryLookupResult result) {
     bool sawNoAnswerFrom(String? serverId) =>
         result.failedServerIds.contains(serverId) ||
         result.cancelledServerIds.contains(serverId) ||
         result.unqueriedServerIds.contains(serverId);
-    final byServer = <String?, List<MediaItem>>{
-      if (previous != null)
-        for (final MapEntry(:key, :value) in previous.entries)
-          if (sawNoAnswerFrom(key)) key: value,
-    };
-    // Carried copies are absent from `result.items`, so a wave that kept any
-    // has to be rebuilt around them; with nothing carried the wave already
-    // is the whole answer.
-    final carried = byServer.isNotEmpty;
-    for (final item in result.items) {
-      (byServer[item.serverId] ??= []).add(item);
+    final byServer = <String?, List<MediaItem>>{};
+    // Copies of the servers that just answered, about to be replaced by
+    // whatever they returned this time.
+    final replaced = <String, MediaItem>{};
+    for (final MapEntry(:key, :value) in previous?.entries ?? const <MapEntry<String?, List<MediaItem>>>[]) {
+      if (sawNoAnswerFrom(key)) {
+        byServer[key] = value;
+      } else {
+        for (final item in value) {
+          replaced[item.globalKey] = item;
+        }
+      }
     }
+    for (final item in result.items) {
+      final prior = replaced[item.globalKey];
+      (byServer[item.serverId] ??= []).add(prior == null ? item : mergeLibraryCopy(prior, item));
+    }
+    // Carried and enriched copies are absent from `result.items`, so a wave
+    // with a predecessor is rebuilt around them; a first wave already is the
+    // whole answer.
     return (
       at: _now(),
       scopeGeneration: _scopeGeneration,
       byServer: byServer,
-      result: carried
-          ? (
+      result: previous == null
+          ? result
+          : (
               items: [for (final items in byServer.values) ...items]..sort(compareLibraryCopies),
               succeededServerIds: result.succeededServerIds,
               cancelledServerIds: result.cancelledServerIds,
               failedServerIds: result.failedServerIds,
               unqueriedServerIds: result.unqueriedServerIds,
-            )
-          : result,
+            ),
     );
   }
 
   /// The title candidates a lookup for [item] spends its request budget on.
   ///
-  /// Native title first: both backends index `originalTitle` alongside the
-  /// display title (Plex `/hubs/search`, Jellyfin `SearchTerm`; verified on
-  /// PMS 1.43 and Jellyfin 10.11), and every copy of a foreign title carries
-  /// the same `originalTitle` whatever language it is filed under — English,
-  /// romaji, localized or native. One query with it reaches all of them
-  /// (#2098). The item's own title follows for the catalog/agent spelling
-  /// drift the native form can suffer, and each brings its season-stripped
-  /// form for sequel entries. Alternate titles are not candidates: the
-  /// copies they used to reach are exactly the ones the native title reaches.
+  /// Prefer the source's original title, then its display title and aliases.
+  /// MAL and AniList supply typed native titles, but other sources may supply
+  /// production/romaji titles or no original title at all. Server indexes can
+  /// search original titles when present; they do not make aliases redundant.
+  /// Each admitted title brings its season-stripped partner within the same
+  /// four-query budget. Later families are best-effort and may not fit.
   ///
   /// A detail load that changes this list is what tells the detail screen
   /// to ask again.
-  static List<String> lookupTitles(CatalogItem item) => titleMatchCandidates([item.originalTitle, item.title]);
+  static List<String> lookupTitles(CatalogItem item) =>
+      titleMatchCandidates([item.originalTitle, item.title, ...item.altTitles]);
 
   /// Whether [result] may be memoized for the rest of the session: a hit
   /// every expected server took part in. One that sat out — failed,

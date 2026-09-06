@@ -31,6 +31,7 @@ import '../focus/input_mode_tracker.dart';
 import '../widgets/cast_member_strip.dart';
 import '../widgets/focus_builders.dart';
 import '../media/library_query.dart';
+import '../media/library_change_event.dart';
 import '../media/media_hub.dart';
 import '../utils/provider_extensions.dart';
 import '../utils/plex_season_display.dart';
@@ -99,6 +100,7 @@ import '../mixins/mounted_set_state_mixin.dart';
 import '../mixins/server_bound_media_mixin.dart';
 import '../utils/watch_state_notifier.dart';
 import '../utils/deletion_notifier.dart';
+import '../utils/library_content_notifier.dart';
 import '../utils/global_key_utils.dart';
 import '../utils/tone_mapped_logo_image.dart';
 import '../widgets/episode_card.dart';
@@ -328,13 +330,7 @@ PageRoute<bool> mediaDetailRoute({
 }
 
 class _MediaDetailScreenState extends State<MediaDetailScreen>
-    with
-        WatchStateAware,
-        DeletionAware,
-        DeletionMirrorsWatchState,
-        MountedSetStateMixin,
-        ServerBoundMediaMixin,
-        RouteAware {
+    with WatchStateAware, DeletionAware, MountedSetStateMixin, ServerBoundMediaMixin, RouteAware {
   /// Public input alias — used as the live source of truth until the detail
   /// fetch returns. Holds backend-neutral [MediaItem] data.
   MediaItem get _metadata => _fullMetadata ?? widget.metadata;
@@ -349,6 +345,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   MediaItem? _fullMetadata;
   MediaItem? _onDeckEpisode;
   bool _isLoadingMetadata = true;
+  bool _isDeleted = false;
+  StreamSubscription<LibraryChangeEvent>? _libraryContentSubscription;
+
+  bool get _canUseDetail => mounted && !_isDeleted;
   List<MediaItem>? _extras;
   List<MediaHub> _relatedHubs = [];
   List<GlobalKey<HubSectionState>> _relatedHubKeys = [];
@@ -518,9 +518,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   @override
   bool get isServerBoundOffline => widget.isOffline;
 
-  // WatchStateAware: watch the show/movie and all season/episode ratingKeys.
-  // DeletionMirrorsWatchState reuses these three getters for deletion events —
-  // the same items are on screen either way.
+  // Watch state follows displayed items; deletion also follows the detail's
+  // known ancestors, even before any children have loaded.
   @override
   Set<String>? get watchedIds {
     final keys = <String>{_metadata.id};
@@ -551,8 +550,39 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     return keys;
   }
 
+  Set<String> get _terminalDeletionIds => {
+    widget.metadata.id,
+    ...widget.metadata.parentChain.where((id) => id.isNotEmpty),
+    _metadata.id,
+    ..._metadata.parentChain.where((id) => id.isNotEmpty),
+  };
+
+  @override
+  String? get deletionServerId => serverBoundServerId;
+
+  @override
+  Set<String> get deletionIds => {...?watchedIds, ..._terminalDeletionIds};
+
+  @override
+  Set<String>? get deletionGlobalKeys {
+    final serverId = serverBoundServerId;
+    if (serverId == null) return null;
+    return {
+      ...?watchedGlobalKeys,
+      for (final id in _terminalDeletionIds) toServerBoundGlobalKey(id, serverId: ServerId(serverId)),
+    };
+  }
+
+  void _onLibraryContentChanged(LibraryChangeEvent event) {
+    if (!_canUseDetail || widget.isOffline || event.serverId != serverBoundServerId) return;
+    // Exact ids are authoritative even when the producer omits its per-item
+    // fanout. Advisory flags alone do not prove this detail was removed.
+    if (_terminalDeletionIds.any(event.removedItemIds.contains)) _markDetailDeleted();
+  }
+
   @override
   void onWatchStateChanged(WatchStateEvent event) {
+    if (!_canUseDetail) return;
     _watchStateChanged = true;
     if (event.changeType == WatchStateChangeType.removedFromContinueWatching) return;
 
@@ -644,6 +674,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   Future<void> _refreshItemInPlace(MediaItem source) async {
+    if (!_canUseDetail) return;
     final serverId = source.serverId;
     if (serverId == null) return;
     final client = context.tryGetMediaClientForServer(ServerId(serverId));
@@ -651,7 +682,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     try {
       final refreshed = await client.fetchItem(source.id);
-      if (refreshed == null || !mounted) return;
+      if (refreshed == null || !_canUseDetail) return;
       setStateIfMounted(() {
         _patchItemEverywhere(source.globalKey, refreshed);
       });
@@ -662,9 +693,15 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   @override
   void onDeletionEvent(DeletionEvent event) {
+    if (!_canUseDetail) return;
     // Download-only deletions should only remove items when viewing offline content
     if (event.isDownloadOnly && !widget.isOffline) return;
     if (!event.isDownloadOnly && widget.isOffline) return;
+
+    if (_terminalDeletionIds.contains(event.itemId)) {
+      _markDetailDeleted();
+      return;
+    }
 
     // Drop the episode from any visible/cached list. This fires whether we're
     // showing a flattened episode list or a season-tabs view of a show.
@@ -683,7 +720,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     if (epIndex != -1 && _showEpisodesDirectly) {
       if (_episodes.isEmpty && (_metadata.isSeason || _metadata.isShow) && mounted) {
-        Navigator.of(context).pop();
+        _markDetailDeleted();
       }
       return;
     }
@@ -697,7 +734,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
       // If the show has no more seasons, navigate back up to the library
       if (_seasons.isEmpty && mounted) {
-        Navigator.of(context).pop();
+        _markDetailDeleted();
         return;
       }
       _refreshWatchState();
@@ -720,7 +757,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
           // Otherwise we have no more seasons, so navigate up
           if (_seasons.isEmpty && mounted) {
-            Navigator.of(context).pop();
+            _markDetailDeleted();
             return;
           }
         } else {
@@ -735,9 +772,42 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     }
   }
 
+  void _markDetailDeleted() {
+    if (!_canUseDetail) return;
+    setState(() {
+      _isDeleted = true;
+      // Retire in-flight pages and probes before navigation. A first route
+      // remains mounted, so mounted checks alone cannot fence late results.
+      _episodesLoadGeneration++;
+      _invalidatePlaybackProbes(refreshItems: true);
+    });
+    if (!(_seasonsCompleter?.isCompleted ?? true)) _seasonsCompleter?.complete();
+    _closeDeletedDetail();
+  }
+
+  /// The detail's content is gone; leave via the detail's OWN route. A blind
+  /// `Navigator.pop` takes whatever is topmost on the profile navigator — the
+  /// download progress dialog, a player, a hostless sheet fallback, another
+  /// detail pushed on top — and leaves this empty screen behind.
+  ///
+  /// The terminal transition handles duplicate delivery; `isActive` also
+  /// avoids removing a route already leaving for another reason. `isFirst`
+  /// retains the unavailable state instead of stranding a blank navigator.
+  void _closeDeletedDetail() {
+    final route = _route ?? ModalRoute.of(context);
+    if (route == null || route.isFirst || !route.isActive) return;
+    final navigator = Navigator.of(context);
+    if (route.isCurrent) {
+      navigator.pop();
+    } else {
+      // Completes the push future with null, same as the pop above.
+      navigator.removeRoute(route);
+    }
+  }
+
   /// Lightweight refresh for watch state changes - no loader, preserves scroll
   Future<void> _refreshWatchState() async {
-    if (!mounted) return;
+    if (!_canUseDetail) return;
     _invalidatePlaybackProbes(refreshItems: true);
     if (widget.isOffline) return;
     // Backend-neutral. Plex bundles metadata + on-deck in one round-trip
@@ -752,6 +822,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     try {
       final result = await mediaClient.fetchItemWithOnDeck(_metadata.id);
+      if (!_canUseDetail) return;
       final metadata = result.item;
       final onDeckEpisode = result.onDeckEpisode;
       if (metadata != null) {
@@ -794,6 +865,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     _overviewFocusNode = FocusNode(debugLabel: 'overview');
     _tvDetailInfoFocusNode = FocusNode(debugLabel: 'tv_detail_info');
     _infoRowsFocusNode = FocusNode(debugLabel: 'info_rows');
+    _libraryContentSubscription = LibraryContentNotifier().stream.listen(_onLibraryContentChanged);
     _loadFullMetadata();
     unawaited(_listenForPlaybackVersionChanges());
     _initWatchlistState();
@@ -834,7 +906,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         'Watchlist candidates resolved for ${_metadata.title}: '
         '${candidates.map((c) => c.source.id.name).join(', ')}',
       );
-      if (!mounted) return;
+      if (!_canUseDetail || candidates.isEmpty) return;
       setState(() => _watchlistCandidates = candidates);
     } catch (e) {
       appLogger.d('Watchlist external-id resolution failed', error: e);
@@ -937,14 +1009,14 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     _tvDetailRevealScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!_canUseDetail) return;
       setState(() {
         _tvDetailStableRailHeight = _tvDetailPendingRailHeight ?? railHeight;
         _tvDetailRevealScheduled = false;
         _tvDetailRevealed = true;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+        if (!_canUseDetail) return;
         if (focusPrimaryAction) {
           _playButtonFocusNode.requestFocus();
         } else {
@@ -989,6 +1061,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   @override
   void dispose() {
+    _libraryContentSubscription?.cancel();
     for (final source in _watchlistListenedSources) {
       source.watchlistChanges.removeListener(_onWatchlistSourceChanged);
     }
@@ -1484,7 +1557,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       ],
     );
 
-    if (selected == null || !context.mounted) return;
+    if (selected == null || !_canUseDetail || !context.mounted) return;
 
     switch (selected) {
       case _SyncRuleAction.edit:
@@ -1527,6 +1600,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   Future<void> _loadFullMetadata() async {
+    if (!_canUseDetail) return;
     _invalidatePlaybackProbes(refreshItems: true);
     setState(() {
       _isLoadingMetadata = true;
@@ -1541,7 +1615,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       final cachedMetadata = serverId == null
           ? null
           : await context.read<DownloadProvider>().lookupOfflineMetadata(serverId, _metadata.id);
-      if (!mounted) return;
+      if (!_canUseDetail) return;
       setState(() {
         _fullMetadata = cachedMetadata ?? _metadata;
         _isLoadingMetadata = false;
@@ -1629,12 +1703,12 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       final result = await client.fetchItemWithOnDeck(
         _metadata.id,
         onItemReady: (item) {
-          if (mounted) publish(item);
+          if (_canUseDetail) publish(item);
         },
       );
       final metadata = result.item;
 
-      if (!mounted) return;
+      if (!_canUseDetail) return;
       final base = publish(metadata ?? _metadata, onDeckEpisode: result.onDeckEpisode, onDeckSettled: true);
 
       if (base.isShow) {
@@ -1652,7 +1726,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       unawaited(_loadRatingsAndReviews(base));
     } catch (e) {
       // Fallback to passed metadata on error
-      if (!mounted) return;
+      if (!_canUseDetail) return;
       setState(() {
         _fullMetadata = _metadata;
         _isLoadingMetadata = false;
@@ -1672,6 +1746,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   Future<void> _loadSeasons() async {
+    if (!_canUseDetail) return;
     _seasonsCompleter = Completer<void>();
     setStateIfMounted(() {
       _isLoadingSeasons = true;
@@ -1705,6 +1780,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
           : Future.value(<String, dynamic>{});
 
       final results = await Future.wait([seasonsFuture, prefsFuture]);
+      if (!_canUseDetail) return;
       final seasons = results.first as List<MediaItem>;
       final prefs = results[1] as Map<String, dynamic>;
 
@@ -1762,6 +1838,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       }
     } catch (e, st) {
       appLogger.w('Seasons load failed', error: e, stackTrace: st);
+      if (!_canUseDetail) return;
       setStateIfMounted(() {
         _isLoadingSeasons = false;
         _seasonsLoadFailed = true;
@@ -1837,6 +1914,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   /// Load seasons from downloaded episodes (offline mode)
   void _loadSeasonsFromDownloads() {
+    if (!_canUseDetail) return;
     _seasonsCompleter = Completer<void>();
     setState(() {
       _isLoadingSeasons = true;
@@ -1921,6 +1999,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   /// Load episodes from downloaded content for a season
   void _loadEpisodesFromDownloads() {
+    if (!_canUseDetail) return;
     final downloadProvider = context.read<DownloadProvider>();
     final seasonEpisodes = _downloadedEpisodesForSeason(downloadProvider, _metadata.parentId ?? '', _metadata.index);
 
@@ -1958,6 +2037,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// lazily via [_loadMoreSeasonEpisodes] as the user scrolls/navigates toward
   /// the end, so a 1000+ episode season never blocks on one giant request.
   Future<void> _fetchSeasonEpisodes(int seasonIndex) async {
+    if (!_canUseDetail) return;
     if (seasonIndex < 0 || seasonIndex >= _seasons.length) return;
     final season = _seasons[seasonIndex];
     final seasonId = season.id;
@@ -2058,6 +2138,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   Future<void> _prefetchSeasonEpisodeFirstPage(int seasonIndex) async {
+    if (!_canUseDetail) return;
     if (seasonIndex < 0 || seasonIndex >= _seasons.length) return;
     final season = _seasons[seasonIndex];
     final seasonId = season.id;
@@ -2074,7 +2155,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         start: 0,
         size: _episodesPageSize,
       );
-      if (!mounted || _showEpisodesDirectly || seasonIndex >= _seasons.length || _seasons[seasonIndex].id != seasonId) {
+      if (!_canUseDetail ||
+          _showEpisodesDirectly ||
+          seasonIndex >= _seasons.length ||
+          _seasons[seasonIndex].id != seasonId) {
         return;
       }
       setStateIfMounted(() {
@@ -2088,7 +2172,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       if (_isSelectedSeason(seasonIndex, seasonId)) unawaited(_prefetchAdjacentSeasonEpisodePages(seasonIndex));
     } catch (e, st) {
       appLogger.d('TV adjacent season episode prefetch failed', error: e, stackTrace: st);
-      if (mounted && _isSelectedSeason(seasonIndex, seasonId)) {
+      if (_canUseDetail && _isSelectedSeason(seasonIndex, seasonId)) {
         setStateIfMounted(() {
           _seasonEpisodePager.failFirstPage(seasonId);
         });
@@ -2101,6 +2185,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// Load the next page of the selected season's episodes and append it.
   /// No-op when nothing more remains, offline, or a page is already in flight.
   Future<void> _loadMoreSeasonEpisodes() async {
+    if (!_canUseDetail) return;
     final seasonIndex = _selectedSeasonIndex;
     if (widget.isOffline || seasonIndex < 0 || seasonIndex >= _seasons.length) return;
     final season = _seasons[seasonIndex];
@@ -2188,7 +2273,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   /// Load extras (trailers, featurettes, behind-the-scenes, etc.).
   Future<void> _loadExtras() async {
+    if (!_canUseDetail) return;
     void markLoaded() {
+      if (!_canUseDetail) return;
       setStateIfMounted(() {
         _hasLoadedExtras = true;
       });
@@ -2214,6 +2301,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       }
 
       final extras = await client.fetchExtras(_metadata.id);
+      if (!_canUseDetail) return;
 
       // Preserve serverId for each extra (needed for multi-server setups).
       final extrasWithServerId = extras
@@ -2239,7 +2327,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// Backend-neutral — both Plex and Jellyfin implement
   /// [MediaServerClient.fetchRelatedHubs].
   Future<void> _loadRelatedHubs() async {
+    if (!_canUseDetail) return;
     void markLoaded() {
+      if (!_canUseDetail) return;
       setStateIfMounted(() {
         _hasLoadedRelatedHubs = true;
       });
@@ -2264,6 +2354,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     try {
       final relatedHubs = await client.fetchRelatedHubs(_metadata.id);
+      if (!_canUseDetail) return;
 
       setStateIfMounted(() {
         _relatedHubs = relatedHubs;
@@ -2504,7 +2595,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   void _applyInitialMobileFocus(FocusNode node, GlobalKey sectionKey) {
     _initialDetailFocusApplied = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      if (!_canUseDetail) return;
       node.requestFocus();
       _scrollSectionIntoView(sectionKey);
     });
@@ -2528,7 +2619,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
     _initialEpisodePagingInFlight = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _episodesContainInitialTarget) {
+      if (!_canUseDetail || _episodesContainInitialTarget) {
         _initialEpisodePagingInFlight = false;
         return;
       }
@@ -2815,7 +2906,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       isOwnerActive: () => mounted,
       onShortPress: () {
         if (_focusedExtraIndex < extras.length) {
-          navigateToVideoPlayer(context, metadata: extras[_focusedExtraIndex]);
+          navigateToVideoPlayer(context, metadata: extras[_focusedExtraIndex], isLaunchCurrent: () => _canUseDetail);
         }
       },
       onLongPress: () {
@@ -3013,6 +3104,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
               metadata: episode,
               isOffline: widget.isOffline,
               onRefresh: () => unawaited(_refreshItemInPlace(episode)),
+              isLaunchCurrent: () => _canUseDetail,
             );
           },
           onRefresh: widget.isOffline ? null : _refreshItemInPlace,
@@ -3205,6 +3297,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   Future<void> _fetchAllEpisodes() async {
+    if (!_canUseDetail) return;
     final generation = ++_episodesLoadGeneration;
     if (_seasons.isEmpty) {
       setStateIfMounted(() {
@@ -3247,6 +3340,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       });
     } catch (e, st) {
       appLogger.w('Failed to load episodes for all seasons', error: e, stackTrace: st);
+      if (!_canUseDetail || generation != _episodesLoadGeneration) return;
       setStateIfMounted(() {
         _allEpisodes = _allEpisodes.failInitialLoad();
         _hasLoadedEpisodes = true;
@@ -3354,6 +3448,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// Load the next page of the flatten/all-episodes list (single-season show or
   /// season detail) on demand and append it.
   Future<void> _loadMoreAllEpisodes() async {
+    if (!_canUseDetail) return;
     if (widget.isOffline || !_allEpisodes.hasMore || _allEpisodes.isLoadingMore) return;
     final serverId = _metadata.serverId;
     final client = serverId == null ? null : context.tryGetMediaClientForServer(ServerId(serverId));
@@ -3430,8 +3525,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   /// Load the next unwatched episode for offline mode (offline OnDeck)
   Future<void> _loadOfflineOnDeckEpisode() async {
+    if (!_canUseDetail) return;
     final offlineWatchProvider = context.read<OfflineWatchProvider>();
     final nextEpisode = await offlineWatchProvider.getNextUnwatchedEpisode(_metadata.id);
+    if (!_canUseDetail) return;
 
     setStateIfMounted(() {
       _onDeckEpisode = nextEpisode;
@@ -3451,7 +3548,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   void _ensureFallbackOnDeckEpisode() {
     // Reached via unawaited fetch continuations — the screen may be gone by
     // now, and _freshAll reads providers through State.context.
-    if (!mounted) return;
+    if (!_canUseDetail) return;
     if (_onDeckEpisode != null) return;
     final next = firstUnwatchedEpisode(_freshAll(_episodes));
     if (next == null) return;
@@ -3461,6 +3558,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   }
 
   Future<void> _playFirstEpisode() async {
+    if (!_canUseDetail) return;
     // Loading seasons and resolving the first episode cost network round
     // trips; show the shared scoped loading dialog so Play gives immediate
     // feedback. The offline branch reads local state only and needs none.
@@ -3483,7 +3581,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         await _seasonsCompleter!.future.timeout(const Duration(seconds: 10), onTimeout: () {});
       }
 
-      if (!mounted) return;
+      if (!mounted || !_canUseDetail) return;
 
       if (_seasons.isEmpty) {
         if (mounted) {
@@ -3496,7 +3594,6 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
       // Get the first episode of the first season.
       MediaItem? firstEpisode;
-      if (!mounted) return;
       if (widget.isOffline) {
         // In offline mode, get episodes from downloads (filtered to this season).
         final downloadProvider = context.read<DownloadProvider>();
@@ -3511,6 +3608,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
           seriesId: _seriesIdForSeason(firstSeason),
         );
       }
+
+      if (!_canUseDetail) return;
 
       if (firstEpisode == null) {
         if (mounted) {
@@ -3531,17 +3630,18 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         libraryId: firstEpisode.libraryId ?? _metadata.libraryId,
         libraryTitle: firstEpisode.libraryTitle ?? _metadata.libraryTitle,
       );
-      if (mounted) {
+      if (mounted && _canUseDetail) {
         appLogger.d('Playing first episode: ${episodeWithServerId.title}');
         await navigateToVideoPlayerWithRefresh(
           context,
           metadata: episodeWithServerId,
           isOffline: widget.isOffline,
           onRefresh: _refreshWatchState,
+          isLaunchCurrent: () => _canUseDetail,
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && _canUseDetail) {
         showErrorSnackBar(context, t.messages.errorLoading(error: e.toString()));
       }
     } finally {
@@ -3553,6 +3653,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// so Plex uses its server-side `/playQueues` and Jellyfin builds a local
   /// shuffled queue from `fetchClientSideEpisodeQueue`.
   Future<void> _handleShufflePlayWithQueue(BuildContext context, MediaItem metadata) async {
+    if (!_canUseDetail) return;
     if (widget.isOffline) {
       if (context.mounted) {
         showErrorSnackBar(context, t.mediaMenu.shuffleNotAvailableOffline);
@@ -3569,6 +3670,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isDeleted) {
+      return Scaffold(
+        body: SafeArea(
+          child: EmptyStateWidget(message: t.messages.mediaUnavailable, icon: Symbols.block_rounded),
+        ),
+      );
+    }
     // Session-fresh hero: server snapshot resolved against the watch-state
     // store (onWatchStateChanged rebuilds on relevant events).
     final metadata = _fresh(_fullMetadata ?? _metadata);
@@ -5075,6 +5183,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         metadata: item,
         isOffline: widget.isOffline,
         onRefresh: () => unawaited(_refreshItemInPlace(item)),
+        isLaunchCurrent: () => _canUseDetail,
       );
       return true;
     }
@@ -5601,7 +5710,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                     child: FocusBuilders.buildLockedFocusWrapper(
                       context: context,
                       isFocused: isFocused,
-                      onTap: () => navigateToVideoPlayer(context, metadata: extra),
+                      onTap: () =>
+                          navigateToVideoPlayer(context, metadata: extra, isLaunchCurrent: () => _canUseDetail),
                       delegateFocusBorder: true,
                       child: MediaCard(
                         key: cardKey,
