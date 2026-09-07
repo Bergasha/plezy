@@ -1131,6 +1131,18 @@ class Translations$settings$en {
 	/// en: 'Automatically enter picture-in-picture when you leave the app during playback'
 	String get autoPipDescription => 'Automatically enter picture-in-picture when you leave the app during playback';
 
+	/// en: 'Play Theme Music'
+	String get playThemeMusic => 'Play Theme Music';
+
+	/// en: 'Never'
+	String get themeMusicOff => 'Never';
+
+	/// en: 'Details Screen Only'
+	String get themeMusicDetailScreen => 'Details Screen Only';
+
+	/// en: 'Also Home Screen'
+	String get themeMusicEverywhere => 'Also Home Screen';
+
 	/// en: 'Match Content Frame Rate'
 	String get matchContentFrameRate => 'Match Content Frame Rate';
 
@@ -7617,6 +7629,10 @@ extension on Translations {
 			'settings.companionRemoteServerDescription' => 'Allow mobile devices on your network to control this app',
 			'settings.autoPip' => 'Auto Picture-in-Picture',
 			'settings.autoPipDescription' => 'Automatically enter picture-in-picture when you leave the app during playback',
+			'settings.playThemeMusic' => 'Play Theme Music',
+			'settings.themeMusicOff' => 'Never',
+			'settings.themeMusicDetailScreen' => 'Details Screen Only',
+			'settings.themeMusicEverywhere' => 'Also Home Screen',
 			'settings.matchContentFrameRate' => 'Match Content Frame Rate',
 			'settings.matchContentFrameRateDescription' => 'Match display refresh rate to video content',
 			'settings.matchContentResolution' => 'Match Content Resolution',
@@ -7779,6 +7795,8 @@ extension on Translations {
 			'fileInfo.displayOffset' => 'Display Offset',
 			'fileInfo.previewFailureCode' => 'Preview Failure Code',
 			'fileInfo.previewRetries' => 'Preview Retries',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.aspectRatio' => 'Aspect Ratio',
 			'fileInfo.pixelAspectRatio' => 'Pixel Aspect Ratio',
 			'fileInfo.profile' => 'Profile',
@@ -7792,8 +7810,6 @@ extension on Translations {
 			'fileInfo.chromaSubsampling' => 'Chroma Subsampling',
 			'fileInfo.chromaLocation' => 'Chroma Location',
 			'fileInfo.scanType' => 'Scan Type',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.interlaced' => 'Interlaced',
 			'fileInfo.anamorphic' => 'Anamorphic',
 			'fileInfo.referenceFrames' => 'Reference Frames',
@@ -7828,8 +7844,6 @@ extension on Translations {
 			'fileInfo.path' => 'Path',
 			'fileInfo.fileName' => 'File Name',
 			'fileInfo.size' => 'Size',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.totalSize' => 'Total Size',
 			'fileInfo.container' => 'Container',
 			'fileInfo.duration' => 'Duration',
@@ -8295,6 +8309,8 @@ extension on Translations {
 			'discover.director' => 'Director',
 			'discover.directors' => 'Directors',
 			'discover.movie' => 'Movie',
+			_ => null,
+		} ?? switch (path) {
 			'discover.tvShow' => 'TV Show',
 			'discover.minutesLeft' => ({required Object minutes}) => '${minutes} min left',
 			'discover.moreLikeThis' => 'More Like This',
@@ -8309,8 +8325,6 @@ extension on Translations {
 			'errors.invalidToken' => 'Invalid token',
 			'errors.failedToVerifyToken' => ({required Object error}) => 'Failed to verify token: ${error}',
 			'errors.failedToSwitchProfile' => ({required Object displayName}) => 'Failed to switch to ${displayName}',
-			_ => null,
-		} ?? switch (path) {
 			'errors.failedToDeleteProfile' => ({required Object displayName}) => 'Failed to delete ${displayName}',
 			'errors.failedToRate' => 'Couldn\'t update rating',
 			'libraries.title' => 'Libraries',
@@ -8356,8 +8370,6 @@ extension on Translations {
 			'libraries.folders' => 'folders',
 			'libraries.tabs.recommended' => 'Recommended',
 			'libraries.tabs.browse' => 'Browse',
-			_ => null,
-		} ?? switch (path) {
 			'libraries.tabs.collections' => 'Collections',
 			'libraries.tabs.playlists' => 'Playlists',
 			'libraries.groupings.title' => 'Grouping',
@@ -8811,6 +8823,8 @@ extension on Translations {
 			'watchTogether.failedToCreate' => 'Failed to create session',
 			'watchTogether.failedToJoin' => 'Failed to join session',
 			'watchTogether.sessionCodeCopied' => 'Session code copied to clipboard',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.relayUnreachable' => 'Relay server unreachable. ISP blocking may prevent Watch Together.',
 			'watchTogether.reconnectingToHost' => 'Reconnecting to host...',
 			'watchTogether.currentPlayback' => 'Current Playback',
@@ -8826,8 +8840,6 @@ extension on Translations {
 			'watchTogether.participantBuffering' => ({required Object name}) => '${name} is buffering',
 			'watchTogether.participantNeedsUpdate' => ({required Object name}) => '${name} is on an older app version — sync unavailable',
 			'watchTogether.resumingWithout' => ({required Object name}) => 'Resuming without ${name}',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.waitingForParticipants' => 'Waiting for others to load...',
 			'watchTogether.waitingForName' => ({required Object name}) => 'Waiting for ${name}...',
 			'watchTogether.recentRooms' => 'Recent Rooms',
@@ -8875,8 +8887,6 @@ extension on Translations {
 			'downloads.downloadingFilesTooltip' => ({required Object files}) => 'Downloading ${files}',
 			'downloads.noDownloadsTree' => 'No downloads',
 			'downloads.pauseAll' => 'Pause all',
-			_ => null,
-		} ?? switch (path) {
 			'downloads.resumeAll' => 'Resume all',
 			'downloads.deleteAll' => 'Delete all',
 			'downloads.selectVersion' => 'Select Version',
@@ -9327,6 +9337,8 @@ extension on Translations {
 			'addServer.serverUrlsHelper' => 'Multiple URLs allowed, separated by commas.',
 			'addServer.findServer' => 'Find server',
 			'addServer.searchingLocalMediaBrowserServers' => ({required Object product}) => 'Looking for local ${product} servers...',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.localMediaBrowserServers' => ({required Object product}) => 'Local ${product} servers',
 			'addServer.username' => 'Username',
 			'addServer.password' => 'Password',
@@ -9345,8 +9357,6 @@ extension on Translations {
 			'addServer.signInWithPlexCard' => 'Sign in with Plex',
 			'addServer.signInWithPlexCardSubtitle' => 'Authorize this device. Shared servers are added.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Authorize a Plex account. Home users become profiles.',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.connectToMediaBrowserCard' => ({required Object product}) => 'Connect to ${product}',
 			'addServer.connectToMediaBrowserCardSubtitle' => 'Enter your server URL, username, and password.',
 			'addServer.connectToMediaBrowserCardSubtitleScoped' => ({required Object product, required Object name}) => 'Sign in to your ${product} server. Binds to ${name}.',

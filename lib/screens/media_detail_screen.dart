@@ -51,8 +51,10 @@ import '../widgets/cycling_media_backdrop.dart';
 import '../widgets/optimized_media_image.dart';
 import '../utils/media_image_helper.dart';
 import '../utils/media_quality_labels.dart';
+import '../services/music/music_playback_service.dart';
 import '../services/plex_client.dart';
 import '../services/plex_community_service.dart';
+import '../services/theme_music_player.dart';
 import '../connection/connection_registry.dart';
 import '../models/plex/plex_community_review.dart';
 import '../widgets/plex_review_card.dart';
@@ -330,7 +332,13 @@ PageRoute<bool> mediaDetailRoute({
 }
 
 class _MediaDetailScreenState extends State<MediaDetailScreen>
-    with WatchStateAware, DeletionAware, MountedSetStateMixin, ServerBoundMediaMixin, RouteAware {
+    with
+        WatchStateAware,
+        DeletionAware,
+        MountedSetStateMixin,
+        ServerBoundMediaMixin,
+        WidgetsBindingObserver,
+        RouteAware {
   /// Public input alias — used as the live source of truth until the detail
   /// fetch returns. Holds backend-neutral [MediaItem] data.
   MediaItem get _metadata => _fullMetadata ?? widget.metadata;
@@ -356,6 +364,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   bool _hasLoadedRelatedHubs = false;
   PlexRatingsAndReviews? _ratingsAndReviews;
   bool _hasLoadedRatingsAndReviews = false;
+  final Object _themeMusicOwner = Object();
+
+  /// Cached in [initState]: by the time [dispose] runs the element may
+  /// already be deactivated, and `context.read` on a deactivated element
+  /// throws ("Looking up a deactivated widget's ancestor is unsafe") rather
+  /// than returning null like every other call site here.
+  ThemeMusicService? _themeMusicService;
   final _tvDetailRailKey = GlobalKey<TvBrowseRailState>();
 
   /// Shows only: the episode/season-hub rail rendered before Cast (see
@@ -854,6 +869,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _themeMusicService = context.read<ThemeMusicService?>();
     _scrollController = ScrollController();
     _scrollController.addListener(_onScroll);
     _lastEpisodeFocusNode.addListener(_onLastEpisodeFocusChanged);
@@ -949,6 +966,25 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
         if (mounted) _suppressBackAfterPop = false;
       });
     });
+    unawaited(context.read<ThemeMusicService?>()?.resume(_themeMusicOwner));
+  }
+
+  /// Another route (e.g. the video player) is being pushed on top — mute the
+  /// theme music rather than let it keep playing under real playback audio.
+  @override
+  void didPushNext() {
+    unawaited(context.read<ThemeMusicService?>()?.pause(_themeMusicOwner));
+  }
+
+  /// Pause the theme music while the app is backgrounded/inactive so it
+  /// doesn't keep playing after the user leaves; resume on return.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(context.read<ThemeMusicService?>()?.resume(_themeMusicOwner));
+    } else {
+      unawaited(context.read<ThemeMusicService?>()?.pause(_themeMusicOwner));
+    }
   }
 
   bool _consumeBackAfterChildPop(KeyEvent event) {
@@ -1059,8 +1095,25 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     );
   }
 
+  /// Starts the show/movie's theme music, unless the setting is off, the item
+  /// has none, or music is already playing (theme music and the music
+  /// player share the one audio core `ThemeMusicService` uses — see its
+  /// doc comment — so they must not run at once).
+  void _maybeStartThemeMusic(MediaServerClient client, MediaItem item) {
+    if (widget.isOffline || client is! PlexClient) return;
+    if (!(item.isMovie || item.isShow)) return;
+    if (SettingsService.instance.read(SettingsService.themeMusicMode) == ThemeMusicMode.off) return;
+    if (context.read<MusicPlaybackService?>()?.isPlaying ?? false) return;
+
+    final url = client.themeUrl(item.id);
+    if (url.isEmpty) return;
+    unawaited(context.read<ThemeMusicService?>()?.play(_themeMusicOwner, url));
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_themeMusicService?.stop(_themeMusicOwner));
     _libraryContentSubscription?.cancel();
     for (final source in _watchlistListenedSources) {
       source.watchlistChanges.removeListener(_onWatchlistSourceChanged);
@@ -1724,6 +1777,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       unawaited(_loadExtras());
       unawaited(_loadRelatedHubs());
       unawaited(_loadRatingsAndReviews(base));
+      _maybeStartThemeMusic(client, base);
     } catch (e) {
       // Fallback to passed metadata on error
       if (!_canUseDetail) return;

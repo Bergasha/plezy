@@ -66,6 +66,13 @@ class _LibrariesScreenState extends State<LibrariesScreen>
   final _collectionsTabKey = GlobalKey();
   final _playlistsTabKey = GlobalKey();
 
+  /// Whether Libraries itself is the visible main app tab (distinct from
+  /// [TabNavigationMixin.tabController], which tracks the sub-tab within
+  /// Libraries). Without this, leaving Libraries for another main tab never
+  /// flips the active sub-tab's `isActive` false, so e.g. TV theme music kept
+  /// playing after navigating away.
+  bool _isMainTabVisible = true;
+
   String? _errorMessage;
   String? _selectedLibraryGlobalKey;
 
@@ -512,14 +519,20 @@ class _LibrariesScreenState extends State<LibrariesScreen>
   /// activation, and a library switch reloads unconditionally anyway.
   @override
   void onTabShown() {
+    setState(() {
+      _isMainTabVisible = true;
+    });
     if (_selectedLibraryGlobalKey == null) return;
     final Object? tabState = _getTabState(tabController.index);
     if (tabState is BaseLibraryTabState) tabState.refreshIfLibraryContentStale();
   }
 
   @override
-  // ignore: no-empty-block - visibility mixin contract; nothing to pause.
-  void onTabHidden() {}
+  void onTabHidden() {
+    setState(() {
+      _isMainTabVisible = false;
+    });
+  }
 
   // Refresh every loaded tab for the selected library.
   void _refreshSelectedLibraryTabs() {
@@ -876,7 +889,7 @@ class _LibrariesScreenState extends State<LibrariesScreen>
           _visibleTabs[index],
           library: selectedLibrary,
           canGroupByFolders: canSelectedLibraryGroupByFolders,
-          isActive: tabController.index == index,
+          isActive: tabController.index == index && _isMainTabVisible,
           tabIndex: index,
         );
         if (useTvRecommendedBackdrop) return tabContent;
