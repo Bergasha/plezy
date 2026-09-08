@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Directory, Platform, ProcessInfo;
-import 'dart:ui' show AppExitResponse, PlatformDispatcher;
+import 'dart:ui' show AppExitResponse;
 import 'package:flutter/foundation.dart';
 // ignore: depend_on_referenced_packages
 import 'package:shared_preferences_foundation/shared_preferences_foundation.dart';
@@ -960,25 +960,6 @@ Future<_StartupDependencies> _initializeStartup(SettingsService settings) async 
   }
 }
 
-/// Debugging aid for the intermittent Windows "start in fullscreen" sizing
-/// glitch (content cut off at the top, blank bar at the bottom). Logs the
-/// primary view's reported size/DPI at [when] so a real recurrence leaves
-/// evidence in Settings > Logs — if Flutter's own layout size is already
-/// correct while the screen still looks wrong, the bug is in the native
-/// compositor/swapchain, not anything Dart-visible; if the logged size
-/// itself is wrong, that points back to this resize sequence instead.
-void _logFullscreenDiagnostics(String when) {
-  final view = PlatformDispatcher.instance.views.firstOrNull;
-  if (view == null) {
-    appLogger.d('Fullscreen diagnostics ($when): no view available');
-    return;
-  }
-  appLogger.d(
-    'Fullscreen diagnostics ($when): physicalSize=${view.physicalSize} '
-    'devicePixelRatio=${view.devicePixelRatio} padding=${view.padding}',
-  );
-}
-
 void _startNonessentialInitialization(SettingsService settings) {
   // `onCommitted` runs before the rebuild that creates MainApp. Share one
   // end-of-frame hop so synchronous tasks cannot delay its first frame.
@@ -1019,20 +1000,14 @@ void _startNonessentialInitialization(SettingsService settings) {
     FullscreenStateManager().startMonitoring();
     if (PlatformDetector.isDesktopOS() && settings.read(SettingsService.startInFullscreen)) {
       // A small, deliberate pause before the native fullscreen resize.
-      // Windows users have intermittently (roughly 1-in-4) seen the Flutter
+      // Windows users intermittently (roughly 1-in-4) saw the Flutter
       // surface come up cut off at the top with a blank bar at the bottom
-      // right after this runs, fixed only by manually toggling fullscreen
+      // right after this ran, fixed only by manually toggling fullscreen
       // off/on — symptoms consistent with the Windows embedder's swapchain
       // still settling from window creation when this fires right after the
-      // first frame. Giving it a little longer is the standard mitigation
-      // for that class of Flutter-Windows race; unconfirmed whether it's
-      // sufficient, so the logging below exists to gather real evidence
-      // (visible in Settings > Logs) if the symptom still shows up.
+      // first frame. Giving it a little longer resolved it.
       await Future<void>.delayed(const Duration(milliseconds: 250));
-      _logFullscreenDiagnostics('before');
       await FullscreenStateManager().enterFullscreen();
-      _logFullscreenDiagnostics('immediately after');
-      unawaited(Future<void>.delayed(const Duration(seconds: 1)).then((_) => _logFullscreenDiagnostics('1s after')));
     }
   });
 
