@@ -2455,6 +2455,9 @@ class Translations$messages$en {
 	/// en: 'Playback could not be started.'
 	String get playbackFailed => 'Playback could not be started.';
 
+	/// en: 'The audio output stopped responding. Check the TV or receiver's audio connection; if other apps have no sound either, restart the device.'
+	String get audioOutputFailed => 'The audio output stopped responding. Check the TV or receiver\'s audio connection; if other apps have no sound either, restart the device.';
+
 	/// en: 'This content is no longer available.'
 	String get mediaUnavailable => 'This content is no longer available.';
 
@@ -8068,6 +8071,7 @@ extension on Translations {
 			'messages.playbackDataInvalid' => 'The server returned invalid playback information.',
 			'messages.playbackCancelled' => 'Playback was canceled.',
 			'messages.playbackFailed' => 'Playback could not be started.',
+			'messages.audioOutputFailed' => 'The audio output stopped responding. Check the TV or receiver\'s audio connection; if other apps have no sound either, restart the device.',
 			'messages.mediaUnavailable' => 'This content is no longer available.',
 			'messages.errorLoadingFileInfo' => ({required Object error}) => 'Error loading file info: ${error}',
 			'messages.errorLoadingSeries' => 'Error loading series',
@@ -8308,9 +8312,9 @@ extension on Translations {
 			'discover.rating' => 'Rating',
 			'discover.director' => 'Director',
 			'discover.directors' => 'Directors',
-			'discover.movie' => 'Movie',
 			_ => null,
 		} ?? switch (path) {
+			'discover.movie' => 'Movie',
 			'discover.tvShow' => 'TV Show',
 			'discover.minutesLeft' => ({required Object minutes}) => '${minutes} min left',
 			'discover.moreLikeThis' => 'More Like This',
@@ -8822,9 +8826,9 @@ extension on Translations {
 			'watchTogether.joinInstructions' => 'Enter the host\'s session code to join.',
 			'watchTogether.failedToCreate' => 'Failed to create session',
 			'watchTogether.failedToJoin' => 'Failed to join session',
-			'watchTogether.sessionCodeCopied' => 'Session code copied to clipboard',
 			_ => null,
 		} ?? switch (path) {
+			'watchTogether.sessionCodeCopied' => 'Session code copied to clipboard',
 			'watchTogether.relayUnreachable' => 'Relay server unreachable. ISP blocking may prevent Watch Together.',
 			'watchTogether.reconnectingToHost' => 'Reconnecting to host...',
 			'watchTogether.currentPlayback' => 'Current Playback',
@@ -9336,9 +9340,9 @@ extension on Translations {
 			'addServer.serverUrls' => 'Server URLs',
 			'addServer.serverUrlsHelper' => 'Multiple URLs allowed, separated by commas.',
 			'addServer.findServer' => 'Find server',
-			'addServer.searchingLocalMediaBrowserServers' => ({required Object product}) => 'Looking for local ${product} servers...',
 			_ => null,
 		} ?? switch (path) {
+			'addServer.searchingLocalMediaBrowserServers' => ({required Object product}) => 'Looking for local ${product} servers...',
 			'addServer.localMediaBrowserServers' => ({required Object product}) => 'Local ${product} servers',
 			'addServer.username' => 'Username',
 			'addServer.password' => 'Password',
