@@ -328,17 +328,6 @@ void FlutterWindow::SetNativeFullScreen(bool fullscreen) {
         hwnd, HWND_TOP, r.left, r.top, r.right - r.left, r.bottom - r.top,
         SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOACTIVATE);
 
-    // Force a second, no-op frame refresh. Normally redundant with the resize
-    // above, but when this runs moments after the very first frame (the
-    // "start in fullscreen" setting fires right after startup's first paint,
-    // while Flutter's Windows embedder may still be settling its swapchain
-    // from window creation), that single SetWindowPos has occasionally left
-    // the Flutter surface laid out for the old windowed size — cut off at
-    // the top with a blank gap at the bottom — until a real toggle forced a
-    // fresh relayout. Mirrors the equivalent step already needed on exit.
-    ::SetWindowPos(
-        hwnd, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
-
     is_fullscreen_ = true;
   } else {
     if (style_before_fullscreen_ != 0) {
