@@ -44,10 +44,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$auth$en auth = Translations$auth$en.internal(_root);
 	late final Translations$common$en common = Translations$common$en.internal(_root);
 	late final Translations$screens$en screens = Translations$screens$en.internal(_root);
-	late final Translations$whatsNew$en whatsNew = Translations$whatsNew$en.internal(_root);
 	late final Translations$update$en update = Translations$update$en.internal(_root);
 	late final Translations$settings$en settings = Translations$settings$en.internal(_root);
-	late final Translations$actor$en actor = Translations$actor$en.internal(_root);
 	late final Translations$search$en search = Translations$search$en.internal(_root);
 	late final Translations$hotkeys$en hotkeys = Translations$hotkeys$en.internal(_root);
 	late final Translations$fileInfo$en fileInfo = Translations$fileInfo$en.internal(_root);
@@ -88,8 +86,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$externalPlayer$en externalPlayer = Translations$externalPlayer$en.internal(_root);
 	late final Translations$metadataEdit$en metadataEdit = Translations$metadataEdit$en.internal(_root);
 	late final Translations$matchScreen$en matchScreen = Translations$matchScreen$en.internal(_root);
-	late final Translations$tautulli$en tautulli = Translations$tautulli$en.internal(_root);
-	late final Translations$seerrIssue$en seerrIssue = Translations$seerrIssue$en.internal(_root);
+	late final Translations$serverTasks$en serverTasks = Translations$serverTasks$en.internal(_root);
 	late final Translations$trakt$en trakt = Translations$trakt$en.internal(_root);
 	late final Translations$seerr$en seerr = Translations$seerr$en.internal(_root);
 	late final Translations$services$en services = Translations$services$en.internal(_root);
@@ -352,18 +349,6 @@ class Translations$screens$en {
 	String get logs => 'Logs';
 }
 
-// Path: whatsNew
-class Translations$whatsNew$en {
-	Translations$whatsNew$en.internal(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// en: 'What's New'
-	String get title => 'What\'s New';
-}
-
 // Path: update
 class Translations$update$en {
 	Translations$update$en.internal(this._root);
@@ -384,26 +369,14 @@ class Translations$update$en {
 	/// en: 'Skip This Version'
 	String get skipVersion => 'Skip This Version';
 
-	/// en: 'Update'
-	String get viewRelease => 'Update';
+	/// en: 'View Release'
+	String get viewRelease => 'View Release';
 
 	/// en: 'You are on the latest version'
 	String get latestVersion => 'You are on the latest version';
 
 	/// en: 'Failed to check for updates'
 	String get checkFailed => 'Failed to check for updates';
-
-	/// en: 'Downloading update…'
-	String get downloading => 'Downloading update…';
-
-	/// en: 'Downloading update… ${percent}%'
-	String downloadingPercent({required Object percent}) => 'Downloading update… ${percent}%';
-
-	/// en: 'Couldn't download the update'
-	String get downloadFailed => 'Couldn\'t download the update';
-
-	/// en: 'Plezy may close while installing the update'
-	String get mayCloseWhileInstalling => 'Plezy may close while installing the update';
 }
 
 // Path: settings
@@ -744,12 +717,6 @@ class Translations$settings$en {
 	/// en: 'Click video to play/pause instead of showing controls.'
 	String get clickVideoTogglesPlaybackDescription => 'Click video to play/pause instead of showing controls.';
 
-	/// en: 'Show controls on mouse movement'
-	String get showControlsOnMouseMove => 'Show controls on mouse movement';
-
-	/// en: 'Turn off to keep controls hidden while the mouse moves over the video; they still appear on click, scroll, or keyboard input.'
-	String get showControlsOnMouseMoveDescription => 'Turn off to keep controls hidden while the mouse moves over the video; they still appear on click, scroll, or keyboard input.';
-
 	/// en: 'Video Player Controls'
 	String get videoPlayerControls => 'Video Player Controls';
 
@@ -777,33 +744,6 @@ class Translations$settings$en {
 	/// en: 'Enter a valid HTTP or HTTPS relay base URL.'
 	String get watchTogetherRelayInvalid => 'Enter a valid HTTP or HTTPS relay base URL.';
 
-	/// en: 'Ratings Service'
-	String get ratingsService => 'Ratings Service';
-
-	/// en: 'Good/bad votes sync automatically. Only change this if you're self-hosting your own ratings service.'
-	String get ratingsServiceDescription => 'Good/bad votes sync automatically. Only change this if you\'re self-hosting your own ratings service.';
-
-	/// en: 'https://my-ratings.example.com'
-	String get ratingsServiceHint => 'https://my-ratings.example.com';
-
-	/// en: 'Enter a valid HTTP or HTTPS ratings service base URL.'
-	String get ratingsServiceInvalid => 'Enter a valid HTTP or HTTPS ratings service base URL.';
-
-	/// en: 'Tautulli Server'
-	String get tautulliService => 'Tautulli Server';
-
-	/// en: 'Shows a live active-streams panel sourced from your own Tautulli instance. Leave blank to disable.'
-	String get tautulliServiceDescription => 'Shows a live active-streams panel sourced from your own Tautulli instance. Leave blank to disable.';
-
-	/// en: 'http://my-tautulli.example.com:8181'
-	String get tautulliServiceHint => 'http://my-tautulli.example.com:8181';
-
-	/// en: 'Enter a valid HTTP or HTTPS Tautulli base URL.'
-	String get tautulliServiceInvalid => 'Enter a valid HTTP or HTTPS Tautulli base URL.';
-
-	/// en: 'Tautulli API Key'
-	String get tautulliApiKeyLabel => 'Tautulli API Key';
-
 	/// en: 'Crash Reporting'
 	String get crashReporting => 'Crash Reporting';
 
@@ -830,30 +770,6 @@ class Translations$settings$en {
 
 	/// en: 'Image cache cleared successfully'
 	String get clearImageCacheSuccess => 'Image cache cleared successfully';
-
-	/// en: 'Scan Library for Cast Info'
-	String get scanCastInfo => 'Scan Library for Cast Info';
-
-	/// en: 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they're instant the first time you look someone up.'
-	String get scanCastInfoDescription => 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they\'re instant the first time you look someone up.';
-
-	/// en: 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn't affect app performance while it runs.'
-	String get scanCastInfoConfirm => 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.';
-
-	/// en: 'Start Scan'
-	String get scanCastInfoStart => 'Start Scan';
-
-	/// en: 'Starting scan…'
-	String get scanCastInfoStarting => 'Starting scan…';
-
-	/// en: 'Scanned ${current} of ${total} titles'
-	String scanCastInfoProgress({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles';
-
-	/// en: 'Run in Background'
-	String get scanCastInfoRunInBackground => 'Run in Background';
-
-	/// en: 'Cast info scan complete'
-	String get scanCastInfoComplete => 'Cast info scan complete';
 
 	/// en: 'Reset Settings'
 	String get resetSettings => 'Reset Settings';
@@ -1005,42 +921,6 @@ class Translations$settings$en {
 	/// en: 'Regex pattern to match credits markers in chapter titles'
 	String get creditsPatternDescription => 'Regex pattern to match credits markers in chapter titles';
 
-	/// en: 'Prerolls'
-	String get prerolls => 'Prerolls';
-
-	/// en: 'Play prerolls before movies'
-	String get playPrerollsBeforeMovies => 'Play prerolls before movies';
-
-	/// en: 'Plays a random clip from your selection below before each movie. Press back to skip.'
-	String get playPrerollsBeforeMoviesDescription => 'Plays a random clip from your selection below before each movie. Press back to skip.';
-
-	/// en: 'Preroll library'
-	String get prerollLibrary => 'Preroll library';
-
-	/// en: 'Not set'
-	String get prerollLibraryNotSet => 'Not set';
-
-	/// en: 'No libraries found on your servers.'
-	String get prerollLibraryNoneFound => 'No libraries found on your servers.';
-
-	/// en: 'Selected prerolls'
-	String get prerollSelection => 'Selected prerolls';
-
-	/// en: 'Pick a library first'
-	String get prerollSelectionPickLibraryFirst => 'Pick a library first';
-
-	/// en: 'No prerolls selected'
-	String get prerollSelectionNoneSelected => 'No prerolls selected';
-
-	/// en: '${count} selected'
-	String prerollSelectionCount({required Object count}) => '${count} selected';
-
-	/// en: 'Select prerolls'
-	String get prerollItemPicker => 'Select prerolls';
-
-	/// en: 'Couldn't load items from this library.'
-	String get prerollItemPickerLoadFailed => 'Couldn\'t load items from this library.';
-
 	/// en: 'Invalid regular expression'
 	String get invalidRegex => 'Invalid regular expression';
 
@@ -1130,18 +1010,6 @@ class Translations$settings$en {
 
 	/// en: 'Automatically enter picture-in-picture when you leave the app during playback'
 	String get autoPipDescription => 'Automatically enter picture-in-picture when you leave the app during playback';
-
-	/// en: 'Play Theme Music'
-	String get playThemeMusic => 'Play Theme Music';
-
-	/// en: 'Never'
-	String get themeMusicOff => 'Never';
-
-	/// en: 'Details Screen Only'
-	String get themeMusicDetailScreen => 'Details Screen Only';
-
-	/// en: 'Also Home Screen'
-	String get themeMusicEverywhere => 'Also Home Screen';
 
 	/// en: 'Match Content Frame Rate'
 	String get matchContentFrameRate => 'Match Content Frame Rate';
@@ -1317,21 +1185,6 @@ class Translations$settings$en {
 	/// en: 'Home Screen'
 	String get homeScreen => 'Home Screen';
 
-	/// en: 'Screensaver'
-	String get screensaver => 'Screensaver';
-
-	/// en: 'Enable screensaver'
-	String get screensaverEnabled => 'Enable screensaver';
-
-	/// en: 'Show cycling backdrop art after a period of inactivity'
-	String get screensaverEnabledDescription => 'Show cycling backdrop art after a period of inactivity';
-
-	/// en: 'Start after'
-	String get screensaverIdleTimeout => 'Start after';
-
-	/// en: 'How long to wait for inactivity before the screensaver starts'
-	String get screensaverIdleTimeoutDescription => 'How long to wait for inactivity before the screensaver starts';
-
 	/// en: 'Navigation'
 	String get navigation => 'Navigation';
 
@@ -1424,18 +1277,6 @@ class Translations$settings$en {
 
 	/// en: 'Export Plezy settings'
 	String get exportDialogTitle => 'Export Plezy settings';
-}
-
-// Path: actor
-class Translations$actor$en {
-	Translations$actor$en.internal(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// en: 'Filmography'
-	String get filmography => 'Filmography';
 }
 
 // Path: search
@@ -1850,9 +1691,6 @@ class Translations$mediaMenu$en {
 
 	// Translations
 
-	/// en: 'Report an Issue'
-	String get reportIssue => 'Report an Issue';
-
 	/// en: 'Mark as Watched'
 	String get markAsWatched => 'Mark as Watched';
 
@@ -2101,15 +1939,6 @@ class Translations$tooltips$en {
 
 	/// en: 'Mark as unwatched'
 	String get markAsUnwatched => 'Mark as unwatched';
-
-	/// en: 'This was Good'
-	String get voteGood => 'This was Good';
-
-	/// en: 'This was Shit'
-	String get voteBad => 'This was Shit';
-
-	/// en: 'Remove your vote'
-	String get removeVote => 'Remove your vote';
 }
 
 // Path: audioTracks
@@ -2312,15 +2141,6 @@ class Translations$videoControls$en {
 	/// en: 'Screenshot saved'
 	String get screenshotSaved => 'Screenshot saved';
 
-	/// en: 'Subtitles: none available'
-	String get subtitlesNoneAvailable => 'Subtitles: none available';
-
-	/// en: 'Subtitles: off'
-	String get subtitlesOff => 'Subtitles: off';
-
-	/// en: 'Subtitles: ${label}'
-	String subtitlesTrack({required Object label}) => 'Subtitles: ${label}';
-
 	/// en: 'Zoom ${percent}%'
 	String zoomPercent({required Object percent}) => 'Zoom ${percent}%';
 
@@ -2421,9 +2241,6 @@ class Translations$messages$en {
 
 	/// en: 'Removed from Continue Watching'
 	String get removedFromContinueWatching => 'Removed from Continue Watching';
-
-	/// en: 'Couldn't update your vote'
-	String get voteUpdateFailed => 'Couldn\'t update your vote';
 
 	/// en: 'Error: ${error}'
 	String errorLoading({required Object error}) => 'Error: ${error}';
@@ -2526,12 +2343,6 @@ class Translations$messages$en {
 
 	/// en: 'Couldn't load episodes'
 	String get episodesLoadFailed => 'Couldn\'t load episodes';
-
-	/// en: 'Episode ${current} of ${total}'
-	String episodeOfTotal({required Object current, required Object total}) => 'Episode ${current} of ${total}';
-
-	/// en: 'Next episode airs ${date}'
-	String nextEpisodeAirs({required Object date}) => 'Next episode airs ${date}';
 
 	/// en: 'No results found'
 	String get noResultsFound => 'No results found';
@@ -2655,6 +2466,12 @@ class Translations$subtitlingStyling$en {
 
 	/// en: 'Bottom'
 	String get positionBottom => 'Bottom';
+
+	/// en: 'Use margins'
+	String get useMargins => 'Use margins';
+
+	/// en: 'Allow text subtitles in the space outside the video. Styled subtitles may keep their original placement.'
+	String get useMarginsDescription => 'Allow text subtitles in the space outside the video. Styled subtitles may keep their original placement.';
 
 	/// en: 'Anchor to Screen'
 	String get anchorToScreen => 'Anchor to Screen';
@@ -3148,12 +2965,6 @@ class Translations$discover$en {
 	/// en: 'Trailers & Extras'
 	String get extras => 'Trailers & Extras';
 
-	/// en: 'Ratings & Reviews'
-	String get ratingsAndReviews => 'Ratings & Reviews';
-
-	/// en: 'Plex User'
-	String get plexCommunityUser => 'Plex User';
-
 	/// en: 'Studio'
 	String get studio => 'Studio';
 
@@ -3590,9 +3401,6 @@ class Translations$navigation$en {
 
 	/// en: 'Explore'
 	String get explore => 'Explore';
-
-	/// en: 'Watchlist'
-	String get watchlist => 'Watchlist';
 }
 
 // Path: explore
@@ -3641,12 +3449,6 @@ class Translations$explore$en {
 
 	/// en: 'Couldn't match this item to a watchlist'
 	String get watchlistNoMatch => 'Couldn\'t match this item to a watchlist';
-
-	/// en: 'Your watchlist is empty'
-	String get watchlistEmptyTitle => 'Your watchlist is empty';
-
-	/// en: 'Add movies and shows from their detail page to see them here.'
-	String get watchlistEmptyMessage => 'Add movies and shows from their detail page to see them here.';
 
 	/// en: 'Not in your library'
 	String get notInLibrary => 'Not in your library';
@@ -5340,79 +5142,22 @@ class Translations$matchScreen$en {
 	String get noMatchesFound => 'No matches found';
 }
 
-// Path: tautulli
-class Translations$tautulli$en {
-	Translations$tautulli$en.internal(this._root);
+// Path: serverTasks
+class Translations$serverTasks$en {
+	Translations$serverTasks$en.internal(this._root);
 
 	final Translations _root; // ignore: unused_field
 
 	// Translations
 
-	/// en: 'Active Streams'
-	String get activeStreams => 'Active Streams';
+	/// en: 'Server Tasks'
+	String get title => 'Server Tasks';
 
-	/// en: 'Failed to load active streams from Tautulli'
-	String get failedToLoad => 'Failed to load active streams from Tautulli';
+	/// en: 'Failed to load tasks'
+	String get failedToLoad => 'Failed to load tasks';
 
-	/// en: 'No active streams'
-	String get noActiveStreams => 'No active streams';
-
-	/// en: 'TRANSCODE'
-	String get transcode => 'TRANSCODE';
-
-	/// en: 'DIRECT'
-	String get directPlay => 'DIRECT';
-}
-
-// Path: seerrIssue
-class Translations$seerrIssue$en {
-	Translations$seerrIssue$en.internal(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// en: 'Report an Issue'
-	String get title => 'Report an Issue';
-
-	/// en: 'Video'
-	String get typeVideo => 'Video';
-
-	/// en: 'Audio'
-	String get typeAudio => 'Audio';
-
-	/// en: 'Subtitles'
-	String get typeSubtitles => 'Subtitles';
-
-	/// en: 'Other'
-	String get typeOther => 'Other';
-
-	/// en: 'This won't play'
-	String get presetVideo => 'This won\'t play';
-
-	/// en: 'Audio is not English'
-	String get presetAudio => 'Audio is not English';
-
-	/// en: 'Subtitles are missing or wrong'
-	String get presetSubtitles => 'Subtitles are missing or wrong';
-
-	/// en: 'Describe the issue'
-	String get messageHint => 'Describe the issue';
-
-	/// en: 'Send Report'
-	String get submit => 'Send Report';
-
-	/// en: 'Issue reported — thanks!'
-	String get submitted => 'Issue reported — thanks!';
-
-	/// en: 'Couldn't send the report'
-	String get submitFailed => 'Couldn\'t send the report';
-
-	/// en: 'Can't report an issue for this title yet.'
-	String get unavailable => 'Can\'t report an issue for this title yet.';
-
-	/// en: 'Couldn't check this title against Seerr.'
-	String get loadFailed => 'Couldn\'t check this title against Seerr.';
+	/// en: 'No tasks running'
+	String get noTasks => 'No tasks running';
 }
 
 // Path: trakt
@@ -5968,9 +5713,6 @@ class Translations$hotkeys$actions$en {
 
 	/// en: 'Toggle Shaders'
 	String get shaderToggle => 'Toggle Shaders';
-
-	/// en: 'Toggle Performance Overlay'
-	String get performanceOverlayToggle => 'Toggle Performance Overlay';
 
 	/// en: 'Skip Intro/Credits'
 	String get skipMarker => 'Skip Intro/Credits';
@@ -7381,18 +7123,13 @@ extension on Translations {
 			'screens.subtitleStyling' => 'Subtitle Styling',
 			'screens.mpvConfig' => 'mpv.conf',
 			'screens.logs' => 'Logs',
-			'whatsNew.title' => 'What\'s New',
 			'update.available' => 'Update Available',
 			'update.versionAvailable' => ({required Object version}) => 'Version ${version} is available',
 			'update.currentVersion' => ({required Object version}) => 'Current: ${version}',
 			'update.skipVersion' => 'Skip This Version',
-			'update.viewRelease' => 'Update',
+			'update.viewRelease' => 'View Release',
 			'update.latestVersion' => 'You are on the latest version',
 			'update.checkFailed' => 'Failed to check for updates',
-			'update.downloading' => 'Downloading update…',
-			'update.downloadingPercent' => ({required Object percent}) => 'Downloading update… ${percent}%',
-			'update.downloadFailed' => 'Couldn\'t download the update',
-			'update.mayCloseWhileInstalling' => 'Plezy may close while installing the update',
 			'settings.title' => 'Settings',
 			'settings.supportDeveloper' => 'Support Plezy',
 			'settings.supportDeveloperDescription' => 'Donate via Liberapay to fund development',
@@ -7503,8 +7240,6 @@ extension on Translations {
 			'settings.specialsOrderingLast' => 'After regular seasons',
 			'settings.clickVideoTogglesPlayback' => 'Click on video to toggle play/pause',
 			'settings.clickVideoTogglesPlaybackDescription' => 'Click video to play/pause instead of showing controls.',
-			'settings.showControlsOnMouseMove' => 'Show controls on mouse movement',
-			'settings.showControlsOnMouseMoveDescription' => 'Turn off to keep controls hidden while the mouse moves over the video; they still appear on click, scroll, or keyboard input.',
 			'settings.videoPlayerControls' => 'Video Player Controls',
 			'settings.keyboardShortcuts' => 'Keyboard Shortcuts',
 			'settings.keyboardShortcutsDescription' => 'Customize keyboard shortcuts',
@@ -7514,15 +7249,6 @@ extension on Translations {
 			'settings.watchTogetherRelayDescription' => 'Set a custom relay. Everyone must use the same server.',
 			'settings.watchTogetherRelayHint' => 'https://my-relay.example.com',
 			'settings.watchTogetherRelayInvalid' => 'Enter a valid HTTP or HTTPS relay base URL.',
-			'settings.ratingsService' => 'Ratings Service',
-			'settings.ratingsServiceDescription' => 'Good/bad votes sync automatically. Only change this if you\'re self-hosting your own ratings service.',
-			'settings.ratingsServiceHint' => 'https://my-ratings.example.com',
-			'settings.ratingsServiceInvalid' => 'Enter a valid HTTP or HTTPS ratings service base URL.',
-			'settings.tautulliService' => 'Tautulli Server',
-			'settings.tautulliServiceDescription' => 'Shows a live active-streams panel sourced from your own Tautulli instance. Leave blank to disable.',
-			'settings.tautulliServiceHint' => 'http://my-tautulli.example.com:8181',
-			'settings.tautulliServiceInvalid' => 'Enter a valid HTTP or HTTPS Tautulli base URL.',
-			'settings.tautulliApiKeyLabel' => 'Tautulli API Key',
 			'settings.crashReporting' => 'Crash Reporting',
 			'settings.crashReportingDescription' => 'Send crash reports to help improve the app',
 			'settings.debugLogging' => 'Debug Logging',
@@ -7532,14 +7258,6 @@ extension on Translations {
 			'settings.clearImageCache' => 'Clear Image Cache',
 			'settings.clearImageCacheDescription' => 'Clear cached artwork and thumbnails. Images may load slower until downloaded again.',
 			'settings.clearImageCacheSuccess' => 'Image cache cleared successfully',
-			'settings.scanCastInfo' => 'Scan Library for Cast Info',
-			'settings.scanCastInfoDescription' => 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they\'re instant the first time you look someone up.',
-			'settings.scanCastInfoConfirm' => 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.',
-			'settings.scanCastInfoStart' => 'Start Scan',
-			'settings.scanCastInfoStarting' => 'Starting scan…',
-			'settings.scanCastInfoProgress' => ({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles',
-			'settings.scanCastInfoRunInBackground' => 'Run in Background',
-			'settings.scanCastInfoComplete' => 'Cast info scan complete',
 			'settings.resetSettings' => 'Reset Settings',
 			'settings.resetSettingsDescription' => 'Restore default settings. This can\'t be undone.',
 			'settings.resetSettingsSuccess' => 'Settings reset successfully',
@@ -7590,18 +7308,6 @@ extension on Translations {
 			'settings.introPatternDescription' => 'Regex pattern to match intro markers in chapter titles',
 			'settings.creditsPattern' => 'Credits Marker Pattern',
 			'settings.creditsPatternDescription' => 'Regex pattern to match credits markers in chapter titles',
-			'settings.prerolls' => 'Prerolls',
-			'settings.playPrerollsBeforeMovies' => 'Play prerolls before movies',
-			'settings.playPrerollsBeforeMoviesDescription' => 'Plays a random clip from your selection below before each movie. Press back to skip.',
-			'settings.prerollLibrary' => 'Preroll library',
-			'settings.prerollLibraryNotSet' => 'Not set',
-			'settings.prerollLibraryNoneFound' => 'No libraries found on your servers.',
-			'settings.prerollSelection' => 'Selected prerolls',
-			'settings.prerollSelectionPickLibraryFirst' => 'Pick a library first',
-			'settings.prerollSelectionNoneSelected' => 'No prerolls selected',
-			'settings.prerollSelectionCount' => ({required Object count}) => '${count} selected',
-			'settings.prerollItemPicker' => 'Select prerolls',
-			'settings.prerollItemPickerLoadFailed' => 'Couldn\'t load items from this library.',
 			'settings.invalidRegex' => 'Invalid regular expression',
 			'settings.regex' => 'Regular expression',
 			'settings.downloads' => 'Downloads',
@@ -7632,10 +7338,6 @@ extension on Translations {
 			'settings.companionRemoteServerDescription' => 'Allow mobile devices on your network to control this app',
 			'settings.autoPip' => 'Auto Picture-in-Picture',
 			'settings.autoPipDescription' => 'Automatically enter picture-in-picture when you leave the app during playback',
-			'settings.playThemeMusic' => 'Play Theme Music',
-			'settings.themeMusicOff' => 'Never',
-			'settings.themeMusicDetailScreen' => 'Details Screen Only',
-			'settings.themeMusicEverywhere' => 'Also Home Screen',
 			'settings.matchContentFrameRate' => 'Match Content Frame Rate',
 			'settings.matchContentFrameRateDescription' => 'Match display refresh rate to video content',
 			'settings.matchContentResolution' => 'Match Content Resolution',
@@ -7694,11 +7396,6 @@ extension on Translations {
 			'settings.display' => 'Display',
 			'settings.libraryAndCards' => 'Library & Cards',
 			'settings.homeScreen' => 'Home Screen',
-			'settings.screensaver' => 'Screensaver',
-			'settings.screensaverEnabled' => 'Enable screensaver',
-			'settings.screensaverEnabledDescription' => 'Show cycling backdrop art after a period of inactivity',
-			'settings.screensaverIdleTimeout' => 'Start after',
-			'settings.screensaverIdleTimeoutDescription' => 'How long to wait for inactivity before the screensaver starts',
 			'settings.navigation' => 'Navigation',
 			'settings.window' => 'Window',
 			'settings.liveTv' => 'Live TV',
@@ -7730,7 +7427,6 @@ extension on Translations {
 			'settings.playerScopeLibrary' => 'Per library',
 			'settings.playerScopeTitle' => 'Per show or movie',
 			'settings.exportDialogTitle' => 'Export Plezy settings',
-			'actor.filmography' => 'Filmography',
 			'search.hint' => 'Search movies, shows, music...',
 			'search.tryDifferentTerm' => 'Try a different search term',
 			'search.searchYourMedia' => 'Search your media',
@@ -7764,7 +7460,6 @@ extension on Translations {
 			'hotkeys.actions.subSeekNext' => 'Seek to Next Subtitle',
 			'hotkeys.actions.subSeekPrev' => 'Seek to Previous Subtitle',
 			'hotkeys.actions.shaderToggle' => 'Toggle Shaders',
-			'hotkeys.actions.performanceOverlayToggle' => 'Toggle Performance Overlay',
 			'hotkeys.actions.skipMarker' => 'Skip Intro/Credits',
 			'hotkeys.actions.screenshot' => 'Take Screenshot',
 			'fileInfo.title' => 'File Info',
@@ -7798,8 +7493,6 @@ extension on Translations {
 			'fileInfo.displayOffset' => 'Display Offset',
 			'fileInfo.previewFailureCode' => 'Preview Failure Code',
 			'fileInfo.previewRetries' => 'Preview Retries',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.aspectRatio' => 'Aspect Ratio',
 			'fileInfo.pixelAspectRatio' => 'Pixel Aspect Ratio',
 			'fileInfo.profile' => 'Profile',
@@ -7847,6 +7540,8 @@ extension on Translations {
 			'fileInfo.path' => 'Path',
 			'fileInfo.fileName' => 'File Name',
 			'fileInfo.size' => 'Size',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.totalSize' => 'Total Size',
 			'fileInfo.container' => 'Container',
 			'fileInfo.duration' => 'Duration',
@@ -7884,7 +7579,6 @@ extension on Translations {
 			'fileInfo.flagOriginal' => 'Original',
 			'fileInfo.channelsMono' => 'Mono',
 			'fileInfo.dolbyVisionProfile' => ({required Object profile}) => 'Profile ${profile}',
-			'mediaMenu.reportIssue' => 'Report an Issue',
 			'mediaMenu.markAsWatched' => 'Mark as Watched',
 			'mediaMenu.markAsUnwatched' => 'Mark as Unwatched',
 			'mediaMenu.removeFromContinueWatching' => 'Remove from Continue Watching',
@@ -7956,9 +7650,6 @@ extension on Translations {
 			'tooltips.playTrailer' => 'Play trailer',
 			'tooltips.markAsWatched' => 'Mark as watched',
 			'tooltips.markAsUnwatched' => 'Mark as unwatched',
-			'tooltips.voteGood' => 'This was Good',
-			'tooltips.voteBad' => 'This was Shit',
-			'tooltips.removeVote' => 'Remove your vote',
 			'audioTracks.track' => ({required Object n}) => 'Audio Track ${n}',
 			'videoControls.audioLabel' => 'Audio',
 			'videoControls.subtitlesLabel' => 'Subtitles',
@@ -8020,9 +7711,6 @@ extension on Translations {
 			'videoControls.pipActive' => 'Playing in Picture-in-Picture',
 			'videoControls.pipFailed' => 'Picture-in-picture failed to start',
 			'videoControls.screenshotSaved' => 'Screenshot saved',
-			'videoControls.subtitlesNoneAvailable' => 'Subtitles: none available',
-			'videoControls.subtitlesOff' => 'Subtitles: off',
-			'videoControls.subtitlesTrack' => ({required Object label}) => 'Subtitles: ${label}',
 			'videoControls.zoomPercent' => ({required Object percent}) => 'Zoom ${percent}%',
 			'videoControls.pipErrors.androidVersion' => 'Requires Android 8.0 or newer',
 			'videoControls.pipErrors.iosVersion' => 'Requires iOS 15.0 or newer',
@@ -8060,7 +7748,6 @@ extension on Translations {
 			'messages.autoRemovedWatchedDownload' => ({required Object title}) => 'Auto-removed: ${title}',
 			'messages.autoRemovedWatchedDownloads' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Auto-removed ${n} watched download', other: 'Auto-removed ${n} watched downloads', ), 
 			'messages.removedFromContinueWatching' => 'Removed from Continue Watching',
-			'messages.voteUpdateFailed' => 'Couldn\'t update your vote',
 			'messages.errorLoading' => ({required Object error}) => 'Error: ${error}',
 			'messages.searchPartialResults' => 'Some media servers could not be searched. Showing available results.',
 			'messages.streamInterrupted' => 'The stream was interrupted. Press play or seek to retry.',
@@ -8095,8 +7782,6 @@ extension on Translations {
 			'messages.noEpisodesFound' => 'No episodes found in first season',
 			'messages.noEpisodesFoundGeneral' => 'No episodes found',
 			'messages.episodesLoadFailed' => 'Couldn\'t load episodes',
-			'messages.episodeOfTotal' => ({required Object current, required Object total}) => 'Episode ${current} of ${total}',
-			'messages.nextEpisodeAirs' => ({required Object date}) => 'Next episode airs ${date}',
 			'messages.noResultsFound' => 'No results found',
 			'messages.sleepTimerSet' => ({required Object label}) => 'Sleep timer set for ${label}',
 			'messages.noItemsAvailable' => 'No items available',
@@ -8135,6 +7820,8 @@ extension on Translations {
 			'subtitlingStyling.overrideStrip' => 'Remove styling',
 			'subtitlingStyling.positionTop' => 'Top',
 			'subtitlingStyling.positionBottom' => 'Bottom',
+			'subtitlingStyling.useMargins' => 'Use margins',
+			'subtitlingStyling.useMarginsDescription' => 'Allow text subtitles in the space outside the video. Styled subtitles may keep their original placement.',
 			'subtitlingStyling.anchorToScreen' => 'Anchor to Screen',
 			'subtitlingStyling.anchorToScreenDescription' => 'Show text subtitles in the black bars below widescreen video',
 			'subtitlingStyling.bold' => 'Bold',
@@ -8306,14 +7993,10 @@ extension on Translations {
 			'discover.overview' => 'Overview',
 			'discover.cast' => 'Cast',
 			'discover.extras' => 'Trailers & Extras',
-			'discover.ratingsAndReviews' => 'Ratings & Reviews',
-			'discover.plexCommunityUser' => 'Plex User',
 			'discover.studio' => 'Studio',
 			'discover.rating' => 'Rating',
 			'discover.director' => 'Director',
 			'discover.directors' => 'Directors',
-			_ => null,
-		} ?? switch (path) {
 			'discover.movie' => 'Movie',
 			'discover.tvShow' => 'TV Show',
 			'discover.minutesLeft' => ({required Object minutes}) => '${minutes} min left',
@@ -8371,6 +8054,8 @@ extension on Translations {
 			'libraries.noRecommendations' => 'No recommendations available',
 			'libraries.noCollections' => 'No collections in this library',
 			'libraries.noFoldersFound' => 'No folders found',
+			_ => null,
+		} ?? switch (path) {
 			'libraries.folders' => 'folders',
 			'libraries.tabs.recommended' => 'Recommended',
 			'libraries.tabs.browse' => 'Browse',
@@ -8467,7 +8152,6 @@ extension on Translations {
 			'navigation.downloads' => 'Downloads',
 			'navigation.liveTv' => 'Live TV',
 			'navigation.explore' => 'Explore',
-			'navigation.watchlist' => 'Watchlist',
 			'explore.title' => 'Explore',
 			'explore.selectSource' => 'Select source',
 			'explore.rows.watchlist' => 'Watchlist',
@@ -8497,8 +8181,6 @@ extension on Translations {
 			'explore.removedFromWatchlist' => 'Removed from watchlist',
 			'explore.watchlistUpdateFailed' => 'Couldn\'t update watchlist',
 			'explore.watchlistNoMatch' => 'Couldn\'t match this item to a watchlist',
-			'explore.watchlistEmptyTitle' => 'Your watchlist is empty',
-			'explore.watchlistEmptyMessage' => 'Add movies and shows from their detail page to see them here.',
 			'explore.notInLibrary' => 'Not in your library',
 			'explore.inTheseLibraries' => 'In these libraries',
 			'explore.checkingLibrary' => 'Checking your library...',
@@ -8826,8 +8508,6 @@ extension on Translations {
 			'watchTogether.joinInstructions' => 'Enter the host\'s session code to join.',
 			'watchTogether.failedToCreate' => 'Failed to create session',
 			'watchTogether.failedToJoin' => 'Failed to join session',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.sessionCodeCopied' => 'Session code copied to clipboard',
 			'watchTogether.relayUnreachable' => 'Relay server unreachable. ISP blocking may prevent Watch Together.',
 			'watchTogether.reconnectingToHost' => 'Reconnecting to host...',
@@ -8888,6 +8568,8 @@ extension on Translations {
 			'downloads.queuedTooltip' => 'Queued',
 			'downloads.queuedFilesTooltip' => ({required Object files}) => 'Queued ${files}',
 			'downloads.downloadingTooltip' => 'Downloading...',
+			_ => null,
+		} ?? switch (path) {
 			'downloads.downloadingFilesTooltip' => ({required Object files}) => 'Downloading ${files}',
 			'downloads.noDownloadsTree' => 'No downloads',
 			'downloads.pauseAll' => 'Pause all',
@@ -9220,25 +8902,9 @@ extension on Translations {
 			'matchScreen.yearHint' => 'Year',
 			'matchScreen.search' => 'Search',
 			'matchScreen.noMatchesFound' => 'No matches found',
-			'tautulli.activeStreams' => 'Active Streams',
-			'tautulli.failedToLoad' => 'Failed to load active streams from Tautulli',
-			'tautulli.noActiveStreams' => 'No active streams',
-			'tautulli.transcode' => 'TRANSCODE',
-			'tautulli.directPlay' => 'DIRECT',
-			'seerrIssue.title' => 'Report an Issue',
-			'seerrIssue.typeVideo' => 'Video',
-			'seerrIssue.typeAudio' => 'Audio',
-			'seerrIssue.typeSubtitles' => 'Subtitles',
-			'seerrIssue.typeOther' => 'Other',
-			'seerrIssue.presetVideo' => 'This won\'t play',
-			'seerrIssue.presetAudio' => 'Audio is not English',
-			'seerrIssue.presetSubtitles' => 'Subtitles are missing or wrong',
-			'seerrIssue.messageHint' => 'Describe the issue',
-			'seerrIssue.submit' => 'Send Report',
-			'seerrIssue.submitted' => 'Issue reported — thanks!',
-			'seerrIssue.submitFailed' => 'Couldn\'t send the report',
-			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
-			'seerrIssue.loadFailed' => 'Couldn\'t check this title against Seerr.',
+			'serverTasks.title' => 'Server Tasks',
+			'serverTasks.failedToLoad' => 'Failed to load tasks',
+			'serverTasks.noTasks' => 'No tasks running',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connected',
 			'trakt.connectedAs' => ({required Object username}) => 'Connected as @${username}',
@@ -9340,8 +9006,6 @@ extension on Translations {
 			'addServer.serverUrls' => 'Server URLs',
 			'addServer.serverUrlsHelper' => 'Multiple URLs allowed, separated by commas.',
 			'addServer.findServer' => 'Find server',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.searchingLocalMediaBrowserServers' => ({required Object product}) => 'Looking for local ${product} servers...',
 			'addServer.localMediaBrowserServers' => ({required Object product}) => 'Local ${product} servers',
 			'addServer.username' => 'Username',
