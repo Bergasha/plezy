@@ -23,6 +23,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
   ],
   '2.17.19': ['Bug fixes and improvements'],
   '2.17.20': ['Theme music now plays while browsing TV shows', 'A few bug fixes'],
+  '2.17.24': ['Report issues straight from Plezy', 'Bug fixes and improvements'],
 };
 
 abstract final class WhatsNewService {
