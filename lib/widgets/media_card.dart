@@ -1131,7 +1131,7 @@ Widget _buildPosterImage(
     final defaultPosterUrl = item.posterThumb(mode: episodePosterMode, mixedHubContext: mixedHubContext);
     final defaultFallbackUrl = item.posterThumbFallback(mode: episodePosterMode, mixedHubContext: mixedHubContext);
     final targetPx = knownWidth != null && knownWidth.isFinite && knownWidth > 0
-        ? (knownWidth * MediaQuery.devicePixelRatioOf(context)).ceil()
+        ? MediaImageHelper.artworkTargetPx(context, knownWidth, imageType: imageType)
         : null;
     final catalogArtworkUrl = targetPx == null
         ? null
