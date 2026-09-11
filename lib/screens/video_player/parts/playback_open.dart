@@ -533,6 +533,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
     SubtitlePreference? preferredSubtitleTrack,
     SubtitlePreference? preferredSecondarySubtitleTrack,
     bool primarySubtitleIsServerRendered = false,
+    bool persistAutomaticSubtitleSelection = true,
   }) {
     return TrackManager(
       player: forPlayer,
@@ -548,6 +549,7 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
       preferredSubtitleTrack: preferredSubtitleTrack,
       preferredSecondarySubtitleTrack: preferredSecondarySubtitleTrack,
       primarySubtitleIsServerRendered: primarySubtitleIsServerRendered,
+      persistAutomaticSubtitleSelection: persistAutomaticSubtitleSelection,
       showMessage: (message, {duration}) {
         if (mounted) showAppSnackBar(context, message, duration: duration);
       },
@@ -1001,6 +1003,10 @@ extension _VideoPlayerOpenMethods on VideoPlayerScreenState {
           primarySubtitleTranscoding() &&
           openSubtitleSelection.primarySourceStreamId != null &&
           openSubtitleSelection.primarySidecar == null,
+      // A declined carry is still the viewer's choice: a late native pass may
+      // yet serve it, and that pick belongs on the server (#2323).
+      persistAutomaticSubtitleSelection:
+          openSubtitleSelection.primaryHonorsPreference || openSubtitleSelection.declinedPreference != null,
     );
     _trackManager = trackManager;
 
