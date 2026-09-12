@@ -2596,6 +2596,9 @@ class Translations$messages$en {
 	/// en: 'Could not apply the selected streams'
 	String get streamSelectionFailed => 'Could not apply the selected streams';
 
+	/// en: 'This track choice applies to the current playback only.'
+	String get trackSelectionNotRemembered => 'This track choice applies to the current playback only.';
+
 	/// en: 'No server is available for the active profile'
 	String get serverUnavailableForProfile => 'No server is available for the active profile';
 }
@@ -8124,6 +8127,7 @@ extension on Translations {
 			'messages.playbackDataNotPrepared' => 'Playback was started before its data was ready',
 			'messages.streamSelectionUnavailable' => 'Stream selection is not available for this source',
 			'messages.streamSelectionFailed' => 'Could not apply the selected streams',
+			'messages.trackSelectionNotRemembered' => 'This track choice applies to the current playback only.',
 			'messages.serverUnavailableForProfile' => 'No server is available for the active profile',
 			'subtitlingStyling.text' => 'Text',
 			'subtitlingStyling.border' => 'Border',
@@ -8317,9 +8321,9 @@ extension on Translations {
 			'discover.ratingsAndReviews' => 'Ratings & Reviews',
 			'discover.plexCommunityUser' => 'Plex User',
 			'discover.studio' => 'Studio',
-			'discover.rating' => 'Rating',
 			_ => null,
 		} ?? switch (path) {
+			'discover.rating' => 'Rating',
 			'discover.director' => 'Director',
 			'discover.directors' => 'Directors',
 			'discover.movie' => 'Movie',
@@ -8831,9 +8835,9 @@ extension on Translations {
 			'watchTogether.pasteFromClipboard' => 'Paste from clipboard',
 			'watchTogether.pleaseEnterCode' => 'Please enter a session code',
 			'watchTogether.codeMustBe5Chars' => 'Session code must be 5 characters',
-			'watchTogether.joinInstructions' => 'Enter the host\'s session code to join.',
 			_ => null,
 		} ?? switch (path) {
+			'watchTogether.joinInstructions' => 'Enter the host\'s session code to join.',
 			'watchTogether.failedToCreate' => 'Failed to create session',
 			'watchTogether.failedToJoin' => 'Failed to join session',
 			'watchTogether.sessionCodeCopied' => 'Session code copied to clipboard',
@@ -9345,9 +9349,9 @@ extension on Translations {
 			'services.libraryFilter.libraries' => 'Libraries',
 			'services.libraryFilter.noLibraries' => 'No libraries available',
 			'addServer.addMediaBrowserTitle' => ({required Object product}) => 'Add ${product} server',
-			'addServer.serverUrls' => 'Server URLs',
 			_ => null,
 		} ?? switch (path) {
+			'addServer.serverUrls' => 'Server URLs',
 			'addServer.serverUrlsHelper' => 'Multiple URLs allowed, separated by commas.',
 			'addServer.findServer' => 'Find server',
 			'addServer.searchingLocalMediaBrowserServers' => ({required Object product}) => 'Looking for local ${product} servers...',

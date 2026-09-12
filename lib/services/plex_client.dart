@@ -4673,6 +4673,8 @@ class PlexClient
     sessionIdentifier: playSessionId,
   );
 
+  /// Plex persists remembered stream choices per part through [selectStreams],
+  /// so the indexes on the neutral surface have no timeline equivalent here.
   @override
   Future<void> reportPlaybackStopped({
     required String itemId,
@@ -4681,6 +4683,8 @@ class PlexClient
     String? playSessionId,
     String? liveStreamId,
     String? mediaSourceId,
+    int? audioStreamIndex,
+    int? subtitleStreamIndex,
     PlaybackReportMetadata report = const PlaybackReportMetadata.live(),
   }) => updateProgress(
     itemId,

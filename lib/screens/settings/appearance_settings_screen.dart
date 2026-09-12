@@ -387,9 +387,5 @@ class AppearanceSettingsScreen extends StatelessWidget {
         subtitle: t.settings.visualEffectsReducedDescription,
       ),
     ],
-    onAfterWrite: (value) {
-      DevicePerformance.setOverrideSync(value);
-      restartApp(context);
-    },
   );
 }

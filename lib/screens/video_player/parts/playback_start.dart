@@ -58,7 +58,9 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
             'beginsAt=$programBeginsAt, elapsed=${elapsed}s (need >60 for dialog)',
           );
           if (elapsed > 60) {
+            widget.launchObserver?.mark('blocked', blocker: 'confirmationRequired');
             final watchFromStart = await _showWatchFromStartDialog(effectiveStart, nowEpoch);
+            widget.launchObserver?.mark('opening');
             if (!mounted || !attempt.isCurrent) return;
             if (watchFromStart == true) {
               offsetSeconds = useProgramStart ? offsetProgramStart : captureBuffer.seekStartSeconds.round();
@@ -115,6 +117,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
       } catch (e, st) {
         appLogger.e('Failed to start live TV playback', error: e, stackTrace: st);
         unawaited(_sendLiveTimeline('stopped'));
+        widget.launchObserver?.mark('failed', failure: 'playbackFailed');
         if (mounted && !_shuttingDown) {
           showErrorSnackBar(context, e.toString());
           unawaited(_handleBackButton());
@@ -126,6 +129,10 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
     // Capture providers before async gaps
     final offlineWatchService = context.read<OfflineWatchSyncService>();
     var primaryMediaOpened = false;
+    // Created by afterMediaOpened when the sync layer owns a gated start;
+    // released by the startup gate, or by the finally below if the open
+    // aborted, threw, or was superseded before the gate ran.
+    Completer<void>? wtStartupHold;
 
     try {
       PlaybackContext playbackContext;
@@ -170,6 +177,14 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         }
       }
       final result = playbackContext.result;
+      if (!attempt.isCurrent) return;
+      if (widget.strictMediaSelection &&
+          (result.selectedMediaIndex != widget.selectedMediaIndex ||
+              (widget.selectedMediaSourceId != null &&
+                  (result.selectedMediaSourceId ?? result.selectedVersion?.id) != widget.selectedMediaSourceId))) {
+        widget.launchObserver?.mark('failed', failure: 'staleMediaSelection');
+        throw PlaybackException(t.messages.playbackFailed);
+      }
       final streamHeaders = playbackContext.streamHeaders;
       final subtitleSelection = await _resolveSubtitleSelectionForOpen(
         metadata: _currentMetadata,
@@ -211,9 +226,10 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
 
       Duration? resumePosition;
       PlexClient? plexClientForTracks;
-      Completer<void>? wtStartupHold;
 
-      final flow = await _openResolvedMedia(
+      // A null result (staleness guard or hook aborted the flow) needs no
+      // handling here: the finally below is the only post-open work.
+      await _openResolvedMedia(
         currentPlayer: currentPlayer,
         settingsService: settingsService,
         metadata: _currentMetadata,
@@ -223,6 +239,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         headers: streamHeaders,
         isLocalMedia: _isOfflinePlayback,
         isCurrent: isCurrentStart,
+        outcome: attempt.outcome,
         // When a Watch Together session is active the sync layer owns the
         // start: open paused everywhere and let the host coordinate one
         // simultaneous group start.
@@ -248,6 +265,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
             metadata: _currentMetadata,
             isOffline: _isOfflinePlayback,
             offlineWatchService: offlineWatchService,
+            requested: widget.initialPosition,
           );
           return mounted && player == currentPlayer;
         },
@@ -319,14 +337,10 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         wtStartupHold: () => wtStartupHold,
         onMediaAvailabilityChanged: (available) => primaryMediaOpened = available,
       );
-      if (flow == null) return;
-      // Backstop: if the gate never ran its resume path (unmounted race),
-      // don't leave Watch Together readiness held forever.
-      final startupHold = wtStartupHold;
-      if (startupHold != null && !startupHold.isCompleted) {
-        startupHold.complete();
-      }
     } on PlaybackException catch (e, st) {
+      if (attempt.isCurrent && widget.launchObserver?.failure == null) {
+        widget.launchObserver?.mark('failed', failure: e.reason.name);
+      }
       appLogger.w('Playback initialization failed', error: e, stackTrace: st);
       if (attempt.isCurrent && mounted) {
         if (!primaryMediaOpened) {
@@ -336,6 +350,7 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
         showErrorSnackBar(context, e.message);
       }
     } catch (e, st) {
+      if (attempt.isCurrent) widget.launchObserver?.mark('failed', failure: 'playbackFailed');
       appLogger.e('Failed to start playback', error: e, stackTrace: st);
       if (attempt.isCurrent && mounted) {
         if (!primaryMediaOpened) {
@@ -347,6 +362,14 @@ extension _VideoPlayerPlaybackStartMethods on VideoPlayerScreenState {
           context,
           e is PlayerInitializationException ? t.messages.playbackFailed : t.messages.errorLoading(error: e.toString()),
         );
+      }
+    } finally {
+      // Backstop: whether the gate never ran its resume path, the open
+      // aborted, or the flow threw, never leave Watch Together readiness
+      // held forever.
+      final startupHold = wtStartupHold;
+      if (startupHold != null && !startupHold.isCompleted) {
+        startupHold.complete();
       }
     }
   }

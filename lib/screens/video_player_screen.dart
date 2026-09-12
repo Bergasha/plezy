@@ -1,7 +1,9 @@
 import 'dart:async';
+import '../services/playback_launch_observer.dart';
 import '../media/ids.dart';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:plezy/widgets/app_icon.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -48,12 +50,14 @@ import '../services/episode_navigation_service.dart';
 import '../services/apple_tv_remote_touch_service.dart';
 import '../services/media_controls_manager.dart';
 import '../services/playback_coordinator.dart';
+import '../services/music/music_playback_service.dart';
 import '../services/playback_initialization_service.dart';
 import '../services/playback_context.dart';
 import '../services/local_playback_history.dart';
 import '../services/playback_session.dart';
 import '../services/playback_subtitle_resolver.dart';
 import '../services/mpv_sidecar_open_guard.dart';
+import '../services/playback_open_outcome.dart';
 import '../services/playback_progress_tracker.dart';
 import '../services/playback_source_resolver.dart';
 import '../services/multi_server_manager.dart';
@@ -319,13 +323,25 @@ enum _SubtitleSelectionSlot { primary, secondary }
 
 /// Handle for one playback attempt (initial start or in-place reload).
 /// Async continuations check [isCurrent] after every await while the screen
-/// is mounted, the captured player is active, and no newer attempt exists.
+/// is mounted and not exiting, the captured player is active, and no newer
+/// attempt exists.
+///
+/// A latched fatal player error deliberately does *not* make an attempt
+/// stale: the start flow's own failure handling — hiding the loading spinner
+/// and reporting — runs under [isCurrent], so folding termination in here
+/// would leave the spinner up behind the error dialog. [_abortCurrentOpen],
+/// not this predicate, is what stops an open's waiters on a fatal error. A
+/// reload wants both and spells them out at its own guard.
 class _PlaybackAttempt {
-  _PlaybackAttempt._(this._owner, this.generation, this.player, this.trackMutationDrain);
+  _PlaybackAttempt._(this._owner, this.generation, this.player, this.outcome, this.trackMutationDrain);
 
   final VideoPlayerScreenState _owner;
   final int generation;
   final Player player;
+
+  /// The open's result, armed before [Player.open] so every startup waiter
+  /// derives from one signal and a failed open collapses all of them.
+  final PlaybackOpenOutcome outcome;
   final Future<void> trackMutationDrain;
 
   bool get isCurrent => _owner._isCurrentPlaybackGeneration(generation, player);
@@ -384,6 +400,10 @@ class VideoPlayerScreen extends StatefulWidget {
   final String? preferredVersionSignature;
   final bool isOffline;
   final WatchPlaybackLease? watchTogetherLease;
+  final Duration? initialPosition;
+  final bool strictMediaSelection;
+  final bool Function()? isLaunchCurrent;
+  final PlaybackLaunchObserver? launchObserver;
 
   /// Quality preset override for this playback. When `null`, the screen uses
   /// the user's [SettingsService.defaultQualityPreset].
@@ -417,6 +437,10 @@ class VideoPlayerScreen extends StatefulWidget {
     this.live,
     this.isPreroll = false,
     this.watchTogetherLease,
+    this.initialPosition,
+    this.strictMediaSelection = false,
+    this.isLaunchCurrent,
+    this.launchObserver,
   });
 
   @override
@@ -452,10 +476,106 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   VideoVolumeController? _volumeController;
   bool _isPlayerInitialized = false;
   String? _playerInitializationError;
+
+  /// Focus target for the initialization-error view's primary action.
+  ///
+  /// A child `autofocus` cannot do this job: the screen-level [Focus] claims
+  /// focus while the loading spinner is up, and Flutter drops an autofocus
+  /// request once the enclosing scope already has a focused child. So the
+  /// button is focused explicitly when the view appears — otherwise a D-pad or
+  /// gamepad user arrives with no control focused at all.
+  final FocusNode _initializationErrorFocusNode = FocusNode(debugLabel: 'PlayerInitializationErrorAction');
   Future<void>? _playerInitializationOperation;
   int _playerInitializationGeneration = 0;
   Future<void>? _shutdownOperation;
-  bool _shuttingDown = false;
+  Future<void>? _routeExitOperation;
+  Future<void>? _systemUiRestoreOperation;
+
+  // Bounds navigation only. Native disposal and terminal reporting retain
+  // their real futures; expiry never grants permission to reuse the core.
+  static const _routeExitNavigationBudget = Duration(seconds: 1);
+
+  /// One bit, two names: the notifier below is what the UI listens to, this is
+  /// the guard every async continuation reads. They were separate fields set by
+  /// two adjacent statements and never observably apart.
+  bool get _shuttingDown => _isExiting.value;
+  final Completer<void> _routeDisposed = Completer<void>();
+  Future<void>? _nativeDisposal;
+  int? _observedLaunchGeneration;
+
+  bool get _launchCurrent => (widget.isLaunchCurrent?.call() ?? true) && (widget.launchObserver?.isCurrent ?? true);
+
+  bool _ownsLaunchPlayback() =>
+      mounted &&
+      _activeRouteGuard.identityFor(this) != null &&
+      _currentMetadata.globalKey == widget.metadata.globalKey &&
+      (_observedLaunchGeneration == null || _transitionGate.generation == _observedLaunchGeneration);
+
+  Map<String, dynamic> _launchSnapshot() {
+    final current = player;
+    if (!_launchCurrent || !mounted || _currentMetadata.globalKey != widget.metadata.globalKey) {
+      return const {'stage': 'cancelled', 'playing': false, 'buffering': false};
+    }
+    if (_observedLaunchGeneration != null && _transitionGate.generation != _observedLaunchGeneration) {
+      return const {'stage': 'cancelled', 'playing': false, 'buffering': false};
+    }
+    final state = current?.state;
+    final ready = _firstFrame.rendered;
+    final failed = _hasFatalPlaybackError || _playerInitializationError != null;
+    final blocker = !automotivePlaybackAllowedNow()
+        ? 'automotiveRestricted'
+        : (_showStillWatchingPrompt || _episode.showPlayNextDialog)
+        ? 'confirmationRequired'
+        : widget.launchObserver?.blocker;
+    return {
+      'stage': failed
+          ? 'failed'
+          : _shuttingDown
+          ? 'stopped'
+          : blocker != null
+          ? 'blocked'
+          : state?.completed == true
+          ? 'completed'
+          : ready && state?.buffering == true
+          ? 'buffering'
+          : ready && state?.playing == true
+          ? 'playing'
+          : ready
+          ? 'paused'
+          : 'opening',
+      'ready': ready,
+      'playing': ready && state?.isActive == true && !failed && !_shuttingDown,
+      'buffering': state?.buffering ?? false,
+      'positionMs': current?.currentPosition.inMilliseconds ?? 0,
+      'durationMs': state?.duration.inMilliseconds ?? 0,
+      if (_playbackSession != null) 'mediaIndex': _playbackSession!.mediaIndex,
+      if (_playbackSession?.mediaSourceId != null) 'mediaSourceId': _playbackSession!.mediaSourceId,
+      'blocker': ?blocker,
+      if (failed) 'failure': {'code': widget.launchObserver?.failure ?? 'playbackFailed'},
+    };
+  }
+
+  Future<bool> _stopVideoAndExit() async {
+    if (!mounted) {
+      await _shutdownOperation;
+      await _playerInitializationOperation;
+      await _nativeDisposal;
+      return true;
+    }
+    // Do not bypass Watch Together's leave-session confirmation.
+    if (_watchTogetherProvider?.isInSession == true && !_watchTogetherProvider!.isHost) return false;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent || !Navigator.of(context).canPop()) return false;
+    await _exitPlayerRoute(navigateHome: false, stop: true);
+    // Automation/application callers still observe truthful retirement, even
+    // when navigation had to leave an unresponsive player behind.
+    await _shutdownOperation;
+    await _playerInitializationOperation;
+    await _routeDisposed.future;
+    await _nativeDisposal;
+    return true;
+  }
+
   late MediaItem _currentMetadata;
   final EpisodeSessionState _episode = EpisodeSessionState();
 
@@ -728,7 +848,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     onStop: () => _handleBackButton(),
     onPlayNext: () => _playNext(),
     onPlayPrevious: () => _restartOrPlayPrevious(),
-    seekRelative: (offset) => _seekRelative(offset),
+    skipByConfiguredStep: ({required bool forward}) => _skipByConfiguredStep(forward: forward),
     onCycleSubtitles: () => _cycleSubtitleTrack(),
     onCycleAudio: () => _cycleAudioTrack(),
     onHome: () => _handleHomeButton(),
@@ -799,17 +919,31 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
 
   ScrubFrame? _getThumbnailData(Duration time) => _scrubPreviewSource?.getFrame(time);
 
-  /// Start a new playback attempt: invalidates automatic track selection,
-  /// bumps the generation, and captures the owning player so async
-  /// continuations can check [_PlaybackAttempt.isCurrent] uniformly instead of
-  /// threading (generation, player) pairs around. Reloads await the captured,
-  /// bounded mutation drain at their replacement-open boundary.
+  /// The attempt whose open the screen currently owns; [_abortCurrentOpen]
+  /// collapses its waiters. Superseded by every [_beginPlaybackAttempt].
+  _PlaybackAttempt? _playbackAttempt;
+
+  /// Start a new playback attempt: aborts the previous attempt's open,
+  /// invalidates automatic track selection, bumps the generation, arms the
+  /// open outcome, and captures the owning player so async continuations can
+  /// check [_PlaybackAttempt.isCurrent] uniformly instead of threading
+  /// (generation, player) pairs around. Reloads await the captured, bounded
+  /// mutation drain at their replacement-open boundary.
   _PlaybackAttempt _beginPlaybackAttempt(Player currentPlayer, {bool isMediaReload = false}) {
+    _playbackAttempt?.outcome.abort('superseded by a newer playback attempt');
     final trackMutationDrain = _trackManager?.invalidatePendingSelection() ?? Future<void>.value();
-    return _PlaybackAttempt._(
+    final generation = _transitionGate.beginGeneration(isMediaReload: isMediaReload);
+    _observedLaunchGeneration ??= generation;
+    return _playbackAttempt = _PlaybackAttempt._(
       this,
-      _transitionGate.beginGeneration(isMediaReload: isMediaReload),
+      generation,
       currentPlayer,
+      // Bounds a backend that started the load and then went silent: longer
+      // than the sidecar guard's discovery + file-loaded budget, so it cannot
+      // pre-empt a sidecar-stall verdict. It arms from the backend's load
+      // start, so an open that never starts one is bounded by
+      // [OpenHttp503Watchdog] instead, not by this.
+      PlaybackOpenOutcome.arm(currentPlayer, deadline: const Duration(seconds: 30)),
       Future.wait<void>([
         trackMutationDrain,
         _userRateMutation.catchError((Object error) {
@@ -820,7 +954,23 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   }
 
   bool _isCurrentPlaybackGeneration(int generation, Player currentPlayer) {
-    return mounted && !_shuttingDown && player == currentPlayer && _transitionGate.generation == generation;
+    return mounted &&
+        !_shuttingDown &&
+        _launchCurrent &&
+        player == currentPlayer &&
+        _transitionGate.generation == generation;
+  }
+
+  /// Collapse every waiter armed for the current open: the attempt's outcome
+  /// (frame-rate startup gate, post-open subtitle readiness, sidecar guard),
+  /// the track manager's pending automatic selection, and the 503 watchdog.
+  /// Idempotent. Called from the terminal player-error branches, shutdown,
+  /// and dispose — before the player closes its streams, so nothing waits on
+  /// a `Stream.first` that can only die with them.
+  void _abortCurrentOpen(String reason) {
+    _playbackAttempt?.outcome.abort(reason);
+    unawaited(_trackManager?.invalidatePendingSelection());
+    _http503Watchdog.disarm();
   }
 
   Future<void> _playWithPlaybackIntent(Player currentPlayer) {
@@ -893,6 +1043,22 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   @visibleForTesting
   Future<void> debugSeekPlaybackForTesting(Duration position) => _seekPlayback(position);
 
+  /// The source-switch entry point is otherwise reachable only through the
+  /// controls the screen builds after a successful startup, which no test
+  /// harness can reach without a live native player.
+  @visibleForTesting
+  Future<PlaybackSourceChangeOutcome> debugSwitchPlaybackSourceForTesting({
+    int? newMediaIndex,
+    TranscodeQualityPreset? newPreset,
+    int? newAudioStreamId,
+    PlaybackSourceSubtitleChoice? newSubtitleChoice,
+  }) => _switchPlaybackSource(
+    newMediaIndex: newMediaIndex,
+    newPreset: newPreset,
+    newAudioStreamId: newAudioStreamId,
+    newSubtitleChoice: newSubtitleChoice,
+  );
+
   @visibleForTesting
   Future<void> debugWirePlayerStreamsForTesting() =>
       _wirePlayerStreams(currentPlayer: player!, settingsService: SettingsService.instance, useExoPlayer: false);
@@ -907,7 +1073,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   @override
   void initState() {
     super.initState();
-    PlaybackCoordinator.instance.registerVideoSession(shutdown: _shutdownVideo);
+    PlaybackCoordinator.instance.registerVideoSession(shutdown: _shutdownVideo, stopAndExit: _stopVideoAndExit);
     final launchLease = widget.watchTogetherLease;
     if (launchLease != null) {
       final watchTogether = context.read<WatchTogetherProvider?>();
@@ -952,6 +1118,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     );
 
     _currentMetadata = widget.metadata;
+    widget.launchObserver?.attach(_launchSnapshot, ownsPlayback: _ownsLaunchPlayback);
     _activeRouteGuard.activate(
       this,
       VideoPlayerLaunchIdentity(
@@ -1197,7 +1364,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   }
 
   bool _isPlayerInitializationCurrent(int generation) {
-    return mounted && !_shuttingDown && generation == _playerInitializationGeneration;
+    return mounted && !_shuttingDown && _launchCurrent && generation == _playerInitializationGeneration;
   }
 
   bool _ownsPlayerInitializationAttempt(int generation, Player currentPlayer) {
@@ -1212,6 +1379,12 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   }
 
   Future<void> _disposePlayerInitializationAttempt(Player attemptPlayer) async {
+    if (!mounted || _shuttingDown) {
+      // The route's teardown owns collaborators now. A late initializer may
+      // only retire its captured native owner, never clear successor services.
+      await attemptPlayer.dispose(preserveDisplayMode: _isReplacingWithVideo);
+      return;
+    }
     _transitionGate.bumpGeneration();
     _disposeVolumeControllerForPlayer(attemptPlayer);
     if (identical(player, attemptPlayer)) {
@@ -1223,7 +1396,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       appLogger.w('Failed to tear down player collaborators during initialization rollback', error: e, stackTrace: st);
     }
     try {
-      await attemptPlayer.abandonAudioFocus();
+      if (mounted && !_shuttingDown) await attemptPlayer.abandonAudioFocus();
     } catch (e, st) {
       appLogger.w('Failed to abandon audio focus during player rollback', error: e, stackTrace: st);
     }
@@ -1355,6 +1528,11 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       // core — stop it and wait for its dispose before constructing the
       // video core (see PlaybackCoordinator).
       initPhase = 'claiming playback session';
+      if (!mounted) return;
+      if (widget.launchObserver != null && context.read<MusicPlaybackService>().currentTrack != null) {
+        widget.launchObserver?.mark('blocked', blocker: 'playbackActive');
+        return;
+      }
       await PlaybackCoordinator.instance.claimVideo();
       if (!mounted || generation != _playerInitializationGeneration) return;
 
@@ -1722,7 +1900,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       // until after first frame anyway.
       unawaited(
         _ensurePlayQueue().whenComplete(() {
-          if (mounted) _loadAdjacentEpisodes();
+          if (_ownsPlayerInitializationAttempt(generation, currentPlayer)) _loadAdjacentEpisodes();
         }),
       );
       initPhase = 'initializing playback services';
@@ -1731,6 +1909,9 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       committed = true;
     } catch (e, st) {
       failureMessage = _safePlaybackErrorMessage(e);
+      if (_isPlayerInitializationCurrent(generation)) {
+        widget.launchObserver?.mark('failed', failure: 'playbackFailed');
+      }
       appLogger.e('Failed to initialize player during $initPhase', error: e, stackTrace: st);
     } finally {
       final failedAttempt = attemptPlayer;
@@ -1744,6 +1925,13 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         _isPlayerInitialized = false;
         _playerInitializationError = failureMessage;
       });
+      // The button only exists after this frame builds, so the request waits
+      // for it. See [_initializationErrorFocusNode] for why autofocus alone
+      // leaves the view with nothing focused.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _isExiting.value || _playerInitializationError == null) return;
+        if (_initializationErrorFocusNode.canRequestFocus) _initializationErrorFocusNode.requestFocus();
+      });
     }
   }
 
@@ -1754,51 +1942,72 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
   /// latch, MediaSession pause-suppression window) — see [FrameRateMatcher].
   final FrameRateMatcher _frameRate = FrameRateMatcher();
 
-  Future<Duration?> _pauseAndHidePlayerForRouteExit() async {
-    final currentPlayer = player;
-    if (currentPlayer == null || !_isPlayerInitialized) return null;
-
-    final exitPosition = currentPlayer.state.position;
-    if (currentPlayer.state.isActive) {
-      try {
-        await _pauseWithPlaybackIntent(currentPlayer);
-      } catch (e, st) {
-        appLogger.w('Failed to pause player during route exit', error: e, stackTrace: st);
-      }
-    }
-
-    if (!mounted || currentPlayer != player) return exitPosition;
-
-    if (Platform.isAndroid && PlatformDetector.isTV()) {
-      try {
-        await currentPlayer.setVisible(false);
-      } catch (e, st) {
-        appLogger.w('Failed to hide Android TV player surface during route exit', error: e, stackTrace: st);
-      }
-    }
-
-    return exitPosition;
+  Future<void> _pauseAndHidePlayerForRouteExit(Player currentPlayer) async {
+    // Dispatch both against the captured owner before yielding. A late pause
+    // reply must never dispatch a visibility change against a successor.
+    await Future.wait<void>([
+      if (currentPlayer.state.isActive) currentPlayer.pause(),
+      if (defaultTargetPlatform == TargetPlatform.android && PlatformDetector.isTV()) currentPlayer.setVisible(false),
+    ]);
   }
 
-  /// Pause/hide the player, flush stopped progress, restore system UI and
-  /// orientation, then leave the player route. No-op when the route cannot pop.
-  Future<void> _exitPlayerRoute({required bool navigateHome}) async {
+  /// Accept one exit, synchronously fence producers, then give best-effort
+  /// cleanup one overall navigation budget. Cleanup itself is not timed out.
+  /// The returned future completes once navigation has been attempted. Accept
+  /// once: the entry guard below only admits an exit that can remove its own
+  /// route, and [_removePlayerRoute] removes it whatever ends up on top (#2290).
+  Future<void> _exitPlayerRoute({required bool navigateHome, bool stop = false, WatchTogetherProvider? leaveSession}) {
+    final existing = _routeExitOperation;
+    if (existing != null) return existing;
+    if (!mounted) return Future<void>.value();
     final navigator = Navigator.of(context);
-    if (!navigator.canPop()) return;
+    final route = ModalRoute.of(context);
+    if (!navigator.canPop() || route == null || !route.isCurrent) return Future<void>.value();
 
-    _isExiting.value = true;
-    final exitPosition = await _pauseAndHidePlayerForRouteExit();
-    if (!mounted) return;
-    await _sendStoppedProgressOnce(positionOverride: exitPosition);
-    if (!mounted) return;
-    await _restoreSystemUiAndOrientation();
-    if (!mounted) return;
-    _finishPlayerNavigation(navigator, navigateHome: navigateHome);
+    final completer = Completer<void>();
+    _routeExitOperation = completer.future;
+    final onHome = _companionRemote.savedOnHome;
+    final navigationReady = Completer<void>();
+    final deadline = Timer(_routeExitNavigationBudget, navigationReady.complete);
+    final cleanup = Future<void>.sync(() => _shutdownVideo(pauseForRouteExit: !stop));
+    final restore = Future<void>.sync(_restoreSystemUiAndOrientation);
+    // leaveSession synchronously detaches the local room before its first
+    // transport await. Confirmation is unbounded; relay teardown is not a
+    // navigation prerequisite.
+    if (leaveSession != null) {
+      unawaited(
+        leaveSession.leaveSession().catchError((Object error, StackTrace stackTrace) {
+          appLogger.e('WatchTogether: Session leave failed', error: error, stackTrace: stackTrace);
+        }),
+      );
+    }
+    unawaited(() async {
+      try {
+        await Future.wait<void>([cleanup, restore]);
+      } catch (error, stackTrace) {
+        appLogger.w('Player exit cleanup failed', error: error, stackTrace: stackTrace);
+      } finally {
+        if (!navigationReady.isCompleted) navigationReady.complete();
+      }
+    }());
+    unawaited(() async {
+      try {
+        await navigationReady.future;
+        deadline.cancel();
+        _removePlayerRoute(navigator, route, navigateHome: navigateHome, onHome: onHome);
+        completer.complete();
+      } catch (error, stackTrace) {
+        completer.completeError(error, stackTrace);
+      }
+    }());
+    return completer.future;
   }
 
   /// Handle back button press
   /// For non-host participants in Watch Together, shows leave session confirmation
   Future<void> _handleBackButton({bool navigateHome = false}) async {
+    final acceptedExit = _routeExitOperation;
+    if (acceptedExit != null) return acceptedExit;
     if (!navigateHome && (_episode.showPlayNextDialog || _showStillWatchingPrompt)) {
       _dismissPlaybackPromptForBack();
       return;
@@ -1817,12 +2026,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         );
 
         if (confirmed && mounted) {
-          try {
-            await _watchTogetherProvider!.leaveSession();
-          } catch (error, stackTrace) {
-            appLogger.e('WatchTogether: Session leave failed', error: error, stackTrace: stackTrace);
-          }
-          if (mounted) await _exitPlayerRoute(navigateHome: navigateHome);
+          await _exitPlayerRoute(navigateHome: navigateHome, leaveSession: _watchTogetherProvider);
         }
         return;
       }
@@ -1831,7 +2035,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
       if (!mounted) return;
       await _exitPlayerRoute(navigateHome: navigateHome);
     } finally {
-      _isHandlingBack = false;
+      if (mounted && _routeExitOperation == null) _isHandlingBack = false;
     }
   }
 
@@ -1839,15 +2043,31 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     unawaited(_handleBackButton(navigateHome: true));
   }
 
-  void _finishPlayerNavigation(NavigatorState navigator, {required bool navigateHome}) {
-    if (!navigateHome) {
-      navigator.pop(true);
+  /// Removes the player route this exit accepted, whatever sits on top of it
+  /// by the time the navigation budget expires (#2290).
+  void _removePlayerRoute(
+    NavigatorState navigator,
+    Route<dynamic> route, {
+    required bool navigateHome,
+    VoidCallback? onHome,
+  }) {
+    // The navigator or the route went away on its own; nothing of ours is left.
+    if (!navigator.mounted || !route.isActive) return;
+    if (route.isCurrent && navigator.canPop()) {
+      if (navigateHome) {
+        navigator.popUntil((r) => r.isFirst);
+        onHome?.call();
+      } else {
+        navigator.pop(true);
+      }
       return;
     }
-
-    final onHome = _companionRemote.savedOnHome;
-    navigator.popUntil((route) => route.isFirst);
-    onHome?.call();
+    // Either something was pushed onto our navigator during the grace period,
+    // or the route below us went away and there is nothing left to pop to.
+    // Remove only the player: unwinding to it, or popping blind, would take a
+    // covering route (a dialog, a successor player) with it. A late Home
+    // callback belongs to navigation that no longer happened.
+    navigator.removeRoute(route);
   }
 
   void _handleScreenPlayerNavigation(PlayerNavigationKey navigationKey) {
@@ -1861,27 +2081,42 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     _playerNavigationCoordinator.handle(navigationKey);
   }
 
-  Future<void> _restoreSystemUiAndOrientation() async {
+  /// Runs at most once per screen: the memo below is what keeps a second
+  /// caller — dispose after an accepted exit — from re-issuing the platform
+  /// requests, and the route guard is what refuses to start at all once
+  /// another player owns the screen.
+  Future<void> _restoreSystemUiAndOrientation() {
+    final existing = _systemUiRestoreOperation;
+    if (existing != null) return existing;
+    if (_activeRouteGuard.identityFor(this) == null) return Future<void>.value();
     if (PlatformDetector.isDesktopOS() && _exitFullscreenOnPlayerClose) {
       unawaited(FullscreenStateManager().exitFullscreen());
     }
 
-    try {
-      await OrientationHelper.restoreSystemUI();
-    } catch (e) {
-      appLogger.w('Failed to restore system UI', error: e);
-    }
-
-    try {
-      await OrientationHelper.restoreDefaultOrientations();
-    } catch (e) {
-      appLogger.w('Failed to restore orientation', error: e);
-    }
+    // Independent requests: a missing system-UI reply must not prevent the
+    // orientation request.
+    return _systemUiRestoreOperation = Future.wait<void>([
+      OrientationHelper.restoreSystemUI().catchError((Object e) {
+        appLogger.w('Failed to restore system UI', error: e);
+      }),
+      OrientationHelper.restoreDefaultOrientations().catchError((Object e) {
+        appLogger.w('Failed to restore orientation', error: e);
+      }),
+    ]).then<void>((_) {});
   }
 
   @override
   void dispose() {
-    PlaybackCoordinator.instance.unregisterVideoSession(_shutdownVideo);
+    PlaybackCoordinator.instance.unregisterVideoSession(
+      _shutdownVideo,
+      retirement: () async {
+        // Capture cleanup only after synchronous disposal has assigned every
+        // operation. Route navigation itself never awaits this retirement.
+        await _routeDisposed.future;
+        await Future.wait<void>([?_playerInitializationOperation, ?_shutdownOperation, ?_nativeDisposal]);
+      }(),
+    );
+    widget.launchObserver?.detach();
     unawaited(AndroidExitDiagnostics.markUiState(AndroidUiState.mainScreen));
     _playerInitializationGeneration++;
     _frameRate.dispose();
@@ -1895,6 +2130,11 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     final isReplacingWithVideo = _isReplacingWithVideo;
     _detachFromWatchTogetherSession(exiting: !isReplacingWithVideo);
 
+    // Snapshot while reporting readiness and the committed tracker still
+    // belong to this route. The coalesced report owns its asynchronous work
+    // after disposal, including offline writes and watched-state settlement.
+    _shutdownOperation ??= _sendStoppedProgressOnce();
+
     _isBuffering.dispose();
     _firstFrame.dispose();
     _isExiting.dispose();
@@ -1906,10 +2146,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     // notifiers, focus nodes and player that the rollback path keeps alive
     // for a retry on a still-mounted screen.
     //
-    // Stop progress tracking and send final state. Normal back navigation
-    // awaits this before popping; dispose keeps a fallback for externally
-    // removed routes where dispose() cannot await.
-    unawaited(_sendStoppedProgressOnce());
+    // Disposing the tracker stops producers, not its retained terminal report.
     _progressTracker?.stopTracking();
     _progressTracker?.dispose();
     _stopLiveTimelineUpdates();
@@ -1929,15 +2166,19 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
 
     // Teardown scope: every subscription the screen ever owns, including the
     // initState-owned sleep-timer and Apple TV ones that the rollback path
-    // must leave alive.
+    // must leave alive. The open is aborted here, before the player below
+    // closes its streams, so no startup waiter outlives it.
     _cancelPlayerStreamSubscriptions(includeMediaControls: true);
     _appleTvPlayPauseSubscription?.cancel();
     _sleepTimerSubscription?.cancel();
+    // Before the track manager is disposed, not after: its own dispose
+    // invalidates the pending selection too, and running the abort second
+    // only repeated that on a dead object.
+    _abortCurrentOpen('screen disposed');
     _trackManager?.dispose();
 
     _episode.dispose();
     _tvSuspend.dispose();
-    _http503Watchdog.disarm();
 
     _stillWatchingTimer?.cancel();
     _stillWatchingCountdown.dispose();
@@ -1951,6 +2192,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
 
     _stillWatchingPauseFocusNode.dispose();
     _stillWatchingContinueFocusNode.dispose();
+    _initializationErrorFocusNode.dispose();
 
     _screenFocusNode.removeListener(_onScreenFocusChanged);
     HardwareKeyboard.instance.removeHandler(_primeInitializationNavigationFocus);
@@ -2018,7 +2260,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     if (playerToDispose != null) {
       // Keep the native display mode (tvOS HDMI criteria) across a
       // player→player handoff; the replacement screen primes its own.
-      unawaited(playerToDispose.dispose(preserveDisplayMode: isReplacingWithVideo));
+      _nativeDisposal = playerToDispose.dispose(preserveDisplayMode: isReplacingWithVideo);
     }
     // A player→player handoff (e.g. episode transition) pushes a replacement
     // screen that activates and starts playing before this one disposes — an
@@ -2028,6 +2270,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     // still the current owner, exactly like activeGlobalKey already handles.
     if (_activeRouteGuard.clear(this)) _isActivelyPlaying = false;
     super.dispose();
+    _routeDisposed.complete();
   }
 
   /// When focus leaves the entire video player subtree, reclaim it.
@@ -2344,15 +2587,14 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     return null;
   }
 
-  Future<void> _shutdownVideo() {
+  Future<void> _shutdownVideo({bool pauseForRouteExit = false}) {
     final existing = _shutdownOperation;
     if (existing != null) return existing;
     final completer = Completer<void>();
     _shutdownOperation = completer.future;
 
     // No await until producers and all source-operation gates are closed.
-    // Do not use route exit (dialogs/navigation) or resumable TV suspension.
-    _shuttingDown = true;
+    // Shared by accepted route exit and app shutdown, not resumable suspension.
     _isExiting.value = true;
     _playbackIntentShouldPlay = false;
     _playerInitializationGeneration++;
@@ -2361,7 +2603,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     _tvSuspend.cancelGrace();
     _episode.autoPlayTimer?.cancel();
     _stillWatchingTimer?.cancel();
-    _http503Watchdog.disarm();
+    _abortCurrentOpen('playback shutdown');
     _liveSeek.cancel();
     _relativeSkip.cancel();
     _live.cancelClockOpens();
@@ -2385,7 +2627,12 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
     final stoppedReport = _sendStoppedProgressOnce(positionOverride: currentPlayer?.state.position);
     unawaited(() async {
       try {
-        await Future.wait<void>([stoppedReport, if (currentPlayer != null) currentPlayer.stop(), ...cancellations]);
+        await Future.wait<void>([
+          stoppedReport,
+          if (currentPlayer != null)
+            pauseForRouteExit ? _pauseAndHidePlayerForRouteExit(currentPlayer) : currentPlayer.stop(),
+          ...cancellations,
+        ]);
         completer.complete();
       } catch (error, stackTrace) {
         completer.completeError(error, stackTrace);
@@ -2453,7 +2700,14 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         // controls' own node is out of the focus chain (route opening, PiP,
         // window reactivation, self-heal); the controls consume these keys
         // first whenever they are in it, so this can never double-act.
-        final seekDirection = classifyMediaSeekKey(event.logicalKey) ?? classifyMediaTrackKey(event.logicalKey);
+        //
+        // A plain step, deliberately, where the controls would jump a chapter
+        // and name it: every window this is reached in is one with no chrome
+        // to put a toast in, and an unannounced chapter jump moves the
+        // playhead minutes with nothing on screen to say so. The predictable
+        // step is the safer answer when the feedback is missing — see
+        // `_seekToChapterWithFeedback` for the chaptered path.
+        final seekDirection = classifyPlayerSkipKey(event.logicalKey);
         if (seekDirection != null) {
           // Denied authority (a Watch Together room the viewer does not
           // drive) still consumes the key: leaking it moves the playhead
@@ -2540,11 +2794,11 @@ String _getHwdecValue(bool enabled) {
     return 'videotoolbox';
   } else if (Platform.isAndroid) {
     // The fork vo=mediacodec takes MediaCodec decoder buffers straight to the
-    // video plane and copies software frames into the Surface's gralloc buffer
-    // when the frame is not a decoder handle (vo_mediacodec.c sw_present), so
-    // -copy displays correctly on the plane. It is also the only hardware path
-    // left under the GL vos below API 26, where the direct AImageReader interop
-    // mediacodec needs does not exist (minSdk 25 for Fire OS 6).
+    // video plane; its query_format accepts IMGFMT_MEDIACODEC and nothing
+    // else, so -copy can never draw there and the entry is only ever reached
+    // under the GL vos. It stays because it is the only hardware path left
+    // below API 26, where the direct AImageReader interop mediacodec needs
+    // does not exist (minSdk 25 for Fire OS 6).
     return 'mediacodec,mediacodec-copy';
   } else {
     return 'auto'; // Windows, Linux
