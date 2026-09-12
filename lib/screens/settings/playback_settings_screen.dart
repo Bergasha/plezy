@@ -41,18 +41,12 @@ class PlaybackSettingsScreen extends StatefulWidget {
 }
 
 class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
-  KeyboardShortcutsService? _keyboardService;
   String? _prerollLibraryGlobalKey;
   Set<String> _prerollSelectedItemKeys = {};
 
   @override
   void initState() {
     super.initState();
-    if (KeyboardShortcutsService.isPlatformSupported()) {
-      KeyboardShortcutsService.getInstance().then((s) {
-        if (mounted) _keyboardService = s;
-      });
-    }
     _loadPrerollStorage();
   }
 
@@ -482,7 +476,10 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
   }
 
   Future<void> _showPrerollItemPicker(BuildContext context, MediaLibrary library) async {
-    await showScopedDialog<void>(context: context, builder: (_) => _PrerollItemPickerDialog(library: library));
+    await showScopedDialog<void>(
+      context: context,
+      builder: (_) => _PrerollItemPickerDialog(library: library),
+    );
     if (!mounted) return;
     final storage = await StorageService.getInstance();
     if (!mounted) return;
@@ -769,8 +766,10 @@ class _PrerollItemPickerDialogState extends State<_PrerollItemPickerDialog> {
       final storage = await StorageService.getInstance();
       final client = context.getMediaClientForLibrary(widget.library);
       final items = await drainPages<MediaItem>(
-        (start, size) =>
-            client.fetchLibraryPagedContent(widget.library.id, query: LibraryQuery(offset: start, limit: size)),
+        (start, size) => client.fetchLibraryPagedContent(
+          widget.library.id,
+          query: LibraryQuery(offset: start, limit: size),
+        ),
         pageSize: 200,
         stopOnShortPage: true,
       );

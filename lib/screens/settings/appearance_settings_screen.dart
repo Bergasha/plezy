@@ -345,8 +345,6 @@ class AppearanceSettingsScreen extends StatelessWidget {
               subtitleBuilder: (v) => t.settings.minutesUnit(minutes: v.toString()),
               labelText: t.settings.minutesLabel,
               suffixText: t.settings.minutesShort,
-              min: 1,
-              max: 60,
             ),
         ],
       );

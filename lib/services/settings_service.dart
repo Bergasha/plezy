@@ -1536,6 +1536,7 @@ class SettingsService extends BaseSharedPreferencesService {
     'sleep_timer_duration' => (5, 240),
     'play_next_countdown' => (0, 30),
     'auto_skip_delay' => (1, 30),
+    'screensaver_idle_minutes' => (1, 60),
     'subtitle_font_size' => (10, 80),
     'subtitle_border_size' => (0, 5),
     'subtitle_position' || 'subtitle_background_opacity' || 'music_volume' => (0, 100),

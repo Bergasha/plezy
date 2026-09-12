@@ -13,7 +13,6 @@ extension _PlexVideoControlsKeyEventMethods on _PlexVideoControlsState {
     unawaited(_settings.write(SettingsService.showPerformanceOverlay, !_showPerformanceOverlay));
   }
 
-
   /// Resolve the transport intent for a key event, or null when the key is not
   /// a transport key. Hardware `mediaPlay`/`mediaPause` stay *directed*; the
   /// configured hotkey is always a toggle.
