@@ -523,7 +523,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('Season 1'), findsOneWidget);
-    expect(find.text('Specials'), findsNothing);
+    // The tabs row lists every season, Specials included, so it can be
+    // reached deliberately — only the initially active/selected season
+    // (verified by the visible episode below) skips past it.
+    expect(find.text('Specials'), findsOneWidget);
     expect(find.text('S1E1'), findsOneWidget);
   });
 
@@ -612,18 +615,28 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
 
-    // Every season hub surfaces its own season as the leading options item —
-    // the D-pad path to mark a whole season watched/unwatched (#2156).
-    final rail = tester.widget<TvBrowseRail>(find.byType(TvBrowseRail));
+    // The selected season's hub surfaces its own season as the leading
+    // options item — the D-pad path to mark a whole season watched/unwatched
+    // (#2156). Only the selected season has a hub at a time now; switching
+    // the season tab (below) swaps which season the single hub represents.
+    var rail = tester.widget<TvBrowseRail>(find.byType(TvBrowseRail));
     expect(rail.leadingItemForHub, isNotNull);
-    final seasonHubs = rail.hubs.where((hub) => hub.id.startsWith('detail_season_')).toList();
-    expect(seasonHubs, hasLength(2));
+    var seasonHubs = rail.hubs.where((hub) => hub.id.startsWith('detail_season_')).toList();
+    expect(seasonHubs, hasLength(1));
     expect(rail.leadingItemForHub!(seasonHubs[0])?.id, season1.id);
-    expect(rail.leadingItemForHub!(seasonHubs[1])?.id, season2.id);
 
     // Non-season hubs (flatten episodes, actors, extras, related) get none.
     const flattenHub = MediaHub(id: 'detail_episodes', title: 'Episodes', type: 'episode', items: <MediaItem>[]);
     expect(rail.leadingItemForHub!(flattenHub), isNull);
+
+    await tester.tap(find.text('Season 2'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    rail = tester.widget<TvBrowseRail>(find.byType(TvBrowseRail));
+    seasonHubs = rail.hubs.where((hub) => hub.id.startsWith('detail_season_')).toList();
+    expect(seasonHubs, hasLength(1));
+    expect(rail.leadingItemForHub!(seasonHubs[0])?.id, season2.id);
   });
   testWidgets('TV detail reveal still waits for the supplemental sections', (tester) async {
     // Counterpart to the test above: the early paint does NOT move the TV
@@ -935,7 +948,7 @@ void main() {
     expect(find.text('Season 2'), findsOneWidget);
   });
 
-  testWidgets('TV detail completes adjacent prefetch after focus moves to that season', (tester) async {
+  testWidgets('TV detail completes adjacent prefetch after switching to that season tab', (tester) async {
     await SettingsService.getInstance();
 
     final show = testMediaItem(
@@ -1019,12 +1032,12 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
-    tester.state<TvBrowseRailState>(find.byType(TvBrowseRail)).requestFocus();
-    await tester.pump();
 
-    await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-    await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowDown);
+    // Season 2's first page was already requested as the adjacent-season
+    // prefetch while Season 1 is selected (see the sibling test above), but
+    // it hasn't resolved yet — switching the tab must not show stale/empty
+    // content as if the season were loaded.
+    await tester.tap(find.text('Season 2'));
     await tester.pump();
     expect(find.descendant(of: find.byType(MediaCard), matching: find.text('Episode 2')), findsNothing);
 

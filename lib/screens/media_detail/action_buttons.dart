@@ -341,8 +341,8 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
     // in the shared _buildVoteButton below (also used by the phone-only
     // dedicated vote row, _buildVoteButtonsRow) — only the row-specific
     // width estimate stays local here.
-    final voteTextStyle = TextStyle(fontSize: isTv ? 15 * tvScale : 14, fontWeight: .w600);
-    final voteIconSize = isTv ? 21.0 * tvScale : 20.0;
+    final voteTextStyle = TextStyle(fontSize: isTv ? 13 * tvScale : 14, fontWeight: .w600);
+    final voteIconSize = isTv ? 17.0 * tvScale : 20.0;
 
     double voteButtonWidthEstimate(String label) {
       final textPainter = TextPainter(
@@ -352,8 +352,8 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
       )..layout();
       final textWidth = textPainter.width;
       textPainter.dispose();
-      final horizontalPadding = isTv ? 30.0 * tvScale : 28.0;
-      final iconGap = isTv ? 7.0 * tvScale : 8.0;
+      final horizontalPadding = isTv ? 22.0 * tvScale : 28.0;
+      final iconGap = isTv ? 6.0 * tvScale : 8.0;
       return horizontalPadding + voteIconSize + iconGap + textWidth;
     }
 
@@ -393,9 +393,9 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
               onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.good, myVote)),
               showFocus: state.showFocus,
               height: actionSize,
-              fontSize: isTv ? 15 * tvScale : 14,
+              fontSize: isTv ? 13 * tvScale : 14,
               iconSize: voteIconSize,
-              horizontalPadding: isTv ? 15 * tvScale : 14,
+              horizontalPadding: isTv ? 11 * tvScale : 14,
             ),
           );
     final voteBadAction = (votesProvider == null || !votesProvider.isEnabled || itemServerId == null)
@@ -411,9 +411,9 @@ extension _MediaDetailActionButtons on _MediaDetailScreenState {
               onPressed: () => unawaited(_handleVotePressed(itemServerId, metadata.id, VoteDirection.bad, myVote)),
               showFocus: state.showFocus,
               height: actionSize,
-              fontSize: isTv ? 15 * tvScale : 14,
+              fontSize: isTv ? 13 * tvScale : 14,
               iconSize: voteIconSize,
-              horizontalPadding: isTv ? 15 * tvScale : 14,
+              horizontalPadding: isTv ? 11 * tvScale : 14,
             ),
           );
 
