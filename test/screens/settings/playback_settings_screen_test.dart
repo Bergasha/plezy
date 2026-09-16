@@ -140,7 +140,7 @@ void main() {
     await settings.write(SettingsService.audioNormalization, true);
     expect(settings.read(SettingsService.audioPassthrough), isTrue);
 
-    await tester.pumpWidget(MaterialApp(theme: monoTheme(dark: true), home: const PlaybackSettingsScreen()));
+    await tester.pumpWidget(_pumpablePlaybackSettingsScreen());
     await tester.pumpAndSettle();
 
     final title = find.text('Audio Passthrough');
