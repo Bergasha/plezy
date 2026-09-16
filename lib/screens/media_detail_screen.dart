@@ -3935,28 +3935,28 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                                 SizedBox(height: isTv ? 24 : 12),
                               ],
 
-                                // Ratings & Reviews (Plex community fan reviews)
-                                if (!widget.isOffline &&
-                                    _ratingsAndReviews != null &&
-                                    _ratingsAndReviews!.isNotEmpty) ...[
-                                  Text(key: _reviewsSectionKey, t.discover.ratingsAndReviews, style: sectionTitleStyle),
-                                  const SizedBox(height: 12),
-                                  PlexReviewStrip(
-                                    key: _reviewStripKey,
-                                    reviews: _ratingsAndReviews!.reviews,
-                                    onNavigateUp: _focusCastOrAbove,
-                                    onNavigateDown: _focusExtrasOrBelow,
-                                  ),
-                                  const SizedBox(height: 24),
-                                ],
+                              // Ratings & Reviews (Plex community fan reviews)
+                              if (!widget.isOffline &&
+                                  _ratingsAndReviews != null &&
+                                  _ratingsAndReviews!.isNotEmpty) ...[
+                                Text(key: _reviewsSectionKey, t.discover.ratingsAndReviews, style: sectionTitleStyle),
+                                const SizedBox(height: 12),
+                                PlexReviewStrip(
+                                  key: _reviewStripKey,
+                                  reviews: _ratingsAndReviews!.reviews,
+                                  onNavigateUp: _focusCastOrAbove,
+                                  onNavigateDown: _focusExtrasOrBelow,
+                                ),
+                                const SizedBox(height: 24),
+                              ],
 
-                                // Trailers & Extras Section
-                                if (!widget.isOffline && _extras != null && _extras!.isNotEmpty) ...[
-                                  Text(key: _extrasSectionKey, t.discover.extras, style: sectionTitleStyle),
-                                  const SizedBox(height: 12),
-                                  _buildExtrasSection(),
-                                  SizedBox(height: isTv ? 24 : 12),
-                                ],
+                              // Trailers & Extras Section
+                              if (!widget.isOffline && _extras != null && _extras!.isNotEmpty) ...[
+                                Text(key: _extrasSectionKey, t.discover.extras, style: sectionTitleStyle),
+                                const SizedBox(height: 12),
+                                _buildExtrasSection(),
+                                SizedBox(height: isTv ? 24 : 12),
+                              ],
 
                               // Related Hubs (Collections, Similar, More From...)
                               for (int i = 0; i < _relatedHubs.length; i++) ...[
