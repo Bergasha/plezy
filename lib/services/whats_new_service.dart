@@ -27,6 +27,12 @@ const Map<String, List<String>> _whatsNewByVersion = {
   '2.17.26': ['MPV player fixes', 'Theme music while browsing', 'Bug fixes and improvements'],
   '2.17.28': ['Seasons moved for easier selecting', 'Navigation fixes', 'Bug fixes and improvements'],
   '2.17.29': ['Smoother playback and display matching', 'Bug fixes and improvements'],
+  '2.17.30': [
+    'Downloads sorting and filtering',
+    'Shuffle can start from the beginning',
+    'Player and display fixes',
+    'Bug fixes and improvements',
+  ],
 };
 
 abstract final class WhatsNewService {
