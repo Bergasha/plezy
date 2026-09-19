@@ -504,8 +504,8 @@ abstract class MediaServerClient {
   Future<bool> removeFromPlaylist({required String playlistId, required MediaItem item});
 
   /// Collections in [libraryId]. Plex hits `/library/sections/{id}/collections`;
-  /// Jellyfin resolves its top-level `boxsets` view and walks that root in
-  /// bounded pages.
+  /// Jellyfin/Emby keep BoxSets in one server-wide root, so this lists every
+  /// collection regardless of [libraryId].
   /// Each result carries `kind == MediaKind.collection`.
   Future<List<MediaItem>> fetchCollections(String libraryId);
 
@@ -814,6 +814,14 @@ abstract class MediaServerClient {
   /// a partial resolution.
   Future<DownloadResolution> resolveDownload(MediaItem item, {int mediaIndex = 0, String? mediaSourceId});
 
+  /// Return [item] with `libraryId`/`libraryTitle` populated when the backend
+  /// can resolve them. Plex items already carry librarySectionID/Title and are
+  /// returned unchanged; Jellyfin/Emby look the owning CollectionFolder up via
+  /// `/Items/{id}/Ancestors`. Used by the download pipeline to stamp library
+  /// identity onto the durable row. May throw — callers treat failure as
+  /// "unstamped" and must not let it block their work.
+  Future<MediaItem> stampLibrary(MediaItem item);
+
   /// The artwork files the download pipeline should persist for [item] so
   /// the offline UI can render its poster, clear logo, and background art.
   /// Each entry pairs the absolute URL with a stable `localKey` the
@@ -822,9 +830,11 @@ abstract class MediaServerClient {
 
   /// Resolve a fully-qualified URL the OS-level external player (VLC, Infuse,
   /// MX Player, etc.) can fetch directly. Plex builds this from the chosen
-  /// media version's part path; Jellyfin returns its `/Videos/{id}/stream`
-  /// endpoint with `Static=true` so transcoding is bypassed. Returns null only
-  /// when a successful response has no playable URL for the item. Request,
+  /// media version's part path; Jellyfin returns its
+  /// `/Videos/{id}/stream.{container}` endpoint with `Static=true` so
+  /// transcoding is bypassed and the player gets a container extension hint
+  /// (required for disc images such as ISO). Returns null only when a
+  /// successful response has no playable URL for the item. Request,
   /// cancellation, and malformed-payload failures throw.
   ///
   /// Deliberately separate from the in-app playback funnel

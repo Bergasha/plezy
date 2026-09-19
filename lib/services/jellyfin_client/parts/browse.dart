@@ -496,15 +496,17 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
     return {'Genres': facets[0], 'OfficialRatings': facets[1], 'Tags': facets[2], 'Years': facets[3]};
   }
 
-  Future<List<String>> _safeFetchFilterFacet(String endpoint, String libraryId) async {
+  @override
+  Future<List<String>> _safeFetchFilterFacet(String endpoint, String? libraryId) async {
     try {
       final response = await _http.get(
         endpoint,
         // `Recursive=true` is required: without it Emby only considers the
         // library view's direct children and every facet comes back empty
         // (measured against Emby 4.9.5 — `/Years` returns 0 vs 15 rows).
-        queryParameters: {'UserId': connection.userId, 'ParentId': libraryId, 'Recursive': 'true'},
-        timeout: _filtersTimeout,
+        // A null [libraryId] scopes the facet server-wide, which is what tag
+        // suggestions want: MediaBrowser item DTOs carry no library id.
+        queryParameters: {'UserId': connection.userId, 'ParentId': ?libraryId, 'Recursive': 'true'},
       );
       throwIfHttpError(response);
       final data = response.data;
@@ -1537,6 +1539,12 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
   /// match by the session-level matcher cache); failures return the item
   /// unstamped.
   Future<MediaItem> _withLibraryFromAncestors(MediaItem item) => _stampAncestorLibrary(item, _libraryAncestor(item.id));
+
+  /// Stamps library identity onto an item that lacks it (the download
+  /// pipeline's enqueue path). Same ancestors lookup as
+  /// [_withLibraryFromAncestors]; failures return the item unstamped.
+  @override
+  Future<MediaItem> stampLibrary(MediaItem item) => _withLibraryFromAncestors(item);
 
   /// Applies a settled [_libraryAncestor] lookup, or returns [item] unchanged
   /// when the lookup found nothing.

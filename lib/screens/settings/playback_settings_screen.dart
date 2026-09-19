@@ -331,6 +331,12 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
         title: t.settings.autoPlayNextEpisode,
         subtitle: t.settings.autoPlayNextEpisodeDescription,
       ),
+      SettingSwitchTile(
+        pref: SettingsService.shuffleStartsFromBeginning,
+        icon: Symbols.shuffle_rounded,
+        title: t.settings.shuffleStartsFromBeginning,
+        subtitle: t.settings.shuffleStartsFromBeginningDescription,
+      ),
       SettingNumberTile(
         pref: SettingsService.playNextCountdown,
         icon: Symbols.timer_rounded,

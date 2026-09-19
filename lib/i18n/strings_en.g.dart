@@ -945,6 +945,12 @@ class Translations$settings$en {
 	/// en: 'Start the next episode automatically when one ends'
 	String get autoPlayNextEpisodeDescription => 'Start the next episode automatically when one ends';
 
+	/// en: 'Shuffle Starts at Beginning'
+	String get shuffleStartsFromBeginning => 'Shuffle Starts at Beginning';
+
+	/// en: 'Start each episode at the beginning when shuffling instead of resuming'
+	String get shuffleStartsFromBeginningDescription => 'Start each episode at the beginning when shuffling instead of resuming';
+
 	/// en: 'Play Next Countdown'
 	String get playNextCountdown => 'Play Next Countdown';
 
@@ -4504,8 +4510,11 @@ class Translations$downloads$en {
 	/// en: 'Server error: file may exceed the remote bitrate limit'
 	String get serverErrorBitrate => 'Server error: file may exceed the remote bitrate limit';
 
-	/// en: 'Downloads stopped because device storage is full. Free some space, then retry.'
-	String get storageFull => 'Downloads stopped because device storage is full. Free some space, then retry.';
+	/// en: 'Downloads stopped to protect available storage. Free some space or choose another download location, then retry.'
+	String get storageFull => 'Downloads stopped to protect available storage. Free some space or choose another download location, then retry.';
+
+	/// en: 'Downloads stopped because available storage could not be checked. Check the download location, then retry.'
+	String get storageUnavailable => 'Downloads stopped because available storage could not be checked. Check the download location, then retry.';
 
 	/// en: '${count} episodes queued for download'
 	String episodesQueued({required Object count}) => '${count} episodes queued for download';
@@ -4685,6 +4694,14 @@ class Translations$downloads$en {
 	String get syncRuleListCreated => 'Sync rule created';
 
 	late final Translations$downloads$backgroundWarning$en backgroundWarning = Translations$downloads$backgroundWarning$en.internal(_root);
+
+	/// en: 'Downloads options'
+	String get options => 'Downloads options';
+
+	late final Translations$downloads$groupings$en groupings = Translations$downloads$groupings$en.internal(_root);
+
+	/// en: 'Unknown library'
+	String get unknownLibrary => 'Unknown library';
 
 	/// en: 'Unknown Show'
 	String get unknownShow => 'Unknown Show';
@@ -5317,6 +5334,9 @@ class Translations$metadataEdit$en {
 
 	/// en: 'Label'
 	String get label => 'Label';
+
+	/// en: 'Quick Tag...'
+	String get quickTag => 'Quick Tag...';
 }
 
 // Path: matchScreen
@@ -6334,6 +6354,15 @@ class Translations$libraries$sortLabels$en {
 
 	/// en: 'Last Episode Date Added'
 	String get lastEpisodeDateAdded => 'Last Episode Date Added';
+
+	/// en: 'Date Downloaded'
+	String get dateDownloaded => 'Date Downloaded';
+
+	/// en: 'Size'
+	String get size => 'Size';
+
+	/// en: 'Library'
+	String get library => 'Library';
 }
 
 // Path: explore.rows
@@ -6949,6 +6978,18 @@ class Translations$downloads$backgroundWarning$en {
 
 	/// en: 'Couldn't open dontkillmyapp.com on this device'
 	String get linkUnavailable => 'Couldn\'t open dontkillmyapp.com on this device';
+}
+
+// Path: downloads.groupings
+class Translations$downloads$groupings$en {
+	Translations$downloads$groupings$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Library'
+	String get library => 'Library';
 }
 
 // Path: companionRemote.session
@@ -7594,6 +7635,8 @@ extension on Translations {
 			'settings.autoPlayAndSkip' => 'Auto-Play & Skip',
 			'settings.autoPlayNextEpisode' => 'Auto-Play Next Episode',
 			'settings.autoPlayNextEpisodeDescription' => 'Start the next episode automatically when one ends',
+			'settings.shuffleStartsFromBeginning' => 'Shuffle Starts at Beginning',
+			'settings.shuffleStartsFromBeginningDescription' => 'Start each episode at the beginning when shuffling instead of resuming',
 			'settings.playNextCountdown' => 'Play Next Countdown',
 			'settings.playNextCountdownImmediate' => 'Play immediately',
 			'settings.skipIntroMode' => 'Skip Intro',
@@ -7820,10 +7863,10 @@ extension on Translations {
 			'fileInfo.audioDescription' => 'Audio Description',
 			'fileInfo.headerCompression' => 'Header Compression',
 			'fileInfo.sidecarFile' => 'Sidecar File',
-			'fileInfo.transportTimestamp' => 'Transport Timestamp',
-			'fileInfo.displayOffset' => 'Display Offset',
 			_ => null,
 		} ?? switch (path) {
+			'fileInfo.transportTimestamp' => 'Transport Timestamp',
+			'fileInfo.displayOffset' => 'Display Offset',
 			'fileInfo.previewFailureCode' => 'Preview Failure Code',
 			'fileInfo.previewRetries' => 'Preview Retries',
 			'fileInfo.aspectRatio' => 'Aspect Ratio',
@@ -8334,10 +8377,10 @@ extension on Translations {
 			'discover.mostPlayedIn' => ({required Object library}) => 'Most Played in ${library}',
 			'discover.playEpisode' => ({required Object season, required Object episode}) => 'S${season}E${episode}',
 			'discover.overview' => 'Overview',
-			'discover.cast' => 'Cast',
-			'discover.extras' => 'Trailers & Extras',
 			_ => null,
 		} ?? switch (path) {
+			'discover.cast' => 'Cast',
+			'discover.extras' => 'Trailers & Extras',
 			'discover.ratingsAndReviews' => 'Ratings & Reviews',
 			'discover.plexCommunityUser' => 'Plex User',
 			'discover.studio' => 'Studio',
@@ -8443,6 +8486,9 @@ extension on Translations {
 			'libraries.sortLabels.dateShared' => 'Date Shared',
 			'libraries.sortLabels.latestEpisodeAirDate' => 'Latest Episode Air Date',
 			'libraries.sortLabels.lastEpisodeDateAdded' => 'Last Episode Date Added',
+			'libraries.sortLabels.dateDownloaded' => 'Date Downloaded',
+			'libraries.sortLabels.size' => 'Size',
+			'libraries.sortLabels.library' => 'Library',
 			'about.title' => 'About',
 			'about.openSourceLicenses' => 'Open Source Licenses',
 			'about.versionLabel' => ({required Object version}) => 'Version ${version}',
@@ -8845,13 +8891,13 @@ extension on Translations {
 			'watchTogether.leaveSessionConfirm' => 'You will be removed from the session.',
 			'watchTogether.endSessionConfirmOverlay' => 'This will end the watch session for all participants.',
 			'watchTogether.leaveSessionConfirmOverlay' => 'You will be disconnected from the watch session.',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.end' => 'End',
 			'watchTogether.leave' => 'Leave',
 			'watchTogether.syncing' => 'Syncing...',
 			'watchTogether.joinWatchSession' => 'Join Watch Session',
 			'watchTogether.enterCodeHint' => 'Enter 5-character code',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.pasteFromClipboard' => 'Paste from clipboard',
 			'watchTogether.pleaseEnterCode' => 'Please enter a session code',
 			'watchTogether.codeMustBe5Chars' => 'Session code must be 5 characters',
@@ -8901,7 +8947,8 @@ extension on Translations {
 			'downloads.downloadQueued' => 'Download queued',
 			'downloads.downloadResumed' => 'Download resumed',
 			'downloads.serverErrorBitrate' => 'Server error: file may exceed the remote bitrate limit',
-			'downloads.storageFull' => 'Downloads stopped because device storage is full. Free some space, then retry.',
+			'downloads.storageFull' => 'Downloads stopped to protect available storage. Free some space or choose another download location, then retry.',
+			'downloads.storageUnavailable' => 'Downloads stopped because available storage could not be checked. Check the download location, then retry.',
 			'downloads.episodesQueued' => ({required Object count}) => '${count} episodes queued for download',
 			'downloads.downloadDeleted' => 'Download deleted',
 			'downloads.deleteConfirm' => ({required Object title}) => 'Delete "${title}" from this device?',
@@ -8987,6 +9034,9 @@ extension on Translations {
 			'downloads.backgroundWarning.statusUnknown' => 'Not checked yet',
 			'downloads.backgroundWarning.settingsUnavailable' => 'Couldn\'t open system settings on this device',
 			'downloads.backgroundWarning.linkUnavailable' => 'Couldn\'t open dontkillmyapp.com on this device',
+			'downloads.options' => 'Downloads options',
+			'downloads.groupings.library' => 'Library',
+			'downloads.unknownLibrary' => 'Unknown library',
 			'downloads.unknownShow' => 'Unknown Show',
 			'downloads.unknownSeason' => 'Unknown Season',
 			'downloads.unknownAlbum' => 'Unknown Album',
@@ -9240,6 +9290,7 @@ extension on Translations {
 			'metadataEdit.country' => 'Country',
 			'metadataEdit.collection' => 'Collection',
 			'metadataEdit.label' => 'Label',
+			'metadataEdit.quickTag' => 'Quick Tag...',
 			'matchScreen.match' => 'Match...',
 			'matchScreen.fixMatch' => 'Fix Match...',
 			'matchScreen.unmatch' => 'Unmatch',
@@ -9354,6 +9405,8 @@ extension on Translations {
 			'services.oauthProxy.title' => ({required Object service}) => 'Sign in to ${service}',
 			'services.oauthProxy.body' => 'Scan this QR code or open the URL on any device.',
 			'services.oauthProxy.openToSignIn' => ({required Object service}) => 'Open ${service} to sign in',
+			_ => null,
+		} ?? switch (path) {
 			'services.pendingAuth.copyUrl' => 'Copy sign-in URL',
 			'services.pendingAuth.urlCopied' => 'URL copied',
 			'services.libraryFilter.title' => 'Library filter',
@@ -9364,8 +9417,6 @@ extension on Translations {
 			'services.libraryFilter.mode' => 'Filter mode',
 			'services.libraryFilter.modeBlacklist' => 'Blacklist',
 			'services.libraryFilter.modeWhitelist' => 'Whitelist',
-			_ => null,
-		} ?? switch (path) {
 			'services.libraryFilter.modeHintBlacklist' => 'Sync every library except the ones checked below.',
 			'services.libraryFilter.modeHintWhitelist' => 'Sync only the libraries checked below.',
 			'services.libraryFilter.libraries' => 'Libraries',

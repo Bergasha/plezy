@@ -220,9 +220,7 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
         _lastLogError = null;
         _fatalHttpStatuses.clear();
         _resetLiveLadderOnPlaybackRestart();
-        final markFirstFrameReady = _markFirstFrameReady(currentPlayer, settingsService);
-        _trackManager?.onPlaybackRestart();
-        await markFirstFrameReady;
+        await _markFirstFrameReady(currentPlayer, settingsService);
       }),
     );
 
@@ -390,14 +388,19 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
 
     if (currentPlayer == null) return;
 
-    _rebindProgressTracker(
-      metadata: metadata,
-      mediaClient: mediaClient,
-      offlineWatchService: offlineWatchService,
-      playSessionId: playSessionId,
-      playMethod: playMethod,
-      mediaInfo: mediaInfo,
-    );
+    // Live reporting belongs to [_sendLiveTimeline]'s heartbeats against the
+    // tuner session. A [PlaybackProgressTracker] here would post a second,
+    // item-shaped timeline for a channel placeholder that has no watch state.
+    if (!widget.isLive) {
+      _rebindProgressTracker(
+        metadata: metadata,
+        mediaClient: mediaClient,
+        offlineWatchService: offlineWatchService,
+        playSessionId: playSessionId,
+        playMethod: playMethod,
+        mediaInfo: mediaInfo,
+      );
+    }
 
     // Media controls metadata. Fire-and-forget — the OS plugin downloads
     // the poster synchronously inside `setMetadata` (~270 ms); the
@@ -412,10 +415,15 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
       );
     }
 
-    // Scrobblers — Discord RPC, Trakt, unified tracker. All accept the
-    // neutral [MediaServerClient]; null short-circuits cleanly.
+    // Scrobblers — Discord RPC plus the tracker coordinator, which fans out to
+    // every connected service. Both accept the neutral [MediaServerClient]; null
+    // short-circuits cleanly.
     if (mediaClient != null && !widget.isPreroll) {
-      unawaited(DiscordRPCService.instance.startPlayback(metadata, mediaClient));
+      // Discord renders a timeline the live placeholder does not have; the
+      // tracker coordinator takes the live decision itself.
+      if (!widget.isLive) {
+        unawaited(DiscordRPCService.instance.startPlayback(metadata, mediaClient));
+      }
       unawaited(TrackerCoordinator.instance.startPlayback(metadata, mediaClient, isLive: widget.isLive));
     }
   }
@@ -497,16 +505,21 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
     final currentPlayer = player;
     if (!mounted || _shuttingDown || currentPlayer == null || _hasFatalPlaybackError) return;
 
-    // Live TV: send timeline heartbeats to keep transcode session alive
-    if (widget.isLive) {
-      _startLiveTimelineUpdates();
-      return;
-    }
+    // Live TV keeps the timeline heartbeats instead of the progress tracker
+    // (see [_rebindProgressTracker]'s gate below), but it still owns an OS
+    // media session: Assistant, the Now Playing card and AVRCP remotes drive
+    // the same transport surface VOD does, and [MediaControlsScreenController]
+    // already carries the live capability policy. Only the steps that cannot
+    // serve a live stream are gated, so a live screen cannot silently skip a
+    // per-item service added here later.
+    if (widget.isLive) _startLiveTimelineUpdates();
 
     // Get a live reporting client when possible. Downloaded/local playback
     // still uses this path when the server is reachable.
     final mediaClient = _playbackContext?.reportingClient ?? _getOnlineMediaServerClient(context);
-    final offlineWatchService = context.read<OfflineWatchSyncService>();
+    // Live never reports progress, so it neither queues offline updates nor
+    // needs the provider that owns them.
+    final offlineWatchService = widget.isLive ? null : context.read<OfflineWatchSyncService>();
 
     // Initialize media controls manager (must exist before the per-item
     // helper wires its metadata update).
@@ -554,12 +567,9 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
     await _mediaControls.syncAvailability();
     if (!mounted || player != currentPlayer || _mediaControlsManager != mediaControlsManager) return;
 
-    // Listen to playing state and update media controls
-    _mediaControlSubscriptions.add(
-      currentPlayer.streams.playing.listen((isPlaying) {
-        _mediaControls.pushPlaybackState();
-      }),
-    );
+    // The position listener below only fires on ticks, so a stream that is
+    // already paused when it attaches would never publish its state.
+    _mediaControls.pushPlaybackState();
 
     // Listen to position updates for media controls and Discord
     _mediaControlSubscriptions.add(
@@ -569,6 +579,9 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
           position: position,
           speed: currentPlayer.state.rate,
         );
+        // Live reports through [_sendLiveTimeline] alone; Discord and the
+        // trackers were never started for it.
+        if (widget.isLive) return;
         DiscordRPCService.instance.updatePosition(position);
         TrackerCoordinator.instance.updatePosition(position);
         // Keep the trackers' known duration current — mpv only emits on the
@@ -578,12 +591,14 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
       }),
     );
 
-    // Listen to playback rate changes for Discord Rich Presence
-    _mediaControlSubscriptions.add(
-      currentPlayer.streams.rate.listen((rate) {
-        DiscordRPCService.instance.updatePlaybackSpeed(rate);
-      }),
-    );
+    if (!widget.isLive) {
+      // Listen to playback rate changes for Discord Rich Presence
+      _mediaControlSubscriptions.add(
+        currentPlayer.streams.rate.listen((rate) {
+          DiscordRPCService.instance.updatePlaybackSpeed(rate);
+        }),
+      );
+    }
 
     _mediaControlSubscriptions.add(
       currentPlayer.streams.seekable.listen((_) {
@@ -635,6 +650,10 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
         _mediaControls.pushPlaybackState();
       },
       onSeek: (position) {
+        // A live stream has no absolute position to seek to: the session
+        // never advertises SEEK_TO for one, and a stray event must not
+        // resolve into a VOD seek against a moving live edge.
+        if (widget.isLive) return;
         final currentPlayer = player;
         if (currentPlayer != null) {
           unawaited(_seekPlayback(clampSeekPosition(currentPlayer, position)));
@@ -649,7 +668,12 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
       // [_configuredSkipStep].
       onSkipForward: (_) => _skipByConfiguredStep(forward: true),
       onSkipBackward: (_) => _skipByConfiguredStep(forward: false),
-      onSetSpeed: (speed) => unawaited(_setPlaybackRate(speed)),
+      onSetSpeed: (speed) {
+        // Rate changes do not apply to a live stream; the session leaves the
+        // command un-advertised, and a stray event stays inert.
+        if (widget.isLive) return;
+        unawaited(_setPlaybackRate(speed));
+      },
     );
   }
 
