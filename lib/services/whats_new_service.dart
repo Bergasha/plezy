@@ -33,6 +33,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
     'Player and display fixes',
     'Bug fixes and improvements',
   ],
+  '2.17.31': ['Bug fixes and improvements'],
 };
 
 abstract final class WhatsNewService {
