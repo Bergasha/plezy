@@ -363,6 +363,8 @@
     "manageLibrariesDescription": "Reorder and hide libraries",
     "companionRemoteServer": "Companion Remote Server",
     "companionRemoteServerDescription": "Allow mobile devices on your network to control this app",
+    "companionRemoteServerStartFailed": "Couldn't start the companion server",
+    "companionRemoteServerStopFailed": "Couldn't stop the companion server",
     "autoPip": "Auto Picture-in-Picture",
     "autoPipDescription": "Automatically enter picture-in-picture when you leave the app during playback",
     "playThemeMusic": "Play Theme Music",
@@ -787,6 +789,7 @@
     "subtitlesOff": "Subtitles: off",
     "subtitlesTrack": "Subtitles: ${label}",
     "zoomPercent": "Zoom ${percent}%",
+    "volumePercent": "Volume ${percent}%",
     "pipErrors": {
       "androidVersion": "Requires Android 8.0 or newer",
       "iosVersion": "Requires iOS 15.0 or newer",
@@ -1134,7 +1137,14 @@
     "failedToVerifyToken": "Failed to verify token: ${error}",
     "failedToSwitchProfile": "Failed to switch to ${displayName}",
     "failedToDeleteProfile": "Failed to delete ${displayName}",
-    "failedToRate": "Couldn't update rating"
+    "failedToRate": "Couldn't update rating",
+    "reasonTimedOut": "the connection timed out",
+    "reasonUnreachable": "the server could not be reached",
+    "reasonRefused": "the server refused the request",
+    "reasonNotFound": "the item is no longer on the server",
+    "reasonServerError": "the server reported an error",
+    "reasonCancelled": "the request was cancelled",
+    "reasonUnexpected": "an unexpected error occurred"
   },
   "libraries": {
     "title": "Libraries",
@@ -1203,7 +1213,8 @@
       "tag": "Tag",
       "unwatched": "Unwatched",
       "unplayed": "Unplayed",
-      "favorites": "Favorites"
+      "favorites": "Favorites",
+      "filePath": "File Path"
     },
     "sortLabels": {
       "title": "Title",
@@ -1229,6 +1240,34 @@
       "dateDownloaded": "Date Downloaded",
       "size": "Size",
       "library": "Library"
+    },
+    "advancedFilters": {
+      "include": "Include",
+      "exclude": "Exclude",
+      "any": "Any",
+      "yes": "Yes",
+      "no": "No",
+      "not": "Not ${value}",
+      "valueCount": "${count} selected",
+      "valueCountExcluded": "${count} excluded",
+      "searchValues": "Search values",
+      "noValues": "No values",
+      "matchContains": "Contains",
+      "matchNotContains": "Does not contain",
+      "matchIs": "Is",
+      "matchIsNot": "Is not",
+      "matchBeginsWith": "Begins with",
+      "matchEndsWith": "Ends with",
+      "textHint": "Type to match",
+      "from": "From",
+      "to": "To",
+      "range": "${from} to ${to}",
+      "atLeast": "${value} and up",
+      "atMost": "Up to ${value}",
+      "dateLastDays": "Last ${count} days",
+      "dateLastYear": "Past year",
+      "dateOlderThanDays": "Older than ${count} days",
+      "dateOlderThanYear": "Older than a year"
     }
   },
   "about": {
@@ -1556,7 +1595,9 @@
     "editRuleAction": "Edit",
     "recordingRuleUpdated": "Recording rule updated",
     "guideReloadRequested": "Guide refresh requested",
+    "guideReloadFailed": "Couldn't refresh the guide",
     "rulesProcessRequested": "Rule re-evaluation requested",
+    "rulesProcessFailed": "Couldn't re-evaluate recording rules",
     "recordShow": "Record show",
     "recordSettings": {
       "startEarly": "Start early (seconds)",
@@ -1572,7 +1613,9 @@
     "dayAtTime": "${day} at ${time}",
     "invalidPlaybackData": "${product} returned invalid Live TV playback data",
     "failedToStartChannel": "Could not start the live channel",
-    "failedToBuildStreamUrl": "Could not build the stream URL"
+    "failedToBuildStreamUrl": "Could not build the stream URL",
+    "playbackStartFailed": "Couldn't start the channel: ${reason}",
+    "channelSwitchFailed": "Couldn't switch channel: ${reason}"
   },
   "collections": {
     "title": "Collections",

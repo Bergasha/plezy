@@ -18,16 +18,7 @@ import 'package:plezy/widgets/app_icon.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:rate_limiter/rate_limiter.dart';
 import 'package:flutter/services.dart'
-    show
-        SystemChrome,
-        DeviceOrientation,
-        LogicalKeyboardKey,
-        PhysicalKeyboardKey,
-        KeyEvent,
-        KeyDownEvent,
-        KeyUpEvent,
-        KeyRepeatEvent,
-        HardwareKeyboard;
+    show LogicalKeyboardKey, PhysicalKeyboardKey, KeyEvent, KeyDownEvent, KeyUpEvent, KeyRepeatEvent, HardwareKeyboard;
 import '../../services/fullscreen_state_manager.dart';
 import '../../services/macos_window_service.dart';
 import '../../services/pip_service.dart';
@@ -55,6 +46,7 @@ import '../../media/media_version.dart';
 import '../../screens/video_player_screen.dart';
 import '../../focus/key_event_utils.dart';
 import '../../services/keyboard_shortcuts_service.dart';
+import '../../services/live_seek_accumulator.dart';
 import '../../services/device_adjustment_service.dart';
 import '../../services/scrub_preview_source.dart';
 import '../../services/scoped_player_prefs.dart';
@@ -62,6 +54,7 @@ import '../../services/settings_service.dart';
 import '../../services/video_volume_controller.dart';
 import '../../utils/codec_utils.dart';
 import '../../utils/formatters.dart';
+import '../../utils/orientation_helper.dart';
 import '../../utils/platform_detector.dart';
 import '../../utils/player_utils.dart';
 import '../../theme/mono_tokens.dart';
@@ -79,6 +72,7 @@ import '../../focus/input_mode_tracker.dart';
 import 'models/track_controls_state.dart';
 import 'widgets/double_tap_feedback.dart';
 import 'helpers/mobile_edge_adjustment_tracker.dart';
+import 'helpers/render_geometry.dart';
 import 'helpers/two_finger_tap_tracker.dart';
 import 'widgets/linux_keep_alive.dart';
 import 'widgets/mobile_edge_adjustment_indicator.dart';
@@ -96,6 +90,7 @@ import '../../providers/playback_state_provider.dart';
 import '../../providers/shader_provider.dart';
 import '../../services/shader_service.dart';
 import '../../watch_together/providers/watch_together_provider.dart';
+import '../../utils/error_message_utils.dart';
 
 part 'parts/key_events.dart';
 part 'parts/markers.dart';
@@ -662,12 +657,13 @@ class PlexVideoControls extends StatefulWidget {
   /// Seek callback for live TV time-shift (absolute epoch seconds; scrubber)
   final ValueChanged<int>? onLiveSeek;
 
-  /// Relative live-TV skip callback (delta seconds). The owning screen
+  /// Relative live-TV skip entry point (delta seconds). The owning screen
   /// accumulates rapid presses and debounces the transcode re-open, so skip
   /// buttons/dpad/remote keys must use this rather than `onLiveSeek` (#1253).
-  final ValueChanged<int>? onLiveSeekBy;
+  /// Returns the seconds actually applied — zero at the edge of the seekable
+  /// window — which is all the skip badge may announce (#2425).
+  final LiveSeekBy? onLiveSeekBy;
 
-  /// Jump to live edge callback
   final VoidCallback? onJumpToLive;
 
   /// Whether ambient lighting is enabled (passed to settings sheet)
@@ -775,7 +771,6 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
   String? _extrasLoadKey;
   late List<MediaChapter> _chapters = widget.initialChapters ?? [];
   late bool _chaptersLoaded = widget.initialChapters != null;
-  bool _isFullscreen = false;
   bool _isAlwaysOnTop = false;
   late final FocusNode _focusNode;
   KeyboardShortcutsService? _keyboardService;
@@ -807,6 +802,10 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
   double _doubleTapFeedbackOpacity = 0.0;
   bool _lastDoubleTapWasForward = true;
   Timer? _feedbackTimer;
+  // Exact distance the current readout has travelled; the notifier below is
+  // its whole-second rendering, rounded once so a burst of fractional steps
+  // cannot drift the label off the distance travelled (#2425).
+  Duration _accumulatedSkip = Duration.zero;
   final ValueNotifier<int> _accumulatedSkipSeconds = ValueNotifier<int>(0);
   // Desktop double-click detection (more reliable than Flutter's onDoubleTap).
   // The mobile skip zones do not use this; they pair off _singleTapTimer.
@@ -989,12 +988,11 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
       onHide: _cancelEdgeAdjustmentGesture,
       onPause: _cancelEdgeAdjustmentGesture,
     );
-    // Add window listener for tracking fullscreen state (for button icon)
     if (PlatformDetector.isDesktopOS()) {
-      if (Platform.isMacOS) {
-        _isFullscreen = FullscreenStateManager().isFullscreen;
-        FullscreenStateManager().addListener(_onFullscreenStateChanged);
-      }
+      // Fullscreen chrome (the button icon, the macOS traffic lights) follows
+      // the manager on every desktop OS: window_manager never sees the Windows
+      // transition, which goes through the native Win32 channel (#2267).
+      bindListenable(FullscreenStateManager(), _onFullscreenStateChanged);
       windowManager.addListener(this);
       _initAlwaysOnTopState();
     }
@@ -1130,20 +1128,20 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
       }
     }
     if (Platform.isMacOS) {
-      FullscreenStateManager().removeListener(_onFullscreenStateChanged);
       _trafficLightVisibilityGeneration++;
       unawaited(MacOSWindowService.setTrafficLightsVisible(true));
     }
     super.dispose();
   }
 
+  /// [FullscreenStateManager] is the single source of desktop fullscreen truth
+  /// — macOS reports through its NSWindowDelegate, Windows through the native
+  /// Win32 channel, Linux through window_manager — and it only notifies on a
+  /// real change, so this just rebuilds the chrome that reads it.
   void _onFullscreenStateChanged() {
-    final isFullscreen = FullscreenStateManager().isFullscreen;
-    if (!mounted || _isFullscreen == isFullscreen) return;
-    setState(() {
-      _isFullscreen = isFullscreen;
-    });
-    _updateTrafficLightVisibility();
+    if (!mounted) return;
+    _setControlsState(() {});
+    if (Platform.isMacOS) _updateTrafficLightVisibility();
   }
 
   void _onEdgeAdjustmentPipChanged() {
@@ -1154,44 +1152,6 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
       _cancelEdgeAdjustmentGesture();
     } else {
       widget.chromeController.release(PlayerChromeHold.pip);
-    }
-  }
-
-  @override
-  void onWindowEnterFullScreen() {
-    if (mounted) {
-      setState(() {
-        _isFullscreen = true;
-      });
-    }
-  }
-
-  @override
-  void onWindowLeaveFullScreen() {
-    if (mounted) {
-      setState(() {
-        _isFullscreen = false;
-      });
-    }
-  }
-
-  @override
-  void onWindowMaximize() {
-    // On macOS, maximize is the same as fullscreen (green button)
-    if (mounted && Platform.isMacOS) {
-      setState(() {
-        _isFullscreen = true;
-      });
-    }
-  }
-
-  @override
-  void onWindowUnmaximize() {
-    // On macOS, unmaximize means exiting fullscreen
-    if (mounted && Platform.isMacOS) {
-      setState(() {
-        _isFullscreen = false;
-      });
     }
   }
 
@@ -1321,7 +1281,8 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
                                 child: Builder(
                                   builder: (context) {
                                     return GestureDetector(
-                                      onTapUp: (details) => _handleControlsOverlayTap(details, _sizeOf(context)),
+                                      onTapUp: (details) =>
+                                          _handleControlsOverlayTap(details, renderBoxSizeOf(context)),
                                       onLongPressStart: (_) => _handleLongPressStart(),
                                       onLongPressEnd: (_) => _handleLongPressEnd(),
                                       onLongPressCancel: _handleLongPressCancel,

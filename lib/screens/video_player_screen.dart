@@ -129,6 +129,7 @@ import '../focus/transport_keys.dart';
 import '../i18n/strings.g.dart';
 import '../watch_together/providers/watch_together_provider.dart';
 import '../watch_together/services/watch_together_controller.dart';
+import '../utils/error_message_utils.dart';
 
 part 'video_player/parts/companion_remote.dart';
 part 'video_player/parts/display_matching.dart';
@@ -844,9 +845,11 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
   late final SpuriousEofRecovery _eofRecovery = SpuriousEofRecovery(
     isLive: widget.isLive,
     isOffline: () => _isOfflinePlayback,
+    isTranscoding: () => _isTranscoding,
     transitionGate: _transitionGate,
     player: () => player,
     metadata: () => _currentMetadata,
+    transportFaultSeen: () => _transportFaultSeen,
     reload: ({required Duration resumePosition, required String reason}) => _reloadMediaInPlace(
       metadata: _currentMetadata,
       resumePosition: resumePosition,
@@ -934,6 +937,8 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     isMounted: () => mounted && !_shuttingDown,
     isLive: widget.isLive,
     hasLiveSeekWindow: () => _live.captureBuffer != null,
+    hasNextLiveChannel: () => _hasNextChannel,
+    hasPreviousLiveChannel: () => _hasPreviousChannel,
     shouldSkipForPip: () => _shouldSkipForPip,
     isPlayerInitialized: () => _isPlayerInitialized,
     metadata: () => _currentMetadata,
@@ -982,10 +987,10 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     isMounted: () => mounted,
     canControlPlayback: () => _canControlPlayback(),
     volumeController: () => _volumeController,
-    hasNextEpisode: () => _episode.next != null,
+    hasNextItem: () => _hasNextItem,
     onStop: () => _handleBackButton(),
-    onPlayNext: () => _playNext(),
-    onPlayPrevious: () => _restartOrPlayPrevious(),
+    onNavigateToNextItem: _navigateToNextItem,
+    onNavigateToPreviousItem: _navigateToPreviousItem,
     skipByConfiguredStep: ({required bool forward}) => _skipByConfiguredStep(forward: forward),
     onCycleSubtitles: () => _cycleSubtitleTrack(),
     onCycleAudio: () => _cycleAudioTrack(),
@@ -1193,7 +1198,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   @visibleForTesting
-  bool debugInterceptEofForTesting() => _eofRecovery.interceptEof(player!);
+  Future<bool> debugInterceptEofForTesting() => _eofRecovery.interceptEof(player!);
 
   @visibleForTesting
   bool get debugPlaybackParkedForTesting => _eofRecovery.parked;
@@ -2034,6 +2039,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
         player: currentPlayer,
         settings: settingsService,
         initialVolume: savedVolume,
+        onUserChange: _announceVolumeCommand,
       );
 
       player = currentPlayer;
@@ -2074,7 +2080,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
             OrientationHelper.setLandscapeOrientation();
           } else {
             // Unlocked: Allow all orientations immediately
-            unawaited(SystemChrome.setPreferredOrientations(DeviceOrientation.values));
+            unawaited(OrientationHelper.restoreDefaultOrientations());
             unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
           }
           // Immersive mode is requested once; a fold/unfold or display switch
@@ -2545,6 +2551,23 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     );
   }
 
+  /// Announce an accepted user volume command with the top pill, whatever the
+  /// chrome state. The visible chrome does render volume, but as a 100 px
+  /// slider that moves 3 % per wheel notch: a viewer on a handheld scrolled
+  /// themselves to silence without noticing (#2357). Every input reaches
+  /// here — wheel, shortcut keys, the OSD slider, companion remote — while
+  /// volume the player reports on its own never does.
+  void _announceVolumeCommand(double volume) {
+    if (!mounted) return;
+    final percent = volume.round();
+    final icon = percent == 0
+        ? Symbols.volume_off_rounded
+        : percent < 50
+        ? Symbols.volume_down_rounded
+        : Symbols.volume_up_rounded;
+    _toastController.show(icon, t.videoControls.volumePercent(percent: percent));
+  }
+
   /// Apply a transport command on behalf of a hardware remote (Apple TV bridge
   /// or a hardware media key). Mirrors the controls path: rewind-on-resume,
   /// then play/pause with playback intent, then announce.
@@ -2609,6 +2632,10 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
   }
 
   String? _lastLogError;
+
+  /// Whether the transport layer has logged a fault for the current file;
+  /// latched per open, read by [SpuriousEofRecovery] to classify an EOF.
+  bool _transportFaultSeen = false;
 
   /// Statuses in [fatalPlaybackHttpStatuses] the player's own log stream
   /// reported for this open. Each latches independently: the reconnect path

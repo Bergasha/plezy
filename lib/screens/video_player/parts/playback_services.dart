@@ -143,9 +143,24 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
         // ending: it must never mark the item watched, prompt Play Next, or
         // exit a movie. Intercepted here and not inside _onVideoCompleted
         // because the credits-marker auto-skip legitimately calls
-        // _onVideoCompleted from mid-credits positions.
-        if (done && _eofRecovery.interceptEof(currentPlayer)) return;
-        _onVideoCompleted(done);
+        // _onVideoCompleted from mid-credits positions. The interceptor may
+        // yield to the player channel; a completion from a player the screen
+        // has since replaced or torn down must not reach the completion flow.
+        if (!done) {
+          _onVideoCompleted(false);
+          return;
+        }
+        unawaited(
+          _eofRecovery
+              .interceptEof(currentPlayer)
+              .then((intercepted) {
+                if (intercepted || !mounted || _shuttingDown || player != currentPlayer) return;
+                _onVideoCompleted(true);
+              })
+              .catchError((Object error, StackTrace stackTrace) {
+                appLogger.e('EOF classification failed; completion not run', error: error, stackTrace: stackTrace);
+              }),
+        );
       }),
     );
 
@@ -571,7 +586,6 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
     // already paused when it attaches would never publish its state.
     _mediaControls.pushPlaybackState();
 
-    // Listen to position updates for media controls and Discord
     _mediaControlSubscriptions.add(
       currentPlayer.streams.position.listen((position) {
         mediaControlsManager.updatePlaybackState(
@@ -659,10 +673,11 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
           unawaited(_seekPlayback(clampSeekPosition(currentPlayer, position)));
         }
       },
-      onNext: () {
-        if (_episode.next != null) unawaited(_playNext());
-      },
-      onPrevious: () => unawaited(_restartOrPlayPrevious()),
+      // Next/previous mean what the on-screen buttons mean: a channel zap on
+      // live TV, the adjacent item otherwise. Both targets refuse a step
+      // that has nowhere to go, so no adjacency gate is repeated here.
+      onNext: () => unawaited(_navigateToNextItem()),
+      onPrevious: () => unawaited(_navigateToPreviousItem()),
       onStop: () => unawaited(_handleBackButton()),
       // The platform-reported interval is ignored on purpose; see
       // [_configuredSkipStep].

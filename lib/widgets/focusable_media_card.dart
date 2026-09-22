@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../focus/focus_theme.dart';
 import '../focus/focusable_wrapper.dart';
 import '../media/media_item.dart';
+import '../services/settings_service.dart';
 import '../utils/platform_detector.dart';
 import 'media_card.dart';
 
@@ -24,8 +25,10 @@ class FocusableMediaCard extends StatefulWidget {
   final void Function(MediaItem source)? onRefresh;
   final VoidCallback? onRemoveFromContinueWatching;
   final VoidCallback? onListRefresh;
-  final bool forceGridMode;
-  final bool forceListMode;
+
+  /// Pins the inner [MediaCard] to grid or list layout; null follows the
+  /// user's view-mode setting.
+  final ViewMode? viewModeOverride;
   final bool isInContinueWatching;
   final bool usesContinueWatchingAction;
   final String? collectionId;
@@ -91,8 +94,7 @@ class FocusableMediaCard extends StatefulWidget {
     this.onRefresh,
     this.onRemoveFromContinueWatching,
     this.onListRefresh,
-    this.forceGridMode = false,
-    this.forceListMode = false,
+    this.viewModeOverride,
     this.isInContinueWatching = false,
     bool? usesContinueWatchingAction,
     this.collectionId,
@@ -153,8 +155,7 @@ class _FocusableMediaCardState extends State<FocusableMediaCard> {
         onRefresh: widget.onRefresh,
         onRemoveFromContinueWatching: widget.onRemoveFromContinueWatching,
         onListRefresh: widget.onListRefresh,
-        forceGridMode: widget.forceGridMode,
-        forceListMode: widget.forceListMode,
+        viewModeOverride: widget.viewModeOverride,
         isInContinueWatching: widget.isInContinueWatching,
         usesContinueWatchingAction: widget.usesContinueWatchingAction,
         collectionId: widget.collectionId,

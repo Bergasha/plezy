@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "ライブラリを並べ替えたり非表示にしたりできます",
     "companionRemoteServer": "コンパニオンリモートサーバー",
     "companionRemoteServerDescription": "ネットワーク上のモバイルデバイスからこのアプリを操作できるようにする",
+    "companionRemoteServerStartFailed": "コンパニオンリモートサーバーを開始できませんでした",
+    "companionRemoteServerStopFailed": "コンパニオンリモートサーバーを停止できませんでした",
     "autoPip": "自動ピクチャーインピクチャー",
     "autoPipDescription": "再生中にアプリを離れると、自動的にピクチャーインピクチャーに切り替えます",
     "matchContentFrameRate": "コンテンツのフレームレートに合わせる",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "HDRコンテンツではHDRに切り替え、その後SDRに戻します",
     "displaySwitchDelay": "ディスプレイ切り替え遅延",
     "tunneledPlayback": "トンネル再生",
-    "tunneledPlaybackDescription": "動画トンネリングを使用します。HDR再生で画面が黒くなる場合は無効にしてください。",
+    "tunneledPlaybackDescription": "動画トンネリングを使用します。HDR再生で画面が黒くなる場合や動きがカクつく場合は無効にしてください。",
     "audioPassthrough": "オーディオパススルー",
     "audioPassthroughDescription": "Dolby/DTS音声を再エンコードせずにレシーバーやテレビに送り、サラウンドを維持します。音が出ない場合は無効にしてください。",
     "audioPassthroughDescriptionAppleTv": "Dolby Atmosを含むDolby Digital PlusにはApple標準のDolbyデコーダーを使用します。DTSとTrueHDは引き続きマルチチャンネルPCMで再生されます。音が出ない場合は無効にしてください。",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "ダウンミックス時の音量正規化",
     "audioDownmixNormalizeDescription": "クリッピングを防ぐためにミックス音量を下げます。オフにすると元の音量を維持します（大音量シーンで歪む場合があります）。",
     "dvConversionMode": "Dolby Vision 変換",
-    "dvConversionModeDescription": "ExoPlayer が Dolby Vision Profile 7 ファイルを処理する方法を選択します。",
+    "dvConversionModeDescription": "Dolby Vision Profile 7 ファイルの処理方法を選択します。",
     "dvConversionAuto": "自動",
     "dvConversionNative": "ネイティブ / 無効",
     "dvConversionDv81": "P7 → P8.1",
@@ -726,6 +728,7 @@
     "pipFailed": "ピクチャーインピクチャーの開始に失敗しました",
     "screenshotSaved": "スクリーンショットを保存しました",
     "zoomPercent": "ズーム ${percent}%",
+    "volumePercent": "音量 ${percent}%",
     "pipErrors": {
       "androidVersion": "Android 8.0以降が必要です",
       "iosVersion": "iOS 15.0以降が必要です",
@@ -925,7 +928,7 @@
     "borrowAddTo": "${displayName}に追加",
     "borrowExplain": "別のプロフィールの接続を利用します。PINで保護されたプロフィールにはPINが必要です。",
     "borrowEmpty": "利用できる接続はまだありません。",
-    "borrowEmptySubtitle": "まず、別のプロフィールをPlexまたはJellyfinに接続してください。",
+    "borrowEmptySubtitle": "まず、別のプロフィールをPlex、JellyfinまたはEmbyに接続してください。",
     "borrowLoadFailed": "利用可能な接続を読み込めませんでした。もう一度お試しください。",
     "borrowFromProfile": "${displayName}から利用",
     "borrowConnectionBorrowed": "接続を追加しました。",
@@ -946,8 +949,8 @@
   "connections": {
     "sectionTitle": "接続",
     "addConnection": "接続を追加",
-    "addConnectionSubtitleNoProfile": "Plexでサインインするか、Jellyfinサーバーに接続",
-    "addConnectionSubtitleScoped": "${displayName}に追加：Plex、Jellyfin、または別のプロフィールの接続",
+    "addConnectionSubtitleNoProfile": "Plexでサインインするか、JellyfinまたはEmbyサーバーに接続",
+    "addConnectionSubtitleScoped": "${displayName}に追加：Plex、Jellyfin、Emby、または別のプロフィールの接続",
     "sessionExpiredOne": "${name} のセッションの有効期限が切れました",
     "sessionExpiredMany": "${count} 台のサーバーのセッションの有効期限が切れました",
     "signInAgain": "再度サインイン",
@@ -1066,7 +1069,14 @@
     "failedToVerifyToken": "トークンの検証に失敗しました: ${error}",
     "failedToSwitchProfile": "${displayName}への切替に失敗しました",
     "failedToDeleteProfile": "${displayName}の削除に失敗しました",
-    "failedToRate": "評価を更新できませんでした"
+    "failedToRate": "評価を更新できませんでした",
+    "reasonTimedOut": "接続がタイムアウトしました",
+    "reasonUnreachable": "メディアサーバーに接続できませんでした",
+    "reasonRefused": "メディアサーバーがリクエストを拒否しました",
+    "reasonNotFound": "この項目はメディアサーバー上に存在しません",
+    "reasonServerError": "メディアサーバーでエラーが発生しました",
+    "reasonCancelled": "リクエストがキャンセルされました",
+    "reasonUnexpected": "予期しないエラーが発生しました"
   },
   "libraries": {
     "title": "ライブラリ",
@@ -1135,7 +1145,8 @@
       "tag": "タグ",
       "unwatched": "未視聴",
       "unplayed": "未再生",
-      "favorites": "お気に入り"
+      "favorites": "お気に入り",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "タイトル",
@@ -1157,14 +1168,45 @@
       "random": "ランダム",
       "dateShared": "共有日",
       "latestEpisodeAirDate": "最新エピソード放送日",
-      "lastEpisodeDateAdded": "最新エピソード追加日"
+      "lastEpisodeDateAdded": "最新エピソード追加日",
+      "dateDownloaded": "ダウンロード日",
+      "size": "サイズ",
+      "library": "ライブラリ"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "アプリについて",
     "openSourceLicenses": "オープンソースライセンス",
     "versionLabel": "バージョン ${version}",
-    "appDescription": "Flutter製の美しいPlex・Jellyfinクライアント",
+    "appDescription": "Flutter製の美しいPlex・Jellyfin・Embyクライアント",
     "viewLicensesDescription": "サードパーティライブラリのライセンスを表示"
   },
   "serverSelection": {
@@ -1477,7 +1519,9 @@
     "editRuleAction": "編集",
     "recordingRuleUpdated": "録画ルールを更新しました",
     "guideReloadRequested": "番組表の更新をリクエストしました",
+    "guideReloadFailed": "番組表を再読み込みできませんでした",
     "rulesProcessRequested": "録画ルールの再評価をリクエストしました",
+    "rulesProcessFailed": "録画ルールを再適用できませんでした",
     "recordShow": "番組を録画",
     "recordSettings": {
       "startEarly": "早めに開始（秒）",
@@ -1493,7 +1537,9 @@
     "dayAtTime": "${day} ${time}",
     "invalidPlaybackData": "${product}から無効なライブTV再生データが返されました",
     "failedToStartChannel": "ライブチャンネルを開始できませんでした",
-    "failedToBuildStreamUrl": "ストリームURLを生成できませんでした"
+    "failedToBuildStreamUrl": "ストリームURLを生成できませんでした",
+    "playbackStartFailed": "チャンネルを再生できませんでした: ${reason}",
+    "channelSwitchFailed": "チャンネルを切り替えられませんでした: ${reason}"
   },
   "collections": {
     "title": "コレクション",
@@ -1678,7 +1724,7 @@
     "downloadQueued": "ダウンロードをキューに追加しました",
     "downloadResumed": "ダウンロードを再開しました",
     "serverErrorBitrate": "サーバーエラー: ファイルがリモートビットレート制限を超えている可能性があります",
-    "storageFull": "デバイスのストレージがいっぱいのため、ダウンロードを停止しました。空き容量を確保してから、もう一度お試しください。",
+    "storageFull": "空き容量を確保するため、ダウンロードを停止しました。空き容量を確保するか、別のダウンロード先を選んでから、もう一度お試しください。",
     "storageUnavailable": "空き容量を確認できなかったため、ダウンロードを停止しました。ダウンロード先を確認してから、もう一度お試しください。",
     "episodesQueued": "${count}エピソードをダウンロードキューに追加しました",
     "downloadDeleted": "ダウンロードを削除しました",
@@ -1767,6 +1813,11 @@
       "settingsUnavailable": "この端末ではシステム設定を開けませんでした",
       "linkUnavailable": "この端末ではdontkillmyapp.comを開けませんでした"
     },
+    "options": "ダウンロードのオプション",
+    "groupings": {
+      "library": "ライブラリ"
+    },
+    "unknownLibrary": "不明なライブラリ",
     "unknownShow": "不明な番組",
     "unknownSeason": "不明なシーズン",
     "unknownAlbum": "不明なアルバム",

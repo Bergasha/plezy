@@ -475,7 +475,6 @@ extension _VideoPlayerLiveTvMethods on VideoPlayerScreenState {
     await _runLiveSeek(targetEpochSeconds);
   }
 
-  /// Jump to the live edge of the capture buffer.
   Future<void> _jumpToLiveEdge() async {
     if (_live.captureBuffer == null) return;
     await _seekLiveToEpoch(_live.captureBuffer!.seekableEndEpoch);
@@ -602,7 +601,7 @@ extension _VideoPlayerLiveTvMethods on VideoPlayerScreenState {
         });
       }
       appLogger.e('Failed to switch channel', error: e);
-      if (mounted) showErrorSnackBar(context, e.toString());
+      if (mounted) showErrorSnackBar(context, t.liveTv.channelSwitchFailed(reason: localizedErrorReason(e)));
     } finally {
       _transitionGate.release(transitionLease);
     }

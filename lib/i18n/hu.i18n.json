@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Könyvtárak sorrendjének módosítása és elrejtése",
     "companionRemoteServer": "Kísérőtávirányító szervere",
     "companionRemoteServerDescription": "Lehetővé teszi, hogy a hálózaton lévő mobileszközökről vezéreld az alkalmazást",
+    "companionRemoteServerStartFailed": "Nem sikerült elindítani a kísérőtávirányító szerverét",
+    "companionRemoteServerStopFailed": "Nem sikerült leállítani a kísérőtávirányító szerverét",
     "autoPip": "Automatikus kép a képben (PiP)",
     "autoPipDescription": "Lejátszás közben az alkalmazás elhagyásakor automatikusan kép a képben módra vált",
     "matchContentFrameRate": "Képkockasebesség illesztése a tartalomhoz",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "HDR bekapcsolása HDR-tartalmak esetén, majd visszaváltás SDR-re",
     "displaySwitchDelay": "Kijelzőváltási késleltetés",
     "tunneledPlayback": "Alagutas lejátszás",
-    "tunneledPlaybackDescription": "Videóalagút használata. Tiltsd le, ha HDR-lejátszáskor fekete a kép.",
+    "tunneledPlaybackDescription": "Videóalagút használata. Tiltsd le, ha HDR-lejátszáskor fekete a kép vagy akadozik a mozgás.",
     "audioPassthrough": "Hangtovábbítás (passthrough)",
     "audioPassthroughDescription": "Dolby/DTS-hang továbbítása az erősítőre vagy a TV-re újrakódolás nélkül, a térhangzás megőrzésével. Kapcsold ki, ha nincs hang.",
     "audioPassthroughDescriptionAppleTv": "Az Apple natív Dolby-dekóderének használata Dolby Digital Plushoz, az Atmost is beleértve. A DTS és a TrueHD továbbra is többcsatornás PCM-ként szól. Kapcsold ki, ha nincs hang.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Hangerő normalizálása lekeveréskor",
     "audioDownmixNormalizeDescription": "A keverés szintjének csökkentése a torzítás elkerülésére. Kapcsold ki az eredeti hangerő megőrzéséhez (a hangos jelenetek torzíthatnak).",
     "dvConversionMode": "Dolby Vision-átalakítás",
-    "dvConversionModeDescription": "Válaszd ki, hogyan kezelje az ExoPlayer a Dolby Vision Profile 7 fájlokat.",
+    "dvConversionModeDescription": "Válaszd ki, hogyan legyenek kezelve a Dolby Vision Profile 7 fájlok.",
     "dvConversionAuto": "Automatikus",
     "dvConversionNative": "Natív / letiltva",
     "dvConversionDv81": "P7 → P8.1",
@@ -729,6 +731,7 @@
     "pipFailed": "Nem sikerült elindítani a kép a képben módot",
     "screenshotSaved": "Képernyőkép elmentve",
     "zoomPercent": "Nagyítás ${percent}%",
+    "volumePercent": "Hangerő ${percent}%",
     "pipErrors": {
       "androidVersion": "Android 8.0 vagy újabb szükséges",
       "iosVersion": "iOS 15.0 vagy újabb szükséges",
@@ -929,7 +932,7 @@
     "borrowAddTo": "Hozzáadás a következőhöz: ${displayName}",
     "borrowExplain": "Használd egy másik profil kapcsolatát. A PIN-kóddal védett profilokhoz PIN-kód szükséges.",
     "borrowEmpty": "Még nincs használható kapcsolat.",
-    "borrowEmptySubtitle": "Először csatlakoztasd a Plexet vagy a Jellyfint egy másik profilhoz.",
+    "borrowEmptySubtitle": "Először csatlakoztasd a Plexet, a Jellyfint vagy az Embyt egy másik profilhoz.",
     "borrowLoadFailed": "Nem sikerült betölteni az elérhető kapcsolatokat. Próbáld újra.",
     "borrowFromProfile": "Innen: ${displayName}",
     "borrowConnectionBorrowed": "Kapcsolat átvéve.",
@@ -950,8 +953,8 @@
   "connections": {
     "sectionTitle": "Kapcsolatok",
     "addConnection": "Kapcsolat hozzáadása",
-    "addConnectionSubtitleNoProfile": "Jelentkezz be Plexszel, vagy csatlakoztass egy Jellyfin-szervert",
-    "addConnectionSubtitleScoped": "Hozzáadás a következőhöz (${displayName}): Plex, Jellyfin vagy más profilkapcsolat",
+    "addConnectionSubtitleNoProfile": "Jelentkezz be Plexszel, vagy csatlakoztass egy Jellyfin- vagy Emby-szervert",
+    "addConnectionSubtitleScoped": "Hozzáadás a következőhöz (${displayName}): Plex, Jellyfin, Emby vagy más profilkapcsolat",
     "sessionExpiredOne": "A(z) ${name} munkamenete lejárt",
     "sessionExpiredMany": "${count} szerver munkamenete lejárt",
     "signInAgain": "Bejelentkezés újra",
@@ -1071,7 +1074,14 @@
     "failedToVerifyToken": "Nem sikerült a token ellenőrzése: ${error}",
     "failedToSwitchProfile": "Nem sikerült átváltani a következő profilra: ${displayName}",
     "failedToDeleteProfile": "Nem sikerült törölni a következőt: ${displayName}",
-    "failedToRate": "Nem sikerült frissíteni az értékelést"
+    "failedToRate": "Nem sikerült frissíteni az értékelést",
+    "reasonTimedOut": "időtúllépés történt a kapcsolatban",
+    "reasonUnreachable": "a médiaszerver nem érhető el",
+    "reasonRefused": "a médiaszerver elutasította a kérést",
+    "reasonNotFound": "az elem már nem található a médiaszerveren",
+    "reasonServerError": "a médiaszerver hibát jelzett",
+    "reasonCancelled": "a kérés meg lett szakítva",
+    "reasonUnexpected": "váratlan hiba történt"
   },
   "libraries": {
     "title": "Könyvtárak",
@@ -1140,7 +1150,8 @@
       "tag": "Címke",
       "unwatched": "Nem látott",
       "unplayed": "Nem lejátszott",
-      "favorites": "Kedvencek"
+      "favorites": "Kedvencek",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Cím",
@@ -1162,14 +1173,45 @@
       "random": "Véletlenszerű",
       "dateShared": "Megosztás dátuma",
       "latestEpisodeAirDate": "A legutóbbi epizód sugárzási dátuma",
-      "lastEpisodeDateAdded": "Utolsó epizód hozzáadásának dátuma"
+      "lastEpisodeDateAdded": "Utolsó epizód hozzáadásának dátuma",
+      "dateDownloaded": "Letöltés dátuma",
+      "size": "Méret",
+      "library": "Könyvtár"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "Névjegy",
     "openSourceLicenses": "Nyílt forráskódú licencek",
     "versionLabel": "Verzió: ${version}",
-    "appDescription": "Gyönyörű Flutter-kliens a Plexhez és a Jellyfinhez",
+    "appDescription": "Gyönyörű Flutter-kliens a Plexhez, a Jellyfinhez és az Embyhez",
     "viewLicensesDescription": "Külső fejlesztésű programkönyvtárak licenceinek megtekintése"
   },
   "serverSelection": {
@@ -1487,7 +1529,9 @@
     "editRuleAction": "Szerkesztés",
     "recordingRuleUpdated": "Felvételi szabály frissítve",
     "guideReloadRequested": "Műsorújság frissítése kérve",
+    "guideReloadFailed": "Nem sikerült frissíteni a műsorújságot",
     "rulesProcessRequested": "Szabályok újraértékelése kérve",
+    "rulesProcessFailed": "Nem sikerült újra kiértékelni a felvételi szabályokat",
     "recordShow": "Műsor rögzítése",
     "recordSettings": {
       "startEarly": "Korábbi kezdés (másodperc)",
@@ -1503,7 +1547,9 @@
     "dayAtTime": "${day}, ${time}",
     "invalidPlaybackData": "A(z) ${product} érvénytelen Élő TV-lejátszási adatokat adott vissza",
     "failedToStartChannel": "Nem sikerült elindítani az élő csatornát",
-    "failedToBuildStreamUrl": "Nem sikerült összeállítani a stream URL-címét"
+    "failedToBuildStreamUrl": "Nem sikerült összeállítani a stream URL-címét",
+    "playbackStartFailed": "Nem sikerült elindítani a csatornát: ${reason}",
+    "channelSwitchFailed": "Nem sikerült csatornát váltani: ${reason}"
   },
   "collections": {
     "title": "Gyűjtemények",
@@ -1689,7 +1735,7 @@
     "downloadQueued": "Letöltés sorba állítva",
     "downloadResumed": "Letöltés folytatva",
     "serverErrorBitrate": "Szerverhiba: a fájl meghaladhatja a távoli bitrátakorlátot",
-    "storageFull": "A letöltések leálltak, mert az eszköz tárhelye megtelt. Szabadíts fel helyet, majd próbáld újra.",
+    "storageFull": "A letöltések leálltak a szabad tárhely védelme érdekében. Szabadíts fel helyet, vagy válassz másik letöltési helyet, majd próbáld újra.",
     "storageUnavailable": "A letöltések leálltak, mert a rendelkezésre álló tárhely nem ellenőrizhető. Ellenőrizd a letöltési helyet, majd próbáld újra.",
     "episodesQueued": "${count} epizód letöltésre sorba állítva",
     "downloadDeleted": "Letöltés törölve",
@@ -1778,6 +1824,11 @@
       "settingsUnavailable": "Ezen az eszközön nem sikerült megnyitni a rendszerbeállításokat",
       "linkUnavailable": "Ezen az eszközön nem sikerült megnyitni a dontkillmyapp.com webhelyet"
     },
+    "options": "Letöltések lehetőségei",
+    "groupings": {
+      "library": "Könyvtár"
+    },
+    "unknownLibrary": "Ismeretlen könyvtár",
     "unknownShow": "Ismeretlen sorozat",
     "unknownSeason": "Ismeretlen évad",
     "unknownAlbum": "Ismeretlen album",

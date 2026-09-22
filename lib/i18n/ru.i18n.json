@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Изменять порядок и скрывать библиотеки",
     "companionRemoteServer": "Сервер удалённого управления",
     "companionRemoteServerDescription": "Разрешить мобильным устройствам в сети управлять этим приложением",
+    "companionRemoteServerStartFailed": "Не удалось запустить сервер удалённого управления",
+    "companionRemoteServerStopFailed": "Не удалось остановить сервер удалённого управления",
     "autoPip": "Автоматический режим «картинка в картинке»",
     "autoPipDescription": "Автоматически включать режим «картинка в картинке» при выходе из приложения во время воспроизведения",
     "matchContentFrameRate": "Соответствие частоты кадров контента",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "Включать HDR для HDR-контента, затем возвращаться к SDR",
     "displaySwitchDelay": "Задержка переключения дисплея",
     "tunneledPlayback": "Туннельное воспроизведение",
-    "tunneledPlaybackDescription": "Использовать видеотуннелирование. Отключите, если при воспроизведении HDR отображается чёрный экран.",
+    "tunneledPlaybackDescription": "Использовать видеотуннелирование. Отключите, если при воспроизведении HDR отображается чёрный экран или движение прерывается.",
     "audioPassthrough": "Сквозной вывод аудио",
     "audioPassthroughDescription": "Передавать звук Dolby/DTS на ресивер или телевизор без перекодирования, сохраняя объёмный звук. Отключите, если нет звука.",
     "audioPassthroughDescriptionAppleTv": "Использовать встроенный декодер Dolby от Apple для Dolby Digital Plus, включая Atmos. DTS и TrueHD по-прежнему воспроизводятся как многоканальный PCM. Отключите, если звук отсутствует.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Нормализация громкости при микшировании",
     "audioDownmixNormalizeDescription": "Снижает уровень микса во избежание клиппинга. Отключите, чтобы сохранить исходную громкость (возможны искажения в громких сценах).",
     "dvConversionMode": "Преобразование Dolby Vision",
-    "dvConversionModeDescription": "Выберите, как ExoPlayer обрабатывает файлы Dolby Vision Profile 7.",
+    "dvConversionModeDescription": "Выберите, как обрабатывать файлы Dolby Vision Profile 7.",
     "dvConversionAuto": "Авто",
     "dvConversionNative": "Нативно / отключено",
     "dvConversionDv81": "P7 → P8.1",
@@ -735,6 +737,7 @@
     "pipFailed": "Не удалось запустить режим «картинка в картинке»",
     "screenshotSaved": "Снимок экрана сохранён",
     "zoomPercent": "Масштаб ${percent}%",
+    "volumePercent": "Громкость ${percent}%",
     "pipErrors": {
       "androidVersion": "Требуется Android 8.0 или новее",
       "iosVersion": "Требуется iOS 15.0 или новее",
@@ -937,7 +940,7 @@
     "borrowAddTo": "Добавить в ${displayName}",
     "borrowExplain": "Используйте подключение другого профиля. Для защищённых профилей потребуется PIN.",
     "borrowEmpty": "Пока нет доступных подключений.",
-    "borrowEmptySubtitle": "Сначала подключите Plex или Jellyfin к другому профилю.",
+    "borrowEmptySubtitle": "Сначала подключите Plex, Jellyfin или Emby к другому профилю.",
     "borrowLoadFailed": "Не удалось загрузить доступные подключения. Попробуйте снова.",
     "borrowFromProfile": "От ${displayName}",
     "borrowConnectionBorrowed": "Подключение добавлено.",
@@ -958,8 +961,8 @@
   "connections": {
     "sectionTitle": "Подключения",
     "addConnection": "Добавить подключение",
-    "addConnectionSubtitleNoProfile": "Войдите через Plex или подключите сервер Jellyfin",
-    "addConnectionSubtitleScoped": "Добавить к ${displayName}: Plex, Jellyfin или подключение другого профиля",
+    "addConnectionSubtitleNoProfile": "Войдите через Plex или подключите сервер Jellyfin или Emby",
+    "addConnectionSubtitleScoped": "Добавить к ${displayName}: Plex, Jellyfin, Emby или подключение другого профиля",
     "sessionExpiredOne": "Сессия истекла для ${name}",
     "sessionExpiredMany": "Сессия истекла для ${count} серверов",
     "signInAgain": "Войти снова",
@@ -1081,7 +1084,14 @@
     "failedToVerifyToken": "Не удалось проверить токен: ${error}",
     "failedToSwitchProfile": "Не удалось переключиться на ${displayName}",
     "failedToDeleteProfile": "Не удалось удалить ${displayName}",
-    "failedToRate": "Не удалось обновить оценку"
+    "failedToRate": "Не удалось обновить оценку",
+    "reasonTimedOut": "истекло время ожидания подключения",
+    "reasonUnreachable": "не удалось связаться с сервером",
+    "reasonRefused": "сервер отклонил запрос",
+    "reasonNotFound": "элемента больше нет на сервере",
+    "reasonServerError": "сервер сообщил об ошибке",
+    "reasonCancelled": "запрос был отменён",
+    "reasonUnexpected": "произошла непредвиденная ошибка"
   },
   "libraries": {
     "title": "Библиотеки",
@@ -1150,7 +1160,8 @@
       "tag": "Тег",
       "unwatched": "Непросмотренные",
       "unplayed": "Не прослушано",
-      "favorites": "Избранное"
+      "favorites": "Избранное",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Название",
@@ -1172,14 +1183,45 @@
       "random": "Случайно",
       "dateShared": "Дата открытия доступа",
       "latestEpisodeAirDate": "Дата выхода последнего эпизода",
-      "lastEpisodeDateAdded": "Дата добавления последнего эпизода"
+      "lastEpisodeDateAdded": "Дата добавления последнего эпизода",
+      "dateDownloaded": "Дата загрузки",
+      "size": "Размер",
+      "library": "Библиотека"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "О приложении",
     "openSourceLicenses": "Лицензии открытого ПО",
     "versionLabel": "Версия ${version}",
-    "appDescription": "Красивый клиент Plex и Jellyfin на Flutter",
+    "appDescription": "Красивый клиент Plex, Jellyfin и Emby на Flutter",
     "viewLicensesDescription": "Просмотр лицензий сторонних библиотек"
   },
   "serverSelection": {
@@ -1507,7 +1549,9 @@
     "editRuleAction": "Изменить",
     "recordingRuleUpdated": "Правило записи обновлено",
     "guideReloadRequested": "Запрошено обновление гайда",
+    "guideReloadFailed": "Не удалось обновить программу",
     "rulesProcessRequested": "Запрошен пересчёт правил",
+    "rulesProcessFailed": "Не удалось повторно применить правила записи",
     "recordShow": "Записать передачу",
     "recordSettings": {
       "startEarly": "Начинать раньше (секунды)",
@@ -1523,7 +1567,9 @@
     "dayAtTime": "${day} в ${time}",
     "invalidPlaybackData": "${product} вернул некорректные данные для воспроизведения ТВ в прямом эфире",
     "failedToStartChannel": "Не удалось запустить канал в прямом эфире",
-    "failedToBuildStreamUrl": "Не удалось сформировать URL потока"
+    "failedToBuildStreamUrl": "Не удалось сформировать URL потока",
+    "playbackStartFailed": "Не удалось запустить канал: ${reason}",
+    "channelSwitchFailed": "Не удалось переключить канал: ${reason}"
   },
   "collections": {
     "title": "Коллекции",
@@ -1711,7 +1757,7 @@
     "downloadQueued": "Загрузка поставлена в очередь",
     "downloadResumed": "Загрузка возобновлена",
     "serverErrorBitrate": "Ошибка сервера: файл может превышать установленное на сервере ограничение битрейта",
-    "storageFull": "Загрузки остановлены, так как хранилище устройства заполнено. Освободите место и повторите попытку.",
+    "storageFull": "Загрузки остановлены, чтобы сохранить свободное место. Освободите место или выберите другое расположение для загрузок и повторите попытку.",
     "storageUnavailable": "Загрузки остановлены, так как не удалось проверить доступное место. Проверьте место загрузки и повторите попытку.",
     "episodesQueued": "${count} эпизодов поставлено в очередь загрузки",
     "downloadDeleted": "Загрузка удалена",
@@ -1800,6 +1846,11 @@
       "settingsUnavailable": "Не удалось открыть системные настройки на этом устройстве",
       "linkUnavailable": "Не удалось открыть dontkillmyapp.com на этом устройстве"
     },
+    "options": "Параметры загрузок",
+    "groupings": {
+      "library": "Библиотека"
+    },
+    "unknownLibrary": "Неизвестная библиотека",
     "unknownShow": "Неизвестный сериал",
     "unknownSeason": "Неизвестный сезон",
     "unknownAlbum": "Неизвестный альбом",

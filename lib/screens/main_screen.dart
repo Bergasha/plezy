@@ -1967,7 +1967,6 @@ class _MainScreenState extends State<MainScreen>
   /// Updated by _handleLiveTvChanged when the provider notifies.
   bool get _hasLiveTv => _lastHasLiveTv;
 
-  /// Get navigation tabs filtered by offline mode
   List<NavigationTab> _getVisibleTabs(bool isOffline) {
     return NavigationTab.getVisibleTabs(
       isOffline: isOffline,

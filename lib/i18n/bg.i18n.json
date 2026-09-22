@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Пренареждай и скривай библиотеки",
     "companionRemoteServer": "Сървър за дистанционно управление",
     "companionRemoteServerDescription": "Позволи на мобилни устройства във вашата мрежа да управляват това приложение",
+    "companionRemoteServerStartFailed": "Сървърът за дистанционно управление не можа да бъде стартиран",
+    "companionRemoteServerStopFailed": "Сървърът за дистанционно управление не можа да бъде спрян",
     "autoPip": "Автоматичен режим картина в картината",
     "autoPipDescription": "Автоматично включвай режима картина в картината при излизане от приложението по време на възпроизвеждане",
     "matchContentFrameRate": "Напасване към кадровата честота на съдържанието",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "Включи HDR за HDR съдържание, после върни към SDR",
     "displaySwitchDelay": "Забавяне при смяна на дисплея",
     "tunneledPlayback": "Тунелно възпроизвеждане",
-    "tunneledPlaybackDescription": "Използвай видео тунелиране. Изключете, ако HDR възпроизвеждането показва черен екран.",
+    "tunneledPlaybackDescription": "Използвай видео тунелиране. Изключете, ако HDR възпроизвеждането показва черен екран или движението прекъсва.",
     "audioPassthrough": "Директно предаване на аудио",
     "audioPassthroughDescription": "Изпращай Dolby/DTS звук към приемника или телевизора без прекодиране, за да запазиш съраунд звука. Изключи настройката, ако няма звук.",
     "audioPassthroughDescriptionAppleTv": "Използвай вградения декодер на Apple за Dolby Digital Plus, включително Atmos. DTS и TrueHD продължават да се възпроизвеждат като многоканален PCM. Изключи настройката, ако няма звук.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Нормализиране на звука при смесване",
     "audioDownmixNormalizeDescription": "Понижава микса, за да се предотврати клипинг. Изключете, за да запазите оригиналната сила на звука (възможни изкривявания при силни сцени).",
     "dvConversionMode": "Преобразуване на Dolby Vision",
-    "dvConversionModeDescription": "Изберете как ExoPlayer обработва файлове с Dolby Vision Profile 7.",
+    "dvConversionModeDescription": "Изберете как да се обработват файлове с Dolby Vision Profile 7.",
     "dvConversionAuto": "Автоматично",
     "dvConversionNative": "Директно / изключено",
     "dvConversionDv81": "P7 → P8.1",
@@ -729,6 +731,7 @@
     "pipFailed": "Режимът картина в картината не успя да стартира",
     "screenshotSaved": "Екранната снимка е запазена",
     "zoomPercent": "Мащаб ${percent}%",
+    "volumePercent": "Звук ${percent}%",
     "pipErrors": {
       "androidVersion": "Изисква Android 8.0 или по-нова версия",
       "iosVersion": "Изисква iOS 15.0 или по-нова версия",
@@ -929,7 +932,7 @@
     "borrowAddTo": "Добави към ${displayName}",
     "borrowExplain": "Използвай връзка от друг профил. PIN-защитените профили изискват PIN.",
     "borrowEmpty": "Все още няма какво да се използва.",
-    "borrowEmptySubtitle": "Първо свържете Plex или Jellyfin към друг профил.",
+    "borrowEmptySubtitle": "Първо свържете Plex, Jellyfin или Emby към друг профил.",
     "borrowLoadFailed": "Наличните връзки не можаха да бъдат заредени. Опитайте отново.",
     "borrowFromProfile": "От ${displayName}",
     "borrowConnectionBorrowed": "Връзката е използвана.",
@@ -950,8 +953,8 @@
   "connections": {
     "sectionTitle": "Връзки",
     "addConnection": "Добави връзка",
-    "addConnectionSubtitleNoProfile": "Влезте с Plex или свържете Jellyfin сървър",
-    "addConnectionSubtitleScoped": "Добави към ${displayName}: Plex, Jellyfin или връзка от друг профил",
+    "addConnectionSubtitleNoProfile": "Влезте с Plex или свържете Jellyfin или Emby сървър",
+    "addConnectionSubtitleScoped": "Добави към ${displayName}: Plex, Jellyfin, Emby или връзка от друг профил",
     "sessionExpiredOne": "Сесията за ${name} е изтекла",
     "sessionExpiredMany": "Сесиите за ${count} сървъра са изтекли",
     "signInAgain": "Влез отново",
@@ -1071,7 +1074,14 @@
     "failedToVerifyToken": "Неуспешна проверка на токена: ${error}",
     "failedToSwitchProfile": "Неуспешна смяна към ${displayName}",
     "failedToDeleteProfile": "Неуспешно изтриване на ${displayName}",
-    "failedToRate": "Оценката не можа да бъде обновена"
+    "failedToRate": "Оценката не можа да бъде обновена",
+    "reasonTimedOut": "времето за връзка изтече",
+    "reasonUnreachable": "сървърът не може да бъде достигнат",
+    "reasonRefused": "сървърът отхвърли заявката",
+    "reasonNotFound": "елементът вече не е на сървъра",
+    "reasonServerError": "сървърът докладва грешка",
+    "reasonCancelled": "заявката беше отменена",
+    "reasonUnexpected": "възникна неочаквана грешка"
   },
   "libraries": {
     "title": "Библиотеки",
@@ -1140,7 +1150,8 @@
       "tag": "Таг",
       "unwatched": "Негледани",
       "unplayed": "Непускани",
-      "favorites": "Любими"
+      "favorites": "Любими",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Заглавие",
@@ -1162,14 +1173,45 @@
       "random": "Случайно",
       "dateShared": "Дата на споделяне",
       "latestEpisodeAirDate": "Дата на излъчване на последния епизод",
-      "lastEpisodeDateAdded": "Дата на добавяне на последния епизод"
+      "lastEpisodeDateAdded": "Дата на добавяне на последния епизод",
+      "dateDownloaded": "Дата на изтегляне",
+      "size": "Размер",
+      "library": "Библиотека"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "Относно",
     "openSourceLicenses": "Лицензи с отворен код",
     "versionLabel": "Версия ${version}",
-    "appDescription": "Красив клиент за Plex и Jellyfin, създаден с Flutter",
+    "appDescription": "Красив клиент за Plex, Jellyfin и Emby, създаден с Flutter",
     "viewLicensesDescription": "Виж лицензите на библиотеки на трети страни"
   },
   "serverSelection": {
@@ -1487,7 +1529,9 @@
     "editRuleAction": "Редактирай",
     "recordingRuleUpdated": "Правилото за запис е обновено",
     "guideReloadRequested": "Заявено е опресняване на ТВ програмата",
+    "guideReloadFailed": "ТВ програмата не можа да бъде презаредена",
     "rulesProcessRequested": "Заявена е преоценка на правилата",
+    "rulesProcessFailed": "Правилата за записване не можаха да бъдат обработени отново",
     "recordShow": "Запиши предаването",
     "recordSettings": {
       "startEarly": "Започване по-рано (секунди)",
@@ -1503,7 +1547,9 @@
     "dayAtTime": "${day} в ${time}",
     "invalidPlaybackData": "${product} върна невалидни данни за възпроизвеждане на телевизия на живо",
     "failedToStartChannel": "Каналът на живо не можа да бъде пуснат",
-    "failedToBuildStreamUrl": "URL за потока не можа да бъде създаден"
+    "failedToBuildStreamUrl": "URL за потока не можа да бъде създаден",
+    "playbackStartFailed": "Каналът не можа да бъде стартиран: ${reason}",
+    "channelSwitchFailed": "Каналът не можа да бъде сменен: ${reason}"
   },
   "collections": {
     "title": "Колекции",
@@ -1689,7 +1735,7 @@
     "downloadQueued": "Изтеглянето е добавено в опашката",
     "downloadResumed": "Изтеглянето е възобновено",
     "serverErrorBitrate": "Грешка на сървъра: файлът може да надвишава лимита за отдалечен битрейт",
-    "storageFull": "Изтеглянията бяха спрени, защото паметта на устройството е пълна. Освободете място и опитайте отново.",
+    "storageFull": "Изтеглянията бяха спрени, за да се запази свободното място. Освободете място или изберете друго място за изтегляне и опитайте отново.",
     "storageUnavailable": "Изтеглянията бяха спрени, защото наличното място не можа да бъде проверено. Проверете местоположението за изтегляне и опитайте отново.",
     "episodesQueued": "${count} епизода са добавени в опашката за изтегляне",
     "downloadDeleted": "Изтеглянето е изтрито",
@@ -1778,6 +1824,11 @@
       "settingsUnavailable": "Системните настройки не можаха да се отворят на това устройство",
       "linkUnavailable": "dontkillmyapp.com не можа да се отвори на това устройство"
     },
+    "options": "Опции за изтеглянията",
+    "groupings": {
+      "library": "Библиотека"
+    },
+    "unknownLibrary": "Неизвестна библиотека",
     "unknownShow": "Неизвестен сериал",
     "unknownSeason": "Неизвестен сезон",
     "unknownAlbum": "Неизвестен албум",

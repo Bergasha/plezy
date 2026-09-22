@@ -2382,7 +2382,7 @@ void main() {
     expect(navigatedDown, 1);
   });
 
-  testWidgets('lays out when bottom-positioned in a stack', (tester) async {
+  testWidgets('self-sizes and hugs the bottom edge when bottom-positioned in a stack', (tester) async {
     final serverManager = MultiServerManager();
     final item = testMediaItem(id: 'movie_1', backend: MediaBackend.plex, kind: MediaKind.movie, title: 'Movie');
     final hub = MediaHub(id: 'hub_1', title: 'Hub', type: 'movie', items: [item], size: 1);
@@ -2397,6 +2397,7 @@ void main() {
               width: 896,
               height: 540,
               child: Stack(
+                key: const Key('rail_host'),
                 children: [
                   Positioned(
                     left: 0,
@@ -2417,7 +2418,15 @@ void main() {
     );
     await tester.pump();
 
-    expect(tester.takeException(), isNull);
+    // `Positioned(bottom: 0)` hands the rail unbounded height: it has to size
+    // itself from its layout metrics rather than expand or overflow.
+    final stackRect = tester.getRect(find.byKey(const Key('rail_host')));
+    final railRect = tester.getRect(find.byType(TvBrowseRail));
+    expect(railRect.height, allOf(greaterThan(0), lessThan(stackRect.height)));
+    expect(railRect.bottom, stackRect.bottom);
+    expect(railRect.width, stackRect.width);
+    expect(find.text('Movie'), findsOneWidget);
+    expect(tester.getRect(find.text('Movie')).bottom, lessThanOrEqualTo(railRect.bottom));
   });
 
   testWidgets('background gradient stays full bleed beside pushed foreground', (tester) async {

@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "重新排序與隱藏媒體庫",
     "companionRemoteServer": "隨身遙控器伺服器",
     "companionRemoteServerDescription": "允許區域網路中的行動裝置控制此應用程式",
+    "companionRemoteServerStartFailed": "無法啟動隨身遙控器伺服器",
+    "companionRemoteServerStopFailed": "無法停止隨身遙控器伺服器",
     "autoPip": "自動進入子母畫面",
     "autoPipDescription": "播放影片時離開應用程式將自動進入子母畫面模式",
     "matchContentFrameRate": "符合影片影格率",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "HDR 內容切換至 HDR，播放結束切回 SDR",
     "displaySwitchDelay": "顯示器切換延遲時間",
     "tunneledPlayback": "通道化播放（Tunneled Playback）",
-    "tunneledPlaybackDescription": "使用影片通道模式。若 HDR 播放出現黑畫面，請停用此項。",
+    "tunneledPlaybackDescription": "使用影片通道模式。若 HDR 播放出現黑畫面或動態卡頓，請停用此項。",
     "audioPassthrough": "音訊直通",
     "audioPassthroughDescription": "將 Dolby/DTS 音訊不經重新編碼，直接傳送至擴大機或電視以保留環繞音效。若播放無聲，請關閉此設定。",
     "audioPassthroughDescriptionAppleTv": "使用 Apple 原生 Dolby 解碼器處理 Dolby Digital Plus（包括 Atmos）。DTS 與 TrueHD 仍以多聲道 PCM 播放。若沒有聲音，請關閉此設定。",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "下混時音量標準化",
     "audioDownmixNormalizeDescription": "降低混音電平以防止破音。關閉以保持原始音量（大音量場景可能會失真）。",
     "dvConversionMode": "Dolby Vision 轉換模式",
-    "dvConversionModeDescription": "選擇 ExoPlayer 如何處理 Dolby Vision Profile 7 檔案。",
+    "dvConversionModeDescription": "選擇如何處理 Dolby Vision Profile 7 檔案。",
     "dvConversionAuto": "自動",
     "dvConversionNative": "原生 / 停用",
     "dvConversionDv81": "P7 → P8.1",
@@ -726,6 +728,7 @@
     "pipFailed": "啟動子母畫面失敗",
     "screenshotSaved": "螢幕截圖已儲存",
     "zoomPercent": "縮放 ${percent}%",
+    "volumePercent": "音量 ${percent}%",
     "pipErrors": {
       "androidVersion": "需要 Android 8.0 或更高版本",
       "iosVersion": "需要 iOS 15.0 或更高版本",
@@ -925,7 +928,7 @@
     "borrowAddTo": "新增至 ${displayName}",
     "borrowExplain": "共用另一個使用者設定檔的連線資訊。受 PIN 碼保護的設定檔需輸入 PIN 碼。",
     "borrowEmpty": "目前沒有可共用的連線。",
-    "borrowEmptySubtitle": "請先將 Plex 或 Jellyfin 連線至另一個使用者設定檔。",
+    "borrowEmptySubtitle": "請先將 Plex、Jellyfin 或 Emby 連線至另一個使用者設定檔。",
     "borrowLoadFailed": "無法載入可用的連線。請重試。",
     "borrowFromProfile": "來自 ${displayName}",
     "borrowConnectionBorrowed": "已共用連線。",
@@ -946,8 +949,8 @@
   "connections": {
     "sectionTitle": "連線",
     "addConnection": "新增連線",
-    "addConnectionSubtitleNoProfile": "使用 Plex 登入或連線至 Jellyfin 伺服器",
-    "addConnectionSubtitleScoped": "新增至 ${displayName}：Plex、Jellyfin 或其他設定檔連線",
+    "addConnectionSubtitleNoProfile": "使用 Plex 登入或連線至 Jellyfin 或 Emby 伺服器",
+    "addConnectionSubtitleScoped": "新增至 ${displayName}：Plex、Jellyfin、Emby 或其他設定檔連線",
     "sessionExpiredOne": "${name} 的工作階段已過期",
     "sessionExpiredMany": "${count} 個伺服器的工作階段已過期",
     "signInAgain": "重新登入",
@@ -1066,7 +1069,14 @@
     "failedToVerifyToken": "無法驗證 Token：${error}",
     "failedToSwitchProfile": "無法切換至 ${displayName}",
     "failedToDeleteProfile": "無法刪除 ${displayName}",
-    "failedToRate": "無法更新評分"
+    "failedToRate": "無法更新評分",
+    "reasonTimedOut": "連線逾時",
+    "reasonUnreachable": "無法連線至媒體伺服器",
+    "reasonRefused": "媒體伺服器拒絕了此要求",
+    "reasonNotFound": "該項目已不在媒體伺服器上",
+    "reasonServerError": "媒體伺服器回報錯誤",
+    "reasonCancelled": "要求已取消",
+    "reasonUnexpected": "發生未預期的錯誤"
   },
   "libraries": {
     "title": "媒體庫",
@@ -1135,7 +1145,8 @@
       "tag": "標籤",
       "unwatched": "未觀看",
       "unplayed": "未播放",
-      "favorites": "我的最愛"
+      "favorites": "我的最愛",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "標題",
@@ -1157,14 +1168,45 @@
       "random": "隨機",
       "dateShared": "分享日期",
       "latestEpisodeAirDate": "最新一集播出日期",
-      "lastEpisodeDateAdded": "最新一集新增日期"
+      "lastEpisodeDateAdded": "最新一集新增日期",
+      "dateDownloaded": "下載日期",
+      "size": "大小",
+      "library": "媒體庫"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "關於",
     "openSourceLicenses": "開源授權條款",
     "versionLabel": "版本 ${version}",
-    "appDescription": "一款精美的 Plex 與 Jellyfin Flutter 用戶端",
+    "appDescription": "一款精美的 Plex、Jellyfin 與 Emby Flutter 用戶端",
     "viewLicensesDescription": "查看第三方套件的授權條款"
   },
   "serverSelection": {
@@ -1477,7 +1519,9 @@
     "editRuleAction": "編輯",
     "recordingRuleUpdated": "錄製規則已更新",
     "guideReloadRequested": "已要求更新節目表指南",
+    "guideReloadFailed": "無法重新載入節目表指南",
     "rulesProcessRequested": "已要求重新評估規則",
+    "rulesProcessFailed": "無法重新評估錄影規則",
     "recordShow": "錄製節目",
     "recordSettings": {
       "startEarly": "提早開始（秒）",
@@ -1493,7 +1537,9 @@
     "dayAtTime": "${day} ${time}",
     "invalidPlaybackData": "${product} 傳回了無效的直播電視播放資料",
     "failedToStartChannel": "無法啟動直播頻道",
-    "failedToBuildStreamUrl": "無法建立串流 URL"
+    "failedToBuildStreamUrl": "無法建立串流 URL",
+    "playbackStartFailed": "無法開始播放此頻道：${reason}",
+    "channelSwitchFailed": "無法切換頻道：${reason}"
   },
   "collections": {
     "title": "收藏集",
@@ -1678,7 +1724,7 @@
     "downloadQueued": "下載已排隊",
     "downloadResumed": "下載已繼續",
     "serverErrorBitrate": "伺服器錯誤：檔案位元率可能超過遠端位元率限制",
-    "storageFull": "裝置儲存空間已滿，因此下載已停止。請釋出空間後再試一次。",
+    "storageFull": "為保護剩餘儲存空間，下載已停止。請釋出空間或選擇其他下載位置，然後再試一次。",
     "storageUnavailable": "無法檢查可用儲存空間，因此下載已停止。請檢查下載位置後再試一次。",
     "episodesQueued": "已將 ${count} 集影片加入下載佇列",
     "downloadDeleted": "下載內容已刪除",
@@ -1767,6 +1813,11 @@
       "settingsUnavailable": "無法在這部裝置上開啟系統設定",
       "linkUnavailable": "無法在這部裝置上開啟 dontkillmyapp.com"
     },
+    "options": "下載選項",
+    "groupings": {
+      "library": "媒體庫"
+    },
+    "unknownLibrary": "未知媒體庫",
     "unknownShow": "未知節目",
     "unknownSeason": "未知季度",
     "unknownAlbum": "未知專輯",

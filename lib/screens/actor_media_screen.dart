@@ -312,7 +312,7 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
                           item: catalogItem.toMediaItem(),
                           width: cardWidth,
                           height: containerHeight,
-                          forceGridMode: true,
+                          viewModeOverride: ViewMode.grid,
                           onBack: handleBackFromContent,
                         ),
                       );

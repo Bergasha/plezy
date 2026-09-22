@@ -309,16 +309,19 @@ void main() {
       expect(DownloadManagerService.downloadsSupportedFor(tvosBuild: false), isTrue);
     });
 
-    test('recovery is a no-op when downloads are unsupported', () async {
+    test('recovery skips native recovery entirely when downloads are unsupported', () async {
+      var nativeRecoveryCalls = 0;
       final unsupportedManager = DownloadManagerService(
         database: db,
         storageService: DownloadStorageService.instance,
         clientResolver: (serverId, {clientScopeId}) => null,
         downloadsSupportedOverride: false,
+        nativeRecoveryOverride: () async => nativeRecoveryCalls++,
       );
 
       await unsupportedManager.recoverInterruptedDownloads();
 
+      expect(nativeRecoveryCalls, 0);
       unsupportedManager.dispose();
     });
   });
@@ -1721,6 +1724,83 @@ void main() {
       expect(p.downloads.keys, ['other:2']);
 
       p.dispose();
+    });
+
+    test('releasing a shared download for the active profile emits one download-only deletion event', () async {
+      await _insertProfile(db, 'test-profile');
+      await _insertProfile(db, 'profile-b');
+      await db.addDownloadOwner(profileId: 'test-profile', globalKey: 'srv:1');
+      await db.addDownloadOwner(profileId: 'profile-b', globalKey: 'srv:1');
+      final p = DownloadProvider.forTesting(downloadManager: downloadManager, database: db);
+      addTearDown(p.dispose);
+      await p.ensureInitialized();
+      p.debugSeedState(
+        downloads: {'srv:1': const DownloadProgress(globalKey: 'srv:1', status: DownloadStatus.completed)},
+        metadata: {'srv:1': movie},
+      );
+      final deletionEvents = <DeletionEvent>[];
+      final deletionSubscription = DeletionNotifier().stream.listen(deletionEvents.add);
+      addTearDown(deletionSubscription.cancel);
+
+      await p.releaseDownloadsForProfileServers('test-profile', {'srv'});
+      await pumpEventQueue();
+
+      // The bytes survive for profile-b, but the active profile can no longer
+      // play them: offline surfaces that re-query on DeletionEvent must hear
+      // about it exactly as they would for a physical delete.
+      expect(await db.getDownloadOwnerKeysForProfile('profile-b'), {'srv:1'});
+      expect(p.downloads, isEmpty);
+      expect(deletionEvents.map((event) => event.globalKey), ['srv:1']);
+      expect(deletionEvents.single.isDownloadOnly, isTrue);
+    });
+
+    test('releasing a shared download on behalf of a non-active profile emits no deletion event', () async {
+      await _insertProfile(db, 'profile-a');
+      await _insertProfile(db, 'test-profile');
+      await db.addDownloadOwner(profileId: 'profile-a', globalKey: 'srv:1');
+      await db.addDownloadOwner(profileId: 'test-profile', globalKey: 'srv:1');
+      final p = DownloadProvider.forTesting(downloadManager: downloadManager, database: db);
+      addTearDown(p.dispose);
+      await p.ensureInitialized();
+      // The active profile co-owns the row, so its metadata is loaded; only the
+      // profile check keeps a release performed for someone else silent.
+      p.debugSeedState(
+        downloads: {'srv:1': const DownloadProgress(globalKey: 'srv:1', status: DownloadStatus.completed)},
+        metadata: {'srv:1': movie},
+      );
+      final deletionEvents = <DeletionEvent>[];
+      final deletionSubscription = DeletionNotifier().stream.listen(deletionEvents.add);
+      addTearDown(deletionSubscription.cancel);
+
+      await p.releaseDownloadsForProfileServers('profile-a', {'srv'});
+      await pumpEventQueue();
+
+      expect(await db.getDownloadOwnerKeysForProfile('profile-a'), isEmpty);
+      expect(p.downloads.keys, ['srv:1']);
+      expect(deletionEvents, isEmpty);
+    });
+
+    test('releasing the sole owner deletes physically and emits exactly one deletion event', () async {
+      await _insertProfile(db, 'test-profile');
+      await db.addDownloadOwner(profileId: 'test-profile', globalKey: 'srv:1');
+      final p = DownloadProvider.forTesting(downloadManager: downloadManager, database: db);
+      addTearDown(p.dispose);
+      await p.ensureInitialized();
+      p.debugSeedState(
+        downloads: {'srv:1': const DownloadProgress(globalKey: 'srv:1', status: DownloadStatus.completed)},
+        metadata: {'srv:1': movie},
+      );
+      final deletionEvents = <DeletionEvent>[];
+      final deletionSubscription = DeletionNotifier().stream.listen(deletionEvents.add);
+      addTearDown(deletionSubscription.cancel);
+
+      await p.releaseDownloadsForProfileServers('test-profile', {'srv'});
+      await pumpEventQueue();
+
+      expect(await db.getDownloadOwnerKeysForProfile('test-profile'), isEmpty);
+      expect(p.downloads, isEmpty);
+      expect(deletionEvents.map((event) => event.globalKey), ['srv:1']);
+      expect(deletionEvents.single.isDownloadOnly, isTrue);
     });
   });
 

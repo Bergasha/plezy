@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Bibliotheken herordenen en verbergen",
     "companionRemoteServer": "Companion Remote-server",
     "companionRemoteServerDescription": "Sta mobiele apparaten op je netwerk toe om deze app te bedienen",
+    "companionRemoteServerStartFailed": "Kan de Companion Remote-server niet starten",
+    "companionRemoteServerStopFailed": "Kan de Companion Remote-server niet stoppen",
     "autoPip": "Automatische beeld-in-beeld",
     "autoPipDescription": "Schakel over naar beeld-in-beeld als je tijdens het afspelen de app verlaat",
     "matchContentFrameRate": "Inhoudsframesnelheid afstemmen",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "Schakel HDR in voor HDR-content en daarna terug naar SDR",
     "displaySwitchDelay": "Vertraging bij schermwisseling",
     "tunneledPlayback": "Getunnelde weergave",
-    "tunneledPlaybackDescription": "Gebruik videotunneling. Schakel uit als HDR-afspelen zwart beeld geeft.",
+    "tunneledPlaybackDescription": "Gebruik videotunneling. Schakel uit als HDR-afspelen zwart beeld geeft of beweging hapert.",
     "audioPassthrough": "Audio-doorvoer",
     "audioPassthroughDescription": "Stuur Dolby/DTS-audio zonder hercodering naar je receiver of tv en behoud surroundgeluid. Schakel uit als je geen geluid hebt.",
     "audioPassthroughDescriptionAppleTv": "Gebruik de ingebouwde Dolby-decoder van Apple voor Dolby Digital Plus, inclusief Atmos. DTS en TrueHD worden nog steeds als meerkanaals-PCM afgespeeld. Schakel dit uit als je geen geluid hoort.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Volume normaliseren bij downmix",
     "audioDownmixNormalizeDescription": "Verlaagt de mix om clipping te voorkomen. Zet uit om het originele volume te behouden (kan vervormen bij luide scènes).",
     "dvConversionMode": "Dolby Vision-conversie",
-    "dvConversionModeDescription": "Kies hoe ExoPlayer Dolby Vision Profile 7-bestanden verwerkt.",
+    "dvConversionModeDescription": "Kies hoe Dolby Vision Profile 7-bestanden worden verwerkt.",
     "dvConversionAuto": "Automatisch",
     "dvConversionNative": "Native / uitgeschakeld",
     "dvConversionDv81": "P7 → P8.1",
@@ -729,6 +731,7 @@
     "pipFailed": "Beeld-in-beeld kon niet worden gestart",
     "screenshotSaved": "Schermafbeelding opgeslagen",
     "zoomPercent": "Zoom ${percent}%",
+    "volumePercent": "Volume ${percent}%",
     "pipErrors": {
       "androidVersion": "Vereist Android 8.0 of nieuwer",
       "iosVersion": "Vereist iOS 15.0 of nieuwer",
@@ -929,7 +932,7 @@
     "borrowAddTo": "Toevoegen aan ${displayName}",
     "borrowExplain": "Leen de verbinding van een ander profiel. Voor profielen met pincodebeveiliging is een pincode vereist.",
     "borrowEmpty": "Nog niets te lenen.",
-    "borrowEmptySubtitle": "Verbind Plex of Jellyfin eerst met een ander profiel.",
+    "borrowEmptySubtitle": "Verbind Plex, Jellyfin of Emby eerst met een ander profiel.",
     "borrowLoadFailed": "Beschikbare verbindingen konden niet worden geladen. Probeer het opnieuw.",
     "borrowFromProfile": "Van ${displayName}",
     "borrowConnectionBorrowed": "Verbinding geleend.",
@@ -950,8 +953,8 @@
   "connections": {
     "sectionTitle": "Verbindingen",
     "addConnection": "Verbinding toevoegen",
-    "addConnectionSubtitleNoProfile": "Meld je aan met Plex of verbind een Jellyfin-server",
-    "addConnectionSubtitleScoped": "Toevoegen aan ${displayName}: Plex, Jellyfin of een andere profielverbinding",
+    "addConnectionSubtitleNoProfile": "Meld je aan met Plex of verbind een Jellyfin- of Emby-server",
+    "addConnectionSubtitleScoped": "Toevoegen aan ${displayName}: Plex, Jellyfin, Emby of een andere profielverbinding",
     "sessionExpiredOne": "Sessie verlopen voor ${name}",
     "sessionExpiredMany": "Sessie verlopen voor ${count} servers",
     "signInAgain": "Opnieuw aanmelden",
@@ -1071,7 +1074,14 @@
     "failedToVerifyToken": "Kon token niet verifiëren: ${error}",
     "failedToSwitchProfile": "Kon niet wisselen naar ${displayName}",
     "failedToDeleteProfile": "Kon ${displayName} niet verwijderen",
-    "failedToRate": "Beoordeling kon niet worden bijgewerkt"
+    "failedToRate": "Beoordeling kon niet worden bijgewerkt",
+    "reasonTimedOut": "de verbinding is verlopen",
+    "reasonUnreachable": "de server kon niet worden bereikt",
+    "reasonRefused": "de server heeft het verzoek geweigerd",
+    "reasonNotFound": "het item staat niet meer op de server",
+    "reasonServerError": "de server heeft een fout gemeld",
+    "reasonCancelled": "het verzoek is geannuleerd",
+    "reasonUnexpected": "er is een onverwachte fout opgetreden"
   },
   "libraries": {
     "title": "Bibliotheken",
@@ -1140,7 +1150,8 @@
       "tag": "Tag",
       "unwatched": "Onbekeken",
       "unplayed": "Niet afgespeeld",
-      "favorites": "Favorieten"
+      "favorites": "Favorieten",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Titel",
@@ -1162,14 +1173,45 @@
       "random": "Willekeurig",
       "dateShared": "Gedeeld op",
       "latestEpisodeAirDate": "Laatste afleveringsuitzending",
-      "lastEpisodeDateAdded": "Datum laatst toegevoegde aflevering"
+      "lastEpisodeDateAdded": "Datum laatst toegevoegde aflevering",
+      "dateDownloaded": "Gedownload op",
+      "size": "Grootte",
+      "library": "Bibliotheek"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "Over",
     "openSourceLicenses": "Opensourcelicenties",
     "versionLabel": "Versie ${version}",
-    "appDescription": "Een mooie Plex- en Jellyfin-client voor Flutter",
+    "appDescription": "Een mooie Plex-, Jellyfin- en Emby-client voor Flutter",
     "viewLicensesDescription": "Licenties van bibliotheken van derden bekijken"
   },
   "serverSelection": {
@@ -1487,7 +1529,9 @@
     "editRuleAction": "Bewerken",
     "recordingRuleUpdated": "Opnameregel bijgewerkt",
     "guideReloadRequested": "Vernieuwing van de gids aangevraagd",
+    "guideReloadFailed": "Gids herladen mislukt",
     "rulesProcessRequested": "Nieuwe evaluatie van regels aangevraagd",
+    "rulesProcessFailed": "Opnameregels opnieuw uitvoeren mislukt",
     "recordShow": "Programma opnemen",
     "recordSettings": {
       "startEarly": "Eerder beginnen (seconden)",
@@ -1503,7 +1547,9 @@
     "dayAtTime": "${day} om ${time}",
     "invalidPlaybackData": "${product} heeft ongeldige afspeelgegevens voor Live-tv geretourneerd",
     "failedToStartChannel": "Kon de livezender niet starten",
-    "failedToBuildStreamUrl": "Kon de stream-URL niet samenstellen"
+    "failedToBuildStreamUrl": "Kon de stream-URL niet samenstellen",
+    "playbackStartFailed": "Kon het kanaal niet starten: ${reason}",
+    "channelSwitchFailed": "Kon niet van kanaal wisselen: ${reason}"
   },
   "collections": {
     "title": "Collecties",
@@ -1689,7 +1735,7 @@
     "downloadQueued": "Download in wachtrij",
     "downloadResumed": "Download hervat",
     "serverErrorBitrate": "Serverfout: bestand overschrijdt mogelijk de externe bitrate-limiet",
-    "storageFull": "Downloads zijn gestopt omdat de opslag van het apparaat vol is. Maak ruimte vrij en probeer het opnieuw.",
+    "storageFull": "Downloads zijn gestopt om de beschikbare opslagruimte te beschermen. Maak ruimte vrij of kies een andere downloadlocatie en probeer het opnieuw.",
     "storageUnavailable": "Downloads zijn gestopt omdat de beschikbare opslag niet kon worden gecontroleerd. Controleer de downloadlocatie en probeer het opnieuw.",
     "episodesQueued": "${count} afleveringen in wachtrij voor download",
     "downloadDeleted": "Download verwijderd",
@@ -1778,6 +1824,11 @@
       "settingsUnavailable": "Kan de systeeminstellingen niet openen op dit apparaat",
       "linkUnavailable": "Kan dontkillmyapp.com niet openen op dit apparaat"
     },
+    "options": "Downloadopties",
+    "groupings": {
+      "library": "Bibliotheek"
+    },
+    "unknownLibrary": "Onbekende bibliotheek",
     "unknownShow": "Onbekende serie",
     "unknownSeason": "Onbekend seizoen",
     "unknownAlbum": "Onbekend album",

@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Zmieniaj kolejność i ukrywaj biblioteki",
     "companionRemoteServer": "Serwer zdalnego sterowania",
     "companionRemoteServerDescription": "Pozwól urządzeniom mobilnym w sieci sterować tą aplikacją",
+    "companionRemoteServerStartFailed": "Nie udało się uruchomić serwera zdalnego sterowania",
+    "companionRemoteServerStopFailed": "Nie udało się zatrzymać serwera zdalnego sterowania",
     "autoPip": "Automatyczny obraz w obrazie",
     "autoPipDescription": "Automatycznie włączaj tryb obrazu w obrazie po opuszczeniu aplikacji podczas odtwarzania",
     "matchContentFrameRate": "Dopasuj częstotliwość klatek do treści",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "Włącz HDR dla treści HDR, potem wróć do SDR",
     "displaySwitchDelay": "Opóźnienie przełączania ekranu",
     "tunneledPlayback": "Tunelowane odtwarzanie",
-    "tunneledPlaybackDescription": "Użyj tunelowania wideo. Wyłącz, jeśli HDR pokazuje czarny obraz.",
+    "tunneledPlaybackDescription": "Użyj tunelowania wideo. Wyłącz, jeśli HDR pokazuje czarny obraz lub ruch się zacina.",
     "audioPassthrough": "Przekazywanie dźwięku",
     "audioPassthroughDescription": "Przesyłaj dźwięk Dolby/DTS do amplitunera lub telewizora bez ponownego kodowania, zachowując dźwięk przestrzenny. Wyłącz tę opcję, jeśli nie słychać dźwięku.",
     "audioPassthroughDescriptionAppleTv": "Używaj natywnego dekodera Dolby firmy Apple dla Dolby Digital Plus, w tym Atmos. DTS i TrueHD nadal będą odtwarzane jako wielokanałowy dźwięk PCM. Wyłącz tę opcję, jeśli nie słychać dźwięku.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Normalizacja głośności przy miksowaniu",
     "audioDownmixNormalizeDescription": "Obniża miks, aby zapobiec przesterowaniu. Wyłącz, aby zachować oryginalną głośność (głośne sceny mogą być zniekształcone).",
     "dvConversionMode": "Konwersja Dolby Vision",
-    "dvConversionModeDescription": "Wybierz, jak ExoPlayer obsługuje pliki Dolby Vision Profile 7.",
+    "dvConversionModeDescription": "Wybierz, jak mają być obsługiwane pliki Dolby Vision Profile 7.",
     "dvConversionAuto": "Automatycznie",
     "dvConversionNative": "Natywnie / wyłączone",
     "dvConversionDv81": "P7 → P8.1",
@@ -735,6 +737,7 @@
     "pipFailed": "Nie udało się uruchomić trybu obraz w obrazie",
     "screenshotSaved": "Zrzut ekranu zapisany",
     "zoomPercent": "Powiększenie ${percent}%",
+    "volumePercent": "Głośność ${percent}%",
     "pipErrors": {
       "androidVersion": "Wymaga Androida 8.0 lub nowszego",
       "iosVersion": "Wymaga iOS 15.0 lub nowszego",
@@ -937,7 +940,7 @@
     "borrowAddTo": "Dodaj do ${displayName}",
     "borrowExplain": "Skorzystaj z połączenia innego profilu. Profile chronione PIN-em wymagają podania PIN-u.",
     "borrowEmpty": "Nie ma jeszcze żadnych dostępnych połączeń.",
-    "borrowEmptySubtitle": "Najpierw połącz Plex lub Jellyfin z innym profilem.",
+    "borrowEmptySubtitle": "Najpierw połącz Plex, Jellyfin lub Emby z innym profilem.",
     "borrowLoadFailed": "Nie udało się wczytać dostępnych połączeń. Spróbuj ponownie.",
     "borrowFromProfile": "Z profilu ${displayName}",
     "borrowConnectionBorrowed": "Dodano połączenie z innego profilu.",
@@ -958,8 +961,8 @@
   "connections": {
     "sectionTitle": "Połączenia",
     "addConnection": "Dodaj połączenie",
-    "addConnectionSubtitleNoProfile": "Zaloguj się przez Plex lub połącz serwer Jellyfin",
-    "addConnectionSubtitleScoped": "Dodaj do ${displayName}: Plex, Jellyfin lub połączenie innego profilu",
+    "addConnectionSubtitleNoProfile": "Zaloguj się przez Plex lub połącz serwer Jellyfin albo Emby",
+    "addConnectionSubtitleScoped": "Dodaj do ${displayName}: Plex, Jellyfin, Emby lub połączenie innego profilu",
     "sessionExpiredOne": "Sesja wygasła dla ${name}",
     "sessionExpiredMany": "Sesja wygasła dla ${count} serwerów",
     "signInAgain": "Zaloguj się ponownie",
@@ -1081,7 +1084,14 @@
     "failedToVerifyToken": "Nie udało się zweryfikować tokena: ${error}",
     "failedToSwitchProfile": "Nie udało się przełączyć na ${displayName}",
     "failedToDeleteProfile": "Nie udało się usunąć ${displayName}",
-    "failedToRate": "Nie udało się zaktualizować oceny"
+    "failedToRate": "Nie udało się zaktualizować oceny",
+    "reasonTimedOut": "upłynął limit czasu połączenia",
+    "reasonUnreachable": "nie można połączyć się z serwerem",
+    "reasonRefused": "serwer odrzucił żądanie",
+    "reasonNotFound": "elementu nie ma już na serwerze",
+    "reasonServerError": "serwer zgłosił błąd",
+    "reasonCancelled": "żądanie zostało anulowane",
+    "reasonUnexpected": "wystąpił nieoczekiwany błąd"
   },
   "libraries": {
     "title": "Biblioteki",
@@ -1150,7 +1160,8 @@
       "tag": "Tag",
       "unwatched": "Nieobejrzane",
       "unplayed": "Nieodtworzone",
-      "favorites": "Ulubione"
+      "favorites": "Ulubione",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Tytuł",
@@ -1172,14 +1183,45 @@
       "random": "Losowo",
       "dateShared": "Data udostępnienia",
       "latestEpisodeAirDate": "Data emisji ostatniego odcinka",
-      "lastEpisodeDateAdded": "Data dodania ostatniego odcinka"
+      "lastEpisodeDateAdded": "Data dodania ostatniego odcinka",
+      "dateDownloaded": "Data pobrania",
+      "size": "Rozmiar",
+      "library": "Biblioteka"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "O aplikacji",
     "openSourceLicenses": "Licencje oprogramowania open source",
     "versionLabel": "Wersja ${version}",
-    "appDescription": "Piękny klient Plex i Jellyfin stworzony we Flutterze",
+    "appDescription": "Piękny klient Plex, Jellyfin i Emby stworzony we Flutterze",
     "viewLicensesDescription": "Wyświetl licencje bibliotek innych firm"
   },
   "serverSelection": {
@@ -1507,7 +1549,9 @@
     "editRuleAction": "Edytuj",
     "recordingRuleUpdated": "Reguła nagrywania zaktualizowana",
     "guideReloadRequested": "Zażądano odświeżenia przewodnika",
+    "guideReloadFailed": "Nie udało się odświeżyć przewodnika",
     "rulesProcessRequested": "Zażądano ponownej oceny reguł",
+    "rulesProcessFailed": "Nie udało się ponownie przetworzyć reguł nagrywania",
     "recordShow": "Nagraj program",
     "recordSettings": {
       "startEarly": "Zacznij wcześniej (sekundy)",
@@ -1523,7 +1567,9 @@
     "dayAtTime": "${day} o ${time}",
     "invalidPlaybackData": "${product} zwrócił nieprawidłowe dane odtwarzania TV na żywo",
     "failedToStartChannel": "Nie udało się uruchomić kanału na żywo",
-    "failedToBuildStreamUrl": "Nie udało się utworzyć adresu URL strumienia"
+    "failedToBuildStreamUrl": "Nie udało się utworzyć adresu URL strumienia",
+    "playbackStartFailed": "Nie udało się uruchomić kanału: ${reason}",
+    "channelSwitchFailed": "Nie udało się przełączyć kanału: ${reason}"
   },
   "collections": {
     "title": "Kolekcje",
@@ -1711,7 +1757,7 @@
     "downloadQueued": "Pobranie w kolejce",
     "downloadResumed": "Pobieranie wznowione",
     "serverErrorBitrate": "Błąd serwera: plik może przekraczać zdalny limit bitrate",
-    "storageFull": "Pobieranie zostało zatrzymane, ponieważ pamięć urządzenia jest pełna. Zwolnij miejsce i spróbuj ponownie.",
+    "storageFull": "Pobieranie zostało zatrzymane, aby chronić wolne miejsce. Zwolnij miejsce lub wybierz inną lokalizację pobierania, a następnie spróbuj ponownie.",
     "storageUnavailable": "Pobieranie zostało zatrzymane, ponieważ nie można sprawdzić dostępnego miejsca. Sprawdź lokalizację pobierania i spróbuj ponownie.",
     "episodesQueued": "${count} odcinków w kolejce pobierania",
     "downloadDeleted": "Pobranie usunięte",
@@ -1800,6 +1846,11 @@
       "settingsUnavailable": "Nie udało się otworzyć ustawień systemowych na tym urządzeniu",
       "linkUnavailable": "Nie udało się otworzyć dontkillmyapp.com na tym urządzeniu"
     },
+    "options": "Opcje pobrań",
+    "groupings": {
+      "library": "Biblioteka"
+    },
+    "unknownLibrary": "Nieznana biblioteka",
     "unknownShow": "Nieznany serial",
     "unknownSeason": "Nieznany sezon",
     "unknownAlbum": "Nieznany album",

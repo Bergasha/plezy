@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "라이브러리 순서를 변경하거나 숨깁니다",
     "companionRemoteServer": "컴패니언 리모트 서버",
     "companionRemoteServerDescription": "네트워크의 모바일 기기가 이 앱을 제어할 수 있도록 허용",
+    "companionRemoteServerStartFailed": "컴패니언 리모트 서버를 시작할 수 없습니다",
+    "companionRemoteServerStopFailed": "컴패니언 리모트 서버를 중지할 수 없습니다",
     "autoPip": "자동 PIP 모드",
     "autoPipDescription": "재생 중 앱을 떠나면 자동으로 화면 속 화면 모드로 전환합니다",
     "matchContentFrameRate": "콘텐츠 프레임 레이트 맞춤",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "HDR 콘텐츠에서는 HDR로 전환한 뒤 SDR로 되돌림",
     "displaySwitchDelay": "디스플레이 전환 지연",
     "tunneledPlayback": "터널 재생",
-    "tunneledPlaybackDescription": "비디오 터널링을 사용합니다. HDR 재생 시 검은 화면이 보이면 비활성화하세요.",
+    "tunneledPlaybackDescription": "비디오 터널링을 사용합니다. HDR 재생 시 검은 화면이 보이거나 움직임이 끊기면 비활성화하세요.",
     "audioPassthrough": "오디오 패스스루",
     "audioPassthroughDescription": "Dolby/DTS 오디오를 재인코딩 없이 리시버나 TV로 전송하여 서라운드 사운드를 유지합니다. 소리가 나지 않으면 비활성화하세요.",
     "audioPassthroughDescriptionAppleTv": "Dolby Digital Plus(Atmos 포함)에 Apple의 기본 Dolby 디코더를 사용합니다. DTS와 TrueHD는 계속 멀티채널 PCM으로 재생됩니다. 소리가 나지 않으면 비활성화하세요.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "다운믹스 시 음량 정규화",
     "audioDownmixNormalizeDescription": "클리핑을 방지하기 위해 믹스 음량을 낮춥니다. 원래 음량을 유지하려면 끄세요(큰 소리 장면에서 왜곡될 수 있음).",
     "dvConversionMode": "Dolby Vision 변환",
-    "dvConversionModeDescription": "ExoPlayer가 Dolby Vision Profile 7 파일을 처리하는 방식을 선택합니다.",
+    "dvConversionModeDescription": "Dolby Vision Profile 7 파일을 처리하는 방식을 선택합니다.",
     "dvConversionAuto": "자동",
     "dvConversionNative": "네이티브 / 비활성화",
     "dvConversionDv81": "P7 → P8.1",
@@ -726,6 +728,7 @@
     "pipFailed": "화면 속 화면 모드를 시작할 수 없습니다",
     "screenshotSaved": "스크린샷 저장됨",
     "zoomPercent": "확대/축소 ${percent}%",
+    "volumePercent": "볼륨 ${percent}%",
     "pipErrors": {
       "androidVersion": "Android 8.0 이상이 필요합니다",
       "iosVersion": "iOS 15.0 이상이 필요합니다",
@@ -925,7 +928,7 @@
     "borrowAddTo": "${displayName}에 추가",
     "borrowExplain": "다른 프로필의 연결을 빌립니다. PIN으로 보호된 프로필에는 PIN이 필요합니다.",
     "borrowEmpty": "아직 빌릴 것이 없습니다.",
-    "borrowEmptySubtitle": "먼저 다른 프로필에 Plex 또는 Jellyfin을 연결하세요.",
+    "borrowEmptySubtitle": "먼저 다른 프로필에 Plex, Jellyfin 또는 Emby를 연결하세요.",
     "borrowLoadFailed": "사용 가능한 연결을 불러오지 못했습니다. 다시 시도하세요.",
     "borrowFromProfile": "${displayName}에서",
     "borrowConnectionBorrowed": "연결을 빌렸습니다.",
@@ -946,8 +949,8 @@
   "connections": {
     "sectionTitle": "연결",
     "addConnection": "연결 추가",
-    "addConnectionSubtitleNoProfile": "Plex로 로그인하거나 Jellyfin 서버에 연결",
-    "addConnectionSubtitleScoped": "${displayName}에 추가: Plex, Jellyfin 또는 다른 프로필 연결",
+    "addConnectionSubtitleNoProfile": "Plex로 로그인하거나 Jellyfin 또는 Emby 서버에 연결",
+    "addConnectionSubtitleScoped": "${displayName}에 추가: Plex, Jellyfin, Emby 또는 다른 프로필 연결",
     "sessionExpiredOne": "${name}의 세션이 만료되었습니다",
     "sessionExpiredMany": "${count}개 서버의 세션이 만료되었습니다",
     "signInAgain": "다시 로그인",
@@ -1066,7 +1069,14 @@
     "failedToVerifyToken": "토큰을 확인할 수 없습니다: ${error}",
     "failedToSwitchProfile": "${displayName}으로 전환할 수 없습니다",
     "failedToDeleteProfile": "${displayName}을(를) 삭제할 수 없습니다",
-    "failedToRate": "평점을 업데이트하지 못했습니다"
+    "failedToRate": "평점을 업데이트하지 못했습니다",
+    "reasonTimedOut": "연결 시간이 초과되었습니다",
+    "reasonUnreachable": "서버에 연결할 수 없습니다",
+    "reasonRefused": "서버가 요청을 거부했습니다",
+    "reasonNotFound": "항목이 더 이상 서버에 없습니다",
+    "reasonServerError": "서버에서 오류가 보고되었습니다",
+    "reasonCancelled": "요청이 취소되었습니다",
+    "reasonUnexpected": "예기치 않은 오류가 발생했습니다"
   },
   "libraries": {
     "title": "미디어 라이브러리",
@@ -1135,7 +1145,8 @@
       "tag": "태그",
       "unwatched": "미시청",
       "unplayed": "재생하지 않음",
-      "favorites": "즐겨찾기"
+      "favorites": "즐겨찾기",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "제목",
@@ -1157,14 +1168,45 @@
       "random": "무작위",
       "dateShared": "공유된 날짜",
       "latestEpisodeAirDate": "최신 에피소드 방영일",
-      "lastEpisodeDateAdded": "최신 에피소드 추가일"
+      "lastEpisodeDateAdded": "최신 에피소드 추가일",
+      "dateDownloaded": "다운로드된 날짜",
+      "size": "크기",
+      "library": "라이브러리"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "소개",
     "openSourceLicenses": "오픈소스 라이선스",
     "versionLabel": "버전 ${version}",
-    "appDescription": "Flutter로 만든 아름다운 Plex 및 Jellyfin 클라이언트",
+    "appDescription": "Flutter로 만든 아름다운 Plex, Jellyfin 및 Emby 클라이언트",
     "viewLicensesDescription": "타사 라이브러리 라이선스 보기"
   },
   "serverSelection": {
@@ -1477,7 +1519,9 @@
     "editRuleAction": "편집",
     "recordingRuleUpdated": "녹화 규칙 업데이트됨",
     "guideReloadRequested": "가이드 새로고침 요청됨",
+    "guideReloadFailed": "편성표를 새로고침할 수 없습니다",
     "rulesProcessRequested": "규칙 재평가 요청됨",
+    "rulesProcessFailed": "녹화 규칙을 다시 적용할 수 없습니다",
     "recordShow": "프로그램 녹화",
     "recordSettings": {
       "startEarly": "일찍 시작 (초)",
@@ -1493,7 +1537,9 @@
     "dayAtTime": "${day} ${time}",
     "invalidPlaybackData": "${product}에서 잘못된 실시간 TV 재생 데이터를 반환했습니다",
     "failedToStartChannel": "실시간 채널을 시작할 수 없습니다",
-    "failedToBuildStreamUrl": "스트림 URL을 생성할 수 없습니다"
+    "failedToBuildStreamUrl": "스트림 URL을 생성할 수 없습니다",
+    "playbackStartFailed": "채널을 시작하지 못했습니다: ${reason}",
+    "channelSwitchFailed": "채널을 전환하지 못했습니다: ${reason}"
   },
   "collections": {
     "title": "컬렉션",
@@ -1678,7 +1724,7 @@
     "downloadQueued": "다운로드 대기 중",
     "downloadResumed": "다운로드를 재개했습니다",
     "serverErrorBitrate": "서버 오류: 파일이 원격 비트레이트 제한을 초과할 수 있습니다",
-    "storageFull": "기기 저장 공간이 가득 차서 다운로드를 중지했습니다. 공간을 확보한 후 다시 시도하세요.",
+    "storageFull": "사용 가능한 저장 공간을 보호하기 위해 다운로드를 중지했습니다. 공간을 확보하거나 다른 다운로드 위치를 선택한 후 다시 시도하세요.",
     "storageUnavailable": "사용 가능한 저장 공간을 확인할 수 없어 다운로드를 중지했습니다. 다운로드 위치를 확인한 후 다시 시도하세요.",
     "episodesQueued": "에피소드 ${count}개가 다운로드 대기열에 추가되었습니다",
     "downloadDeleted": "다운로드 삭제됨",
@@ -1767,6 +1813,11 @@
       "settingsUnavailable": "이 기기에서 시스템 설정을 열 수 없습니다",
       "linkUnavailable": "이 기기에서 dontkillmyapp.com을 열 수 없습니다"
     },
+    "options": "다운로드 옵션",
+    "groupings": {
+      "library": "라이브러리"
+    },
+    "unknownLibrary": "알 수 없는 라이브러리",
     "unknownShow": "알 수 없는 프로그램",
     "unknownSeason": "알 수 없는 시즌",
     "unknownAlbum": "알 수 없는 앨범",

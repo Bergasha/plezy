@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Omarranger og skjul biblioteker",
     "companionRemoteServer": "Fjernbetjeningsserver",
     "companionRemoteServerDescription": "Tillad mobilenheder på dit netværk at styre denne app",
+    "companionRemoteServerStartFailed": "Fjernbetjeningsserveren kunne ikke startes",
+    "companionRemoteServerStopFailed": "Fjernbetjeningsserveren kunne ikke stoppes",
     "autoPip": "Automatisk billede-i-billede",
     "autoPipDescription": "Skift automatisk til billede-i-billede, når du forlader appen under afspilning",
     "matchContentFrameRate": "Tilpas billedhastigheden til indholdet",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "Slå HDR til for HDR-indhold og derefter tilbage til SDR",
     "displaySwitchDelay": "Forsinkelse ved skærmskift",
     "tunneledPlayback": "Tunneleret afspilning",
-    "tunneledPlaybackDescription": "Brug videotunneling. Slå fra, hvis HDR-afspilning viser sort video.",
+    "tunneledPlaybackDescription": "Brug videotunneling. Slå fra, hvis HDR-afspilning viser sort video, eller bevægelser hakker.",
     "audioPassthrough": "Lyd-passthrough",
     "audioPassthroughDescription": "Send Dolby/DTS-lyd til din receiver eller dit TV uden genkodning, så surroundlyd bevares. Slå fra, hvis du ikke har lyd.",
     "audioPassthroughDescriptionAppleTv": "Brug Apples indbyggede Dolby-dekoder til Dolby Digital Plus, inklusive Atmos. DTS og TrueHD afspilles stadig som flerkanals-PCM. Slå fra, hvis du ikke har lyd.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Normaliser lydstyrken ved downmix",
     "audioDownmixNormalizeDescription": "Sænk mixets lydstyrke for at undgå clipping. Slå fra for at bevare den oprindelige lydstyrke (høje scener kan blive forvrænget).",
     "dvConversionMode": "Dolby Vision-konvertering",
-    "dvConversionModeDescription": "Vælg, hvordan ExoPlayer håndterer Dolby Vision Profile 7-filer.",
+    "dvConversionModeDescription": "Vælg, hvordan Dolby Vision Profile 7-filer håndteres.",
     "dvConversionAuto": "Automatisk",
     "dvConversionNative": "Indbygget / deaktiveret",
     "dvConversionDv81": "P7 → P8.1",
@@ -729,6 +731,7 @@
     "pipFailed": "Billede-i-billede kunne ikke starte",
     "screenshotSaved": "Skærmbillede gemt",
     "zoomPercent": "Zoom ${percent}%",
+    "volumePercent": "Lydstyrke ${percent}%",
     "pipErrors": {
       "androidVersion": "Kræver Android 8.0 eller nyere",
       "iosVersion": "Kræver iOS 15.0 eller nyere",
@@ -929,7 +932,7 @@
     "borrowAddTo": "Tilføj til ${displayName}",
     "borrowExplain": "Lån en anden profils forbindelse. PIN-beskyttede profiler kræver en PIN.",
     "borrowEmpty": "Intet at låne endnu.",
-    "borrowEmptySubtitle": "Forbind Plex eller Jellyfin til en anden profil først.",
+    "borrowEmptySubtitle": "Forbind Plex, Jellyfin eller Emby til en anden profil først.",
     "borrowLoadFailed": "De tilgængelige forbindelser kunne ikke indlæses. Prøv igen.",
     "borrowFromProfile": "Fra ${displayName}",
     "borrowConnectionBorrowed": "Forbindelse lånt.",
@@ -950,8 +953,8 @@
   "connections": {
     "sectionTitle": "Forbindelser",
     "addConnection": "Tilføj forbindelse",
-    "addConnectionSubtitleNoProfile": "Log ind med Plex eller forbind til en Jellyfin-server",
-    "addConnectionSubtitleScoped": "Føj til ${displayName}: Plex, Jellyfin eller en anden profilforbindelse",
+    "addConnectionSubtitleNoProfile": "Log ind med Plex eller forbind til en Jellyfin- eller Emby-server",
+    "addConnectionSubtitleScoped": "Føj til ${displayName}: Plex, Jellyfin, Emby eller en anden profilforbindelse",
     "sessionExpiredOne": "Sessionen er udløbet for ${name}",
     "sessionExpiredMany": "Sessionerne er udløbet for ${count} servere",
     "signInAgain": "Log ind igen",
@@ -1071,7 +1074,14 @@
     "failedToVerifyToken": "Kunne ikke verificere token: ${error}",
     "failedToSwitchProfile": "Kunne ikke skifte til ${displayName}",
     "failedToDeleteProfile": "Kunne ikke slette ${displayName}",
-    "failedToRate": "Kunne ikke opdatere bedømmelsen"
+    "failedToRate": "Kunne ikke opdatere bedømmelsen",
+    "reasonTimedOut": "forbindelsen fik timeout",
+    "reasonUnreachable": "medieserveren kunne ikke nås",
+    "reasonRefused": "medieserveren afviste anmodningen",
+    "reasonNotFound": "elementet findes ikke længere på medieserveren",
+    "reasonServerError": "medieserveren rapporterede en fejl",
+    "reasonCancelled": "anmodningen blev annulleret",
+    "reasonUnexpected": "der opstod en uventet fejl"
   },
   "libraries": {
     "title": "Biblioteker",
@@ -1140,7 +1150,8 @@
       "tag": "Tag",
       "unwatched": "Usete",
       "unplayed": "Ikke afspillet",
-      "favorites": "Favoritter"
+      "favorites": "Favoritter",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Titel",
@@ -1162,14 +1173,45 @@
       "random": "Tilfældig",
       "dateShared": "Delt dato",
       "latestEpisodeAirDate": "Seneste episodes premieredato",
-      "lastEpisodeDateAdded": "Dato for senest tilføjede episode"
+      "lastEpisodeDateAdded": "Dato for senest tilføjede episode",
+      "dateDownloaded": "Downloadet dato",
+      "size": "Størrelse",
+      "library": "Bibliotek"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "Om",
     "openSourceLicenses": "Open source-licenser",
     "versionLabel": "Version ${version}",
-    "appDescription": "En smuk Plex- og Jellyfin-klient bygget med Flutter",
+    "appDescription": "En smuk Plex-, Jellyfin- og Emby-klient bygget med Flutter",
     "viewLicensesDescription": "Se licenser for tredjepartsbiblioteker"
   },
   "serverSelection": {
@@ -1487,7 +1529,9 @@
     "editRuleAction": "Rediger",
     "recordingRuleUpdated": "Optagelsesregel opdateret",
     "guideReloadRequested": "Der er anmodet om en opdatering af guiden",
+    "guideReloadFailed": "Kunne ikke opdatere guiden",
     "rulesProcessRequested": "Der er anmodet om en ny evaluering af reglerne",
+    "rulesProcessFailed": "Kunne ikke behandle optagelsesreglerne igen",
     "recordShow": "Optag program",
     "recordSettings": {
       "startEarly": "Start tidligere (sekunder)",
@@ -1503,7 +1547,9 @@
     "dayAtTime": "${day} kl. ${time}",
     "invalidPlaybackData": "${product} returnerede ugyldige afspilningsdata for Live TV",
     "failedToStartChannel": "Kunne ikke starte livekanalen",
-    "failedToBuildStreamUrl": "Kunne ikke oprette stream-URL'en"
+    "failedToBuildStreamUrl": "Kunne ikke oprette stream-URL'en",
+    "playbackStartFailed": "Kunne ikke starte kanalen: ${reason}",
+    "channelSwitchFailed": "Kunne ikke skifte kanal: ${reason}"
   },
   "collections": {
     "title": "Samlinger",
@@ -1689,7 +1735,7 @@
     "downloadQueued": "Download i kø",
     "downloadResumed": "Download genoptaget",
     "serverErrorBitrate": "Serverfejl: filen overskrider muligvis grænsen for ekstern bitrate",
-    "storageFull": "Downloads blev stoppet, fordi enhedens lagerplads er fuld. Frigør plads, og prøv igen.",
+    "storageFull": "Downloads blev stoppet for at beskytte den ledige lagerplads. Frigør plads, eller vælg en anden downloadplacering, og prøv igen.",
     "storageUnavailable": "Downloads blev stoppet, fordi den tilgængelige lagerplads ikke kunne kontrolleres. Tjek downloadplaceringen, og prøv igen.",
     "episodesQueued": "${count} episoder i downloadkø",
     "downloadDeleted": "Download slettet",
@@ -1778,6 +1824,11 @@
       "settingsUnavailable": "Kunne ikke åbne systemindstillingerne på denne enhed",
       "linkUnavailable": "Kunne ikke åbne dontkillmyapp.com på denne enhed"
     },
+    "options": "Valgmuligheder for downloads",
+    "groupings": {
+      "library": "Bibliotek"
+    },
+    "unknownLibrary": "Ukendt bibliotek",
     "unknownShow": "Ukendt serie",
     "unknownSeason": "Ukendt sæson",
     "unknownAlbum": "Ukendt album",

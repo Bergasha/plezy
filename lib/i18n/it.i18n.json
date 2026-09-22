@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Riordina e nascondi le librerie",
     "companionRemoteServer": "Server del telecomando",
     "companionRemoteServerDescription": "Consenti ai dispositivi mobili della tua rete di controllare questa app",
+    "companionRemoteServerStartFailed": "Impossibile avviare il server del telecomando",
+    "companionRemoteServerStopFailed": "Impossibile arrestare il server del telecomando",
     "autoPip": "Picture-in-Picture automatica",
     "autoPipDescription": "Attiva automaticamente la modalità Picture-in-Picture quando esci dall'app durante la riproduzione",
     "matchContentFrameRate": "Adatta la frequenza dei fotogrammi",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "Attiva l'HDR per i contenuti HDR, quindi torna all'SDR",
     "displaySwitchDelay": "Ritardo del cambio di modalità dello schermo",
     "tunneledPlayback": "Riproduzione con tunneling",
-    "tunneledPlaybackDescription": "Usa il tunneling video. Disattivalo se durante la riproduzione HDR lo schermo rimane nero.",
+    "tunneledPlaybackDescription": "Usa il tunneling video. Disattivalo se durante la riproduzione HDR lo schermo rimane nero o il movimento scatta.",
     "audioPassthrough": "Passthrough audio",
     "audioPassthroughDescription": "Invia l'audio Dolby/DTS al ricevitore o al televisore senza ricodificarlo, preservando l'audio surround. Disattiva questa opzione se non senti alcun suono.",
     "audioPassthroughDescriptionAppleTv": "Usa il decoder Dolby nativo di Apple per Dolby Digital Plus, incluso Atmos. DTS e TrueHD vengono comunque riprodotti come PCM multicanale. Disattiva questa opzione se non senti alcun suono.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Normalizza il volume durante il downmix",
     "audioDownmixNormalizeDescription": "Riduce il volume del mix per evitare il clipping. Disattiva questa opzione per mantenere il volume originale (le scene più rumorose potrebbero risultare distorte).",
     "dvConversionMode": "Conversione Dolby Vision",
-    "dvConversionModeDescription": "Scegli come ExoPlayer gestisce i file Dolby Vision con profilo 7.",
+    "dvConversionModeDescription": "Scegli come gestire i file Dolby Vision con profilo 7.",
     "dvConversionAuto": "Auto",
     "dvConversionNative": "Nativa / disattivata",
     "dvConversionDv81": "P7 → P8.1",
@@ -729,6 +731,7 @@
     "pipFailed": "Impossibile avviare la modalità Picture-in-Picture",
     "screenshotSaved": "Schermata salvata",
     "zoomPercent": "Zoom ${percent}%",
+    "volumePercent": "Volume ${percent}%",
     "pipErrors": {
       "androidVersion": "Richiede Android 8.0 o versioni successive",
       "iosVersion": "Richiede iOS 15.0 o versioni successive",
@@ -929,7 +932,7 @@
     "borrowAddTo": "Aggiungi a ${displayName}",
     "borrowExplain": "Prendi in prestito la connessione di un altro profilo. I profili protetti da PIN richiedono un PIN.",
     "borrowEmpty": "Nulla da prendere in prestito al momento.",
-    "borrowEmptySubtitle": "Collega prima Plex o Jellyfin a un altro profilo.",
+    "borrowEmptySubtitle": "Collega prima Plex, Jellyfin o Emby a un altro profilo.",
     "borrowLoadFailed": "Impossibile caricare le connessioni disponibili. Riprova.",
     "borrowFromProfile": "Da ${displayName}",
     "borrowConnectionBorrowed": "Connessione presa in prestito.",
@@ -950,8 +953,8 @@
   "connections": {
     "sectionTitle": "Connessioni",
     "addConnection": "Aggiungi connessione",
-    "addConnectionSubtitleNoProfile": "Accedi con Plex o collega un server Jellyfin",
-    "addConnectionSubtitleScoped": "Aggiungi a ${displayName}: Plex, Jellyfin o la connessione di un altro profilo",
+    "addConnectionSubtitleNoProfile": "Accedi con Plex o collega un server Jellyfin o Emby",
+    "addConnectionSubtitleScoped": "Aggiungi a ${displayName}: Plex, Jellyfin, Emby o la connessione di un altro profilo",
     "sessionExpiredOne": "Sessione scaduta per ${name}",
     "sessionExpiredMany": "Sessione scaduta per ${count} server",
     "signInAgain": "Accedi di nuovo",
@@ -1071,7 +1074,14 @@
     "failedToVerifyToken": "Impossibile verificare il token: ${error}",
     "failedToSwitchProfile": "Impossibile passare a ${displayName}",
     "failedToDeleteProfile": "Impossibile eliminare ${displayName}",
-    "failedToRate": "Impossibile aggiornare la valutazione"
+    "failedToRate": "Impossibile aggiornare la valutazione",
+    "reasonTimedOut": "il tempo di connessione è scaduto",
+    "reasonUnreachable": "non è stato possibile raggiungere il server",
+    "reasonRefused": "il server ha rifiutato la richiesta",
+    "reasonNotFound": "l'elemento non è più presente sul server",
+    "reasonServerError": "il server ha segnalato un errore",
+    "reasonCancelled": "la richiesta è stata annullata",
+    "reasonUnexpected": "si è verificato un errore imprevisto"
   },
   "libraries": {
     "title": "Librerie",
@@ -1140,7 +1150,8 @@
       "tag": "Tag",
       "unwatched": "Non visti",
       "unplayed": "Non riprodotti",
-      "favorites": "Preferiti"
+      "favorites": "Preferiti",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Titolo",
@@ -1162,14 +1173,45 @@
       "random": "Casuale",
       "dateShared": "Data di condivisione",
       "latestEpisodeAirDate": "Data di trasmissione dell'ultimo episodio",
-      "lastEpisodeDateAdded": "Data di aggiunta dell'ultimo episodio"
+      "lastEpisodeDateAdded": "Data di aggiunta dell'ultimo episodio",
+      "dateDownloaded": "Data di download",
+      "size": "Dimensione",
+      "library": "Libreria"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "Informazioni",
     "openSourceLicenses": "Licenze open source",
     "versionLabel": "Versione ${version}",
-    "appDescription": "Un elegante client Plex e Jellyfin per Flutter",
+    "appDescription": "Un elegante client Plex, Jellyfin ed Emby per Flutter",
     "viewLicensesDescription": "Visualizza le licenze delle librerie di terze parti"
   },
   "serverSelection": {
@@ -1487,7 +1529,9 @@
     "editRuleAction": "Modifica",
     "recordingRuleUpdated": "Regola di registrazione aggiornata",
     "guideReloadRequested": "Aggiornamento della guida richiesto",
+    "guideReloadFailed": "Impossibile aggiornare la guida",
     "rulesProcessRequested": "Rielaborazione delle regole richiesta",
+    "rulesProcessFailed": "Impossibile rielaborare le regole di registrazione",
     "recordShow": "Registra programma",
     "recordSettings": {
       "startEarly": "Inizia in anticipo (secondi)",
@@ -1503,7 +1547,9 @@
     "dayAtTime": "${day} alle ${time}",
     "invalidPlaybackData": "${product} ha restituito dati di riproduzione della TV in diretta non validi",
     "failedToStartChannel": "Impossibile avviare il canale in diretta",
-    "failedToBuildStreamUrl": "Impossibile creare l'URL dello stream"
+    "failedToBuildStreamUrl": "Impossibile creare l'URL dello stream",
+    "playbackStartFailed": "Impossibile avviare il canale: ${reason}",
+    "channelSwitchFailed": "Impossibile cambiare canale: ${reason}"
   },
   "collections": {
     "title": "Raccolte",
@@ -1689,7 +1735,7 @@
     "downloadQueued": "Download in coda",
     "downloadResumed": "Download ripreso",
     "serverErrorBitrate": "Errore server: il file può superare il limite di bitrate remoto",
-    "storageFull": "I download sono stati interrotti perché lo spazio di archiviazione del dispositivo è esaurito. Libera spazio e riprova.",
+    "storageFull": "I download sono stati interrotti per preservare lo spazio disponibile. Libera spazio o scegli un’altra posizione di download, quindi riprova.",
     "storageUnavailable": "I download sono stati interrotti perché non è stato possibile verificare lo spazio di archiviazione disponibile. Controlla la posizione di download e riprova.",
     "episodesQueued": "${count} episodi in coda per il download",
     "downloadDeleted": "Download eliminato",
@@ -1778,6 +1824,11 @@
       "settingsUnavailable": "Impossibile aprire le impostazioni di sistema su questo dispositivo",
       "linkUnavailable": "Impossibile aprire dontkillmyapp.com su questo dispositivo"
     },
+    "options": "Opzioni download",
+    "groupings": {
+      "library": "Libreria"
+    },
+    "unknownLibrary": "Libreria sconosciuta",
     "unknownShow": "Serie sconosciuta",
     "unknownSeason": "Stagione sconosciuta",
     "unknownAlbum": "Album sconosciuto",

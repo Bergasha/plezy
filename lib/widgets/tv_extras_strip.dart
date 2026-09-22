@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../focus/dpad_navigator.dart';
 import '../focus/key_event_utils.dart';
 import '../media/media_item.dart';
+import '../services/settings_service.dart';
 import '../theme/mono_tokens.dart';
 import '../utils/scroll_utils.dart';
 import '../utils/video_player_navigation.dart';
@@ -214,7 +215,7 @@ class TvExtrasStripState extends State<TvExtrasStrip> {
                     width: widget._cardWidth,
                     height: widget._posterHeight,
                     onRefresh: widget.onRefresh,
-                    forceGridMode: true,
+                    viewModeOverride: ViewMode.grid,
                   ),
                 ),
               );

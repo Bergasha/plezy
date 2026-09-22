@@ -1134,6 +1134,12 @@ class Translations$settings$en {
 	/// en: 'Allow mobile devices on your network to control this app'
 	String get companionRemoteServerDescription => 'Allow mobile devices on your network to control this app';
 
+	/// en: 'Couldn't start the companion server'
+	String get companionRemoteServerStartFailed => 'Couldn\'t start the companion server';
+
+	/// en: 'Couldn't stop the companion server'
+	String get companionRemoteServerStopFailed => 'Couldn\'t stop the companion server';
+
 	/// en: 'Auto Picture-in-Picture'
 	String get autoPip => 'Auto Picture-in-Picture';
 
@@ -2336,6 +2342,9 @@ class Translations$videoControls$en {
 	/// en: 'Zoom ${percent}%'
 	String zoomPercent({required Object percent}) => 'Zoom ${percent}%';
 
+	/// en: 'Volume ${percent}%'
+	String volumePercent({required Object percent}) => 'Volume ${percent}%';
+
 	late final Translations$videoControls$pipErrors$en pipErrors = Translations$videoControls$pipErrors$en.internal(_root);
 
 	/// en: 'Chapters'
@@ -3252,6 +3261,27 @@ class Translations$errors$en {
 
 	/// en: 'Couldn't update rating'
 	String get failedToRate => 'Couldn\'t update rating';
+
+	/// en: 'the connection timed out'
+	String get reasonTimedOut => 'the connection timed out';
+
+	/// en: 'the server could not be reached'
+	String get reasonUnreachable => 'the server could not be reached';
+
+	/// en: 'the server refused the request'
+	String get reasonRefused => 'the server refused the request';
+
+	/// en: 'the item is no longer on the server'
+	String get reasonNotFound => 'the item is no longer on the server';
+
+	/// en: 'the server reported an error'
+	String get reasonServerError => 'the server reported an error';
+
+	/// en: 'the request was cancelled'
+	String get reasonCancelled => 'the request was cancelled';
+
+	/// en: 'an unexpected error occurred'
+	String get reasonUnexpected => 'an unexpected error occurred';
 }
 
 // Path: libraries
@@ -3389,6 +3419,7 @@ class Translations$libraries$en {
 	late final Translations$libraries$groupings$en groupings = Translations$libraries$groupings$en.internal(_root);
 	late final Translations$libraries$filterCategories$en filterCategories = Translations$libraries$filterCategories$en.internal(_root);
 	late final Translations$libraries$sortLabels$en sortLabels = Translations$libraries$sortLabels$en.internal(_root);
+	late final Translations$libraries$advancedFilters$en advancedFilters = Translations$libraries$advancedFilters$en.internal(_root);
 }
 
 // Path: about
@@ -3955,8 +3986,14 @@ class Translations$liveTv$en {
 	/// en: 'Guide refresh requested'
 	String get guideReloadRequested => 'Guide refresh requested';
 
+	/// en: 'Couldn't refresh the guide'
+	String get guideReloadFailed => 'Couldn\'t refresh the guide';
+
 	/// en: 'Rule re-evaluation requested'
 	String get rulesProcessRequested => 'Rule re-evaluation requested';
+
+	/// en: 'Couldn't re-evaluate recording rules'
+	String get rulesProcessFailed => 'Couldn\'t re-evaluate recording rules';
 
 	/// en: 'Record show'
 	String get recordShow => 'Record show';
@@ -3977,6 +4014,12 @@ class Translations$liveTv$en {
 
 	/// en: 'Could not build the stream URL'
 	String get failedToBuildStreamUrl => 'Could not build the stream URL';
+
+	/// en: 'Couldn't start the channel: ${reason}'
+	String playbackStartFailed({required Object reason}) => 'Couldn\'t start the channel: ${reason}';
+
+	/// en: 'Couldn't switch channel: ${reason}'
+	String channelSwitchFailed({required Object reason}) => 'Couldn\'t switch channel: ${reason}';
 }
 
 // Path: collections
@@ -6285,6 +6328,9 @@ class Translations$libraries$filterCategories$en {
 
 	/// en: 'Favorites'
 	String get favorites => 'Favorites';
+
+	/// en: 'File Path'
+	String get filePath => 'File Path';
 }
 
 // Path: libraries.sortLabels
@@ -6363,6 +6409,93 @@ class Translations$libraries$sortLabels$en {
 
 	/// en: 'Library'
 	String get library => 'Library';
+}
+
+// Path: libraries.advancedFilters
+class Translations$libraries$advancedFilters$en {
+	Translations$libraries$advancedFilters$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Include'
+	String get include => 'Include';
+
+	/// en: 'Exclude'
+	String get exclude => 'Exclude';
+
+	/// en: 'Any'
+	String get any => 'Any';
+
+	/// en: 'Yes'
+	String get yes => 'Yes';
+
+	/// en: 'No'
+	String get no => 'No';
+
+	/// en: 'Not ${value}'
+	String not({required Object value}) => 'Not ${value}';
+
+	/// en: '${count} selected'
+	String valueCount({required Object count}) => '${count} selected';
+
+	/// en: '${count} excluded'
+	String valueCountExcluded({required Object count}) => '${count} excluded';
+
+	/// en: 'Search values'
+	String get searchValues => 'Search values';
+
+	/// en: 'No values'
+	String get noValues => 'No values';
+
+	/// en: 'Contains'
+	String get matchContains => 'Contains';
+
+	/// en: 'Does not contain'
+	String get matchNotContains => 'Does not contain';
+
+	/// en: 'Is'
+	String get matchIs => 'Is';
+
+	/// en: 'Is not'
+	String get matchIsNot => 'Is not';
+
+	/// en: 'Begins with'
+	String get matchBeginsWith => 'Begins with';
+
+	/// en: 'Ends with'
+	String get matchEndsWith => 'Ends with';
+
+	/// en: 'Type to match'
+	String get textHint => 'Type to match';
+
+	/// en: 'From'
+	String get from => 'From';
+
+	/// en: 'To'
+	String get to => 'To';
+
+	/// en: '${from} to ${to}'
+	String range({required Object from, required Object to}) => '${from} to ${to}';
+
+	/// en: '${value} and up'
+	String atLeast({required Object value}) => '${value} and up';
+
+	/// en: 'Up to ${value}'
+	String atMost({required Object value}) => 'Up to ${value}';
+
+	/// en: 'Last ${count} days'
+	String dateLastDays({required Object count}) => 'Last ${count} days';
+
+	/// en: 'Past year'
+	String get dateLastYear => 'Past year';
+
+	/// en: 'Older than ${count} days'
+	String dateOlderThanDays({required Object count}) => 'Older than ${count} days';
+
+	/// en: 'Older than a year'
+	String get dateOlderThanYear => 'Older than a year';
 }
 
 // Path: explore.rows
@@ -7698,6 +7831,8 @@ extension on Translations {
 			'settings.manageLibrariesDescription' => 'Reorder and hide libraries',
 			'settings.companionRemoteServer' => 'Companion Remote Server',
 			'settings.companionRemoteServerDescription' => 'Allow mobile devices on your network to control this app',
+			'settings.companionRemoteServerStartFailed' => 'Couldn\'t start the companion server',
+			'settings.companionRemoteServerStopFailed' => 'Couldn\'t stop the companion server',
 			'settings.autoPip' => 'Auto Picture-in-Picture',
 			'settings.autoPipDescription' => 'Automatically enter picture-in-picture when you leave the app during playback',
 			'settings.playThemeMusic' => 'Play Theme Music',
@@ -7861,10 +7996,10 @@ extension on Translations {
 			'fileInfo.rotation' => 'Rotation',
 			'fileInfo.comment' => 'Comment',
 			'fileInfo.audioDescription' => 'Audio Description',
-			'fileInfo.headerCompression' => 'Header Compression',
-			'fileInfo.sidecarFile' => 'Sidecar File',
 			_ => null,
 		} ?? switch (path) {
+			'fileInfo.headerCompression' => 'Header Compression',
+			'fileInfo.sidecarFile' => 'Sidecar File',
 			'fileInfo.transportTimestamp' => 'Transport Timestamp',
 			'fileInfo.displayOffset' => 'Display Offset',
 			'fileInfo.previewFailureCode' => 'Preview Failure Code',
@@ -8093,6 +8228,7 @@ extension on Translations {
 			'videoControls.subtitlesOff' => 'Subtitles: off',
 			'videoControls.subtitlesTrack' => ({required Object label}) => 'Subtitles: ${label}',
 			'videoControls.zoomPercent' => ({required Object percent}) => 'Zoom ${percent}%',
+			'videoControls.volumePercent' => ({required Object percent}) => 'Volume ${percent}%',
 			'videoControls.pipErrors.androidVersion' => 'Requires Android 8.0 or newer',
 			'videoControls.pipErrors.iosVersion' => 'Requires iOS 15.0 or newer',
 			'videoControls.pipErrors.permissionDisabled' => 'Picture-in-picture is disabled. Enable it in system settings.',
@@ -8374,11 +8510,11 @@ extension on Translations {
 			'discover.recentlyAddedIn' => ({required Object library}) => 'Recently Added in ${library}',
 			'discover.latestAlbumsIn' => ({required Object library}) => 'Latest Albums in ${library}',
 			'discover.recentlyPlayedIn' => ({required Object library}) => 'Recently Played in ${library}',
+			_ => null,
+		} ?? switch (path) {
 			'discover.mostPlayedIn' => ({required Object library}) => 'Most Played in ${library}',
 			'discover.playEpisode' => ({required Object season, required Object episode}) => 'S${season}E${episode}',
 			'discover.overview' => 'Overview',
-			_ => null,
-		} ?? switch (path) {
 			'discover.cast' => 'Cast',
 			'discover.extras' => 'Trailers & Extras',
 			'discover.ratingsAndReviews' => 'Ratings & Reviews',
@@ -8404,6 +8540,13 @@ extension on Translations {
 			'errors.failedToSwitchProfile' => ({required Object displayName}) => 'Failed to switch to ${displayName}',
 			'errors.failedToDeleteProfile' => ({required Object displayName}) => 'Failed to delete ${displayName}',
 			'errors.failedToRate' => 'Couldn\'t update rating',
+			'errors.reasonTimedOut' => 'the connection timed out',
+			'errors.reasonUnreachable' => 'the server could not be reached',
+			'errors.reasonRefused' => 'the server refused the request',
+			'errors.reasonNotFound' => 'the item is no longer on the server',
+			'errors.reasonServerError' => 'the server reported an error',
+			'errors.reasonCancelled' => 'the request was cancelled',
+			'errors.reasonUnexpected' => 'an unexpected error occurred',
 			'libraries.title' => 'Libraries',
 			'libraries.fallbackTitle' => 'Library',
 			'libraries.scanLibraryFiles' => 'Scan Library Files',
@@ -8466,6 +8609,7 @@ extension on Translations {
 			'libraries.filterCategories.unwatched' => 'Unwatched',
 			'libraries.filterCategories.unplayed' => 'Unplayed',
 			'libraries.filterCategories.favorites' => 'Favorites',
+			'libraries.filterCategories.filePath' => 'File Path',
 			'libraries.sortLabels.title' => 'Title',
 			'libraries.sortLabels.dateAdded' => 'Date Added',
 			'libraries.sortLabels.releaseDate' => 'Release Date',
@@ -8489,6 +8633,32 @@ extension on Translations {
 			'libraries.sortLabels.dateDownloaded' => 'Date Downloaded',
 			'libraries.sortLabels.size' => 'Size',
 			'libraries.sortLabels.library' => 'Library',
+			'libraries.advancedFilters.include' => 'Include',
+			'libraries.advancedFilters.exclude' => 'Exclude',
+			'libraries.advancedFilters.any' => 'Any',
+			'libraries.advancedFilters.yes' => 'Yes',
+			'libraries.advancedFilters.no' => 'No',
+			'libraries.advancedFilters.not' => ({required Object value}) => 'Not ${value}',
+			'libraries.advancedFilters.valueCount' => ({required Object count}) => '${count} selected',
+			'libraries.advancedFilters.valueCountExcluded' => ({required Object count}) => '${count} excluded',
+			'libraries.advancedFilters.searchValues' => 'Search values',
+			'libraries.advancedFilters.noValues' => 'No values',
+			'libraries.advancedFilters.matchContains' => 'Contains',
+			'libraries.advancedFilters.matchNotContains' => 'Does not contain',
+			'libraries.advancedFilters.matchIs' => 'Is',
+			'libraries.advancedFilters.matchIsNot' => 'Is not',
+			'libraries.advancedFilters.matchBeginsWith' => 'Begins with',
+			'libraries.advancedFilters.matchEndsWith' => 'Ends with',
+			'libraries.advancedFilters.textHint' => 'Type to match',
+			'libraries.advancedFilters.from' => 'From',
+			'libraries.advancedFilters.to' => 'To',
+			'libraries.advancedFilters.range' => ({required Object from, required Object to}) => '${from} to ${to}',
+			'libraries.advancedFilters.atLeast' => ({required Object value}) => '${value} and up',
+			'libraries.advancedFilters.atMost' => ({required Object value}) => 'Up to ${value}',
+			'libraries.advancedFilters.dateLastDays' => ({required Object count}) => 'Last ${count} days',
+			'libraries.advancedFilters.dateLastYear' => 'Past year',
+			'libraries.advancedFilters.dateOlderThanDays' => ({required Object count}) => 'Older than ${count} days',
+			'libraries.advancedFilters.dateOlderThanYear' => 'Older than a year',
 			'about.title' => 'About',
 			'about.openSourceLicenses' => 'Open Source Licenses',
 			'about.versionLabel' => ({required Object version}) => 'Version ${version}',
@@ -8762,7 +8932,9 @@ extension on Translations {
 			'liveTv.editRuleAction' => 'Edit',
 			'liveTv.recordingRuleUpdated' => 'Recording rule updated',
 			'liveTv.guideReloadRequested' => 'Guide refresh requested',
+			'liveTv.guideReloadFailed' => 'Couldn\'t refresh the guide',
 			'liveTv.rulesProcessRequested' => 'Rule re-evaluation requested',
+			'liveTv.rulesProcessFailed' => 'Couldn\'t re-evaluate recording rules',
 			'liveTv.recordShow' => 'Record show',
 			'liveTv.recordSettings.startEarly' => 'Start early (seconds)',
 			'liveTv.recordSettings.endLate' => 'End late (seconds)',
@@ -8777,6 +8949,8 @@ extension on Translations {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} returned invalid Live TV playback data',
 			'liveTv.failedToStartChannel' => 'Could not start the live channel',
 			'liveTv.failedToBuildStreamUrl' => 'Could not build the stream URL',
+			'liveTv.playbackStartFailed' => ({required Object reason}) => 'Couldn\'t start the channel: ${reason}',
+			'liveTv.channelSwitchFailed' => ({required Object reason}) => 'Couldn\'t switch channel: ${reason}',
 			'collections.title' => 'Collections',
 			'collections.collection' => 'Collection',
 			'collections.empty' => 'Collection is empty',
@@ -8850,6 +9024,8 @@ extension on Translations {
 			'music.instantMixEmpty' => 'The instant mix came back with no tracks',
 			'music.noAudioUrl' => ({required Object track}) => 'No audio URL is available for ${track}',
 			'music.discography.singlesAndEps' => 'Singles & EPs',
+			_ => null,
+		} ?? switch (path) {
 			'music.discography.live' => 'Live',
 			'music.discography.compilations' => 'Compilations',
 			'watchTogether.title' => 'Watch Together',
@@ -8891,8 +9067,6 @@ extension on Translations {
 			'watchTogether.leaveSessionConfirm' => 'You will be removed from the session.',
 			'watchTogether.endSessionConfirmOverlay' => 'This will end the watch session for all participants.',
 			'watchTogether.leaveSessionConfirmOverlay' => 'You will be disconnected from the watch session.',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.end' => 'End',
 			'watchTogether.leave' => 'Leave',
 			'watchTogether.syncing' => 'Syncing...',
@@ -9364,6 +9538,8 @@ extension on Translations {
 			'seerr.statusAvailable' => 'Available',
 			'seerr.statusPartiallyAvailable' => 'Partially available',
 			'seerr.statusRequested' => 'Requested',
+			_ => null,
+		} ?? switch (path) {
 			'seerr.statusProcessing' => 'Processing',
 			'seerr.statusBlocklisted' => 'Blocklisted',
 			'seerr.couldNotReach' => ({required Object url, required Object error}) => 'Could not reach ${url}: ${error}',
@@ -9405,8 +9581,6 @@ extension on Translations {
 			'services.oauthProxy.title' => ({required Object service}) => 'Sign in to ${service}',
 			'services.oauthProxy.body' => 'Scan this QR code or open the URL on any device.',
 			'services.oauthProxy.openToSignIn' => ({required Object service}) => 'Open ${service} to sign in',
-			_ => null,
-		} ?? switch (path) {
 			'services.pendingAuth.copyUrl' => 'Copy sign-in URL',
 			'services.pendingAuth.urlCopied' => 'URL copied',
 			'services.libraryFilter.title' => 'Library filter',

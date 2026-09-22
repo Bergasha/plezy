@@ -325,6 +325,8 @@
     "manageLibrariesDescription": "Ordna om och dölj bibliotek",
     "companionRemoteServer": "Server för fjärrkontroll",
     "companionRemoteServerDescription": "Tillåt att mobila enheter i nätverket styr appen",
+    "companionRemoteServerStartFailed": "Kunde inte starta servern för fjärrkontroll",
+    "companionRemoteServerStopFailed": "Kunde inte stoppa servern för fjärrkontroll",
     "autoPip": "Automatisk bild-i-bild",
     "autoPipDescription": "Aktivera bild-i-bild om du lämnar appen under uppspelning",
     "matchContentFrameRate": "Matcha innehållets bildfrekvens",
@@ -337,7 +339,7 @@
     "matchDynamicRangeDescription": "Slå på HDR för HDR-innehåll och sedan tillbaka till SDR",
     "displaySwitchDelay": "Fördröjning vid skärmbyte",
     "tunneledPlayback": "Tunneluppspelning",
-    "tunneledPlaybackDescription": "Använd videotunnling. Inaktivera om HDR-uppspelning visar svart video.",
+    "tunneledPlaybackDescription": "Använd videotunnling. Inaktivera om HDR-uppspelning visar svart video eller rörelser hackar.",
     "audioPassthrough": "Ljudgenomströmning",
     "audioPassthroughDescription": "Skicka Dolby-/DTS-ljud till receivern eller TV:n utan omkodning så att surroundljudet bevaras. Stäng av om inget ljud hörs.",
     "audioPassthroughDescriptionAppleTv": "Använd Apples inbyggda Dolby-avkodare för Dolby Digital Plus, inklusive Atmos. DTS och TrueHD spelas fortfarande upp som flerkanaligt PCM-ljud. Stäng av om inget ljud hörs.",
@@ -351,7 +353,7 @@
     "audioDownmixNormalize": "Normalisera ljudstyrka vid nedmixning",
     "audioDownmixNormalizeDescription": "Sänk ljudnivån för att förhindra klippning. Stäng av för att behålla originalvolymen (starka ljud kan då bli förvrängda).",
     "dvConversionMode": "Dolby Vision-konvertering",
-    "dvConversionModeDescription": "Välj hur ExoPlayer hanterar Dolby Vision Profile 7-filer.",
+    "dvConversionModeDescription": "Välj hur Dolby Vision Profile 7-filer hanteras.",
     "dvConversionAuto": "Auto",
     "dvConversionNative": "Inbyggt / inaktiverat",
     "dvConversionDv81": "P7 → P8.1",
@@ -729,6 +731,7 @@
     "pipFailed": "Bild-i-bild kunde inte starta",
     "screenshotSaved": "Skärmbild sparad",
     "zoomPercent": "Zoom ${percent}%",
+    "volumePercent": "Volym ${percent}%",
     "pipErrors": {
       "androidVersion": "Kräver Android 8.0 eller nyare",
       "iosVersion": "Kräver iOS 15.0 eller nyare",
@@ -929,7 +932,7 @@
     "borrowAddTo": "Lägg till i ${displayName}",
     "borrowExplain": "Låna en annan profils anslutning. PIN-skyddade profiler kräver en PIN.",
     "borrowEmpty": "Inget att låna ännu.",
-    "borrowEmptySubtitle": "Anslut Plex eller Jellyfin till en annan profil först.",
+    "borrowEmptySubtitle": "Anslut Plex, Jellyfin eller Emby till en annan profil först.",
     "borrowLoadFailed": "Det gick inte att läsa in tillgängliga anslutningar. Försök igen.",
     "borrowFromProfile": "Från ${displayName}",
     "borrowConnectionBorrowed": "Anslutning lånad.",
@@ -950,8 +953,8 @@
   "connections": {
     "sectionTitle": "Anslutningar",
     "addConnection": "Lägg till anslutning",
-    "addConnectionSubtitleNoProfile": "Logga in med Plex eller anslut en Jellyfin-server",
-    "addConnectionSubtitleScoped": "Lägg till för ${displayName}: Plex, Jellyfin eller en annan profilanslutning",
+    "addConnectionSubtitleNoProfile": "Logga in med Plex eller anslut en Jellyfin- eller Emby-server",
+    "addConnectionSubtitleScoped": "Lägg till för ${displayName}: Plex, Jellyfin, Emby eller en annan profilanslutning",
     "sessionExpiredOne": "Sessionen har gått ut för ${name}",
     "sessionExpiredMany": "Sessionen har gått ut för ${count} servrar",
     "signInAgain": "Logga in igen",
@@ -1071,7 +1074,14 @@
     "failedToVerifyToken": "Det gick inte att verifiera token: ${error}",
     "failedToSwitchProfile": "Det gick inte att byta till ${displayName}",
     "failedToDeleteProfile": "Det gick inte att ta bort ${displayName}",
-    "failedToRate": "Det gick inte att uppdatera betyget"
+    "failedToRate": "Det gick inte att uppdatera betyget",
+    "reasonTimedOut": "anslutningen tog för lång tid",
+    "reasonUnreachable": "det gick inte att nå servern",
+    "reasonRefused": "servern nekade begäran",
+    "reasonNotFound": "objektet finns inte längre på servern",
+    "reasonServerError": "servern rapporterade ett fel",
+    "reasonCancelled": "begäran avbröts",
+    "reasonUnexpected": "ett oväntat fel uppstod"
   },
   "libraries": {
     "title": "Bibliotek",
@@ -1140,7 +1150,8 @@
       "tag": "Tagg",
       "unwatched": "Osedda",
       "unplayed": "Ospelat",
-      "favorites": "Favoriter"
+      "favorites": "Favoriter",
+      "filePath": ""
     },
     "sortLabels": {
       "title": "Titel",
@@ -1162,14 +1173,45 @@
       "random": "Slumpmässigt",
       "dateShared": "Delningsdatum",
       "latestEpisodeAirDate": "Senaste avsnittets sändningsdatum",
-      "lastEpisodeDateAdded": "Datum då senaste avsnittet lades till"
+      "lastEpisodeDateAdded": "Datum då senaste avsnittet lades till",
+      "dateDownloaded": "Nedladdningsdatum",
+      "size": "Storlek",
+      "library": "Bibliotek"
+    },
+    "advancedFilters": {
+      "include": "",
+      "exclude": "",
+      "any": "",
+      "yes": "",
+      "no": "",
+      "not": "",
+      "valueCount": "",
+      "valueCountExcluded": "",
+      "searchValues": "",
+      "noValues": "",
+      "matchContains": "",
+      "matchNotContains": "",
+      "matchIs": "",
+      "matchIsNot": "",
+      "matchBeginsWith": "",
+      "matchEndsWith": "",
+      "textHint": "",
+      "from": "",
+      "to": "",
+      "range": "",
+      "atLeast": "",
+      "atMost": "",
+      "dateLastDays": "",
+      "dateLastYear": "",
+      "dateOlderThanDays": "",
+      "dateOlderThanYear": ""
     }
   },
   "about": {
     "title": "Om",
     "openSourceLicenses": "Licenser för öppen källkod",
     "versionLabel": "Version ${version}",
-    "appDescription": "En vacker Plex- och Jellyfin-klient för Flutter",
+    "appDescription": "En vacker Plex-, Jellyfin- och Emby-klient för Flutter",
     "viewLicensesDescription": "Visa licenser för tredjepartsbibliotek"
   },
   "serverSelection": {
@@ -1487,7 +1529,9 @@
     "editRuleAction": "Redigera",
     "recordingRuleUpdated": "Inspelningsregel uppdaterad",
     "guideReloadRequested": "Uppdatering av programguiden har begärts",
+    "guideReloadFailed": "Programguiden kunde inte uppdateras",
     "rulesProcessRequested": "Ny regelutvärdering har begärts",
+    "rulesProcessFailed": "Inspelningsreglerna kunde inte köras om",
     "recordShow": "Spela in program",
     "recordSettings": {
       "startEarly": "Börja tidigare (sekunder)",
@@ -1503,7 +1547,9 @@
     "dayAtTime": "${day} kl. ${time}",
     "invalidPlaybackData": "${product} returnerade ogiltiga uppspelningsdata för Live-TV",
     "failedToStartChannel": "Kunde inte starta livekanalen",
-    "failedToBuildStreamUrl": "Kunde inte skapa strömmens URL"
+    "failedToBuildStreamUrl": "Kunde inte skapa strömmens URL",
+    "playbackStartFailed": "Det gick inte att starta kanalen: ${reason}",
+    "channelSwitchFailed": "Det gick inte att byta kanal: ${reason}"
   },
   "collections": {
     "title": "Samlingar",
@@ -1689,7 +1735,7 @@
     "downloadQueued": "Nedladdning köad",
     "downloadResumed": "Nedladdning återupptagen",
     "serverErrorBitrate": "Serverfel: filen kan överskrida serverns bithastighetsgräns",
-    "storageFull": "Nedladdningarna stoppades eftersom enhetens lagringsutrymme är fullt. Frigör utrymme och försök igen.",
+    "storageFull": "Nedladdningarna stoppades för att skydda det lediga lagringsutrymmet. Frigör utrymme eller välj en annan nedladdningsplats och försök igen.",
     "storageUnavailable": "Nedladdningarna stoppades eftersom det lediga lagringsutrymmet inte kunde kontrolleras. Kontrollera nedladdningsplatsen och försök igen.",
     "episodesQueued": "${count} avsnitt köade för nedladdning",
     "downloadDeleted": "Nedladdning borttagen",
@@ -1778,6 +1824,11 @@
       "settingsUnavailable": "Det gick inte att öppna systeminställningarna på den här enheten",
       "linkUnavailable": "Det gick inte att öppna dontkillmyapp.com på den här enheten"
     },
+    "options": "Alternativ för nedladdningar",
+    "groupings": {
+      "library": "Bibliotek"
+    },
+    "unknownLibrary": "Okänt bibliotek",
     "unknownShow": "Okänd serie",
     "unknownSeason": "Okänd säsong",
     "unknownAlbum": "Okänt album",

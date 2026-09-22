@@ -169,7 +169,8 @@ class ShaderAssetLoader {
   }
 
   /// Get the shader file path for an ArtCNN preset.
-  /// Returns a list containing exactly one ArtCNN shader path.
+  /// Returns a single-element list, or an empty list when the shader could
+  /// not be extracted to disk.
   static Future<List<String>> getArtCNNShaders(ArtCNNConfig config) async {
     final shaderPath = await _extractShader(_artcnnShaders['${config.model.name}_${config.variant.slug}']!);
     if (shaderPath == null) return [];
@@ -245,7 +246,6 @@ class ShaderAssetLoader {
     return storedName;
   }
 
-  /// Delete a custom shader file from the custom shaders directory.
   static Future<void> deleteCustomShader(String fileName, {void Function()? checkCurrent}) async {
     final file = await _resolveManagedCustomShaderFile(fileName);
     if (file != null && await file.exists()) {
