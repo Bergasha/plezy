@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -79,6 +80,29 @@ void main() {
     await tester.pump();
 
     expect(taps, 1);
+    expect(find.byType(MouseRegion), findsNothing);
+  });
+
+  testWidgets('the cursor hides after a few seconds of pointer inactivity, even in pointer mode', (tester) async {
+    await tester.pumpWidget(
+      InputModeTracker(
+        child: Directionality(textDirection: TextDirection.ltr, child: const SizedBox(width: 120, height: 80)),
+      ),
+    );
+    await tester.pump();
+
+    // Fresh pointer mode: no shield yet.
+    expect(find.byType(MouseRegion), findsNothing);
+
+    await tester.pump(const Duration(seconds: 4));
+    expect(tester.widget<MouseRegion>(find.byType(MouseRegion)).cursor, SystemMouseCursors.none);
+
+    // Real pointer movement clears it again immediately.
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: const Offset(10, 10));
+    addTearDown(gesture.removePointer);
+    await gesture.moveTo(const Offset(20, 20));
+    await tester.pump();
     expect(find.byType(MouseRegion), findsNothing);
   });
 

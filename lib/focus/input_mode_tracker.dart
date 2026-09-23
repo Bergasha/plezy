@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -87,7 +88,21 @@ class InputModeTracker extends StatefulWidget {
 }
 
 class _InputModeTrackerState extends State<InputModeTracker> {
+  // Mirrors the video player's own chrome auto-hide delay
+  // (PlayerChromeController) so the desktop cursor disappears on the same
+  // cadence everywhere, not just over the player.
+  static const _idleCursorHideDelay = Duration(seconds: 3);
+
   InputMode _mode = InputModeTracker._defaultMode;
+
+  // Desktop pointer devices that emulate a mouse (many universal/HTPC
+  // remotes) never fire a keyboard-navigation event, so [_mode] alone would
+  // leave the cursor on screen forever for a viewer who is otherwise
+  // dpad-only. Tracked independently: any real pointer movement clears it
+  // and restarts the timer, so a genuine mouse user still sees a cursor that
+  // behaves normally.
+  bool _pointerIdle = false;
+  Timer? _idleTimer;
 
   @override
   void initState() {
@@ -99,13 +114,29 @@ class _InputModeTrackerState extends State<InputModeTracker> {
     InputModeTracker._instance = this;
     _updateFocusHighlightStrategy(_mode);
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    _restartIdleTimer();
   }
 
   @override
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    _idleTimer?.cancel();
     if (identical(InputModeTracker._instance, this)) InputModeTracker._instance = null;
     super.dispose();
+  }
+
+  /// Real pointer activity: shows the cursor immediately and pushes the
+  /// idle-hide back out, same as the player's `recordPointerActivity`.
+  void _registerPointerActivity() {
+    if (_pointerIdle) setState(() => _pointerIdle = false);
+    _restartIdleTimer();
+  }
+
+  void _restartIdleTimer() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(_idleCursorHideDelay, () {
+      if (mounted && !_pointerIdle) setState(() => _pointerIdle = true);
+    });
   }
 
   bool _handleKeyEvent(KeyEvent event) {
@@ -150,18 +181,27 @@ class _InputModeTrackerState extends State<InputModeTracker> {
       return _InputModeProvider(mode: _mode, child: widget.child);
     }
 
+    final hideCursor = _mode == InputMode.keyboard || _pointerIdle;
     return Listener(
-      onPointerDown: (_) => _setMode(InputMode.pointer),
-      onPointerHover: (_) => _setMode(InputMode.pointer),
+      onPointerDown: (_) {
+        _setMode(InputMode.pointer);
+        _registerPointerActivity();
+      },
+      onPointerHover: (_) {
+        _setMode(InputMode.pointer);
+        _registerPointerActivity();
+      },
       behavior: HitTestBehavior.translucent,
       child: Stack(
         alignment: Alignment.topLeft,
         fit: StackFit.passthrough,
         children: [
           _InputModeProvider(mode: _mode, child: widget.child),
-          // Hide the desktop cursor in keyboard mode without excluding the
-          // application subtree from the current pointer hit test.
-          if (_mode == InputMode.keyboard)
+          // Hide the desktop cursor in keyboard mode, and after a few
+          // seconds of pointer inactivity even in pointer mode (a mouse-
+          // emulating remote never trips keyboard mode), without excluding
+          // the application subtree from the current pointer hit test.
+          if (hideCursor)
             const Positioned.fill(
               child: MouseRegion(
                 cursor: SystemMouseCursors.none,
