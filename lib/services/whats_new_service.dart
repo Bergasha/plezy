@@ -34,6 +34,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
     'Bug fixes and improvements',
   ],
   '2.17.31': ['Bug fixes and improvements'],
+  '2.17.33': ['Fixed remote navigation on Android TV show pages'],
 };
 
 abstract final class WhatsNewService {
