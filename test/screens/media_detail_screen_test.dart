@@ -53,6 +53,7 @@ import 'package:plezy/widgets/cycling_media_backdrop.dart';
 import 'package:plezy/widgets/episode_card.dart';
 import 'package:plezy/widgets/fitted_metadata_line.dart';
 import 'package:plezy/widgets/fitting_title_text.dart';
+import 'package:plezy/widgets/focusable_tab_chip.dart';
 import 'package:plezy/widgets/tv_browse_rail.dart';
 import 'package:plezy/widgets/media_card.dart';
 import 'package:plezy/widgets/media_details_sheet.dart';
@@ -856,6 +857,108 @@ void main() {
     expect(find.text('Season 2'), findsOneWidget);
     expect(client.childrenPageCalls.map((call) => call.parentId), containsAll([season1.id, season2.id]));
     expect(client.childrenPageCalls.every((call) => call.start == 0 && call.size == 200), isTrue);
+  });
+
+  testWidgets('TV detail wires an explicit UP handler from a season tab to the action row (#2417)', (tester) async {
+    // Regression: the season tab chip only wired LEFT/RIGHT/DOWN, leaving UP
+    // to fall through to Flutter's geometry-based directional traversal.
+    // That happens to still reach the action row on some window sizes (a
+    // simple widget test among them), but stranded a real TV's remote user
+    // on the season tabs — so this asserts the deterministic handler is
+    // wired, not just that *something* eventually receives focus.
+    await SettingsService.getInstance();
+
+    final show = testMediaItem(
+      id: 'show_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.show,
+      title: 'The Show',
+      serverId: 'server_1',
+      serverName: 'Server',
+    );
+    final season1 = testMediaItem(
+      id: 'season_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.season,
+      title: 'Season 1',
+      index: 1,
+      parentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final season2 = testMediaItem(
+      id: 'season_2',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.season,
+      title: 'Season 2',
+      index: 2,
+      parentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final episode1 = testMediaItem(
+      id: 'episode_1',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.episode,
+      title: 'Episode 1',
+      index: 1,
+      parentId: season1.id,
+      parentIndex: season1.index,
+      grandparentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+    final episode2 = testMediaItem(
+      id: 'episode_2',
+      backend: MediaBackend.jellyfin,
+      kind: MediaKind.episode,
+      title: 'Episode 2',
+      index: 1,
+      parentId: season2.id,
+      parentIndex: season2.index,
+      grandparentId: show.id,
+      serverId: show.serverId,
+      serverName: show.serverName,
+    );
+
+    final client = _FakeMediaServerClient(
+      show: show,
+      childrenByParent: {
+        show.id: [season1, season2],
+        season1.id: [episode1],
+        season2.id: [episode2],
+      },
+    );
+    final provider = testMultiServer(clients: [client]).provider;
+
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: ChangeNotifierProvider<MultiServerProvider>.value(
+          value: provider,
+          child: MaterialApp(
+            theme: monoTheme(dark: true),
+            home: withProfileNavigationScope(
+              child: SizedBox(width: 1280, height: 720, child: MediaDetailScreen(metadata: show)),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(find.text('Season 1'), findsOneWidget);
+    final chip = tester.widget<FocusableTabChip>(
+      find.ancestor(of: find.text('Season 1'), matching: find.byType(FocusableTabChip)),
+    );
+    expect(chip.onNavigateUp, isNotNull);
+
+    chip.onNavigateUp!();
+    await tester.pump();
+
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'play_button');
   });
 
   testWidgets('TV detail keeps every season tab when a season episode load fails', (tester) async {

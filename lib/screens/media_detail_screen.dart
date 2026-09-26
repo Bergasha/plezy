@@ -2874,6 +2874,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
                       }
                       _firstEpisodeFocusNode.requestFocus();
                     },
+                    onNavigateUp: PlatformDetector.isTV() ? _focusTvDetailActionRow : null,
                     onLongPress: () => _showSeasonTabContextMenu(index),
                     onBack: () {
                       Navigator.of(context).maybePop();
