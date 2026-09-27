@@ -2869,6 +2869,12 @@ class Translations$profiles$en {
 	/// en: 'Remove ${displayName} and all Plex Home users? Sign back in anytime.'
 	String signOutPlexMessage({required Object displayName}) => 'Remove ${displayName} and all Plex Home users? Sign back in anytime.';
 
+	/// en: 'Also delete downloads'
+	String get signOutPlexDeleteDownloads => 'Also delete downloads';
+
+	/// en: 'Otherwise they stay on this device and come back when you sign back in to this account.'
+	String get signOutPlexDeleteDownloadsDescription => 'Otherwise they stay on this device and come back when you sign back in to this account.';
+
 	/// en: 'Signed out of Plex.'
 	String get signedOutPlex => 'Signed out of Plex.';
 
@@ -8437,6 +8443,8 @@ extension on Translations {
 			'profiles.signOut' => 'Sign out',
 			'profiles.signOutPlexTitle' => 'Sign out of Plex?',
 			'profiles.signOutPlexMessage' => ({required Object displayName}) => 'Remove ${displayName} and all Plex Home users? Sign back in anytime.',
+			'profiles.signOutPlexDeleteDownloads' => 'Also delete downloads',
+			'profiles.signOutPlexDeleteDownloadsDescription' => 'Otherwise they stay on this device and come back when you sign back in to this account.',
 			'profiles.signedOutPlex' => 'Signed out of Plex.',
 			'profiles.signOutFailed' => 'Sign out failed.',
 			'profiles.sectionTitle' => 'Profiles',
@@ -8550,10 +8558,10 @@ extension on Translations {
 			'accountPreferences.watchedIndicatorOptions.none' => 'Never',
 			'accountPreferences.watchedIndicatorOptions.moviesAndShows' => 'Movies and TV shows',
 			'accountPreferences.watchedIndicatorOptions.movies' => 'Movies only',
-			'accountPreferences.watchedIndicatorOptions.shows' => 'TV shows only',
-			'accountPreferences.mediaReviewsVisibility' => 'Ratings & reviews',
 			_ => null,
 		} ?? switch (path) {
+			'accountPreferences.watchedIndicatorOptions.shows' => 'TV shows only',
+			'accountPreferences.mediaReviewsVisibility' => 'Ratings & reviews',
 			'accountPreferences.mediaReviewsOptions.usersAndCritics' => 'Users and critics',
 			'accountPreferences.mediaReviewsOptions.usersOnly' => 'Users only',
 			'accountPreferences.mediaReviewsOptions.criticsOnly' => 'Critics only',
@@ -9064,10 +9072,10 @@ extension on Translations {
 			'music.nowPlaying' => 'Now Playing',
 			'music.playingFrom' => ({required Object title}) => 'Playing from ${title}',
 			'music.queue' => 'Queue',
-			'music.clearQueue' => 'Clear queue',
-			'music.lyrics' => 'Lyrics',
 			_ => null,
 		} ?? switch (path) {
+			'music.clearQueue' => 'Clear queue',
+			'music.lyrics' => 'Lyrics',
 			'music.noLyrics' => 'No lyrics available',
 			'music.sleepTimer' => 'Sleep timer',
 			'music.sleepTimerEndOfTrack' => 'End of track',
@@ -9578,10 +9586,10 @@ extension on Translations {
 			'seerr.request4k' => 'Request in 4K',
 			'seerr.seasons' => 'Seasons',
 			'seerr.allSeasons' => 'All seasons',
-			'seerr.advancedOptions' => 'Advanced',
-			'seerr.destinationServer' => 'Destination server',
 			_ => null,
 		} ?? switch (path) {
+			'seerr.advancedOptions' => 'Advanced',
+			'seerr.destinationServer' => 'Destination server',
 			'seerr.qualityProfile' => 'Quality profile',
 			'seerr.rootFolder' => 'Root folder',
 			'seerr.languageProfile' => 'Language profile',
