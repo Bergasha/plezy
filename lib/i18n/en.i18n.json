@@ -891,6 +891,7 @@
     "episodeOfTotal": "Episode ${current} of ${total}",
     "nextEpisodeAirs": "Next episode airs ${date}",
     "showReturning": "Returning ${date}",
+    "showReturningTba": "Returning TBA",
     "noResultsFound": "No results found",
     "sleepTimerSet": "Sleep timer set for ${label}",
     "noItemsAvailable": "No items available",

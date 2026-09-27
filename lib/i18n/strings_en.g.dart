@@ -2614,6 +2614,9 @@ class Translations$messages$en {
 	/// en: 'Returning ${date}'
 	String showReturning({required Object date}) => 'Returning ${date}';
 
+	/// en: 'Returning TBA'
+	String get showReturningTba => 'Returning TBA';
+
 	/// en: 'No results found'
 	String get noResultsFound => 'No results found';
 
@@ -8376,6 +8379,7 @@ extension on Translations {
 			'messages.episodeOfTotal' => ({required Object current, required Object total}) => 'Episode ${current} of ${total}',
 			'messages.nextEpisodeAirs' => ({required Object date}) => 'Next episode airs ${date}',
 			'messages.showReturning' => ({required Object date}) => 'Returning ${date}',
+			'messages.showReturningTba' => 'Returning TBA',
 			'messages.noResultsFound' => 'No results found',
 			'messages.sleepTimerSet' => ({required Object label}) => 'Sleep timer set for ${label}',
 			'messages.noItemsAvailable' => 'No items available',
@@ -8563,9 +8567,9 @@ extension on Translations {
 			'accountPreferences.rewatchingInNextUp' => 'Keep rewatched shows in Next Up',
 			'accountPreferences.rewatchingInNextUpDescription' => 'Once you finish a show, start it again and Next Up follows the rewatch instead of dropping the show.',
 			'accountPreferences.watchedIndicator' => 'Watched indicators',
-			'accountPreferences.watchedIndicatorOptions.none' => 'Never',
 			_ => null,
 		} ?? switch (path) {
+			'accountPreferences.watchedIndicatorOptions.none' => 'Never',
 			'accountPreferences.watchedIndicatorOptions.moviesAndShows' => 'Movies and TV shows',
 			'accountPreferences.watchedIndicatorOptions.movies' => 'Movies only',
 			'accountPreferences.watchedIndicatorOptions.shows' => 'TV shows only',
@@ -9077,9 +9081,9 @@ extension on Translations {
 			'music.addToQueue' => 'Add to queue',
 			'music.discNumber' => ({required Object n}) => 'Disc ${n}',
 			'music.trackCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} track', other: '${n} tracks', ), 
-			'music.nowPlaying' => 'Now Playing',
 			_ => null,
 		} ?? switch (path) {
+			'music.nowPlaying' => 'Now Playing',
 			'music.playingFrom' => ({required Object title}) => 'Playing from ${title}',
 			'music.queue' => 'Queue',
 			'music.clearQueue' => 'Clear queue',
@@ -9591,9 +9595,9 @@ extension on Translations {
 			'seerr.disconnectConfirm' => 'Disconnect Seerr?',
 			'seerr.disconnectConfirmBody' => 'Plezy will forget this Seerr instance. Reconnect any time.',
 			'seerr.request' => 'Request',
-			'seerr.request4k' => 'Request in 4K',
 			_ => null,
 		} ?? switch (path) {
+			'seerr.request4k' => 'Request in 4K',
 			'seerr.seasons' => 'Seasons',
 			'seerr.allSeasons' => 'All seasons',
 			'seerr.advancedOptions' => 'Advanced',

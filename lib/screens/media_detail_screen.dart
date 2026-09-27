@@ -3195,19 +3195,70 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     return _seasons[_selectedSeasonIndex].index;
   }
 
+  /// The highest season number the library actually has, ignoring Specials
+  /// (season 0) — the boundary between "already have it" and "still to
+  /// come" for [_tmdbShowBetweenSeasons] and [_tmdbShowReturnDate].
+  int? get _libraryMaxSeasonNumber => _seasons
+      .map((season) => season.index)
+      .whereType<int>()
+      .where((index) => index > 0)
+      .fold<int?>(null, (max, index) => max == null || index > max ? index : max);
+
+  /// Whether a renewed show is between seasons — not currently delivering
+  /// episodes for any season the library already has — regardless of which
+  /// season the viewer happens to be browsing. False for a show mid-season,
+  /// even while browsing an earlier, already-finished one.
+  bool _tmdbShowBetweenSeasons(TmdbTvDetails details) {
+    if (details.status != 'Returning Series') return false;
+    final libraryMax = _libraryMaxSeasonNumber;
+    if (libraryMax == null) return false;
+    final next = details.nextEpisodeToAir;
+    final airingInLibrary = next != null && (next.seasonNumber ?? 0) <= libraryMax && next.airDate != null;
+    return !airingInLibrary;
+  }
+
+  /// The date a renewed show's next, not-yet-library season premieres, if
+  /// TMDb has one — only meaningful once [_tmdbShowBetweenSeasons] is true.
+  /// Shown on every season's summary regardless of which is selected (see
+  /// [_buildTmdbAiringSummary]), so it has to name an actual future season
+  /// past what the library already has, not just whatever TMDb's season list
+  /// happens to number next: a rewatched show's season 2 of 4 must never
+  /// read the already-aired season 3's old date back as a "return". Null
+  /// means TMDb has no premiere date yet, not that the show isn't returning.
+  String? _tmdbShowReturnDate(TmdbTvDetails details) {
+    final libraryMax = _libraryMaxSeasonNumber;
+    if (libraryMax == null) return null;
+
+    bool isFuture(String? date) {
+      if (date == null) return false;
+      final parsed = DateTime.tryParse(date);
+      return parsed != null && parsed.isAfter(DateTime.now());
+    }
+
+    // Prefer next_episode_to_air's date when it already names a season past
+    // the library — it can carry an episode number the seasons list never
+    // does — but most renewals leave next_episode_to_air null until
+    // per-episode data exists, long after TMDb stubs the season itself with
+    // a premiere date.
+    final next = details.nextEpisodeToAir;
+    if (next != null && (next.seasonNumber ?? 0) > libraryMax && isFuture(next.airDate)) return next.airDate;
+
+    final seasonDate = details.upcomingSeasonAirDate(libraryMax);
+    return isFuture(seasonDate) ? seasonDate : null;
+  }
+
   /// "Episode 8 of 10 · Next episode airs Feb 15" while a season is actively
-  /// airing; "Episode 10 of 10 · Returning Mar 2027" once the last season has
-  /// wrapped and TMDb has a premiere date for the next one — only for a
+  /// airing; "Episode 6 of 10 · Returning Feb 22, 2027" (or "· Returning TBA"
+  /// once renewed but undated) once the show is between seasons — only for a
   /// TMDb-airing show, and only once at least one half of that has data to
-  /// show. The returning line is gated to the last known season only: an
-  /// older, already-finished season the viewer is rewatching gets just its
-  /// own episode count, never a "returning" note about a season the viewer
-  /// isn't looking at. Shared by the non-TV Column and the TV episodes rail
-  /// header; [scale] is the TV layout's font-scale factor (default 1.0 off
-  /// TV). [focusedEpisode] lets the TV rail report whichever episode
-  /// currently has D-pad focus instead of the season's highest-loaded one —
-  /// passed via [_tvDetailFocusedEpisode] so scrubbing to episode 6 reads "6
-  /// of 10".
+  /// show. The returning half is the same for every season (see
+  /// [_tmdbShowBetweenSeasons]) except whichever one is itself still airing,
+  /// which shows its own next-episode date instead. Shared by the non-TV
+  /// Column and the TV episodes rail header; [scale] is the TV layout's
+  /// font-scale factor (default 1.0 off TV). [focusedEpisode] lets the TV
+  /// rail report whichever episode currently has D-pad focus instead of the
+  /// season's highest-loaded one — passed via [_tvDetailFocusedEpisode] so
+  /// scrubbing to episode 6 reads "6 of 10".
   Widget _buildTmdbAiringSummary({double scale = 1.0, MediaItem? focusedEpisode}) {
     final details = _tmdbTvDetails;
     final seasonNumber = _selectedTmdbSeasonNumber;
@@ -3217,20 +3268,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final total = _tmdbSeasonEpisodeCounts[seasonNumber];
     final next = details.nextEpisodeToAir;
     final nextAppliesToThisSeason = next != null && next.seasonNumber == seasonNumber && next.airDate != null;
-    final regularSeasonNumbers = _seasons.map((season) => season.index).whereType<int>().where((index) => index > 0);
-    final isLastSeason =
-        regularSeasonNumbers.isNotEmpty && seasonNumber == regularSeasonNumbers.reduce((a, b) => a > b ? a : b);
-    final isReturning = details.status == 'Returning Series';
-    // Prefer next_episode_to_air's date when it names a later season too —
-    // it can carry an episode number the seasons list never does — but most
-    // renewals leave next_episode_to_air null until per-episode data exists,
-    // long after TMDb stubs the season itself with a premiere date.
-    final laterSeasonAirDate = next != null && next.seasonNumber != null && next.seasonNumber! > seasonNumber
-        ? next.airDate
-        : null;
-    final returnDate = isReturning && isLastSeason && !nextAppliesToThisSeason
-        ? (laterSeasonAirDate ?? details.upcomingSeasonAirDate(seasonNumber))
-        : null;
+    final betweenSeasons = !nextAppliesToThisSeason && _tmdbShowBetweenSeasons(details);
+    final returnDate = betweenSeasons ? _tmdbShowReturnDate(details) : null;
     final focusedInSeason = focusedEpisode != null && focusedEpisode.parentIndex == seasonNumber
         ? focusedEpisode.index
         : null;
@@ -3240,8 +3279,10 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       if (total != null && highestAvailable != null) t.messages.episodeOfTotal(current: highestAvailable, total: total),
       if (nextAppliesToThisSeason)
         t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!))
-      else if (returnDate != null)
-        t.messages.showReturning(date: formatAbbreviatedDate(returnDate)),
+      else if (betweenSeasons)
+        returnDate != null
+            ? t.messages.showReturning(date: formatAbbreviatedDate(returnDate))
+            : t.messages.showReturningTba,
     ];
     if (parts.isEmpty) return const SizedBox.shrink();
 
