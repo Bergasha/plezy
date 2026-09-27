@@ -310,6 +310,9 @@ class _Translations$settings$uz extends Translations$settings$en {
 	@override String get cellularQualitySameAsDefault => 'Standart sifat bilan bir xil';
 	@override String get directPlayCoveredQuality => 'Kichik videolarni asl sifatda ijro etish';
 	@override String get directPlayCoveredQualityDescription => 'Sifat chegarasiga kiruvchi videolarni qayta kodlash oʻrniga toʻgʻridan-toʻgʻri ijro etish';
+	@override String get videoCodecs => 'Video kodeklar';
+	@override String get videoCodecsDescription => 'Belgilanmagan kodeklarni server qayta kodlaydi';
+	@override String get videoCodecsAlwaysAccepted => 'Har doim qabul qilinadi';
 	@override String get musicQualityTitle => 'Musiqa sifati';
 	@override String get subtitleStyling => 'Subtitr sozlamalari';
 	@override String get subtitleStylingDescription => 'Subtitrlar koʻrinishini moslashtiring';
@@ -452,8 +455,6 @@ class _Translations$settings$uz extends Translations$settings$en {
 	@override String get audioPassthroughDescription => 'Dolby/DTS ovozini qayta kodlamasdan resiver yoki televizoringizga yuboradi va atroflicha ovozni saqlaydi. Ovoz boʻlmasa, oʻchiring.';
 	@override String get audioPassthroughDescriptionAppleTv => 'Dolby Digital Plus, jumladan Atmos uchun Apple’ning oʻz Dolby dekoderidan foydalanish. DTS va TrueHD avvalgidek koʻp kanalli PCM sifatida ijro etiladi. Ovoz boʻlmasa, oʻchiring.';
 	@override String get audioPassthroughOverriddenByNormalization => 'Ovoz balandligini meʼyorlashtirish yoqilganda oʻchirilgan';
-	@override String get audioDownmix => 'Stereoga oʻtkazish (Downmix)';
-	@override String get audioDownmixDescription => 'Koʻp kanalli ovozni stereo dinamiklar uchun ikki kanalga tushirish';
 	@override String get downmixCenterBoost => 'Markaziy kanalni kuchaytirish';
 	@override String downmixCenterBoostValue({required Object db}) => '${db} dB';
 	@override String get downmixCenterBoostLabel => 'Kuchaytirish (dB)';
@@ -470,6 +471,14 @@ class _Translations$settings$uz extends Translations$settings$en {
 	@override String get dvConversionNativeDescription => 'Ichki DV7 rejimini majburlash';
 	@override String get dvConversionDv81Description => 'Dolby Vision profile 8.1 formatiga oʻtkazish';
 	@override String get dvConversionHevcStripDescription => 'Dolby Vision qatlamlarini olib tashlash va HEVC sifatida koʻrsatish';
+	@override String get hdrSdrConversion => 'HDR\'ni SDR\'ga aylantirish';
+	@override String get hdrSdrConversionDescription => 'Displey HDR\'ni ko‘rsata olmaganda HDR videoni nima aylantirishini tanlang.';
+	@override String get hdrSdrConversionAuto => 'Avtomatik';
+	@override String get hdrSdrConversionAutoDescription => 'Android 9 va undan keyingi versiyalarda qurilma, eskiroq versiyalarda pleyer';
+	@override String get hdrSdrConversionDevice => 'Qurilma';
+	@override String get hdrSdrConversionDeviceDescription => 'Aylantirishni qurilmaning video apparati bajaradi. Eng tezi, lekin ranglar qurilmaga bog‘liq';
+	@override String get hdrSdrConversionPlayer => 'Pleyer';
+	@override String get hdrSdrConversionPlayerDescription => 'Aylantirishni pleyer bajaradi. Ranglar bir xil, lekin kuchsiz TV-pristavkalarda 4K qotishi mumkin';
 	@override String get deinterlace => 'Interleysni olib tashlash';
 	@override String get deinterlaceDescription => 'Interleys videodagi taroqsimon artefaktlarni olib tashlash (faqat mpv pleyerida)';
 	@override String get requireProfileSelectionOnOpen => 'Ochilganda profilni soʻrash';
@@ -1922,7 +1931,6 @@ class _Translations$videoSettings$uz extends Translations$videoSettings$en {
 	@override String get audioNormalization => 'Ovoz balandligini meʼyorlashtirish';
 	@override String get audioNormalizationDisablesPassthrough => 'Ovozni PCM-ga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi';
 	@override String get audioNormalizationStereoMix => 'Ovozni stereo miksga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi';
-	@override String get audioDownmix => 'Stereoga oʻtkazish';
 }
 
 // Path: performanceOverlay
@@ -3192,6 +3200,9 @@ extension on TranslationsUz {
 			'settings.cellularQualitySameAsDefault' => 'Standart sifat bilan bir xil',
 			'settings.directPlayCoveredQuality' => 'Kichik videolarni asl sifatda ijro etish',
 			'settings.directPlayCoveredQualityDescription' => 'Sifat chegarasiga kiruvchi videolarni qayta kodlash oʻrniga toʻgʻridan-toʻgʻri ijro etish',
+			'settings.videoCodecs' => 'Video kodeklar',
+			'settings.videoCodecsDescription' => 'Belgilanmagan kodeklarni server qayta kodlaydi',
+			'settings.videoCodecsAlwaysAccepted' => 'Har doim qabul qilinadi',
 			'settings.musicQualityTitle' => 'Musiqa sifati',
 			'settings.subtitleStyling' => 'Subtitr sozlamalari',
 			'settings.subtitleStylingDescription' => 'Subtitrlar koʻrinishini moslashtiring',
@@ -3334,8 +3345,6 @@ extension on TranslationsUz {
 			'settings.audioPassthroughDescription' => 'Dolby/DTS ovozini qayta kodlamasdan resiver yoki televizoringizga yuboradi va atroflicha ovozni saqlaydi. Ovoz boʻlmasa, oʻchiring.',
 			'settings.audioPassthroughDescriptionAppleTv' => 'Dolby Digital Plus, jumladan Atmos uchun Apple’ning oʻz Dolby dekoderidan foydalanish. DTS va TrueHD avvalgidek koʻp kanalli PCM sifatida ijro etiladi. Ovoz boʻlmasa, oʻchiring.',
 			'settings.audioPassthroughOverriddenByNormalization' => 'Ovoz balandligini meʼyorlashtirish yoqilganda oʻchirilgan',
-			'settings.audioDownmix' => 'Stereoga oʻtkazish (Downmix)',
-			'settings.audioDownmixDescription' => 'Koʻp kanalli ovozni stereo dinamiklar uchun ikki kanalga tushirish',
 			'settings.downmixCenterBoost' => 'Markaziy kanalni kuchaytirish',
 			'settings.downmixCenterBoostValue' => ({required Object db}) => '${db} dB',
 			'settings.downmixCenterBoostLabel' => 'Kuchaytirish (dB)',
@@ -3352,6 +3361,14 @@ extension on TranslationsUz {
 			'settings.dvConversionNativeDescription' => 'Ichki DV7 rejimini majburlash',
 			'settings.dvConversionDv81Description' => 'Dolby Vision profile 8.1 formatiga oʻtkazish',
 			'settings.dvConversionHevcStripDescription' => 'Dolby Vision qatlamlarini olib tashlash va HEVC sifatida koʻrsatish',
+			'settings.hdrSdrConversion' => 'HDR\'ni SDR\'ga aylantirish',
+			'settings.hdrSdrConversionDescription' => 'Displey HDR\'ni ko‘rsata olmaganda HDR videoni nima aylantirishini tanlang.',
+			'settings.hdrSdrConversionAuto' => 'Avtomatik',
+			'settings.hdrSdrConversionAutoDescription' => 'Android 9 va undan keyingi versiyalarda qurilma, eskiroq versiyalarda pleyer',
+			'settings.hdrSdrConversionDevice' => 'Qurilma',
+			'settings.hdrSdrConversionDeviceDescription' => 'Aylantirishni qurilmaning video apparati bajaradi. Eng tezi, lekin ranglar qurilmaga bog‘liq',
+			'settings.hdrSdrConversionPlayer' => 'Pleyer',
+			'settings.hdrSdrConversionPlayerDescription' => 'Aylantirishni pleyer bajaradi. Ranglar bir xil, lekin kuchsiz TV-pristavkalarda 4K qotishi mumkin',
 			'settings.deinterlace' => 'Interleysni olib tashlash',
 			'settings.deinterlaceDescription' => 'Interleys videodagi taroqsimon artefaktlarni olib tashlash (faqat mpv pleyerida)',
 			'settings.requireProfileSelectionOnOpen' => 'Ochilganda profilni soʻrash',
@@ -3507,6 +3524,8 @@ extension on TranslationsUz {
 			'fileInfo.languageCode' => 'Til kodi',
 			'fileInfo.streamTitle' => 'Trek nomi',
 			'fileInfo.channels' => 'Kanallar',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.sampleRate' => 'Namuna tezligi',
 			'fileInfo.spatialAudio' => 'Fazoviy audio',
 			'fileInfo.textBased' => 'Matnga asoslangan',
@@ -3516,8 +3535,6 @@ extension on TranslationsUz {
 			'fileInfo.externalDelivery' => 'Alohida uzatilishi mumkin',
 			'fileInfo.sidecarPath' => 'Yordamchi fayl yoʻli',
 			'fileInfo.sourceStream' => 'Nusxa olingan manba',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.temporary' => 'Vaqtinchalik',
 			'fileInfo.timeBase' => 'Vaqt bazasi',
 			'fileInfo.overallBitrate' => 'Umumiy bitreyt',
@@ -4021,6 +4038,8 @@ extension on TranslationsUz {
 			'libraries.analysisStarted' => ({required Object title}) => '"${title}" uchun tahlil boshlandi',
 			'libraries.failedToAnalyze' => ({required Object error}) => 'Tahlil qilib boʻlmadi: ${error}',
 			'libraries.noLibrariesFound' => 'Kutubxonalar topilmadi',
+			_ => null,
+		} ?? switch (path) {
 			'libraries.allLibrariesHidden' => 'Barcha kutubxonalar yashirilgan',
 			'libraries.hiddenLibrariesCount' => ({required Object count}) => 'Yashirin kutubxonalar (${count})',
 			'libraries.thisLibraryIsEmpty' => 'Ushbu kutubxona boʻsh',
@@ -4030,8 +4049,6 @@ extension on TranslationsUz {
 			'libraries.clearAll' => 'Barchasini tozalash',
 			'libraries.scanLibraryConfirm' => ({required Object title}) => '"${title}" kutubxonasini skanerlamoqchimisiz?',
 			'libraries.analyzeLibraryConfirm' => ({required Object title}) => '"${title}" kutubxonasini tahlil qilmoqchimisiz?',
-			_ => null,
-		} ?? switch (path) {
 			'libraries.refreshMetadataConfirm' => ({required Object title}) => '"${title}" metamaʼlumotlarini yangilaysizmi?',
 			'libraries.emptyTrashConfirm' => ({required Object title}) => '"${title}" savatini tozalaysizmi?',
 			'libraries.manageLibraries' => 'Kutubxonalarni boshqarish',
@@ -4535,6 +4552,8 @@ extension on TranslationsUz {
 			'watchTogether.errors.connectionLost' => 'Seans tayyor boʻlmasidan ulanish uzildi',
 			'watchTogether.errors.invalidRelayResponse' => 'Rele serveri kutilmagan javob yubordi',
 			'watchTogether.errors.sessionEnded' => 'Tashkilotchi seansni tugatdi',
+			_ => null,
+		} ?? switch (path) {
 			'watchTogether.errors.sessionUnavailable' => 'Bu seansni davom ettirib boʻlmaydi. Davom etish uchun xonaga qoʻshiling yoki xona yarating.',
 			'downloads.title' => 'Yuklamalar',
 			'downloads.manage' => 'Boshqarish',
@@ -4544,8 +4563,6 @@ extension on TranslationsUz {
 			'downloads.tracksQueued' => ({required Object count}) => '${count} tarona yuklash navbatiga qoʻshildi',
 			'downloads.noDownloads' => 'Hali yuklamalar yoʻq',
 			'downloads.noDownloadsDescription' => 'Yuklangan fayllar oflayn koʻrish uchun bu yerda koʻrinadi',
-			_ => null,
-		} ?? switch (path) {
 			'downloads.downloadNow' => 'Yuklab olish',
 			'downloads.deleteDownload' => 'Yuklamani oʻchirish',
 			'downloads.retryDownload' => 'Yuklashni qaytadan urinish',
@@ -4758,7 +4775,6 @@ extension on TranslationsUz {
 			'videoSettings.audioNormalization' => 'Ovoz balandligini meʼyorlashtirish',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Ovozni PCM-ga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi',
 			'videoSettings.audioNormalizationStereoMix' => 'Ovozni stereo miksga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi',
-			'videoSettings.audioDownmix' => 'Stereoga oʻtkazish',
 			'performanceOverlay.color' => 'Rang',
 			'performanceOverlay.performance' => 'Unumdorlik',
 			'performanceOverlay.buffer' => 'Bufer',
@@ -5047,6 +5063,8 @@ extension on TranslationsUz {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Kamida bitta ${product} server URL-ini kiriting',
 			'addServer.noReachableServer' => ({required Object product}) => 'Ulanish mumkin boʻlgan ${product} serveri topilmadi',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Bu URL-lar turli ${product} serverlariga olib boradi',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Bu URL ${product} serveriga mos kelmaydi',
 			'addServer.redirectUnsupported' => 'Server qoʻllab-quvvatlanmaydigan URL-ga yoʻnaltirdi',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Server boshqa xostga yoʻnaltirdi. Yakuniy ${product} URL-ini bevosita kiriting.',

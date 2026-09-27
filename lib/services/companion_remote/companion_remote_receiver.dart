@@ -61,6 +61,13 @@ class CompanionRemoteReceiver {
   VoidCallback? onAudioTracks;
   VoidCallback? onFullscreen;
 
+  /// The live music session's transport, installed by the session for its
+  /// lifetime; returns whether it acted on the command. Transport commands go
+  /// here while no video player owns the slots above: the space key that
+  /// play/pause otherwise simulates only toggles the video player, and
+  /// seek/next/previous/stop have no other handler.
+  bool Function(RemoteCommandType type)? musicTransport;
+
   void handleCommand(RemoteCommand command, BuildContext? _) {
     appLogger.d('CompanionRemoteReceiver: Handling command: ${command.type}');
 
@@ -74,6 +81,8 @@ class CompanionRemoteReceiver {
       InputModeTracker.reportNonPointerInput();
       scheduleFrameIfIdle();
     }
+
+    if (playerOwner == null && _isTransport(command.type) && (musicTransport?.call(command.type) ?? false)) return;
 
     switch (command.type) {
       case RemoteCommandType.dpadUp:
@@ -162,6 +171,18 @@ class CompanionRemoteReceiver {
     }
   }
 }
+
+bool _isTransport(RemoteCommandType type) => switch (type) {
+  RemoteCommandType.play ||
+  RemoteCommandType.pause ||
+  RemoteCommandType.playPause ||
+  RemoteCommandType.stop ||
+  RemoteCommandType.seekForward ||
+  RemoteCommandType.seekBackward ||
+  RemoteCommandType.nextTrack ||
+  RemoteCommandType.previousTrack => true,
+  _ => false,
+};
 
 /// Exhaustive by design: no default clause, so adding a [RemoteCommandType]
 /// is a compile error until someone decides whether it counts as viewer input.

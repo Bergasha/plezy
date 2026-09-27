@@ -10,16 +10,20 @@ import '../../media/library_query.dart';
 import '../../media/media_item.dart';
 import '../../media/media_kind.dart';
 import '../../media/media_library.dart';
+import '../../models/audio_channel_limit.dart';
 import '../../models/audio_quality_preset.dart';
 import '../../models/transcode_quality_preset.dart';
 import '../../models/player_setting_scope.dart';
 import '../../providers/libraries_provider.dart';
 import '../../utils/app_logger.dart';
+import '../../utils/audio_channel_limit_labels.dart';
 import '../../utils/dialogs.dart';
 import '../../utils/provider_extensions.dart';
 import '../../utils/quality_preset_labels.dart';
 import '../../services/settings_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/video_decode_capabilities.dart';
+import '../../utils/codec_utils.dart';
 import '../../utils/platform_detector.dart';
 import '../../utils/snackbar_helper.dart';
 import '../../widgets/dialog_action_button.dart';
@@ -73,12 +77,15 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
         SettingsService.matchDynamicRange,
         SettingsService.matchContentFrameRate,
         SettingsService.matchContentResolution,
-        SettingsService.audioDownmix,
+        SettingsService.audioChannelLimit,
       ],
       builder: (context) {
         final svc = SettingsService.instance;
         final exoActive = Platform.isAndroid && svc.read(SettingsService.useExoPlayer);
-        final downmixOn = svc.read(SettingsService.audioDownmix);
+        // ExoPlayer only has the stereo fold, so a 5.1 limit set on mpv plays
+        // (and shows) as Original there.
+        final storedChannelLimit = svc.read(SettingsService.audioChannelLimit);
+        final channelLimit = exoActive ? storedChannelLimit.onExoPlayer : storedChannelLimit;
         final showDisplaySwitchDelay =
             PlatformDetector.isAppleTV() ||
             (Platform.isWindows &&
@@ -111,6 +118,8 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
                 if (Platform.isWindows) _matchDynamicRangeTile(),
                 if (showDisplaySwitchDelay) _displaySwitchDelayTile(),
                 if (Platform.isAndroid) _dvConversionModeTile(),
+                // mpv-only: ExoPlayer always leaves the conversion to the device.
+                if (Platform.isAndroid && !exoActive) _hdrSdrConversionTile(),
                 // mpv-only (#2149): ExoPlayer has no filter chain, so the
                 // tile disappears while the ExoPlayer backend is active.
                 if (!exoActive) _deinterlaceTile(),
@@ -123,9 +132,10 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
               title: t.settings.audio,
               children: [
                 if (PlatformDetector.supportsAudioPassthrough()) _audioPassthroughTile(),
-                _audioDownmixTile(),
-                if (downmixOn) _downmixCenterBoostTile(),
-                if (downmixOn) _downmixNormalizeTile(),
+                _audioChannelLimitTile(exoActive: exoActive),
+                // Only a stereo fold mixes the center away; any fold can clip.
+                if (channelLimit == AudioChannelLimit.stereo) _downmixCenterBoostTile(),
+                if (channelLimit != AudioChannelLimit.original) _downmixNormalizeTile(),
                 _maxVolumeTile(),
               ],
             ),
@@ -142,6 +152,9 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
                 // pattern; needs local/remote connection detection in the
                 // failover client.
                 _directPlayCoveredQualityTile(),
+                // Desktop has no hardware-decode probe, so this is where a
+                // machine too weak for a codec says so (#2443).
+                if (PlatformDetector.isDesktopOS()) _videoCodecsTile(),
                 _musicQualityTile(),
               ],
             ),
@@ -625,11 +638,16 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     },
   );
 
-  Widget _audioDownmixTile() => SettingSwitchTile(
-    pref: SettingsService.audioDownmix,
-    icon: Symbols.headphones_rounded,
-    title: t.settings.audioDownmix,
-    subtitle: t.settings.audioDownmixDescription,
+  Widget _audioChannelLimitTile({required bool exoActive}) => SettingSelectionTile<AudioChannelLimit>(
+    pref: SettingsService.audioChannelLimit,
+    icon: Symbols.speaker_group_rounded,
+    title: t.settings.audioChannelLimit,
+    subtitleBuilder: (limit) =>
+        '${audioChannelLimitLabel(exoActive ? limit.onExoPlayer : limit)} · ${t.settings.audioChannelLimitDescription}',
+    options: [
+      for (final limit in AudioChannelLimit.available(exoPlayer: exoActive))
+        DialogOption(value: limit, title: audioChannelLimitLabel(limit), subtitle: audioChannelLimitDescription(limit)),
+    ],
   );
 
   Widget _downmixCenterBoostTile() => SettingNumberTile(
@@ -692,6 +710,36 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     DvConversionModePreference.hevcStrip => t.settings.dvConversionHevcStrip,
   };
 
+  Widget _hdrSdrConversionTile() => SettingSelectionTile<HdrSdrConversion>(
+    pref: SettingsService.hdrSdrConversion,
+    icon: Symbols.tonality_rounded,
+    title: t.settings.hdrSdrConversion,
+    subtitleBuilder: (mode) => '${_hdrSdrConversionLabel(mode)} · ${t.settings.hdrSdrConversionDescription}',
+    options: [
+      DialogOption(
+        value: HdrSdrConversion.auto,
+        title: t.settings.hdrSdrConversionAuto,
+        subtitle: t.settings.hdrSdrConversionAutoDescription,
+      ),
+      DialogOption(
+        value: HdrSdrConversion.device,
+        title: t.settings.hdrSdrConversionDevice,
+        subtitle: t.settings.hdrSdrConversionDeviceDescription,
+      ),
+      DialogOption(
+        value: HdrSdrConversion.player,
+        title: t.settings.hdrSdrConversionPlayer,
+        subtitle: t.settings.hdrSdrConversionPlayerDescription,
+      ),
+    ],
+  );
+
+  String _hdrSdrConversionLabel(HdrSdrConversion mode) => switch (mode) {
+    HdrSdrConversion.auto => t.settings.hdrSdrConversionAuto,
+    HdrSdrConversion.device => t.settings.hdrSdrConversionDevice,
+    HdrSdrConversion.player => t.settings.hdrSdrConversionPlayer,
+  };
+
   Widget _playbackBufferTile() => SettingSelectionTile<PlaybackBufferTier>(
     pref: SettingsService.playbackBufferTier,
     icon: Symbols.hourglass_top_rounded,
@@ -738,6 +786,25 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
     icon: Symbols.bolt_rounded,
     title: t.settings.directPlayCoveredQuality,
     subtitle: t.settings.directPlayCoveredQualityDescription,
+  );
+
+  Widget _videoCodecsTile() => SettingChecklistTile(
+    uncheckedPref: SettingsService.refusedVideoCodecs,
+    icon: Symbols.video_settings_rounded,
+    title: t.settings.videoCodecs,
+    description: t.settings.videoCodecsDescription,
+    options: [
+      for (final codec in RankedVideoCodec.values)
+        DialogOption(
+          value: codec.id,
+          title: CodecUtils.formatVideoCodec(codec.id),
+          subtitle: codec.isRefusable ? null : t.settings.videoCodecsAlwaysAccepted,
+        ),
+    ],
+    locked: {
+      for (final codec in RankedVideoCodec.values)
+        if (!codec.isRefusable) codec.id,
+    },
   );
 
   Widget _musicQualityTile() => SettingSelectionTile<AudioQualityPreset>(
