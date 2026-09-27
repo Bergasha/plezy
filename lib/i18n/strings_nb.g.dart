@@ -5063,11 +5063,11 @@ extension on TranslationsNb {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Angi minst én URL til en ${product}-server',
 			'addServer.noReachableServer' => ({required Object product}) => 'Fant ingen tilgjengelig ${product}-server',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Disse URL-ene peker til forskjellige ${product}-servere',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Denne URL-en samsvarer ikke med ${product}-serveren',
 			'addServer.redirectUnsupported' => 'Serveren omdirigerte til en URL som ikke støttes',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Serveren omdirigerte til en annen vert. Angi den endelige ${product}-URL-en direkte.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Serveren omdirigerte fra HTTPS til en usikker URL',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Serveren omdirigerte til en URL som ikke støttes. Angi den endelige ${product}-URL-en direkte.',
 			_ => null,

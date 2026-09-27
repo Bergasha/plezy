@@ -5052,11 +5052,11 @@ extension on TranslationsJa {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => '${product}サーバーのURLを1つ以上入力してください',
 			'addServer.noReachableServer' => ({required Object product}) => '接続可能な${product}サーバーが見つかりませんでした',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'これらのURLは異なる${product}サーバーを指しています',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'このURLは${product}サーバーと一致しません',
 			'addServer.redirectUnsupported' => 'サーバーからサポートされていないURLにリダイレクトされました',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'サーバーから別のホストにリダイレクトされました。最終的な${product}のURLを直接入力してください。',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'サーバーからHTTPSではない安全でないURLにリダイレクトされました',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'サーバーからサポートされていないURLにリダイレクトされました。最終的な${product}のURLを直接入力してください。',
 			_ => null,

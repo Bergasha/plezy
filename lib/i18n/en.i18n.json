@@ -890,6 +890,7 @@
     "episodesLoadFailed": "Couldn't load episodes",
     "episodeOfTotal": "Episode ${current} of ${total}",
     "nextEpisodeAirs": "Next episode airs ${date}",
+    "showReturning": "Returning ${date}",
     "noResultsFound": "No results found",
     "sleepTimerSet": "Sleep timer set for ${label}",
     "noItemsAvailable": "No items available",

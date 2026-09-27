@@ -5063,11 +5063,11 @@ extension on TranslationsIt {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Inserisci almeno un URL di un server ${product}',
 			'addServer.noReachableServer' => ({required Object product}) => 'Non è stato trovato alcun server ${product} raggiungibile',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Questi URL rimandano a server ${product} diversi',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Questo URL non corrisponde al server ${product}',
 			'addServer.redirectUnsupported' => 'Il server ha reindirizzato a un URL non supportato',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Il server ha reindirizzato a un host diverso. Inserisci direttamente l\'URL finale del server ${product}.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Il server ha reindirizzato da HTTPS a un URL non sicuro',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Il server ha reindirizzato a un URL non supportato. Inserisci direttamente l\'URL finale del server ${product}.',
 			_ => null,

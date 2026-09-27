@@ -5052,11 +5052,11 @@ extension on TranslationsZh {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => '请输入至少一个 ${product} 服务器 URL',
 			'addServer.noReachableServer' => ({required Object product}) => '未找到可连接的 ${product} 服务器',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => '这些 URL 指向不同的 ${product} 服务器',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => '此 URL 与 ${product} 服务器不匹配',
 			'addServer.redirectUnsupported' => '服务器重定向到了不受支持的 URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => '服务器重定向到了其他主机。请直接输入最终的 ${product} URL。',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => '服务器从 HTTPS 重定向到了不安全的 URL',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => '服务器重定向到了不受支持的 URL。请直接输入最终的 ${product} URL。',
 			_ => null,

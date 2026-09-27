@@ -5053,11 +5053,11 @@ extension on TranslationsZhHant {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => '請輸入至少一個 ${product} 伺服器 URL',
 			'addServer.noReachableServer' => ({required Object product}) => '找不到可連線的 ${product} 伺服器',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => '這些 URL 指向不同的 ${product} 伺服器',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => '此 URL 與 ${product} 伺服器不符',
 			'addServer.redirectUnsupported' => '伺服器重新導向至不支援的 URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => '伺服器重新導向至不同的主機。請直接輸入最終的 ${product} URL。',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => '伺服器從 HTTPS 重新導向至不安全的 URL',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => '伺服器重新導向至不支援的 URL。請直接輸入最終的 ${product} URL。',
 			_ => null,

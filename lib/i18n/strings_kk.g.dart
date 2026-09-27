@@ -5063,11 +5063,11 @@ extension on TranslationsKk {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Кемінде бір ${product} серверінің URL-ін енгізіңіз',
 			'addServer.noReachableServer' => ({required Object product}) => 'Қолжетімді ${product} сервері табылмады',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Бұл URL-дер әртүрлі ${product} серверлеріне бағыттайды',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Бұл URL ${product} серверіне сәйкес келмейді',
 			'addServer.redirectUnsupported' => 'Сервер қолдау көрсетілмейтін URL-ге қайта бағыттады',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Сервер басқа хостқа қайта бағыттады. Соңғы ${product} URL-ін тікелей енгізіңіз.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Сервер HTTPS мекенжайынан қауіпсіз емес URL-ге қайта бағыттады',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Сервер қолдау көрсетілмейтін URL-ге қайта бағыттады. Соңғы ${product} URL-ін тікелей енгізіңіз.',
 			_ => null,

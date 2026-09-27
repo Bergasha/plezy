@@ -5063,11 +5063,11 @@ extension on TranslationsTr {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'En az bir ${product} sunucu URL\'si girin',
 			'addServer.noReachableServer' => ({required Object product}) => 'Ulaşılabilir ${product} sunucusu bulunamadı',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Bu URL\'ler farklı ${product} sunucularını gösteriyor',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Bu URL, ${product} sunucusuyla eşleşmiyor',
 			'addServer.redirectUnsupported' => 'Sunucu desteklenmeyen bir URL\'ye yönlendirdi',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Sunucu farklı bir ana makineye yönlendirdi. Nihai ${product} URL\'sini doğrudan girin.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Sunucu HTTPS\'den güvenli olmayan bir URL\'ye yönlendirdi',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Sunucu desteklenmeyen bir URL\'ye yönlendirdi. Nihai ${product} URL\'sini doğrudan girin.',
 			_ => null,

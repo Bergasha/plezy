@@ -2611,6 +2611,9 @@ class Translations$messages$en {
 	/// en: 'Next episode airs ${date}'
 	String nextEpisodeAirs({required Object date}) => 'Next episode airs ${date}';
 
+	/// en: 'Returning ${date}'
+	String showReturning({required Object date}) => 'Returning ${date}';
+
 	/// en: 'No results found'
 	String get noResultsFound => 'No results found';
 
@@ -8047,6 +8050,8 @@ extension on Translations {
 			'fileInfo.subtitles' => 'Subtitles',
 			'fileInfo.images' => 'Embedded Images',
 			'fileInfo.dataStreams' => 'Data Streams',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.lyrics' => 'Lyrics',
 			'fileInfo.file' => 'File',
 			'fileInfo.attachments' => 'Attachments',
@@ -8065,8 +8070,6 @@ extension on Translations {
 			'fileInfo.rotation' => 'Rotation',
 			'fileInfo.comment' => 'Comment',
 			'fileInfo.audioDescription' => 'Audio Description',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.headerCompression' => 'Header Compression',
 			'fileInfo.sidecarFile' => 'Sidecar File',
 			'fileInfo.transportTimestamp' => 'Transport Timestamp',
@@ -8096,8 +8099,6 @@ extension on Translations {
 			'fileInfo.dolbyVisionLayers' => 'Dolby Vision Layers',
 			'fileInfo.baseLayerCompatibility' => 'Base Layer Compatibility',
 			'fileInfo.avcBitstream' => 'AVC Bitstream',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.nalLengthSize' => 'NAL Length Size',
 			'fileInfo.scalingMatrix' => 'Custom Scaling Matrix',
 			'fileInfo.streamIdentifier' => 'Stream Identifier',
@@ -8374,6 +8375,7 @@ extension on Translations {
 			'messages.episodesLoadFailed' => 'Couldn\'t load episodes',
 			'messages.episodeOfTotal' => ({required Object current, required Object total}) => 'Episode ${current} of ${total}',
 			'messages.nextEpisodeAirs' => ({required Object date}) => 'Next episode airs ${date}',
+			'messages.showReturning' => ({required Object date}) => 'Returning ${date}',
 			'messages.noResultsFound' => 'No results found',
 			'messages.sleepTimerSet' => ({required Object label}) => 'Sleep timer set for ${label}',
 			'messages.noItemsAvailable' => 'No items available',
@@ -8562,6 +8564,8 @@ extension on Translations {
 			'accountPreferences.rewatchingInNextUpDescription' => 'Once you finish a show, start it again and Next Up follows the rewatch instead of dropping the show.',
 			'accountPreferences.watchedIndicator' => 'Watched indicators',
 			'accountPreferences.watchedIndicatorOptions.none' => 'Never',
+			_ => null,
+		} ?? switch (path) {
 			'accountPreferences.watchedIndicatorOptions.moviesAndShows' => 'Movies and TV shows',
 			'accountPreferences.watchedIndicatorOptions.movies' => 'Movies only',
 			'accountPreferences.watchedIndicatorOptions.shows' => 'TV shows only',
@@ -8581,8 +8585,6 @@ extension on Translations {
 			'discover.recentlyAddedIn' => ({required Object library}) => 'Recently Added in ${library}',
 			'discover.latestAlbumsIn' => ({required Object library}) => 'Latest Albums in ${library}',
 			'discover.recentlyPlayedIn' => ({required Object library}) => 'Recently Played in ${library}',
-			_ => null,
-		} ?? switch (path) {
 			'discover.mostPlayedIn' => ({required Object library}) => 'Most Played in ${library}',
 			'discover.playEpisode' => ({required Object season, required Object episode}) => 'S${season}E${episode}',
 			'discover.overview' => 'Overview',
@@ -8624,8 +8626,6 @@ extension on Translations {
 			'libraries.scanLibrary' => 'Scan Library',
 			'libraries.analyze' => 'Analyze',
 			'libraries.analyzeLibrary' => 'Analyze Library',
-			_ => null,
-		} ?? switch (path) {
 			'libraries.refreshMetadata' => 'Refresh Metadata',
 			'libraries.emptyTrash' => 'Empty Trash',
 			'libraries.emptyingTrash' => ({required Object title}) => 'Emptying trash for "${title}"...',
@@ -9078,6 +9078,8 @@ extension on Translations {
 			'music.discNumber' => ({required Object n}) => 'Disc ${n}',
 			'music.trackCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} track', other: '${n} tracks', ), 
 			'music.nowPlaying' => 'Now Playing',
+			_ => null,
+		} ?? switch (path) {
 			'music.playingFrom' => ({required Object title}) => 'Playing from ${title}',
 			'music.queue' => 'Queue',
 			'music.clearQueue' => 'Clear queue',
@@ -9097,8 +9099,6 @@ extension on Translations {
 			'music.instantMixEmpty' => 'The instant mix came back with no tracks',
 			'music.noAudioUrl' => ({required Object track}) => 'No audio URL is available for ${track}',
 			'music.discography.singlesAndEps' => 'Singles & EPs',
-			_ => null,
-		} ?? switch (path) {
 			'music.discography.live' => 'Live',
 			'music.discography.compilations' => 'Compilations',
 			'watchTogether.title' => 'Watch Together',
@@ -9143,8 +9143,6 @@ extension on Translations {
 			'watchTogether.end' => 'End',
 			'watchTogether.leave' => 'Leave',
 			'watchTogether.syncing' => 'Syncing...',
-			_ => null,
-		} ?? switch (path) {
 			'watchTogether.joinWatchSession' => 'Join Watch Session',
 			'watchTogether.enterCodeHint' => 'Enter 5-character code',
 			'watchTogether.pasteFromClipboard' => 'Paste from clipboard',
@@ -9594,6 +9592,8 @@ extension on Translations {
 			'seerr.disconnectConfirmBody' => 'Plezy will forget this Seerr instance. Reconnect any time.',
 			'seerr.request' => 'Request',
 			'seerr.request4k' => 'Request in 4K',
+			_ => null,
+		} ?? switch (path) {
 			'seerr.seasons' => 'Seasons',
 			'seerr.allSeasons' => 'All seasons',
 			'seerr.advancedOptions' => 'Advanced',
@@ -9612,8 +9612,6 @@ extension on Translations {
 			'seerr.statusAvailable' => 'Available',
 			'seerr.statusPartiallyAvailable' => 'Partially available',
 			'seerr.statusRequested' => 'Requested',
-			_ => null,
-		} ?? switch (path) {
 			'seerr.statusProcessing' => 'Processing',
 			'seerr.statusBlocklisted' => 'Blocklisted',
 			'seerr.couldNotReach' => ({required Object url, required Object error}) => 'Could not reach ${url}: ${error}',
@@ -9675,8 +9673,6 @@ extension on Translations {
 			'addServer.findServer' => 'Find server',
 			'addServer.searchingLocalMediaBrowserServers' => ({required Object product}) => 'Looking for local ${product} servers...',
 			'addServer.localMediaBrowserServers' => ({required Object product}) => 'Local ${product} servers',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.username' => 'Username',
 			'addServer.password' => 'Password',
 			'addServer.signIn' => 'Sign in',

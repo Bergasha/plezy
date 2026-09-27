@@ -5063,11 +5063,11 @@ extension on TranslationsHu {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Adj meg legalább egy ${product}-szerverhez tartozó URL-t',
 			'addServer.noReachableServer' => ({required Object product}) => 'Nem található elérhető ${product}-szerver',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Ezek az URL-ek különböző ${product}-szerverekre mutatnak',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Ez az URL nem egyezik a(z) ${product}-szerverrel',
 			'addServer.redirectUnsupported' => 'A szerver nem támogatott URL-re irányított át',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'A szerver egy másik gazdagépre irányított át. Add meg közvetlenül a végleges ${product} URL-t.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'A szerver HTTPS-ről nem biztonságos URL-re irányított át',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'A szerver nem támogatott URL-re irányított át. Add meg közvetlenül a végleges ${product} URL-t.',
 			_ => null,

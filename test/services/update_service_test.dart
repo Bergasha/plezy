@@ -87,7 +87,12 @@ void main() {
     final client = MediaServerHttpClient(
       client: MockClient(
         (_) async => http.Response(
-          jsonEncode({'tag_name': 'v1.0.0', 'html_url': 'https://example.com', 'published_at': '2026-01-01'}),
+          jsonEncode({
+            'version': '1.0.0',
+            'apk_url': 'https://example.com/app-release.apk',
+            'windows_url': 'https://example.com/plezy-windows-installer.exe',
+            'published_at': '2026-01-01',
+          }),
           200,
           headers: {'content-type': 'application/json'},
         ),

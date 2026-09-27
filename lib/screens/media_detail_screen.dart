@@ -3202,6 +3202,12 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// lets the TV rail report whichever episode currently has D-pad focus
   /// instead of the season's highest-loaded one — passed via
   /// [_tvDetailFocusedEpisode] so scrubbing to episode 6 reads "6 of 10".
+  ///
+  /// Between seasons, TMDb's confirmed "next episode" is often the renewed
+  /// season's premiere rather than anything in the season currently browsed
+  /// — that shows as "Returning `<date>`" alongside the finished season's own
+  /// count instead of the specific-episode phrasing above, which only makes
+  /// sense once the premiere's own episode number is known.
   Widget _buildTmdbAiringSummary({double scale = 1.0, MediaItem? focusedEpisode}) {
     final details = _tmdbTvDetails;
     final seasonNumber = _selectedTmdbSeasonNumber;
@@ -3211,6 +3217,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final total = _tmdbSeasonEpisodeCounts[seasonNumber];
     final next = details.nextEpisodeToAir;
     final nextAppliesToThisSeason = next != null && next.seasonNumber == seasonNumber && next.airDate != null;
+    final isReturning = details.status == 'Returning Series';
+    final returningForNewSeason = isReturning && next != null && next.airDate != null && !nextAppliesToThisSeason;
     final focusedInSeason = focusedEpisode != null && focusedEpisode.parentIndex == seasonNumber
         ? focusedEpisode.index
         : null;
@@ -3219,6 +3227,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final parts = <String>[
       if (total != null && highestAvailable != null) t.messages.episodeOfTotal(current: highestAvailable, total: total),
       if (nextAppliesToThisSeason) t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!)),
+      if (returningForNewSeason) t.messages.showReturning(date: formatAbbreviatedDate(next.airDate!)),
     ];
     if (parts.isEmpty) return const SizedBox.shrink();
 

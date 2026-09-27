@@ -5052,11 +5052,11 @@ extension on TranslationsKo {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => '${product} 서버 URL을 하나 이상 입력하세요',
 			'addServer.noReachableServer' => ({required Object product}) => '연결 가능한 ${product} 서버를 찾을 수 없습니다',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => '이 URL들은 서로 다른 ${product} 서버를 가리킵니다',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => '이 URL은 ${product} 서버와 일치하지 않습니다',
 			'addServer.redirectUnsupported' => '서버가 지원되지 않는 URL로 리디렉션했습니다',
 			'addServer.redirectDifferentHost' => ({required Object product}) => '서버가 다른 호스트로 리디렉션했습니다. 최종 ${product} URL을 직접 입력하세요.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => '서버가 HTTPS에서 안전하지 않은 URL로 리디렉션했습니다',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => '서버가 지원되지 않는 URL로 리디렉션했습니다. 최종 ${product} URL을 직접 입력하세요.',
 			_ => null,

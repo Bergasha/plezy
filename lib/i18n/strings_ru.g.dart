@@ -5085,11 +5085,11 @@ extension on TranslationsRu {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Введите хотя бы один URL сервера ${product}',
 			'addServer.noReachableServer' => ({required Object product}) => 'Не найдено ни одного доступного сервера ${product}',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Эти URL указывают на разные серверы ${product}',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Этот URL не соответствует серверу ${product}',
 			'addServer.redirectUnsupported' => 'Сервер перенаправил на неподдерживаемый URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Сервер перенаправил на другой хост. Введите конечный URL ${product} напрямую.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Сервер перенаправил с HTTPS на небезопасный URL',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Сервер перенаправил на неподдерживаемый URL. Введите конечный URL ${product} напрямую.',
 			_ => null,

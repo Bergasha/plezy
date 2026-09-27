@@ -5063,11 +5063,11 @@ extension on TranslationsAz {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Ən azı bir ${product} server URL-i daxil edin',
 			'addServer.noReachableServer' => ({required Object product}) => 'Əlçatan ${product} serveri tapılmadı',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Bu URL-lər fərqli ${product} serverlərinə aiddir',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Bu URL ${product} serverinə uyğun gəlmir',
 			'addServer.redirectUnsupported' => 'Server dəstəklənməyən URL-ə yönləndirdi',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Server başqa hosta yönləndirdi. Son ${product} URL-ni birbaşa daxil edin.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Server HTTPS-dən təhlükəsiz olmayan URL-ə yönləndirdi',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Server dəstəklənməyən URL-ə yönləndirdi. Son ${product} URL-ni birbaşa daxil edin.',
 			_ => null,

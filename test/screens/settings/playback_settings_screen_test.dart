@@ -170,7 +170,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
 
-    await tester.pumpWidget(MaterialApp(theme: monoTheme(dark: true), home: const PlaybackSettingsScreen()));
+    await tester.pumpWidget(_pumpablePlaybackSettingsScreen());
     await tester.pumpAndSettle();
 
     final title = find.text('Audio Channels');

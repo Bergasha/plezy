@@ -5063,11 +5063,11 @@ extension on TranslationsNl {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Voer ten minste één URL van een ${product}-server in',
 			'addServer.noReachableServer' => ({required Object product}) => 'Er is geen bereikbare ${product}-server gevonden',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Deze URL\'s verwijzen naar verschillende ${product}-servers',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Deze URL komt niet overeen met de ${product}-server',
 			'addServer.redirectUnsupported' => 'De server heeft doorgestuurd naar een niet-ondersteunde URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'De server heeft doorgestuurd naar een andere host. Voer de uiteindelijke ${product}-URL rechtstreeks in.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'De server heeft van HTTPS doorgestuurd naar een onbeveiligde URL',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'De server heeft doorgestuurd naar een niet-ondersteunde URL. Voer de uiteindelijke ${product}-URL rechtstreeks in.',
 			_ => null,

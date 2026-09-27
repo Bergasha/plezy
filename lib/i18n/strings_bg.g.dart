@@ -5063,11 +5063,11 @@ extension on TranslationsBg {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Въведете поне един URL на сървър на ${product}',
 			'addServer.noReachableServer' => ({required Object product}) => 'Не беше намерен достъпен сървър на ${product}',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Тези URL адреси сочат към различни сървъри на ${product}',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Този URL не съответства на сървъра на ${product}',
 			'addServer.redirectUnsupported' => 'Сървърът пренасочи към неподдържан URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Сървърът пренасочи към друг хост. Въведете директно крайния URL на ${product}.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Сървърът пренасочи от HTTPS към незащитен URL',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Сървърът пренасочи към неподдържан URL. Въведете директно крайния URL на ${product}.',
 			_ => null,

@@ -5085,11 +5085,11 @@ extension on TranslationsPl {
 			'addServer.enterAtLeastOneUrl' => ({required Object product}) => 'Wprowadź co najmniej jeden adres URL serwera ${product}',
 			'addServer.noReachableServer' => ({required Object product}) => 'Nie znaleziono żadnego osiągalnego serwera ${product}',
 			'addServer.urlsPointToDifferentServers' => ({required Object product}) => 'Te adresy URL wskazują różne serwery ${product}',
-			_ => null,
-		} ?? switch (path) {
 			'addServer.urlDoesNotMatchServer' => ({required Object product}) => 'Ten adres URL nie odpowiada serwerowi ${product}',
 			'addServer.redirectUnsupported' => 'Serwer przekierował do nieobsługiwanego adresu URL',
 			'addServer.redirectDifferentHost' => ({required Object product}) => 'Serwer przekierował do innego hosta. Wprowadź bezpośrednio docelowy adres URL serwera ${product}.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.redirectInsecure' => 'Serwer przekierował z HTTPS do niezabezpieczonego adresu URL',
 			'addServer.redirectUnsupportedEnterFinal' => ({required Object product}) => 'Serwer przekierował do nieobsługiwanego adresu URL. Wprowadź bezpośrednio docelowy adres URL serwera ${product}.',
 			_ => null,
