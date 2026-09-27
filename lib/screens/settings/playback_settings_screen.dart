@@ -350,6 +350,12 @@ class _PlaybackSettingsScreenState extends State<PlaybackSettingsScreen> {
         title: t.settings.shuffleStartsFromBeginning,
         subtitle: t.settings.shuffleStartsFromBeginningDescription,
       ),
+      SettingSwitchTile(
+        pref: SettingsService.plexCinemaPreRoll,
+        icon: Symbols.movie_rounded,
+        title: t.settings.plexCinemaPreRoll,
+        subtitle: t.settings.plexCinemaPreRollDescription,
+      ),
       SettingNumberTile(
         pref: SettingsService.playNextCountdown,
         icon: Symbols.timer_rounded,
