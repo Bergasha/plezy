@@ -487,7 +487,8 @@
     "hint": "Search movies, shows, music...",
     "tryDifferentTerm": "Try a different search term",
     "searchYourMedia": "Search your media",
-    "enterTitleActorOrKeyword": "Enter a title, actor, or keyword"
+    "enterTitleActorOrKeyword": "Enter a title, actor, or keyword",
+    "people": "People"
   },
   "hotkeys": {
     "setShortcutFor": "Set Shortcut for ${actionName}",
@@ -1480,6 +1481,7 @@
       "otherMedia": "Other"
     },
     "creditRole": {
+      "actor": "Actor",
       "director": "Director",
       "writer": "Writer",
       "producer": "Producer",
