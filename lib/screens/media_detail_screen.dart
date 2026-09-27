@@ -3195,19 +3195,18 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     return _seasons[_selectedSeasonIndex].index;
   }
 
-  /// "Episode 8 of 10 · Next episode airs Feb 15" — only for a TMDb-airing
-  /// show, and only once at least one half of that has data to show. Shared
-  /// by the non-TV Column and the TV episodes rail header; [scale] is the
-  /// TV layout's font-scale factor (default 1.0 off TV). [focusedEpisode]
-  /// lets the TV rail report whichever episode currently has D-pad focus
-  /// instead of the season's highest-loaded one — passed via
-  /// [_tvDetailFocusedEpisode] so scrubbing to episode 6 reads "6 of 10".
-  ///
-  /// Between seasons, TMDb's confirmed "next episode" is often the renewed
-  /// season's premiere rather than anything in the season currently browsed
-  /// — that shows as "Returning `<date>`" alongside the finished season's own
-  /// count instead of the specific-episode phrasing above, which only makes
-  /// sense once the premiere's own episode number is known.
+  /// "Next episode airs Feb 15" while a season is actively airing, "Returning
+  /// Mar 2027" once it has wrapped but TMDb has a premiere date for the next
+  /// one, otherwise "Episode 8 of 10" — only for a TMDb-airing show, and only
+  /// once one of the three has data to show. The airing/returning lines take
+  /// over instead of stacking with the episode count: once there's something
+  /// to look forward to, that is the useful line, and eliminates any doubt
+  /// about whether "8 of 10" means the season already wrapped. Shared by the
+  /// non-TV Column and the TV episodes rail header; [scale] is the TV
+  /// layout's font-scale factor (default 1.0 off TV). [focusedEpisode] lets
+  /// the TV rail report whichever episode currently has D-pad focus instead
+  /// of the season's highest-loaded one — passed via [_tvDetailFocusedEpisode]
+  /// so scrubbing to episode 6 reads "6 of 10".
   Widget _buildTmdbAiringSummary({double scale = 1.0, MediaItem? focusedEpisode}) {
     final details = _tmdbTvDetails;
     final seasonNumber = _selectedTmdbSeasonNumber;
@@ -3218,16 +3217,28 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final next = details.nextEpisodeToAir;
     final nextAppliesToThisSeason = next != null && next.seasonNumber == seasonNumber && next.airDate != null;
     final isReturning = details.status == 'Returning Series';
-    final returningForNewSeason = isReturning && next != null && next.airDate != null && !nextAppliesToThisSeason;
+    // Prefer next_episode_to_air's date when it names a later season too —
+    // it can carry an episode number the seasons list never does — but most
+    // renewals leave next_episode_to_air null until per-episode data exists,
+    // long after TMDb stubs the season itself with a premiere date.
+    final laterSeasonAirDate = next != null && next.seasonNumber != null && next.seasonNumber! > seasonNumber
+        ? next.airDate
+        : null;
+    final returnDate = isReturning && !nextAppliesToThisSeason
+        ? (laterSeasonAirDate ?? details.upcomingSeasonAirDate(seasonNumber))
+        : null;
     final focusedInSeason = focusedEpisode != null && focusedEpisode.parentIndex == seasonNumber
         ? focusedEpisode.index
         : null;
     final highestAvailable = focusedInSeason ?? (_episodes.isEmpty ? null : (_episodes.last.index ?? _episodes.length));
 
     final parts = <String>[
-      if (total != null && highestAvailable != null) t.messages.episodeOfTotal(current: highestAvailable, total: total),
-      if (nextAppliesToThisSeason) t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!)),
-      if (returningForNewSeason) t.messages.showReturning(date: formatAbbreviatedDate(next.airDate!)),
+      if (nextAppliesToThisSeason)
+        t.messages.nextEpisodeAirs(date: formatAbbreviatedDate(next.airDate!))
+      else if (returnDate != null)
+        t.messages.showReturning(date: formatAbbreviatedDate(returnDate))
+      else if (total != null && highestAvailable != null)
+        t.messages.episodeOfTotal(current: highestAvailable, total: total),
     ];
     if (parts.isEmpty) return const SizedBox.shrink();
 
