@@ -758,7 +758,7 @@ class SettingsService extends BaseSharedPreferencesService {
   /// The server resolves the clip itself and returns it as the head of the
   /// play queue, so nothing here reads `CinemaTrailersPrerollID`. Plex only:
   /// Jellyfin and Emby have no equivalent.
-  static const plexCinemaPreRoll = BoolPref('plex_cinema_preroll');
+  static const plexCinemaPreRoll = BoolPref('plex_cinema_preroll', defaultValue: true);
 
   /// Seconds the Play Next prompt counts down before auto-advancing (#1827).
   /// 0 skips the prompt entirely and starts the next episode immediately.
@@ -962,7 +962,6 @@ class SettingsService extends BaseSharedPreferencesService {
   );
   static const startInFullscreen = BoolPref('start_in_fullscreen');
   static const exitFullscreenOnPlayerClose = BoolPref('exit_fullscreen_on_player_close');
-  static const playPrerollsBeforeMovies = BoolPref('play_prerolls_before_movies');
 
   static const playbackBufferTier = EnumPref<PlaybackBufferTier>(
     'playback_buffer_tier',

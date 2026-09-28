@@ -1032,42 +1032,6 @@ class Translations$settings$en {
 	/// en: 'Regex pattern to match credits markers in chapter titles'
 	String get creditsPatternDescription => 'Regex pattern to match credits markers in chapter titles';
 
-	/// en: 'Prerolls'
-	String get prerolls => 'Prerolls';
-
-	/// en: 'Play prerolls before movies'
-	String get playPrerollsBeforeMovies => 'Play prerolls before movies';
-
-	/// en: 'Plays a random clip from your selection below before each movie. Press back to skip.'
-	String get playPrerollsBeforeMoviesDescription => 'Plays a random clip from your selection below before each movie. Press back to skip.';
-
-	/// en: 'Preroll library'
-	String get prerollLibrary => 'Preroll library';
-
-	/// en: 'Not set'
-	String get prerollLibraryNotSet => 'Not set';
-
-	/// en: 'No libraries found on your servers.'
-	String get prerollLibraryNoneFound => 'No libraries found on your servers.';
-
-	/// en: 'Selected prerolls'
-	String get prerollSelection => 'Selected prerolls';
-
-	/// en: 'Pick a library first'
-	String get prerollSelectionPickLibraryFirst => 'Pick a library first';
-
-	/// en: 'No prerolls selected'
-	String get prerollSelectionNoneSelected => 'No prerolls selected';
-
-	/// en: '${count} selected'
-	String prerollSelectionCount({required Object count}) => '${count} selected';
-
-	/// en: 'Select prerolls'
-	String get prerollItemPicker => 'Select prerolls';
-
-	/// en: 'Couldn't load items from this library.'
-	String get prerollItemPickerLoadFailed => 'Couldn\'t load items from this library.';
-
 	/// en: 'Invalid regular expression'
 	String get invalidRegex => 'Invalid regular expression';
 
@@ -7860,18 +7824,6 @@ extension on Translations {
 			'settings.introPatternDescription' => 'Regex pattern to match intro markers in chapter titles',
 			'settings.creditsPattern' => 'Credits Marker Pattern',
 			'settings.creditsPatternDescription' => 'Regex pattern to match credits markers in chapter titles',
-			'settings.prerolls' => 'Prerolls',
-			'settings.playPrerollsBeforeMovies' => 'Play prerolls before movies',
-			'settings.playPrerollsBeforeMoviesDescription' => 'Plays a random clip from your selection below before each movie. Press back to skip.',
-			'settings.prerollLibrary' => 'Preroll library',
-			'settings.prerollLibraryNotSet' => 'Not set',
-			'settings.prerollLibraryNoneFound' => 'No libraries found on your servers.',
-			'settings.prerollSelection' => 'Selected prerolls',
-			'settings.prerollSelectionPickLibraryFirst' => 'Pick a library first',
-			'settings.prerollSelectionNoneSelected' => 'No prerolls selected',
-			'settings.prerollSelectionCount' => ({required Object count}) => '${count} selected',
-			'settings.prerollItemPicker' => 'Select prerolls',
-			'settings.prerollItemPickerLoadFailed' => 'Couldn\'t load items from this library.',
 			'settings.invalidRegex' => 'Invalid regular expression',
 			'settings.regex' => 'Regular expression',
 			'settings.downloads' => 'Downloads',
@@ -8059,8 +8011,6 @@ extension on Translations {
 			'fileInfo.video' => 'Video',
 			'fileInfo.audio' => 'Audio',
 			'fileInfo.subtitles' => 'Subtitles',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.images' => 'Embedded Images',
 			'fileInfo.dataStreams' => 'Data Streams',
 			'fileInfo.lyrics' => 'Lyrics',
@@ -8073,6 +8023,8 @@ extension on Translations {
 			'fileInfo.copyPath' => 'Copy path',
 			'fileInfo.pathCopied' => 'File path copied',
 			'fileInfo.codec' => 'Codec',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.codecTag' => 'Codec Tag',
 			'fileInfo.resolution' => 'Resolution',
 			'fileInfo.codedResolution' => 'Coded Resolution',
@@ -8573,8 +8525,6 @@ extension on Translations {
 			'accountPreferences.displayCollectionsView' => 'Show the Collections view',
 			'accountPreferences.displayCollectionsViewDescription' => 'Offer the server\'s Collections view alongside your libraries.',
 			'accountPreferences.rewatchingInNextUp' => 'Keep rewatched shows in Next Up',
-			_ => null,
-		} ?? switch (path) {
 			'accountPreferences.rewatchingInNextUpDescription' => 'Once you finish a show, start it again and Next Up follows the rewatch instead of dropping the show.',
 			'accountPreferences.watchedIndicator' => 'Watched indicators',
 			'accountPreferences.watchedIndicatorOptions.none' => 'Never',
@@ -8587,6 +8537,8 @@ extension on Translations {
 			'accountPreferences.mediaReviewsOptions.criticsOnly' => 'Critics only',
 			'accountPreferences.mediaReviewsOptions.nobody' => 'Hidden',
 			'discover.title' => 'Discover',
+			_ => null,
+		} ?? switch (path) {
 			'discover.noContentAvailable' => 'No content available',
 			'discover.addMediaToLibraries' => 'Add some media to your libraries',
 			'discover.continueWatching' => 'Continue Watching',
@@ -9087,8 +9039,6 @@ extension on Translations {
 			'music.instantMix' => 'Instant Mix',
 			'music.playNext' => 'Play next',
 			'music.addToQueue' => 'Add to queue',
-			_ => null,
-		} ?? switch (path) {
 			'music.discNumber' => ({required Object n}) => 'Disc ${n}',
 			'music.trackCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} track', other: '${n} tracks', ), 
 			'music.nowPlaying' => 'Now Playing',
@@ -9101,6 +9051,8 @@ extension on Translations {
 			'music.sleepTimerEndOfTrack' => 'End of track',
 			'music.sleepTimerMinutes' => ({required Object n}) => '${n} minutes',
 			'music.stopPlayback' => 'Stop playback',
+			_ => null,
+		} ?? switch (path) {
 			'music.previousTrack' => 'Previous track',
 			'music.nextTrack' => 'Next track',
 			'music.repeat' => 'Repeat',
@@ -9601,8 +9553,6 @@ extension on Translations {
 			'seerr.noSignInMethods' => 'This Seerr instance offers no sign-in method Plezy supports.',
 			'seerr.instance' => 'Instance',
 			'seerr.disconnectConfirm' => 'Disconnect Seerr?',
-			_ => null,
-		} ?? switch (path) {
 			'seerr.disconnectConfirmBody' => 'Plezy will forget this Seerr instance. Reconnect any time.',
 			'seerr.request' => 'Request',
 			'seerr.request4k' => 'Request in 4K',
@@ -9615,6 +9565,8 @@ extension on Translations {
 			'seerr.languageProfile' => 'Language profile',
 			'seerr.tags' => 'Tags',
 			'seerr.noTags' => 'No tags',
+			_ => null,
+		} ?? switch (path) {
 			'seerr.defaultOption' => ({required Object name}) => '${name} (Default)',
 			'seerr.animeNote' => 'This series is an anime.',
 			'seerr.requestSubmitted' => 'Request submitted',

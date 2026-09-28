@@ -479,8 +479,6 @@ class VideoPlayerScreen extends StatefulWidget {
 
   bool get isLive => live != null;
 
-  final bool isPreroll;
-
   const VideoPlayerScreen({
     super.key,
     required this.metadata,
@@ -494,7 +492,6 @@ class VideoPlayerScreen extends StatefulWidget {
     this.selectedQualityPreset,
     this.selectedAudioStreamId,
     this.live,
-    this.isPreroll = false,
     this.watchTogetherLease,
     this.initialPosition,
     this.strictMediaSelection = false,
@@ -1071,7 +1068,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
     // Every successful open passes through here (never live TV), making it
     // the chokepoint for the local last-played history. Offline plays are
     // excluded — like version prefs, the history describes online intent.
-    if (!session.isOffline && !widget.isPreroll) {
+    if (!session.isOffline) {
       unawaited(LocalPlaybackHistory.recordPlayback(session.metadata));
     }
   }

@@ -422,7 +422,7 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
     // Scrobblers — Discord RPC plus the tracker coordinator, which fans out to
     // every connected service. Both accept the neutral [MediaServerClient]; null
     // short-circuits cleanly.
-    if (mediaClient != null && !widget.isPreroll) {
+    if (mediaClient != null) {
       // Discord renders a timeline the live placeholder does not have; the
       // tracker coordinator takes the live decision itself.
       if (!widget.isLive) {
@@ -462,8 +462,6 @@ extension _VideoPlayerPlaybackServiceMethods on VideoPlayerScreenState {
     if (_shuttingDown || _hasFatalPlaybackError) return;
 
     if (currentPlayer == null) return;
-
-    if (widget.isPreroll) return;
 
     // Local media still reports live when its server is online; only queue
     // locally when no reporting client is reachable.
