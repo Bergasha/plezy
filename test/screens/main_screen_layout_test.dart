@@ -86,16 +86,18 @@ void main() {
     expect(shouldPass(hasVisibleTabs: false), isFalse);
   });
 
-  test('macOS physical Escape is reserved for native fullscreen only at root Home', () {
+  test('desktop physical Escape is reserved for window fullscreen only at root Home outside TV mode', () {
     bool shouldHandle({
-      bool isMacOS = true,
+      bool isDesktop = true,
+      bool isTV = false,
       bool isPhysicalKeyboardEvent = true,
       LogicalKeyboardKey logicalKey = LogicalKeyboardKey.escape,
       bool isCurrentRoute = true,
       bool isHomeTab = true,
     }) {
-      return shouldHandleMacOsRootEscape(
-        isMacOS: isMacOS,
+      return shouldHandleDesktopRootEscape(
+        isDesktop: isDesktop,
+        isTV: isTV,
         isPhysicalKeyboardEvent: isPhysicalKeyboardEvent,
         logicalKey: logicalKey,
         isCurrentRoute: isCurrentRoute,
@@ -106,8 +108,13 @@ void main() {
     expect(shouldHandle(), isTrue);
     expect(shouldHandle(isHomeTab: false), isFalse);
     expect(shouldHandle(isCurrentRoute: false), isFalse);
+    // Desktop embedders report remote (CEC/IR) Escape as a keyboard key; TV
+    // mode keeps it the remote's Back with the press-back-again exit (#2490).
+    expect(shouldHandle(isTV: true), isFalse);
+    // Gamepad and companion-remote Escape are synthesized as non-keyboard
+    // events; they keep the press-back-again exit path.
     expect(shouldHandle(isPhysicalKeyboardEvent: false), isFalse);
-    expect(shouldHandle(isMacOS: false), isFalse);
+    expect(shouldHandle(isDesktop: false), isFalse);
     expect(shouldHandle(logicalKey: LogicalKeyboardKey.gameButtonB), isFalse);
   });
 
