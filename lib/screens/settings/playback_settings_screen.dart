@@ -139,6 +139,7 @@ class PlaybackSettingsScreen extends StatelessWidget {
             _behaviorGroup(context, isMobile),
             if (isMobile) _gesturesGroup(),
             _rememberPlayerChangesGroup(),
+            _prerollGroup(),
             const SizedBox(height: 24),
           ],
         );
@@ -295,6 +296,18 @@ class PlaybackSettingsScreen extends StatelessWidget {
     SpecialsOrdering.specialsLast => t.settings.specialsOrderingLast,
   };
 
+  Widget _prerollGroup() => SettingsGroup(
+    title: t.settings.prerollGroup,
+    children: [
+      SettingSwitchTile(
+        pref: SettingsService.plexCinemaPreRoll,
+        icon: Symbols.movie_rounded,
+        title: t.settings.plexCinemaPreRoll,
+        subtitle: t.settings.plexCinemaPreRollDescription,
+      ),
+    ],
+  );
+
   Widget _autoPlayAndSkipGroup() => SettingsGroup(
     title: t.settings.autoPlayAndSkip,
     children: [
@@ -311,12 +324,6 @@ class PlaybackSettingsScreen extends StatelessWidget {
         icon: Symbols.shuffle_rounded,
         title: t.settings.shuffleStartsFromBeginning,
         subtitle: t.settings.shuffleStartsFromBeginningDescription,
-      ),
-      SettingSwitchTile(
-        pref: SettingsService.plexCinemaPreRoll,
-        icon: Symbols.movie_rounded,
-        title: t.settings.plexCinemaPreRoll,
-        subtitle: t.settings.plexCinemaPreRollDescription,
       ),
       SettingNumberTile(
         pref: SettingsService.playNextCountdown,

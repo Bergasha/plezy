@@ -115,6 +115,20 @@ extension _VideoPlayerPlaybackPromptMethods on VideoPlayerScreenState {
         !_episode.completionLatch.triggered) {
       _episode.completionLatch.latch();
 
+      // A server pre-roll hands straight over to the movie it was queued for:
+      // the viewer chose the movie, so no prompt or countdown in between,
+      // whatever the auto-play settings say.
+      final playbackState = context.read<PlaybackStateProvider>();
+      if (isPrerollHandoff(
+        current: _currentMetadata,
+        launchContextKey: playbackState.shuffleContextKey,
+        queue: playbackState.loadedItems,
+      )) {
+        _logVideoCompleted('action=presentNext preroll');
+        unawaited(_playNext());
+        return;
+      }
+
       // PiP: skip dialog (user can't interact), auto-play immediately
       if (PipService().isPipActive.value) {
         _logVideoCompleted('action=presentNext pip');

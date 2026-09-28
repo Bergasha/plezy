@@ -963,6 +963,9 @@ class Translations$settings$en {
 	/// en: 'Start each episode at the beginning when shuffling instead of resuming'
 	String get shuffleStartsFromBeginningDescription => 'Start each episode at the beginning when shuffling instead of resuming';
 
+	/// en: 'Pre-roll'
+	String get prerollGroup => 'Pre-roll';
+
 	/// en: 'Play Pre-Roll Before Movies'
 	String get plexCinemaPreRoll => 'Play Pre-Roll Before Movies';
 
@@ -7801,6 +7804,7 @@ extension on Translations {
 			'settings.autoPlayNextEpisodeDescription' => 'Start the next episode automatically when one ends',
 			'settings.shuffleStartsFromBeginning' => 'Shuffle Starts at Beginning',
 			'settings.shuffleStartsFromBeginningDescription' => 'Start each episode at the beginning when shuffling instead of resuming',
+			'settings.prerollGroup' => 'Pre-roll',
 			'settings.plexCinemaPreRoll' => 'Play Pre-Roll Before Movies',
 			'settings.plexCinemaPreRollDescription' => 'Play the pre-roll configured on your Plex server before a movie starts. Plex servers only',
 			'settings.playNextCountdown' => 'Play Next Countdown',
@@ -8022,9 +8026,9 @@ extension on Translations {
 			'fileInfo.noStreams' => 'The server reported no streams for this file.',
 			'fileInfo.copyPath' => 'Copy path',
 			'fileInfo.pathCopied' => 'File path copied',
-			'fileInfo.codec' => 'Codec',
 			_ => null,
 		} ?? switch (path) {
+			'fileInfo.codec' => 'Codec',
 			'fileInfo.codecTag' => 'Codec Tag',
 			'fileInfo.resolution' => 'Resolution',
 			'fileInfo.codedResolution' => 'Coded Resolution',
@@ -8536,9 +8540,9 @@ extension on Translations {
 			'accountPreferences.mediaReviewsOptions.usersOnly' => 'Users only',
 			'accountPreferences.mediaReviewsOptions.criticsOnly' => 'Critics only',
 			'accountPreferences.mediaReviewsOptions.nobody' => 'Hidden',
-			'discover.title' => 'Discover',
 			_ => null,
 		} ?? switch (path) {
+			'discover.title' => 'Discover',
 			'discover.noContentAvailable' => 'No content available',
 			'discover.addMediaToLibraries' => 'Add some media to your libraries',
 			'discover.continueWatching' => 'Continue Watching',
@@ -9050,9 +9054,9 @@ extension on Translations {
 			'music.sleepTimer' => 'Sleep timer',
 			'music.sleepTimerEndOfTrack' => 'End of track',
 			'music.sleepTimerMinutes' => ({required Object n}) => '${n} minutes',
-			'music.stopPlayback' => 'Stop playback',
 			_ => null,
 		} ?? switch (path) {
+			'music.stopPlayback' => 'Stop playback',
 			'music.previousTrack' => 'Previous track',
 			'music.nextTrack' => 'Next track',
 			'music.repeat' => 'Repeat',
@@ -9564,9 +9568,9 @@ extension on Translations {
 			'seerr.rootFolder' => 'Root folder',
 			'seerr.languageProfile' => 'Language profile',
 			'seerr.tags' => 'Tags',
-			'seerr.noTags' => 'No tags',
 			_ => null,
 		} ?? switch (path) {
+			'seerr.noTags' => 'No tags',
 			'seerr.defaultOption' => ({required Object name}) => '${name} (Default)',
 			'seerr.animeNote' => 'This series is an anime.',
 			'seerr.requestSubmitted' => 'Request submitted',
