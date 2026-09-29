@@ -12,6 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:http/http.dart' as http;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plezy/database/app_database.dart';
+import 'package:plezy/i18n/strings.g.dart';
 import 'package:plezy/database/download_operations.dart';
 import 'package:plezy/exceptions/media_server_exceptions.dart';
 import 'package:plezy/media/download_resolution.dart';
@@ -1207,6 +1208,35 @@ void main() {
       expect(stored?.retryCount, 4);
     });
 
+    test('a refused preparation fails with a localized reason, not the exception text', () async {
+      final fixture = await _createSupplementaryFixture();
+      final client = _SupplementaryClient(
+        metadata: fixture.metadata,
+        resolution: () => throw MediaServerHttpException(
+          type: MediaServerHttpErrorType.unknown,
+          statusCode: 403,
+          message: 'PlaybackInfo refused by https://jf.example.test/Items/item-1/PlaybackInfo',
+        ),
+      );
+      final manager = DownloadManagerService(
+        database: fixture.db,
+        storageService: fixture.storage,
+        clientResolver: (serverId, {clientScopeId}) => client,
+        downloadsSupportedOverride: true,
+        fileDownloaderInitializerOverride: () async {},
+        autoRetryDelay: Duration.zero,
+      );
+      addTearDown(manager.dispose);
+      final failed = manager.progressStream.firstWhere((event) => event.status == DownloadStatus.failed);
+
+      await manager.queueDownload(metadata: fixture.metadata, client: client);
+      await failed;
+
+      final stored = await fixture.db.getDownloadedMedia(fixture.metadata.globalKey);
+      expect(stored?.status, DownloadStatus.failed.index);
+      expect(stored?.errorMessage, t.downloads.errorDownloadFailedWithReason(reason: t.errors.reasonRefused));
+    });
+
     test('cold recovery repairs a legacy queue gap once before native recovery', () async {
       final fixture = await _createSupplementaryFixture();
       await fixture.db.insertDownload(
@@ -2140,6 +2170,250 @@ void main() {
         expect(current?.errorMessage, events.firstWhere((event) => event.globalKey == currentKey).errorMessage);
         expect(queued?.errorMessage, current?.errorMessage);
         expect(await db.select(db.downloadQueue).get(), isEmpty);
+      });
+    }
+  });
+
+  group('HTTP failures', () {
+    test('HTTP 403 fails for good with localized copy instead of retrying into the server body', () async {
+      final fixture = await _createSupplementaryFixture();
+      final globalKey = fixture.metadata.globalKey;
+      await fixture.db.insertDownload(
+        serverId: ServerId('srv'),
+        ratingKey: fixture.metadata.id,
+        globalKey: globalKey,
+        type: 'movie',
+        status: DownloadStatus.downloading.index,
+      );
+      await fixture.db.updateBgTaskId(globalKey, 'current-task');
+      await fixture.db.addToQueue(mediaGlobalKey: globalKey);
+
+      // A client is resolvable, so any other failure would schedule an app retry.
+      final client = _SupplementaryClient(
+        metadata: fixture.metadata,
+        resolution: () => const DownloadResolution(videoUrl: 'https://example.test/video'),
+      );
+      final manager = DownloadManagerService(
+        database: fixture.db,
+        storageService: fixture.storage,
+        clientResolver: (serverId, {clientScopeId}) => client,
+        downloadsSupportedOverride: false,
+        autoRetryDelay: Duration.zero,
+        queueProcessorOverride: (_) async {},
+      );
+      addTearDown(manager.dispose);
+
+      // The native downloader reports the raw response body as the description.
+      await manager.debugHandleTaskStatus(
+        TaskStatusUpdate(
+          _downloadTask('current-task', globalKey),
+          TaskStatus.failed,
+          TaskHttpException('<html><body>Upgrade your subscription to download</body></html>', 403),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      final row = await fixture.db.getDownloadedMedia(globalKey);
+      // An app retry would have requeued the row by now.
+      expect(row?.status, DownloadStatus.failed.index);
+      expect(row?.errorMessage, t.downloads.errorDownloadNotAllowed);
+      expect(await fixture.db.select(fixture.db.downloadQueue).get(), isEmpty);
+    });
+
+    test('any other status shows the status, never the server body', () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const globalKey = 'srv:item-1';
+      await db.insertDownload(
+        serverId: ServerId('srv'),
+        ratingKey: 'item-1',
+        globalKey: globalKey,
+        type: 'movie',
+        status: DownloadStatus.downloading.index,
+      );
+      await db.updateBgTaskId(globalKey, 'current-task');
+
+      final manager = DownloadManagerService(
+        database: db,
+        storageService: DownloadStorageService.instance,
+        clientResolver: (serverId, {clientScopeId}) => null,
+        downloadsSupportedOverride: false,
+      );
+      addTearDown(manager.dispose);
+
+      await manager.debugHandleTaskStatus(
+        TaskStatusUpdate(
+          _downloadTask('current-task', globalKey),
+          TaskStatus.failed,
+          TaskHttpException('<html><title>Bad Gateway</title><body>proxy.internal refused</body></html>', 502),
+        ),
+      );
+
+      final row = await db.getDownloadedMedia(globalKey);
+      expect(row?.status, DownloadStatus.failed.index);
+      expect(row?.errorMessage, t.downloads.errorHttpStatus(status: 502));
+    });
+
+    test('a server body about disk space does not stop downloads as local storage exhaustion', () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      const currentKey = 'srv:item-1';
+      const queuedKey = 'srv:item-2';
+      await db.insertDownload(
+        serverId: ServerId('srv'),
+        ratingKey: 'item-1',
+        globalKey: currentKey,
+        type: 'movie',
+        status: DownloadStatus.downloading.index,
+      );
+      await db.updateBgTaskId(currentKey, 'current-task');
+      await db.addToQueue(mediaGlobalKey: currentKey);
+      await db.insertDownload(
+        serverId: ServerId('srv'),
+        ratingKey: 'item-2',
+        globalKey: queuedKey,
+        type: 'movie',
+        status: DownloadStatus.queued.index,
+      );
+      await db.addToQueue(mediaGlobalKey: queuedKey);
+
+      final manager = DownloadManagerService(
+        database: db,
+        storageService: DownloadStorageService.instance,
+        clientResolver: (serverId, {clientScopeId}) => null,
+        downloadsSupportedOverride: false,
+      );
+      addTearDown(manager.dispose);
+
+      // The server's transcode disk is full, not this device's.
+      await manager.debugHandleTaskStatus(
+        TaskStatusUpdate(
+          _downloadTask('current-task', currentKey),
+          TaskStatus.failed,
+          TaskHttpException('IOException: No space left on device : /config/transcodes', 500),
+        ),
+      );
+
+      expect((await db.getDownloadedMedia(currentKey))?.errorMessage, t.downloads.errorHttpStatus(status: 500));
+      final queued = await db.getDownloadedMedia(queuedKey);
+      expect(queued?.status, DownloadStatus.queued.index);
+      expect(queued?.errorMessage, isNull);
+    });
+  });
+
+  group('native failure copy', () {
+    // Descriptions as each platform's downloader actually reports them.
+    final cases = <(String, TaskException, String Function())>[
+      (
+        'Android DNS failure, typed as a file-system error',
+        TaskFileSystemException(
+          'java.net.UnknownHostException: Unable to resolve host "plex.example.com": No address associated with hostname',
+        ),
+        () => t.errors.reasonUnreachable,
+      ),
+      (
+        'desktop DNS failure, typed as a file-system error',
+        TaskFileSystemException(
+          "SocketException: Failed host lookup: 'plex.example.com' (OS Error: nodename nor servname provided, errno = 8)",
+        ),
+        () => t.errors.reasonUnreachable,
+      ),
+      ('native timeout', TaskConnectionException('Task timed out'), () => t.errors.reasonTimedOut),
+      (
+        "Android's catch-all quoting the tokenized URL",
+        TaskException('Error for url https://plex.example.com/library/parts/1/file.mkv?X-Plex-Token=secret: boom'),
+        () => t.errors.reasonUnexpected,
+      ),
+      (
+        'local write failure',
+        TaskFileSystemException("FileSystemException: Cannot open file, path = '/data/user/0/app/downloads/x.mkv'"),
+        () => t.downloads.reasonFileNotSaved,
+      ),
+      (
+        'lost resume data',
+        TaskResumeException('Task was paused but cannot resume'),
+        () => t.downloads.reasonCannotResume,
+      ),
+    ];
+    for (final (label, exception, reason) in cases) {
+      test('$label shows a localized reason, never the platform text', () async {
+        final db = AppDatabase.forTesting(NativeDatabase.memory());
+        addTearDown(db.close);
+        const globalKey = 'srv:item-1';
+        await db.insertDownload(
+          serverId: ServerId('srv'),
+          ratingKey: 'item-1',
+          globalKey: globalKey,
+          type: 'movie',
+          status: DownloadStatus.downloading.index,
+        );
+        await db.updateBgTaskId(globalKey, 'current-task');
+
+        final manager = DownloadManagerService(
+          database: db,
+          storageService: DownloadStorageService.instance,
+          clientResolver: (serverId, {clientScopeId}) => null,
+          downloadsSupportedOverride: false,
+        );
+        addTearDown(manager.dispose);
+
+        await manager.debugHandleTaskStatus(
+          TaskStatusUpdate(_downloadTask('current-task', globalKey), TaskStatus.failed, exception),
+        );
+
+        final row = await db.getDownloadedMedia(globalKey);
+        expect(row?.status, DownloadStatus.failed.index);
+        expect(row?.errorMessage, t.downloads.errorDownloadFailedWithReason(reason: reason()));
+      });
+    }
+
+    for (final (label, error, reason) in <(String, FileSystemException, String Function())>[
+      (
+        'a full device',
+        const FileSystemException('Write failed', '/storage/emulated/0/x.mkv', OSError('No space left on device', 28)),
+        () => t.downloads.reasonDeviceStorageFull,
+      ),
+      (
+        'any other file error',
+        const FileSystemException('Cannot open file', '/data/user/0/app/downloads/x.mkv'),
+        () => t.downloads.reasonFileNotSaved,
+      ),
+    ]) {
+      test('post-processing that fails on $label shows a localized reason, never the path', () async {
+        final fixture = await _createSupplementaryFixture();
+        final globalKey = fixture.metadata.globalKey;
+        await fixture.db.insertDownload(
+          serverId: ServerId('srv'),
+          ratingKey: fixture.metadata.id,
+          globalKey: globalKey,
+          type: 'movie',
+          status: DownloadStatus.downloading.index,
+        );
+        await fixture.db.updateBgTaskId(globalKey, 'saf-task');
+        // Recovering a SAF completion resolves the task's root first; the
+        // failure lands there.
+        final manager = DownloadManagerService(
+          database: fixture.db,
+          storageService: fixture.storage,
+          clientResolver: (serverId, {clientScopeId}) => null,
+          safStorage: _FakeSafStorage(resolveOverride: (_) async => throw error),
+          downloadsSupportedOverride: false,
+        );
+        addTearDown(manager.dispose);
+        final task = UriDownloadTask(
+          taskId: 'saf-task',
+          url: 'https://example.test/video.mp4',
+          filename: 'video.mp4',
+          directoryUri: Uri.parse('content://dir'),
+          metaData: globalKey,
+        );
+
+        await manager.debugHandleTaskStatus(TaskStatusUpdate(task, TaskStatus.complete));
+
+        final row = await fixture.db.getDownloadedMedia(globalKey);
+        expect(row?.status, DownloadStatus.failed.index);
+        expect(row?.errorMessage, t.downloads.errorPostProcessing(reason: reason()));
       });
     }
   });

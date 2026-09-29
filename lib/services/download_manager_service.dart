@@ -37,6 +37,7 @@ import '../utils/active_client_scope.dart';
 import '../utils/codec_utils.dart';
 import '../utils/connectivity_link_type.dart';
 import '../utils/global_key_utils.dart';
+import '../utils/error_message_utils.dart';
 import '../utils/storage_failure.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -2179,6 +2180,9 @@ class DownloadManagerService {
         return true;
       }
       appLogger.e('Failed to prepare download for $globalKey', error: e, stackTrace: st);
+      // `toString()` carries the runtime type, request host and path; the row
+      // gets the localized reason and the log keeps the detail.
+      final errorMessage = t.downloads.errorDownloadFailedWithReason(reason: localizedErrorReason(e));
       final existing = await _database.getDownloadedMedia(globalKey);
       if (_isRetryablePrepareFailure(e) &&
           existing != null &&
@@ -2189,11 +2193,11 @@ class DownloadManagerService {
           globalKey,
           client,
           existing.retryCount,
-          e.toString(),
+          errorMessage,
           processQueueAfterProgress: false,
         );
       } else {
-        await _transitionStatus(globalKey, DownloadStatus.failed, errorMessage: e.toString());
+        await _transitionStatus(globalKey, DownloadStatus.failed, errorMessage: errorMessage);
         await _database.removeFromQueue(globalKey);
       }
       _pendingDownloadContext.remove(globalKey);
@@ -2454,10 +2458,29 @@ class DownloadManagerService {
 
   /// Handle a failed download — stop the queue on storage exhaustion,
   /// otherwise auto-retry if retries remain.
+  ///
+  /// A native failure's description is never user copy, only diagnostics for
+  /// the log. For an HTTP failure it is the server's raw response body (a Plex
+  /// refusal names a paid plan, #2510); otherwise it is the platform's own
+  /// English exception text, which can name the host or, for Android's
+  /// catch-all, quote the request URL with its token. An HTTP body is also
+  /// never evidence about this device's storage or network: a server whose own
+  /// disk is full answers "No space left on device", which says nothing about
+  /// local space.
   Future<void> _onDownloadFailed(String globalKey, String taskId, TaskException? exception) async {
     final existing = await _claimTerminalEvent(globalKey, taskId, event: 'failure');
     if (existing == null) return;
-    if (_isStorageFullDownloadFailure(exception)) {
+    final description = exception?.description;
+    final httpStatus = exception is TaskHttpException ? exception.httpResponseCode : null;
+    if (exception != null) {
+      final detail = exception.description;
+      appLogger.w(
+        'Download of $globalKey failed with ${exception.exceptionType}'
+        '${httpStatus != null ? ' (HTTP $httpStatus)' : ''}: '
+        '${detail.length > 500 ? '${detail.substring(0, 500)}…' : detail}',
+      );
+    }
+    if (httpStatus == null && _isStorageFullDownloadFailure(exception)) {
       await _handleStorageFullFailure(
         globalKey,
         taskId,
@@ -2467,17 +2490,28 @@ class DownloadManagerService {
       );
       return;
     }
-    final errorMessage = exception?.description ?? t.downloads.errorDownloadFailed;
+    // A refusal of this account or connection does not clear on retry (#2510).
+    if (httpStatus == 403) {
+      await _onDownloadPermanentlyFailed(globalKey, taskId, t.downloads.errorDownloadNotAllowed);
+      return;
+    }
+    final errorMessage = switch (exception) {
+      null => t.downloads.errorDownloadFailed,
+      TaskHttpException(:final httpResponseCode) => t.downloads.errorHttpStatus(status: httpResponseCode),
+      _ => t.downloads.errorDownloadFailedWithReason(reason: _nativeDownloadFailureReason(exception)),
+    };
     final retryCount = existing.retryCount;
 
     // DNS/connection errors fail instantly and exhaust native retries in milliseconds,
     // creating a retry storm. Treat them as permanent failures.
     final isNetworkError =
-        errorMessage.contains('Unable to resolve host') ||
-        errorMessage.contains('No address associated with hostname') ||
-        errorMessage.contains('Network is unreachable') ||
-        errorMessage.contains('Connection refused');
-    final isServerError = errorMessage.contains('500 Internal Server Error');
+        httpStatus == null &&
+        description != null &&
+        (description.contains('Unable to resolve host') ||
+            description.contains('No address associated with hostname') ||
+            description.contains('Network is unreachable') ||
+            description.contains('Connection refused'));
+    final isServerError = httpStatus == 500 && (description?.contains('500 Internal Server Error') ?? false);
 
     final client = await _getClientForDownloadKey(globalKey);
     final hadProgress = existing.downloadedBytes > 0;
@@ -2488,11 +2522,47 @@ class DownloadManagerService {
       await _scheduleDownloadRetry(globalKey, client, retryCount, errorMessage, processQueueAfterProgress: hadProgress);
     } else {
       if (isNetworkError) {
-        appLogger.w('Network error for $globalKey, failing permanently (no auto-retry): $errorMessage');
+        appLogger.w('Network error for $globalKey, failing permanently (no auto-retry)');
       }
       final userMessage = isServerError ? t.downloads.serverErrorBitrate : errorMessage;
       await _onDownloadPermanentlyFailed(globalKey, taskId, userMessage);
     }
+  }
+
+  /// Markers of a transport failure in a native description. The exception
+  /// type alone cannot tell: Android and desktop type a DNS failure
+  /// (`UnknownHostException`, a Dart `SocketException`) and a TLS failure as
+  /// file-system errors because they are `IOException`s, and the desktop
+  /// `http` client's `ClientException` arrives untyped.
+  static const _transportFailureMarkers = [
+    'unable to resolve host',
+    'unknownhostexception',
+    'no address associated with hostname',
+    'failed host lookup',
+    'network is unreachable',
+    'connection refused',
+    'connection reset',
+    'connection closed',
+    'connection abort',
+    'broken pipe',
+    'socketexception',
+    'handshake',
+    'javax.net.ssl',
+    'clientexception',
+    'unexpected end of stream',
+  ];
+
+  /// The localized reason a download row gives for a non-HTTP native failure.
+  /// The description only picks the phrase; it is never shown.
+  static String _nativeDownloadFailureReason(TaskException exception) {
+    final text = exception.description.toLowerCase();
+    if (text.contains('timed out') || text.contains('timeout')) return t.errors.reasonTimedOut;
+    if (exception is TaskConnectionException || _transportFailureMarkers.any(text.contains)) {
+      return t.errors.reasonUnreachable;
+    }
+    if (exception is TaskResumeException) return t.downloads.reasonCannotResume;
+    if (exception is TaskFileSystemException) return t.downloads.reasonFileNotSaved;
+    return t.errors.reasonUnexpected;
   }
 
   /// Handle a non-retryable failure (e.g. 404) — fail immediately without auto-retry.
@@ -2697,12 +2767,19 @@ class DownloadManagerService {
         appLogger.e('Failed to settle supplementary queue state for $globalKey', error: e, stackTrace: st);
       }
       appLogger.i('Download completed for $globalKey');
-    } catch (e) {
-      appLogger.e('Post-download processing failed for $globalKey', error: e);
+    } catch (e, st) {
+      appLogger.e('Post-download processing failed for $globalKey', error: e, stackTrace: st);
+      // `e` can carry file paths and English platform text; the row gets a
+      // localized reason and the log keeps the detail.
+      final reason = isStorageFullError(e)
+          ? t.downloads.reasonDeviceStorageFull
+          : e is FileSystemException
+          ? t.downloads.reasonFileNotSaved
+          : localizedErrorReason(e);
       await _transitionStatus(
         globalKey,
         DownloadStatus.failed,
-        errorMessage: t.downloads.errorPostProcessing(error: e),
+        errorMessage: t.downloads.errorPostProcessing(reason: reason),
       );
       await _database.removeFromQueue(globalKey);
     } finally {
