@@ -38,6 +38,10 @@ const Map<String, List<String>> _whatsNewByVersion = {
   '2.17.34': ['Returning shows now show when they\'re back', 'Bug fixes and improvements'],
   '2.17.38': ['Added default prerolls like the old Plex had'],
   '2.17.39': ['Added default prerolls like the old Plex had'],
+  '2.17.40': [
+    'Theme music volume control, stops after two plays',
+    'Fixed screensaver needing two presses to resume paused playback',
+  ],
 };
 
 abstract final class WhatsNewService {
