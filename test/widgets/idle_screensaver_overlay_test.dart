@@ -129,7 +129,8 @@ void main() {
   /// Mirrors production mounting: the overlay sits as a `Positioned.fill`
   /// sibling of real content, here a focused button that counts presses —
   /// standing in for whatever control (e.g. Play/Pause) might be focused
-  /// underneath when the screensaver shows.
+  /// underneath when the screensaver shows. Its dismissing press should
+  /// replay onto this same node (see [IdleScreensaverOverlay]'s doc comment).
   Future<void> pumpOverlayOverContent(WidgetTester tester, {required VoidCallback onUnderlyingSelect}) {
     final underlyingFocusNode = FocusNode();
     addTearDown(underlyingFocusNode.dispose);
@@ -265,7 +266,11 @@ void main() {
     expect(find.byType(CyclingMediaBackdrop), findsOneWidget);
   });
 
-  testWidgets('the dismissing key press does not also reach whatever was focused underneath', (tester) async {
+  testWidgets('the dismissing key press is replayed onto whatever was focused underneath', (tester) async {
+    // Regression: a first press only ever dismissed the screensaver, so
+    // resuming a paused player needed a second, separate press to actually
+    // reach its Play/Pause. One press should both wake the screen and act on
+    // whatever it was already focused on.
     final settings = await SettingsService.getInstance();
     await settings.write(SettingsService.screensaverIdleMinutes, 1);
     await settings.write(SettingsService.screensaverEnabled, true);
@@ -282,7 +287,7 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.select);
     await tester.pump();
     expect(find.byType(CyclingMediaBackdrop), findsNothing, reason: 'the press dismissed it');
-    expect(underlyingSelects, 0, reason: 'the same press must not also reach the control underneath (e.g. pause it)');
+    expect(underlyingSelects, 1, reason: 'the same press must also reach the control underneath (e.g. resume it)');
   });
 
   testWidgets('dismisses on tap', (tester) async {

@@ -63,6 +63,12 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
       _primaryLibraryTitles.contains(library.title.trim().toLowerCase());
 
   Timer? _idleTimer;
+
+  /// Whatever held focus just before the screensaver took it — see
+  /// [_tryShowScreensaver]. Cleared once consumed by a dismiss so a later
+  /// dismissal (after that node has moved on or been disposed) doesn't
+  /// replay a stale press onto it.
+  FocusNode? _restoreFocus;
   bool _showing = false;
   bool _artLoadAttempted = false;
   List<_ScreensaverEntry> _entries = const [];
@@ -99,15 +105,21 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
   }
 
   // Passive observation only — never consumes the event, so normal input
-  // handling elsewhere in the app is completely unaffected. Safe to stay
-  // passive here: [_ScreensaverContentState] forcibly takes focus the moment
-  // it's shown (see its `initState`), so by the time any key press actually
-  // reaches this handler, that content's own `onKeyEvent` has already
-  // claimed and consumed it via the normal focus dispatch — this is just a
-  // backstop for input sources that skip the focus system entirely (mouse
-  // movement, gamepad/companion-remote activity).
+  // handling elsewhere in the app is completely unaffected. This is the
+  // reliable path for dismissing on a key press, not just a backstop:
+  // [_ScreensaverContentState] requests focus from a post-frame callback, so
+  // by the time a press arrives here that focus change has not necessarily
+  // been applied yet, and [_ScreensaverContent]'s own `onKeyEvent` can miss
+  // the very first press. Going through [_dismissWithKey] here — rather than
+  // the generic [_handleActivity] — is what lets that first press both
+  // dismiss and replay onto whatever was focused before the screensaver
+  // took it (see [_tryShowScreensaver]).
   bool _handleGlobalKeyEvent(KeyEvent event) {
-    _handleActivity();
+    if (_showing) {
+      _dismissWithKey(event);
+    } else {
+      _armIdleTimer();
+    }
     return false;
   }
 
@@ -153,6 +165,12 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
       if (!mounted) return;
     }
     if (_entries.isEmpty) return;
+    // Whatever held focus a moment ago (most commonly a paused player's
+    // Play/Pause) is about to lose it to the screensaver's own content — kept
+    // so the dismissing press can be replayed onto it (see
+    // [_dismissWithKey]) instead of the viewer needing a first press just to
+    // reveal what a second press then acts on.
+    _restoreFocus = FocusManager.instance.primaryFocus;
     setState(() => _showing = true);
   }
 
@@ -188,7 +206,10 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
       const randomSort = LibrarySort(field: 'random');
       final fetches = sampled.map(
         (library) => client
-            .fetchLibraryPagedContent(library.id, query: const LibraryQuery(sort: randomSort, limit: _itemsPerLibrary))
+            .fetchLibraryPagedContent(
+              library.id,
+              query: const LibraryQuery(sort: randomSort, limit: _itemsPerLibrary),
+            )
             .then((page) => page.items)
             .catchError((Object e, StackTrace st) {
               appLogger.w('Screensaver: failed to sample library ${library.id}', error: e, stackTrace: st);
@@ -223,8 +244,24 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
 
   void _dismiss() {
     if (!_showing) return;
+    _restoreFocus = null;
     setState(() => _showing = false);
     _armIdleTimer();
+  }
+
+  /// Dismisses on the [event] that woke the screensaver, then replays that
+  /// same event onto whatever held focus before it — a paused player's
+  /// Play/Pause most commonly — so the one press both wakes the screen and
+  /// acts on it, instead of a first press only revealing what a second then
+  /// has to act on.
+  void _dismissWithKey(KeyEvent event) {
+    if (!_showing) return;
+    final restore = _restoreFocus;
+    _dismiss();
+    if (restore != null && restore.context != null) {
+      restore.requestFocus();
+      restore.onKeyEvent?.call(restore, event);
+    }
   }
 
   @override
@@ -249,6 +286,7 @@ class _IdleScreensaverOverlayState extends State<IdleScreensaverOverlay> {
           entries: _entries,
           client: _artClient,
           onDismiss: _dismiss,
+          onDismissKey: _dismissWithKey,
           focusNode: _contentFocusNode,
         );
       },
@@ -261,12 +299,14 @@ class _ScreensaverContent extends StatefulWidget {
     required this.entries,
     required this.client,
     required this.onDismiss,
+    required this.onDismissKey,
     required this.focusNode,
   });
 
   final List<_ScreensaverEntry> entries;
   final MediaServerClient? client;
   final VoidCallback onDismiss;
+  final ValueChanged<KeyEvent> onDismissKey;
   final FocusNode focusNode;
 
   @override
@@ -363,7 +403,7 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
       focusNode: widget.focusNode,
       autofocus: true,
       onKeyEvent: (node, event) {
-        widget.onDismiss();
+        widget.onDismissKey(event);
         return KeyEventResult.handled;
       },
       child: MouseRegion(
@@ -418,8 +458,10 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
                           transitionBuilder: (child, animation) => FadeTransition(
                             opacity: animation,
                             child: SlideTransition(
-                              position: Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero)
-                                  .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.15),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
                               child: child,
                             ),
                           ),

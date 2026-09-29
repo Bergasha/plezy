@@ -48,4 +48,29 @@ void main() {
     expect(find.text(t.settings.requireProfileSelectionOnOpen), findsNothing);
     expect(find.text(t.settings.autoHidePerformanceOverlay), findsNothing);
   });
+
+  testWidgets('theme music volume shows at its default and hides once the mode is off', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1000, 3000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final theme = ThemeProvider();
+    addTearDown(theme.dispose);
+    await tester.pumpWidget(
+      ChangeNotifierProvider<ThemeProvider>.value(
+        value: theme,
+        child: MaterialApp(theme: monoTheme(dark: true), home: const AppearanceSettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.text(t.settings.themeMusicVolume), 500, scrollable: scrollable);
+    expect(find.text('35%'), findsOneWidget);
+
+    await tester.tap(find.text(t.settings.themeMusicOff));
+    await tester.pumpAndSettle();
+    expect(find.text(t.settings.themeMusicVolume), findsNothing);
+  });
 }

@@ -462,11 +462,17 @@ class Translations$settings$en {
 	/// en: 'Minutes'
 	String get minutesLabel => 'Minutes';
 
+	/// en: 'Percent'
+	String get percentLabel => 'Percent';
+
 	/// en: 's'
 	String get secondsShort => 's';
 
 	/// en: 'm'
 	String get minutesShort => 'm';
+
+	/// en: '%'
+	String get percentShort => '%';
 
 	/// en: 'Enter duration (${min}-${max})'
 	String durationHint({required Object min, required Object max}) => 'Enter duration (${min}-${max})';
@@ -707,6 +713,9 @@ class Translations$settings$en {
 
 	/// en: '${minutes} minutes'
 	String minutesUnit({required Object minutes}) => '${minutes} minutes';
+
+	/// en: '${percent}%'
+	String percentUnit({required Object percent}) => '${percent}%';
 
 	/// en: 'Remember track selections per show/movie'
 	String get rememberTrackSelections => 'Remember track selections per show/movie';
@@ -1142,6 +1151,9 @@ class Translations$settings$en {
 
 	/// en: 'Also Home Screen'
 	String get themeMusicEverywhere => 'Also Home Screen';
+
+	/// en: 'Theme Music Volume'
+	String get themeMusicVolume => 'Theme Music Volume';
 
 	/// en: 'Match Content Frame Rate'
 	String get matchContentFrameRate => 'Match Content Frame Rate';
@@ -7637,8 +7649,10 @@ extension on Translations {
 			'settings.showHeroSectionDescription' => 'Display featured content carousel on home screen',
 			'settings.secondsLabel' => 'Seconds',
 			'settings.minutesLabel' => 'Minutes',
+			'settings.percentLabel' => 'Percent',
 			'settings.secondsShort' => 's',
 			'settings.minutesShort' => 'm',
+			'settings.percentShort' => '%',
 			'settings.durationHint' => ({required Object min, required Object max}) => 'Enter duration (${min}-${max})',
 			'settings.systemTheme' => 'System',
 			'settings.lightTheme' => 'Light',
@@ -7719,6 +7733,7 @@ extension on Translations {
 			'settings.secondsUnit' => ({required Object seconds}) => '${seconds} seconds',
 			'settings.defaultSleepTimer' => 'Default Sleep Timer',
 			'settings.minutesUnit' => ({required Object minutes}) => '${minutes} minutes',
+			'settings.percentUnit' => ({required Object percent}) => '${percent}%',
 			'settings.rememberTrackSelections' => 'Remember track selections per show/movie',
 			'settings.rememberTrackSelectionsDescription' => 'Remember audio and subtitle choices per title',
 			'settings.rememberTrackSelectionsBackendRule' => 'Plex saves each choice on the server per file; Jellyfin also turns on the account\'s Remember selections; Emby is not supported',
@@ -7864,6 +7879,7 @@ extension on Translations {
 			'settings.themeMusicOff' => 'Never',
 			'settings.themeMusicDetailScreen' => 'Details Screen Only',
 			'settings.themeMusicEverywhere' => 'Also Home Screen',
+			'settings.themeMusicVolume' => 'Theme Music Volume',
 			'settings.matchContentFrameRate' => 'Match Content Frame Rate',
 			'settings.matchContentFrameRateDescription' => 'Match display refresh rate to video content',
 			'settings.matchContentResolution' => 'Match Content Resolution',
@@ -8022,12 +8038,12 @@ extension on Translations {
 			'fileInfo.attachments' => 'Attachments',
 			'fileInfo.delivery' => 'Delivery',
 			'fileInfo.versionCounter' => ({required Object index, required Object count}) => 'Version ${index} of ${count}',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.fileCounter' => ({required Object index, required Object count}) => 'File ${index} of ${count}',
 			'fileInfo.noStreams' => 'The server reported no streams for this file.',
 			'fileInfo.copyPath' => 'Copy path',
 			'fileInfo.pathCopied' => 'File path copied',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.codec' => 'Codec',
 			'fileInfo.codecTag' => 'Codec Tag',
 			'fileInfo.resolution' => 'Resolution',
@@ -8536,12 +8552,12 @@ extension on Translations {
 			'accountPreferences.watchedIndicatorOptions.movies' => 'Movies only',
 			'accountPreferences.watchedIndicatorOptions.shows' => 'TV shows only',
 			'accountPreferences.mediaReviewsVisibility' => 'Ratings & reviews',
+			_ => null,
+		} ?? switch (path) {
 			'accountPreferences.mediaReviewsOptions.usersAndCritics' => 'Users and critics',
 			'accountPreferences.mediaReviewsOptions.usersOnly' => 'Users only',
 			'accountPreferences.mediaReviewsOptions.criticsOnly' => 'Critics only',
 			'accountPreferences.mediaReviewsOptions.nobody' => 'Hidden',
-			_ => null,
-		} ?? switch (path) {
 			'discover.title' => 'Discover',
 			'discover.noContentAvailable' => 'No content available',
 			'discover.addMediaToLibraries' => 'Add some media to your libraries',
@@ -9050,12 +9066,12 @@ extension on Translations {
 			'music.queue' => 'Queue',
 			'music.clearQueue' => 'Clear queue',
 			'music.lyrics' => 'Lyrics',
+			_ => null,
+		} ?? switch (path) {
 			'music.noLyrics' => 'No lyrics available',
 			'music.sleepTimer' => 'Sleep timer',
 			'music.sleepTimerEndOfTrack' => 'End of track',
 			'music.sleepTimerMinutes' => ({required Object n}) => '${n} minutes',
-			_ => null,
-		} ?? switch (path) {
 			'music.stopPlayback' => 'Stop playback',
 			'music.previousTrack' => 'Previous track',
 			'music.nextTrack' => 'Next track',
@@ -9564,12 +9580,12 @@ extension on Translations {
 			'seerr.allSeasons' => 'All seasons',
 			'seerr.advancedOptions' => 'Advanced',
 			'seerr.destinationServer' => 'Destination server',
+			_ => null,
+		} ?? switch (path) {
 			'seerr.qualityProfile' => 'Quality profile',
 			'seerr.rootFolder' => 'Root folder',
 			'seerr.languageProfile' => 'Language profile',
 			'seerr.tags' => 'Tags',
-			_ => null,
-		} ?? switch (path) {
 			'seerr.noTags' => 'No tags',
 			'seerr.defaultOption' => ({required Object name}) => '${name} (Default)',
 			'seerr.animeNote' => 'This series is an anime.',

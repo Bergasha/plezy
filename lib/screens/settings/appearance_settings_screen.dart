@@ -107,7 +107,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
               ),
             _continueWatchingActionSelector(),
             _episodeActionSelector(),
-            _playThemeMusicTile(),
+            _playThemeMusicSection(),
             SettingSwitchTile(
               pref: SettingsService.useGlobalHubs,
               icon: Symbols.home_rounded,
@@ -181,15 +181,34 @@ class AppearanceSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _playThemeMusicTile() => SettingSegmentedTile<ThemeMusicMode>(
-    pref: SettingsService.themeMusicMode,
-    icon: Symbols.music_note_rounded,
-    title: t.settings.playThemeMusic,
-    segments: [
-      ButtonSegment(value: ThemeMusicMode.off, label: Text(t.settings.themeMusicOff)),
-      ButtonSegment(value: ThemeMusicMode.detailScreen, label: Text(t.settings.themeMusicDetailScreen)),
-      ButtonSegment(value: ThemeMusicMode.everywhere, label: Text(t.settings.themeMusicEverywhere)),
-    ],
+  Widget _playThemeMusicSection() => SettingsBuilder(
+    prefs: const [SettingsService.themeMusicMode],
+    builder: (_) {
+      final mode = SettingsService.instance.read(SettingsService.themeMusicMode);
+      return Column(
+        children: [
+          SettingSegmentedTile<ThemeMusicMode>(
+            pref: SettingsService.themeMusicMode,
+            icon: Symbols.music_note_rounded,
+            title: t.settings.playThemeMusic,
+            segments: [
+              ButtonSegment(value: ThemeMusicMode.off, label: Text(t.settings.themeMusicOff)),
+              ButtonSegment(value: ThemeMusicMode.detailScreen, label: Text(t.settings.themeMusicDetailScreen)),
+              ButtonSegment(value: ThemeMusicMode.everywhere, label: Text(t.settings.themeMusicEverywhere)),
+            ],
+          ),
+          if (mode != ThemeMusicMode.off)
+            SettingNumberTile(
+              pref: SettingsService.themeMusicVolume,
+              icon: Symbols.volume_up_rounded,
+              title: t.settings.themeMusicVolume,
+              subtitleBuilder: (v) => t.settings.percentUnit(percent: v.toString()),
+              labelText: t.settings.percentLabel,
+              suffixText: t.settings.percentShort,
+            ),
+        ],
+      );
+    },
   );
 
   // Writes the pref directly; ThemeProvider listens to the pref's listenable

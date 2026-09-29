@@ -746,6 +746,10 @@ class SettingsService extends BaseSharedPreferencesService {
     defaultValue: ThemeMusicMode.detailScreen,
   );
 
+  /// Percent volume [ThemeMusicService] fades theme music to; 0-100. Only
+  /// consulted while [themeMusicMode] is not [ThemeMusicMode.off].
+  static final themeMusicVolume = IntPref('theme_songs_volume', defaultValue: 35, transform: (v) => v.clamp(0, 100));
+
   /// Restore the last music session parked-paused on launch (#2148).
   static const resumeMusicOnLaunch = BoolPref('resume_music_on_launch', defaultValue: true);
   static const autoPlayNextEpisode = BoolPref('auto_play_next_episode', defaultValue: true);
@@ -1472,6 +1476,7 @@ class SettingsService extends BaseSharedPreferencesService {
     hdrSdrConversion,
     musicVolume,
     themeMusicMode,
+    themeMusicVolume,
     resumeMusicOnLaunch,
     autoPlayNextEpisode,
     playNextCountdown,
@@ -1625,7 +1630,7 @@ class SettingsService extends BaseSharedPreferencesService {
     'screensaver_idle_minutes' => (1, 60),
     'subtitle_font_size' => (10, 80),
     'subtitle_border_size' => (0, 5),
-    'subtitle_position' || 'subtitle_background_opacity' || 'music_volume' => (0, 100),
+    'subtitle_position' || 'subtitle_background_opacity' || 'music_volume' || 'theme_songs_volume' => (0, 100),
     'volume' => (0, 300),
     'max_volume' => (100, 300),
     'downmix_center_boost' => (0, 12),

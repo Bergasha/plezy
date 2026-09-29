@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../mpv/models.dart';
 import '../mpv/player/player.dart';
 import 'playback_coordinator.dart';
+import 'settings_service.dart';
 import '../utils/app_logger.dart';
 
 /// Profile-scoped owner of the single native audio core used for theme music.
@@ -24,7 +25,13 @@ class ThemeMusicService extends ChangeNotifier {
   static const _fadeOutDuration = Duration(milliseconds: 400);
   static const _fadeStep = Duration(milliseconds: 40);
   static const _repeatDelay = Duration(seconds: 5);
-  static const targetVolume = 35.0;
+  static const _defaultTargetVolume = 35.0;
+
+  /// A theme stops itself after this many plays (the initial play plus one
+  /// repeat) rather than looping indefinitely — long enough to register on a
+  /// detail screen the viewer lingers on, short enough not to sit there
+  /// playing for ages if they wander off.
+  static const _maxPlays = 2;
 
   final Player Function() _playerFactory;
   final PlaybackCoordinator _coordinator;
@@ -37,8 +44,14 @@ class ThemeMusicService extends ChangeNotifier {
   Future<void> _command = Future.value();
   Object? _owner;
   String? _requestedUrl;
+  int _playCount = 0;
   bool _paused = false;
   bool _disposed = false;
+
+  /// User's configured theme-music volume, read fresh so an in-flight fade
+  /// picks up a change made while the theme is already playing.
+  double get _targetVolume =>
+      (SettingsService.instanceOrNull?.read(SettingsService.themeMusicVolume) ?? _defaultTargetVolume).toDouble();
 
   /// Selects [url] for [owner]. A later owner always supersedes an earlier
   /// request, including work still waiting in the command queue.
@@ -48,6 +61,7 @@ class ThemeMusicService extends ChangeNotifier {
     _repeatTimer?.cancel();
     _owner = owner;
     _requestedUrl = url;
+    _playCount = 0;
     _paused = false;
 
     return _enqueue(() async {
@@ -62,13 +76,14 @@ class ThemeMusicService extends ChangeNotifier {
 
   Future<void> _start(String url) async {
     if (_disposed || _requestedUrl != url) return;
+    _playCount++;
     final player = _player ??= _createPlayer();
     try {
       await player.setVolume(0);
       if (_disposed || _requestedUrl != url) return;
       await player.setProperty('loop-file', 'no');
       await player.open(Media(url), play: true);
-      unawaited(_fadeVolume(player, from: 0, to: targetVolume, duration: _fadeInDuration));
+      unawaited(_fadeVolume(player, from: 0, to: _targetVolume, duration: _fadeInDuration));
     } catch (e, st) {
       appLogger.d('ThemeMusicService: failed to start theme music', error: e, stackTrace: st);
     }
@@ -87,6 +102,25 @@ class ThemeMusicService extends ChangeNotifier {
     if (owner == null || url == null) return;
 
     _repeatTimer?.cancel();
+    // Already played the initial pass plus a repeat — stop instead of
+    // looping indefinitely for a viewer who lingers on the screen.
+    if (_playCount >= _maxPlays) {
+      unawaited(
+        _enqueue(() async {
+          if (!_isCurrent(owner, url) || _paused) return;
+          _owner = null;
+          _requestedUrl = null;
+          final player = _player;
+          if (player == null) return;
+          try {
+            await player.stop();
+          } catch (e, st) {
+            appLogger.d('ThemeMusicService: failed to stop theme music after max plays', error: e, stackTrace: st);
+          }
+        }),
+      );
+      return;
+    }
     _repeatTimer = Timer(_repeatDelay, () {
       _repeatTimer = null;
       unawaited(
@@ -110,7 +144,7 @@ class ThemeMusicService extends ChangeNotifier {
       final player = _player;
       if (player == null || _requestedUrl == null) return;
       try {
-        await _fadeVolume(player, from: targetVolume, to: 0, duration: _fadeOutDuration);
+        await _fadeVolume(player, from: _targetVolume, to: 0, duration: _fadeOutDuration);
         await player.pause();
       } catch (e, st) {
         appLogger.d('ThemeMusicService: failed to pause theme music', error: e, stackTrace: st);
@@ -128,7 +162,7 @@ class ThemeMusicService extends ChangeNotifier {
       if (player == null || _requestedUrl == null) return;
       try {
         await player.play();
-        await _fadeVolume(player, from: 0, to: targetVolume, duration: _fadeInDuration);
+        await _fadeVolume(player, from: 0, to: _targetVolume, duration: _fadeInDuration);
       } catch (e, st) {
         appLogger.d('ThemeMusicService: failed to resume theme music', error: e, stackTrace: st);
       }
@@ -176,7 +210,7 @@ class ThemeMusicService extends ChangeNotifier {
     final player = _player;
     if (player == null) return;
     try {
-      await _fadeVolume(player, from: targetVolume, to: 0, duration: _fadeOutDuration);
+      await _fadeVolume(player, from: _targetVolume, to: 0, duration: _fadeOutDuration);
       await player.stop();
     } catch (e, st) {
       appLogger.d('ThemeMusicService: failed to stop theme music', error: e, stackTrace: st);
