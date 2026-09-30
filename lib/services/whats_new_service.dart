@@ -42,6 +42,12 @@ const Map<String, List<String>> _whatsNewByVersion = {
     'Theme music volume control, stops after two plays',
     'Fixed screensaver needing two presses to resume paused playback',
   ],
+  '2.17.41': [
+    'Find actors and directors in search',
+    'Keep downloads when signing out of Plex',
+    'Stay online when your server is on the same network',
+    'Playback and error-message fixes',
+  ],
 };
 
 abstract final class WhatsNewService {
