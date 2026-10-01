@@ -5072,6 +5072,27 @@ class Translations$performanceOverlay$en {
 	/// en: 'DV Path'
 	String get dvPath => 'DV Path';
 
+	/// en: 'Dolby Vision decoder'
+	String get dvRouteDecoder => 'Dolby Vision decoder';
+
+	/// en: 'Dolby Vision decoder (P7→8.1)'
+	String get dvRouteDecoderP81 => 'Dolby Vision decoder (P7→8.1)';
+
+	/// en: 'Base layer'
+	String get dvRouteBaseLayer => 'Base layer';
+
+	/// en: 'HDR10 base layer'
+	String get dvRouteBaseLayerHdr10 => 'HDR10 base layer';
+
+	/// en: 'HLG base layer'
+	String get dvRouteBaseLayerHlg => 'HLG base layer';
+
+	/// en: 'SDR base layer'
+	String get dvRouteBaseLayerSdr => 'SDR base layer';
+
+	/// en: 'RPU reshaped (gpu-next)'
+	String get dvRouteReshaped => 'RPU reshaped (gpu-next)';
+
 	/// en: 'P7 Conv'
 	String get p7Conversion => 'P7 Conv';
 
@@ -9456,6 +9477,13 @@ extension on Translations {
 			'performanceOverlay.rotation' => 'Rotation',
 			'performanceOverlay.dvSource' => 'DV Source',
 			'performanceOverlay.dvPath' => 'DV Path',
+			'performanceOverlay.dvRouteDecoder' => 'Dolby Vision decoder',
+			'performanceOverlay.dvRouteDecoderP81' => 'Dolby Vision decoder (P7→8.1)',
+			'performanceOverlay.dvRouteBaseLayer' => 'Base layer',
+			'performanceOverlay.dvRouteBaseLayerHdr10' => 'HDR10 base layer',
+			'performanceOverlay.dvRouteBaseLayerHlg' => 'HLG base layer',
+			'performanceOverlay.dvRouteBaseLayerSdr' => 'SDR base layer',
+			'performanceOverlay.dvRouteReshaped' => 'RPU reshaped (gpu-next)',
 			'performanceOverlay.p7Conversion' => 'P7 Conv',
 			'performanceOverlay.sampleRate' => 'Sample Rate',
 			'performanceOverlay.pixelFormat' => 'Pixel Fmt',
@@ -9618,6 +9646,8 @@ extension on Translations {
 			'trakt.disconnectConfirm' => 'Disconnect Trakt account?',
 			'trakt.disconnectConfirmBody' => 'Plezy will stop sending events to Trakt. You can reconnect any time.',
 			'trakt.scrobble' => 'Real-time scrobbling',
+			_ => null,
+		} ?? switch (path) {
 			'trakt.scrobbleDescription' => 'Send play, pause, and stop events to Trakt during playback.',
 			'trakt.watchedSync' => 'Sync watched status',
 			'trakt.watchedSyncDescription' => 'When you mark items as watched in Plezy, they are also marked as watched on Trakt.',
@@ -9625,8 +9655,6 @@ extension on Translations {
 			'seerr.connectTitle' => 'Connect Seerr',
 			'seerr.serverUrl' => 'Server URL',
 			'seerr.serverUrlHelper' => 'The address of your Seerr instance',
-			_ => null,
-		} ?? switch (path) {
 			'seerr.checkServer' => 'Continue',
 			'seerr.signInWithJellyfin' => 'Sign in with Jellyfin',
 			'seerr.signInWithEmby' => 'Sign in with Emby',
