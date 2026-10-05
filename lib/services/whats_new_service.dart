@@ -48,6 +48,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
     'Stay online when your server is on the same network',
     'Playback and error-message fixes',
   ],
+  '2.17.44': ['Fixed cast lookup'],
 };
 
 abstract final class WhatsNewService {
