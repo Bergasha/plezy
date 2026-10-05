@@ -309,6 +309,7 @@ Future<void> navigateToPersonMedia(
   required String serverId,
   String? serverName,
   required MediaBackend backend,
+  MediaItem? sourceMediaItem,
 }) async {
   await Navigator.push<void>(
     context,
@@ -321,6 +322,7 @@ Future<void> navigateToPersonMedia(
         serverId: serverId,
         serverName: serverName,
         backend: backend,
+        sourceMediaItem: sourceMediaItem,
       ),
     ),
   );
