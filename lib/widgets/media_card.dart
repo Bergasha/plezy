@@ -521,6 +521,7 @@ class MediaCardState extends State<MediaCard> with ContextMenuTapMixin<MediaCard
       onListRefresh: widget.onListRefresh,
       isInContinueWatching: widget.isInContinueWatching,
       collectionId: widget.collectionId,
+      isOffline: widget.isOffline,
       child: cardWidget,
     );
   }

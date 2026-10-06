@@ -4640,6 +4640,15 @@ class Translations$downloads$en {
 	/// en: 'Delete "${title}" from this device?'
 	String deleteConfirm({required Object title}) => 'Delete "${title}" from this device?';
 
+	/// en: 'Delete downloads'
+	String get deleteCollectionDownloads => 'Delete downloads';
+
+	/// en: 'Delete every download in "${title}" from this device?'
+	String deleteCollectionDownloadsConfirm({required Object title}) => 'Delete every download in "${title}" from this device?';
+
+	/// en: 'Downloads deleted'
+	String get collectionDownloadsDeleted => 'Downloads deleted';
+
 	/// en: 'Canceled Download'
 	String get cancelledDownloadTitle => 'Canceled Download';
 
@@ -7238,6 +7247,9 @@ class Translations$downloads$groupings$en {
 
 	/// en: 'Library'
 	String get library => 'Library';
+
+	/// en: 'Collections'
+	String get collections => 'Collections';
 }
 
 // Path: companionRemote.session
@@ -9281,6 +9293,9 @@ extension on Translations {
 			'downloads.episodesQueued' => ({required Object count}) => '${count} episodes queued for download',
 			'downloads.downloadDeleted' => 'Download deleted',
 			'downloads.deleteConfirm' => ({required Object title}) => 'Delete "${title}" from this device?',
+			'downloads.deleteCollectionDownloads' => 'Delete downloads',
+			'downloads.deleteCollectionDownloadsConfirm' => ({required Object title}) => 'Delete every download in "${title}" from this device?',
+			'downloads.collectionDownloadsDeleted' => 'Downloads deleted',
 			'downloads.cancelledDownloadTitle' => 'Canceled Download',
 			'downloads.cancelledDownloadMessage' => 'This download was canceled. What would you like to do?',
 			'downloads.allEpisodesAlreadyDownloaded' => 'All episodes already downloaded',
@@ -9366,6 +9381,7 @@ extension on Translations {
 			'downloads.backgroundWarning.linkUnavailable' => 'Couldn\'t open dontkillmyapp.com on this device',
 			'downloads.options' => 'Downloads options',
 			'downloads.groupings.library' => 'Library',
+			'downloads.groupings.collections' => 'Collections',
 			'downloads.unknownLibrary' => 'Unknown library',
 			'downloads.unknownShow' => 'Unknown Show',
 			'downloads.unknownSeason' => 'Unknown Season',
@@ -9664,12 +9680,12 @@ extension on Translations {
 			'seerrIssue.submitFailed' => 'Couldn\'t send the report',
 			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
 			'seerrIssue.loadFailed' => 'Couldn\'t check this title against Seerr.',
+			_ => null,
+		} ?? switch (path) {
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connected',
 			'trakt.connectedAs' => ({required Object username}) => 'Connected as @${username}',
 			'trakt.disconnectConfirm' => 'Disconnect Trakt account?',
-			_ => null,
-		} ?? switch (path) {
 			'trakt.disconnectConfirmBody' => 'Plezy will stop sending events to Trakt. You can reconnect any time.',
 			'trakt.scrobble' => 'Real-time scrobbling',
 			'trakt.scrobbleDescription' => 'Send play, pause, and stop events to Trakt during playback.',

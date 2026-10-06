@@ -200,7 +200,8 @@ mixin FocusableDetailScreenMixin<T extends StatefulWidget> on State<T>, GridFocu
   /// grids pass the running total; single-grid screens keep the default 0.
   /// With an offset, up-navigation from this grid's first row falls through
   /// to framework traversal (crossing into the previous section's grid)
-  /// instead of jumping to the app bar.
+  /// instead of jumping to the app bar. [isOffline] renders downloaded items
+  /// from local artwork and opens them offline.
   Widget buildSparseFocusableGrid({
     required int totalItems,
     required MediaItem? Function(int index) itemAt,
@@ -211,6 +212,7 @@ mixin FocusableDetailScreenMixin<T extends StatefulWidget> on State<T>, GridFocu
     CardShape? shape,
     FocusNode? navigateUpTarget,
     int indexOffset = 0,
+    bool isOffline = false,
   }) {
     return SettingsBuilder(
       prefs: const [SettingsService.viewMode, SettingsService.libraryDensity, SettingsService.tvFullCardLayout],
@@ -239,6 +241,7 @@ mixin FocusableDetailScreenMixin<T extends StatefulWidget> on State<T>, GridFocu
             onRefresh: onRefresh,
             collectionId: collectionId,
             onListRefresh: onListRefresh,
+            isOffline: isOffline,
             fullBleedImage: useFullCardLayout && position.isGrid,
             cardShapeOverride: shape,
             // The first section's first row reaches the app bar (or
