@@ -4700,6 +4700,12 @@ class Translations$downloads$en {
 	/// en: 'Resume all'
 	String get resumeAll => 'Resume all';
 
+	/// en: 'Retry all'
+	String get retryAll => 'Retry all';
+
+	/// en: 'Retry failed downloads'
+	String get retryFailed => 'Retry failed downloads';
+
 	/// en: 'Delete all'
 	String get deleteAll => 'Delete all';
 
@@ -9313,6 +9319,8 @@ extension on Translations {
 			'downloads.noDownloadsTree' => 'No downloads',
 			'downloads.pauseAll' => 'Pause all',
 			'downloads.resumeAll' => 'Resume all',
+			'downloads.retryAll' => 'Retry all',
+			'downloads.retryFailed' => 'Retry failed downloads',
 			'downloads.deleteAll' => 'Delete all',
 			'downloads.selectVersion' => 'Select Version',
 			'downloads.allEpisodes' => 'All episodes',
@@ -9678,10 +9686,10 @@ extension on Translations {
 			'seerrIssue.submit' => 'Send Report',
 			'seerrIssue.submitted' => 'Issue reported — thanks!',
 			'seerrIssue.submitFailed' => 'Couldn\'t send the report',
-			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
-			'seerrIssue.loadFailed' => 'Couldn\'t check this title against Seerr.',
 			_ => null,
 		} ?? switch (path) {
+			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
+			'seerrIssue.loadFailed' => 'Couldn\'t check this title against Seerr.',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connected',
 			'trakt.connectedAs' => ({required Object username}) => 'Connected as @${username}',
