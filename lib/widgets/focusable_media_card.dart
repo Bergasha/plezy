@@ -26,6 +26,10 @@ class FocusableMediaCard extends StatefulWidget {
   final VoidCallback? onRemoveFromContinueWatching;
   final VoidCallback? onListRefresh;
 
+  /// Replaces the card's default media navigation, for both pointer taps and
+  /// D-pad SELECT. Null keeps [MediaCard]'s standard navigation.
+  final VoidCallback? onTap;
+
   /// Pins the inner [MediaCard] to grid or list layout; null follows the
   /// user's view-mode setting.
   final ViewMode? viewModeOverride;
@@ -94,6 +98,7 @@ class FocusableMediaCard extends StatefulWidget {
     this.onRefresh,
     this.onRemoveFromContinueWatching,
     this.onListRefresh,
+    this.onTap,
     this.viewModeOverride,
     this.isInContinueWatching = false,
     bool? usesContinueWatchingAction,
@@ -155,6 +160,7 @@ class _FocusableMediaCardState extends State<FocusableMediaCard> {
         onRefresh: widget.onRefresh,
         onRemoveFromContinueWatching: widget.onRemoveFromContinueWatching,
         onListRefresh: widget.onListRefresh,
+        onTap: widget.onTap,
         viewModeOverride: widget.viewModeOverride,
         isInContinueWatching: widget.isInContinueWatching,
         usesContinueWatchingAction: widget.usesContinueWatchingAction,
