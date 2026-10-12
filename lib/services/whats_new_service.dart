@@ -49,6 +49,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
     'Playback and error-message fixes',
   ],
   '2.17.44': ['Fixed cast lookup'],
+  '2.17.46': ['Few little bugs that were annoying me are fixed'],
 };
 
 abstract final class WhatsNewService {
