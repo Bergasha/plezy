@@ -1111,6 +1111,7 @@ class _PlexQueuePlaylistClient extends _PagedPlaylistClient implements PlexClien
     int continuous = 0,
     String? librarySectionID,
     String? librarySectionTitle,
+    int? extrasPrefixCount,
   }) {
     final request = _QueueRequest(playlistID: playlistID, key: key, shuffle: shuffle);
     queueRequests.add(request);
