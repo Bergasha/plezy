@@ -1943,7 +1943,6 @@ class _Translations$videoSettings$de extends Translations$videoSettings$en {
 	@override String get audioOutputStereo => 'Stereo';
 	@override String get audioNormalization => 'Lautstärke normalisieren';
 	@override String get audioNormalizationDisablesPassthrough => 'Dekodiert Audio zu PCM; Durchleitung ist aus, solange dies aktiv ist';
-	@override String get audioNormalizationStereoMix => 'Dekodiert Audio zu einem Stereomix; Durchleitung ist aus, solange dies aktiv ist';
 }
 
 // Path: performanceOverlay
@@ -4800,7 +4799,6 @@ extension on TranslationsDe {
 			'videoSettings.audioOutputStereo' => 'Stereo',
 			'videoSettings.audioNormalization' => 'Lautstärke normalisieren',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Dekodiert Audio zu PCM; Durchleitung ist aus, solange dies aktiv ist',
-			'videoSettings.audioNormalizationStereoMix' => 'Dekodiert Audio zu einem Stereomix; Durchleitung ist aus, solange dies aktiv ist',
 			'performanceOverlay.color' => 'Farbe',
 			'performanceOverlay.performance' => 'Leistung',
 			'performanceOverlay.buffer' => 'Puffer',
@@ -5079,9 +5077,9 @@ extension on TranslationsDe {
 			'addServer.authResponseNotJson' => 'Die Authentifizierungsantwort war kein gültiges JSON',
 			'addServer.authResponseIncomplete' => 'Die Anmeldeantwort des Servers war unvollständig',
 			'addServer.quickConnectRejected' => 'Quick Connect wurde vom Server abgelehnt',
+			'addServer.quickConnectNotJson' => 'Die Quick Connect-Antwort war kein gültiges JSON',
 			_ => null,
 		} ?? switch (path) {
-			'addServer.quickConnectNotJson' => 'Die Quick Connect-Antwort war kein gültiges JSON',
 			'addServer.quickConnectMissingFields' => 'In der Quick Connect-Antwort fehlt ein Code oder Geheimnis',
 			'addServer.quickConnectPollRejected' => 'Die Quick Connect-Abfrage wurde vom Server abgelehnt',
 			'addServer.serverTimedOut' => 'Der Server hat nicht rechtzeitig geantwortet',

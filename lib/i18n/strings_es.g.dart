@@ -1943,7 +1943,6 @@ class _Translations$videoSettings$es extends Translations$videoSettings$en {
 	@override String get audioOutputStereo => 'Estéreo';
 	@override String get audioNormalization => 'Normalizar volumen';
 	@override String get audioNormalizationDisablesPassthrough => 'Decodifica el audio a PCM; la transferencia directa está desactivada mientras esta opción esté activa';
-	@override String get audioNormalizationStereoMix => 'Decodifica el audio a una mezcla estéreo; la transferencia directa está desactivada mientras esta opción esté activa';
 }
 
 // Path: performanceOverlay
@@ -4800,7 +4799,6 @@ extension on TranslationsEs {
 			'videoSettings.audioOutputStereo' => 'Estéreo',
 			'videoSettings.audioNormalization' => 'Normalizar volumen',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Decodifica el audio a PCM; la transferencia directa está desactivada mientras esta opción esté activa',
-			'videoSettings.audioNormalizationStereoMix' => 'Decodifica el audio a una mezcla estéreo; la transferencia directa está desactivada mientras esta opción esté activa',
 			'performanceOverlay.color' => 'Color',
 			'performanceOverlay.performance' => 'Rendimiento',
 			'performanceOverlay.buffer' => 'Búfer',
@@ -5079,9 +5077,9 @@ extension on TranslationsEs {
 			'addServer.authResponseNotJson' => 'La respuesta de autenticación no era un JSON válido',
 			'addServer.authResponseIncomplete' => 'La respuesta de inicio de sesión del servidor estaba incompleta',
 			'addServer.quickConnectRejected' => 'Quick Connect fue rechazado por el servidor',
+			'addServer.quickConnectNotJson' => 'La respuesta de Quick Connect no era un JSON válido',
 			_ => null,
 		} ?? switch (path) {
-			'addServer.quickConnectNotJson' => 'La respuesta de Quick Connect no era un JSON válido',
 			'addServer.quickConnectMissingFields' => 'La respuesta de Quick Connect no incluye el código o el secreto',
 			'addServer.quickConnectPollRejected' => 'El servidor rechazó el sondeo de Quick Connect',
 			'addServer.serverTimedOut' => 'El servidor no respondió a tiempo',

@@ -1943,7 +1943,6 @@ class _Translations$videoSettings$uz extends Translations$videoSettings$en {
 	@override String get audioOutputStereo => 'Stereo';
 	@override String get audioNormalization => 'Ovoz balandligini meʼyorlashtirish';
 	@override String get audioNormalizationDisablesPassthrough => 'Ovozni PCM-ga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi';
-	@override String get audioNormalizationStereoMix => 'Ovozni stereo miksga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi';
 }
 
 // Path: performanceOverlay
@@ -4800,7 +4799,6 @@ extension on TranslationsUz {
 			'videoSettings.audioOutputStereo' => 'Stereo',
 			'videoSettings.audioNormalization' => 'Ovoz balandligini meʼyorlashtirish',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Ovozni PCM-ga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi',
-			'videoSettings.audioNormalizationStereoMix' => 'Ovozni stereo miksga dekodlaydi; bu yoqilganda toʻgʻridan-toʻgʻri oʻtkazish oʻchiriladi',
 			'performanceOverlay.color' => 'Rang',
 			'performanceOverlay.performance' => 'Unumdorlik',
 			'performanceOverlay.buffer' => 'Bufer',
@@ -5079,9 +5077,9 @@ extension on TranslationsUz {
 			'addServer.authResponseNotJson' => 'Autentifikatsiya javobi yaroqli JSON emas',
 			'addServer.authResponseIncomplete' => 'Serverdan kelgan kirish javobi toʻliq emas',
 			'addServer.quickConnectRejected' => 'Quick Connect server tomonidan rad etildi',
+			'addServer.quickConnectNotJson' => 'Quick Connect javobi yaroqli JSON emas',
 			_ => null,
 		} ?? switch (path) {
-			'addServer.quickConnectNotJson' => 'Quick Connect javobi yaroqli JSON emas',
 			'addServer.quickConnectMissingFields' => 'Quick Connect javobida kod yoki maxfiy kalit yoʻq',
 			'addServer.quickConnectPollRejected' => 'Quick Connect soʻrovi server tomonidan rad etildi',
 			'addServer.serverTimedOut' => 'Server oʻz vaqtida javob bermadi',

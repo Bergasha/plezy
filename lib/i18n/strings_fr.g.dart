@@ -1943,7 +1943,6 @@ class _Translations$videoSettings$fr extends Translations$videoSettings$en {
 	@override String get audioOutputStereo => 'Stéréo';
 	@override String get audioNormalization => 'Normaliser le volume';
 	@override String get audioNormalizationDisablesPassthrough => 'Décode l’audio en PCM ; la transmission directe est désactivée tant que cette option est active';
-	@override String get audioNormalizationStereoMix => 'Décode l’audio en un mixage stéréo ; la transmission directe est désactivée tant que cette option est active';
 }
 
 // Path: performanceOverlay
@@ -4800,7 +4799,6 @@ extension on TranslationsFr {
 			'videoSettings.audioOutputStereo' => 'Stéréo',
 			'videoSettings.audioNormalization' => 'Normaliser le volume',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Décode l’audio en PCM ; la transmission directe est désactivée tant que cette option est active',
-			'videoSettings.audioNormalizationStereoMix' => 'Décode l’audio en un mixage stéréo ; la transmission directe est désactivée tant que cette option est active',
 			'performanceOverlay.color' => 'Couleur',
 			'performanceOverlay.performance' => 'Performances',
 			'performanceOverlay.buffer' => 'Tampon',
@@ -5079,9 +5077,9 @@ extension on TranslationsFr {
 			'addServer.authResponseNotJson' => 'La réponse d’authentification n’était pas au format JSON valide',
 			'addServer.authResponseIncomplete' => 'La réponse de connexion du serveur était incomplète',
 			'addServer.quickConnectRejected' => 'Quick Connect a été refusé par le serveur',
+			'addServer.quickConnectNotJson' => 'La réponse de Quick Connect n’était pas au format JSON valide',
 			_ => null,
 		} ?? switch (path) {
-			'addServer.quickConnectNotJson' => 'La réponse de Quick Connect n’était pas au format JSON valide',
 			'addServer.quickConnectMissingFields' => 'Il manque un code ou un secret dans la réponse de Quick Connect',
 			'addServer.quickConnectPollRejected' => 'L’interrogation de Quick Connect a été refusée par le serveur',
 			'addServer.serverTimedOut' => 'Le serveur n’a pas répondu à temps',

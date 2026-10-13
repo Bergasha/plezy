@@ -1943,7 +1943,6 @@ class _Translations$videoSettings$tr extends Translations$videoSettings$en {
 	@override String get audioOutputStereo => 'Stereo';
 	@override String get audioNormalization => 'Ses Yüksekliğini Normalleştir';
 	@override String get audioNormalizationDisablesPassthrough => 'Sesi PCM\'e çözer; bu açıkken doğrudan geçiş kapalıdır';
-	@override String get audioNormalizationStereoMix => 'Sesi stereo karışıma çözer; bu açıkken doğrudan geçiş kapalıdır';
 }
 
 // Path: performanceOverlay
@@ -4800,7 +4799,6 @@ extension on TranslationsTr {
 			'videoSettings.audioOutputStereo' => 'Stereo',
 			'videoSettings.audioNormalization' => 'Ses Yüksekliğini Normalleştir',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Sesi PCM\'e çözer; bu açıkken doğrudan geçiş kapalıdır',
-			'videoSettings.audioNormalizationStereoMix' => 'Sesi stereo karışıma çözer; bu açıkken doğrudan geçiş kapalıdır',
 			'performanceOverlay.color' => 'Renk',
 			'performanceOverlay.performance' => 'Performans',
 			'performanceOverlay.buffer' => 'Arabellek',
@@ -5079,9 +5077,9 @@ extension on TranslationsTr {
 			'addServer.authResponseNotJson' => 'Kimlik doğrulama yanıtı geçerli bir JSON değildi',
 			'addServer.authResponseIncomplete' => 'Sunucudan gelen oturum açma yanıtı eksikti',
 			'addServer.quickConnectRejected' => 'Quick Connect sunucu tarafından reddedildi',
+			'addServer.quickConnectNotJson' => 'Quick Connect yanıtı geçerli bir JSON değildi',
 			_ => null,
 		} ?? switch (path) {
-			'addServer.quickConnectNotJson' => 'Quick Connect yanıtı geçerli bir JSON değildi',
 			'addServer.quickConnectMissingFields' => 'Quick Connect yanıtında kod veya gizli anahtar eksik',
 			'addServer.quickConnectPollRejected' => 'Quick Connect yoklaması sunucu tarafından reddedildi',
 			'addServer.serverTimedOut' => 'Sunucu zamanında yanıt vermedi',

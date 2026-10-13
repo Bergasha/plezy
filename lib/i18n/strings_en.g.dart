@@ -5044,9 +5044,6 @@ class Translations$videoSettings$en {
 
 	/// en: 'Decodes audio to PCM; passthrough is off while this is on'
 	String get audioNormalizationDisablesPassthrough => 'Decodes audio to PCM; passthrough is off while this is on';
-
-	/// en: 'Decodes audio to a stereo mix; passthrough is off while this is on'
-	String get audioNormalizationStereoMix => 'Decodes audio to a stereo mix; passthrough is off while this is on';
 }
 
 // Path: performanceOverlay
@@ -9512,7 +9509,6 @@ extension on Translations {
 			'videoSettings.audioOutputStereo' => 'Stereo',
 			'videoSettings.audioNormalization' => 'Normalize Loudness',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Decodes audio to PCM; passthrough is off while this is on',
-			'videoSettings.audioNormalizationStereoMix' => 'Decodes audio to a stereo mix; passthrough is off while this is on',
 			'performanceOverlay.color' => 'Color',
 			'performanceOverlay.performance' => 'Performance',
 			'performanceOverlay.buffer' => 'Buffer',
@@ -9686,9 +9682,9 @@ extension on Translations {
 			'seerrIssue.submit' => 'Send Report',
 			'seerrIssue.submitted' => 'Issue reported — thanks!',
 			'seerrIssue.submitFailed' => 'Couldn\'t send the report',
+			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
 			_ => null,
 		} ?? switch (path) {
-			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
 			'seerrIssue.loadFailed' => 'Couldn\'t check this title against Seerr.',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connected',

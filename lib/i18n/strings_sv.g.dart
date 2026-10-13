@@ -1943,7 +1943,6 @@ class _Translations$videoSettings$sv extends Translations$videoSettings$en {
 	@override String get audioOutputStereo => 'Stereo';
 	@override String get audioNormalization => 'Normalisera ljudstyrka';
 	@override String get audioNormalizationDisablesPassthrough => 'Avkodar ljudet till PCM; genomströmning är av medan detta är på';
-	@override String get audioNormalizationStereoMix => 'Avkodar ljudet till en stereomix; genomströmning är av medan detta är på';
 }
 
 // Path: performanceOverlay
@@ -4800,7 +4799,6 @@ extension on TranslationsSv {
 			'videoSettings.audioOutputStereo' => 'Stereo',
 			'videoSettings.audioNormalization' => 'Normalisera ljudstyrka',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Avkodar ljudet till PCM; genomströmning är av medan detta är på',
-			'videoSettings.audioNormalizationStereoMix' => 'Avkodar ljudet till en stereomix; genomströmning är av medan detta är på',
 			'performanceOverlay.color' => 'Färg',
 			'performanceOverlay.performance' => 'Prestanda',
 			'performanceOverlay.buffer' => 'Buffert',
@@ -5079,9 +5077,9 @@ extension on TranslationsSv {
 			'addServer.authResponseNotJson' => 'Autentiseringssvaret var inte ett giltigt JSON-svar',
 			'addServer.authResponseIncomplete' => 'Inloggningssvaret från servern var ofullständigt',
 			'addServer.quickConnectRejected' => 'Quick Connect avvisades av servern',
+			'addServer.quickConnectNotJson' => 'Quick Connect-svaret var inte ett giltigt JSON-svar',
 			_ => null,
 		} ?? switch (path) {
-			'addServer.quickConnectNotJson' => 'Quick Connect-svaret var inte ett giltigt JSON-svar',
 			'addServer.quickConnectMissingFields' => 'Quick Connect-svaret saknar en kod eller hemlig nyckel',
 			'addServer.quickConnectPollRejected' => 'Servern avvisade avsökningen för Quick Connect',
 			'addServer.serverTimedOut' => 'Servern svarade inte i tid',

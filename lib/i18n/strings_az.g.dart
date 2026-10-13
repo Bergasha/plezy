@@ -1943,7 +1943,6 @@ class _Translations$videoSettings$az extends Translations$videoSettings$en {
 	@override String get audioOutputStereo => 'Stereo';
 	@override String get audioNormalization => 'Səsin gurluğunu normallaşdır';
 	@override String get audioNormalizationDisablesPassthrough => 'Səsi PCM-ə dekodlayır; bu aktivkən birbaşa ötürmə söndürülür';
-	@override String get audioNormalizationStereoMix => 'Səsi stereo miksə dekodlayır; bu aktivkən birbaşa ötürmə söndürülür';
 }
 
 // Path: performanceOverlay
@@ -4800,7 +4799,6 @@ extension on TranslationsAz {
 			'videoSettings.audioOutputStereo' => 'Stereo',
 			'videoSettings.audioNormalization' => 'Səsin gurluğunu normallaşdır',
 			'videoSettings.audioNormalizationDisablesPassthrough' => 'Səsi PCM-ə dekodlayır; bu aktivkən birbaşa ötürmə söndürülür',
-			'videoSettings.audioNormalizationStereoMix' => 'Səsi stereo miksə dekodlayır; bu aktivkən birbaşa ötürmə söndürülür',
 			'performanceOverlay.color' => 'Rəng',
 			'performanceOverlay.performance' => 'Məhsuldarlıq',
 			'performanceOverlay.buffer' => 'Bufer',
@@ -5079,9 +5077,9 @@ extension on TranslationsAz {
 			'addServer.authResponseNotJson' => 'Autentifikasiya cavabı etibarlı JSON deyildi',
 			'addServer.authResponseIncomplete' => 'Serverin giriş cavabı natamam idi',
 			'addServer.quickConnectRejected' => 'Quick Connect server tərəfindən rədd edildi',
+			'addServer.quickConnectNotJson' => 'Quick Connect cavabı etibarlı JSON deyildi',
 			_ => null,
 		} ?? switch (path) {
-			'addServer.quickConnectNotJson' => 'Quick Connect cavabı etibarlı JSON deyildi',
 			'addServer.quickConnectMissingFields' => 'Quick Connect cavabında kod və ya məxfi açar yoxdur',
 			'addServer.quickConnectPollRejected' => 'Quick Connect sorğulaması server tərəfindən rədd edildi',
 			'addServer.serverTimedOut' => 'Server vaxtında cavab vermədi',
