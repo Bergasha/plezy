@@ -80,6 +80,7 @@ import '../providers/multi_server_provider.dart';
 import '../providers/offline_watch_provider.dart';
 import '../providers/watch_state_store.dart';
 import '../services/catalog/catalog_source.dart';
+import '../services/catalog/community_ratings.dart';
 import '../services/catalog/library_watchlist_candidates.dart';
 import '../utils/app_logger.dart';
 import '../utils/formatters.dart';
@@ -473,6 +474,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   bool _tmdbShowDetailsLoadAttempted = false;
   final Map<int, int> _tmdbSeasonEpisodeCounts = {};
   final Set<int> _tmdbSeasonEpisodeCountsLoading = {};
+
+  // The connected trackers' scores for this title, merged as each answers
+  // (see [_initCommunityRatings]); empty until then.
+  List<MediaRatingSource> _communityRatings = const [];
+  StreamSubscription<List<MediaRatingSource>>? _communityRatingsSubscription;
 
   // Inline season tabs
   int _selectedSeasonIndex = 0;
@@ -952,7 +958,26 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     _loadFullMetadata();
     unawaited(_listenForPlaybackVersionChanges());
     _initWatchlistState();
+    _initCommunityRatings();
   }
+
+  /// Ask the connected trackers for this title's scores. They resolve the
+  /// title through the watchlist's cached ids, so this costs no extra
+  /// media-server request. No-ops offline and for non-movie/show kinds.
+  void _initCommunityRatings() {
+    if (widget.isOffline) return;
+    final catalogSources = Provider.of<CatalogSourcesProvider?>(context, listen: false);
+    if (catalogSources == null) return;
+    _communityRatingsSubscription = catalogSources
+        .communityRatingsForLibraryItem(_metadata, client: _getMediaClientForMetadata(context))
+        .listen((ratings) {
+          if (_canUseDetail) setState(() => _communityRatings = ratings);
+        });
+  }
+
+  /// [metadata]'s scores with the connected trackers' merged in.
+  List<MediaRatingSource> _titleRatings(MediaItem metadata) =>
+      withCommunityRatings(mediaRatingsFor(metadata), _communityRatings);
 
   /// Hook up the watchlist action's data: every watchlist-capable catalog
   /// source this item resolves in, with its per-source ids. No-ops offline
@@ -1181,6 +1206,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_themeMusicService?.stop(_themeMusicOwner));
     _libraryContentSubscription?.cancel();
+    unawaited(_communityRatingsSubscription?.cancel());
     for (final source in _watchlistListenedSources) {
       source.watchlistChanges.removeListener(_onWatchlistSourceChanged);
     }
@@ -3898,7 +3924,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final size = MediaQuery.sizeOf(context);
     final viewPadding = MediaQuery.paddingOf(context);
     final heroChipRows =
-        _isCompactHero(size.width - viewPadding.horizontal - _heroSideInset * 2) && mediaRatingsFor(metadata).isNotEmpty
+        _isCompactHero(size.width - viewPadding.horizontal - _heroSideInset * 2) && _titleRatings(metadata).isNotEmpty
         ? 3
         : 2;
     final heroFloor = isTv
@@ -5031,7 +5057,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// have shed, the genres, plus the untruncated description (#2042).
   void _openTvDetailsSheet(BuildContext context, MediaItem metadata, {required bool hideSpoilers}) {
     final focusedEpisode = _tvDetailFocusedEpisode.value;
-    final item = focusedEpisode == null ? metadata : _withProbedRatings(focusedEpisode);
+    final item = focusedEpisode == null
+        ? metadata.copyWith(ratings: _titleRatings(metadata))
+        : _withProbedRatings(focusedEpisode);
     final description = _tvDetailDescription(metadata, hideSpoilers: hideSpoilers);
     final genres = metadata.genres ?? const <String>[];
     unawaited(
@@ -5065,9 +5093,11 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     if (lineMetadata.durationMs != null) {
       parts.add(MetadataLineText(formatDurationTextual(lineMetadata.durationMs!), dropPriority: 1));
     }
-    final ratings = focusedEpisode == null
-        ? mediaRatingsFor(metadata)
-        : mediaRatingsFor(_withProbedRatings(focusedEpisode), fallbackItem: metadata);
+    final episodeRatings = focusedEpisode == null
+        ? const <MediaRatingSource>[]
+        : mediaRatingsFor(_withProbedRatings(focusedEpisode));
+    // An episode without scores of its own shows the title's.
+    final ratings = episodeRatings.isNotEmpty ? episodeRatings : _titleRatings(metadata);
     if (ratings.isNotEmpty) parts.add(MetadataLineRatings(ratings, dropPriority: 4));
 
     return parts;
@@ -5736,7 +5766,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
 
         // The compact hero moves the scores onto a row of their own (#2569);
         // a hero too short for it keeps them in the strip's pill instead.
-        final ratings = mediaRatingsFor(metadata);
+        final ratings = _titleRatings(metadata);
         final scoresRow = centered && ratings.isNotEmpty && chipsFit && roomForRow(chipHeight);
         // Fitted to a single run each: chips shed by usefulness instead of
         // wrapping onto a second run the height clip below would hide.

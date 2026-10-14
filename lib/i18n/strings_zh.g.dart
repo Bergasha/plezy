@@ -2296,6 +2296,8 @@ class Translations$common$ratingSource$zh extends Translations$common$ratingSour
 	@override String get trakt => 'Trakt';
 	@override String get rottenTomatoesCritic => 'Rotten Tomatoes 影评人';
 	@override String get rottenTomatoesAudience => 'Rotten Tomatoes 观众';
+	@override String get metacritic => 'Metacritic';
+	@override String get letterboxd => 'Letterboxd';
 }
 
 // Path: common.mediaKind
@@ -3088,6 +3090,8 @@ extension on TranslationsZh {
 			'common.ratingSource.trakt' => 'Trakt',
 			'common.ratingSource.rottenTomatoesCritic' => 'Rotten Tomatoes 影评人',
 			'common.ratingSource.rottenTomatoesAudience' => 'Rotten Tomatoes 观众',
+			'common.ratingSource.metacritic' => 'Metacritic',
+			'common.ratingSource.letterboxd' => 'Letterboxd',
 			'common.notAvailable' => 'N/A',
 			'common.url' => 'URL',
 			'common.letterKeys' => 'ABC',
@@ -3523,10 +3527,10 @@ extension on TranslationsZh {
 			'fileInfo.streamIdentifier' => '流标识符',
 			'fileInfo.streamIndex' => '流索引',
 			'fileInfo.streamId' => '流 ID',
-			'fileInfo.language' => '语言',
-			'fileInfo.languageCode' => '语言代码',
 			_ => null,
 		} ?? switch (path) {
+			'fileInfo.language' => '语言',
+			'fileInfo.languageCode' => '语言代码',
 			'fileInfo.streamTitle' => '轨道标题',
 			'fileInfo.channels' => '声道',
 			'fileInfo.sampleRate' => '采样率',
@@ -4037,10 +4041,10 @@ extension on TranslationsZh {
 			'libraries.analyze' => '分析',
 			'libraries.analyzeLibrary' => '分析媒体库',
 			'libraries.refreshMetadata' => '刷新元数据',
-			'libraries.emptyTrash' => '清空回收站',
-			'libraries.emptyingTrash' => ({required Object title}) => '正在清空“${title}”的回收站…',
 			_ => null,
 		} ?? switch (path) {
+			'libraries.emptyTrash' => '清空回收站',
+			'libraries.emptyingTrash' => ({required Object title}) => '正在清空“${title}”的回收站…',
 			'libraries.trashEmptied' => ({required Object title}) => '已清空“${title}”的回收站',
 			'libraries.failedToEmptyTrash' => ({required Object error}) => '无法清空回收站：${error}',
 			'libraries.analyzing' => ({required Object title}) => '正在分析“${title}”…',
@@ -4551,10 +4555,10 @@ extension on TranslationsZh {
 			'watchTogether.waitingForName' => ({required Object name}) => '正在等待 ${name}…',
 			'watchTogether.recentRooms' => '最近的房间',
 			'watchTogether.renameRoom' => '重命名房间',
-			'watchTogether.removeRoom' => '移除',
-			'watchTogether.guestSwitchUnavailable' => '无法切换 — 服务器不可用于同步',
 			_ => null,
 		} ?? switch (path) {
+			'watchTogether.removeRoom' => '移除',
+			'watchTogether.guestSwitchUnavailable' => '无法切换 — 服务器不可用于同步',
 			'watchTogether.guestSwitchFailed' => '无法切换 — 在此服务器上未找到内容',
 			'watchTogether.defaultDisplayName' => '用户',
 			'watchTogether.errors.timedOut' => '中继服务器未及时响应',
@@ -5065,10 +5069,10 @@ extension on TranslationsZh {
 			'addServer.invalidCredentials' => '用户名或密码无效',
 			'addServer.authResponseNotJson' => '身份验证响应不是有效的 JSON',
 			'addServer.authResponseIncomplete' => '服务器返回的登录响应不完整',
-			'addServer.quickConnectRejected' => '服务器拒绝了 Quick Connect',
-			'addServer.quickConnectNotJson' => 'Quick Connect 响应不是有效的 JSON',
 			_ => null,
 		} ?? switch (path) {
+			'addServer.quickConnectRejected' => '服务器拒绝了 Quick Connect',
+			'addServer.quickConnectNotJson' => 'Quick Connect 响应不是有效的 JSON',
 			'addServer.quickConnectMissingFields' => 'Quick Connect 响应中缺少代码或密钥',
 			'addServer.quickConnectPollRejected' => '服务器拒绝了 Quick Connect 轮询',
 			'addServer.serverTimedOut' => '服务器未及时响应',

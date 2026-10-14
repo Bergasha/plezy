@@ -6058,6 +6058,12 @@ class Translations$common$ratingSource$en {
 
 	/// en: 'Rotten Tomatoes audience'
 	String get rottenTomatoesAudience => 'Rotten Tomatoes audience';
+
+	/// en: 'Metacritic'
+	String get metacritic => 'Metacritic';
+
+	/// en: 'Letterboxd'
+	String get letterboxd => 'Letterboxd';
 }
 
 // Path: common.mediaKind
@@ -7730,6 +7736,8 @@ extension on Translations {
 			'common.ratingSource.trakt' => 'Trakt',
 			'common.ratingSource.rottenTomatoesCritic' => 'Rotten Tomatoes critics',
 			'common.ratingSource.rottenTomatoesAudience' => 'Rotten Tomatoes audience',
+			'common.ratingSource.metacritic' => 'Metacritic',
+			'common.ratingSource.letterboxd' => 'Letterboxd',
 			'common.notAvailable' => 'N/A',
 			'common.url' => 'URL',
 			'common.letterKeys' => 'ABC',
@@ -8165,10 +8173,10 @@ extension on Translations {
 			'fileInfo.subtitles' => 'Subtitles',
 			'fileInfo.images' => 'Embedded Images',
 			'fileInfo.dataStreams' => 'Data Streams',
-			'fileInfo.lyrics' => 'Lyrics',
-			'fileInfo.file' => 'File',
 			_ => null,
 		} ?? switch (path) {
+			'fileInfo.lyrics' => 'Lyrics',
+			'fileInfo.file' => 'File',
 			'fileInfo.attachments' => 'Attachments',
 			'fileInfo.delivery' => 'Delivery',
 			'fileInfo.versionCounter' => ({required Object index, required Object count}) => 'Version ${index} of ${count}',
@@ -8679,10 +8687,10 @@ extension on Translations {
 			'accountPreferences.displayMissingEpisodes' => 'Show missing episodes',
 			'accountPreferences.displayMissingEpisodesDescription' => 'List episodes the server knows about but has no file for.',
 			'accountPreferences.hidePlayedInLatest' => 'Hide watched items in Latest',
-			'accountPreferences.hidePlayedInLatestDescription' => 'Leave items you have already watched out of the server\'s Latest rows.',
-			'accountPreferences.displayCollectionsView' => 'Show the Collections view',
 			_ => null,
 		} ?? switch (path) {
+			'accountPreferences.hidePlayedInLatestDescription' => 'Leave items you have already watched out of the server\'s Latest rows.',
+			'accountPreferences.displayCollectionsView' => 'Show the Collections view',
 			'accountPreferences.displayCollectionsViewDescription' => 'Offer the server\'s Collections view alongside your libraries.',
 			'accountPreferences.rewatchingInNextUp' => 'Keep rewatched shows in Next Up',
 			'accountPreferences.rewatchingInNextUpDescription' => 'Once you finish a show, start it again and Next Up follows the rewatch instead of dropping the show.',
@@ -9193,10 +9201,10 @@ extension on Translations {
 			'playlists.selectPlaylist' => 'Select Playlist',
 			'playlists.searchPlaylists' => 'Search playlists...',
 			'playlists.errorCreating' => 'Failed to create playlist',
-			'playlists.errorDeleting' => 'Failed to delete playlist',
-			'playlists.errorLoading' => 'Failed to load playlists',
 			_ => null,
 		} ?? switch (path) {
+			'playlists.errorDeleting' => 'Failed to delete playlist',
+			'playlists.errorLoading' => 'Failed to load playlists',
 			'playlists.errorAdding' => 'Failed to add to playlist',
 			'playlists.errorReordering' => 'Failed to reorder playlist item',
 			'playlists.errorRemoving' => 'Failed to remove from playlist',
@@ -9707,10 +9715,10 @@ extension on Translations {
 			'seerrIssue.typeSubtitles' => 'Subtitles',
 			'seerrIssue.typeOther' => 'Other',
 			'seerrIssue.presetVideo' => 'This won\'t play',
-			'seerrIssue.presetAudio' => 'Audio is not English',
-			'seerrIssue.presetSubtitles' => 'Subtitles are missing or wrong',
 			_ => null,
 		} ?? switch (path) {
+			'seerrIssue.presetAudio' => 'Audio is not English',
+			'seerrIssue.presetSubtitles' => 'Subtitles are missing or wrong',
 			'seerrIssue.messageHint' => 'Describe the issue',
 			'seerrIssue.submit' => 'Send Report',
 			'seerrIssue.submitted' => 'Issue reported — thanks!',
