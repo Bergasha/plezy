@@ -8,6 +8,7 @@ import '../media/library_query.dart';
 import '../media/media_backend.dart';
 import '../media/media_item.dart';
 import '../media/media_kind.dart';
+import '../media/media_person.dart';
 import '../media/media_server_client.dart';
 import '../mixins/paginated_item_loader.dart';
 import '../mixins/standard_paginated_view.dart';
@@ -78,10 +79,13 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
   bool _tmdbLoading = false;
   final _bioFocusNode = FocusNode();
   List<CatalogItem>? _filmography;
+  final AbortController _detailsAbort = AbortController();
+  MediaPersonDetails _details = MediaPersonDetails.empty;
 
   @override
   void initState() {
     super.initState();
+    unawaited(_loadDetails());
     final source = widget.sourceMediaItem;
     if (source != null) {
       _tmdbLoading = true;
@@ -127,8 +131,29 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
   @override
   bool get hasItems => totalSize > 0;
 
+  Future<void> _loadDetails() async {
+    final client = _mediaClientOrNull;
+    if (client == null) return;
+    try {
+      final details = await client.fetchPersonDetails(widget.personId, abort: _detailsAbort);
+      if (!mounted || details.isEmpty) return;
+      setState(() => _details = details);
+    } catch (error, stackTrace) {
+      if (_detailsAbort.isAborted) return;
+      appLogger.w('Person details unavailable for ${widget.actorName}', error: error, stackTrace: stackTrace);
+    }
+  }
+
+  String? _isoDate(DateTime? date) {
+    if (date == null) return null;
+    return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String? get _biography => _tmdbPerson?.biography ?? _details.biography;
+
   @override
   void dispose() {
+    _detailsAbort.abort();
     _tmdbMatcherOrNull?.dispose();
     _bioFocusNode.dispose();
     disposePagination();
@@ -192,8 +217,10 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
     final person = _tmdbPerson;
     final photoUrl = person?.profilePath != null ? 'https://image.tmdb.org/t/p/w500${person!.profilePath}' : null;
     final occupation = _departmentLabel(person?.knownForDepartment);
-    final birthday = person?.birthday;
-    final deathday = person?.deathday;
+    final birthday = person?.birthday ?? _isoDate(_details.birthDate);
+    final deathday = person?.deathday ?? _isoDate(_details.deathDate);
+    final birthplace = person?.placeOfBirth ?? _details.birthPlace;
+    final biography = _biography;
 
     return SliverToBoxAdapter(
       child: Padding(
@@ -240,10 +267,17 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
                       style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ],
-                  if (person?.biography != null) ...[
+                  if (birthplace != null && birthplace.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '${t.discover.person.birthplace}: $birthplace',
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                  if (biography != null && biography.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     CollapsibleText(
-                      text: person!.biography!,
+                      text: biography,
                       maxLines: 4,
                       style: theme.textTheme.bodyMedium,
                       skipTraversal: false,
@@ -343,7 +377,7 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
             itemAt: (index) => loadedItems[index],
             onRefresh: updateItem,
             onSkeletonVisible: (index) => ensureIndexLoaded(index, pageSize: _pageSize),
-            navigateUpTarget: _tmdbPerson?.biography != null ? _bioFocusNode : null,
+            navigateUpTarget: (_biography?.isNotEmpty ?? false) ? _bioFocusNode : null,
           ),
         _buildFilmographySection(),
       ],

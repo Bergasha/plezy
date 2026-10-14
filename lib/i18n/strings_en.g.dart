@@ -3288,6 +3288,8 @@ class Translations$discover$en {
 		one: '${n} title',
 		other: '${n} titles',
 	);
+
+	late final Translations$discover$person$en person = Translations$discover$person$en.internal(_root);
 }
 
 // Path: errors
@@ -6364,6 +6366,30 @@ class Translations$accountPreferences$mediaReviewsOptions$en {
 	String get nobody => 'Hidden';
 }
 
+// Path: discover.person
+class Translations$discover$person$en {
+	Translations$discover$person$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Born'
+	String get born => 'Born';
+
+	/// en: 'Died'
+	String get died => 'Died';
+
+	/// en: 'Birthplace'
+	String get birthplace => 'Birthplace';
+
+	/// en: '${date} (age ${age})'
+	String dateWithAge({required Object date, required Object age}) => '${date} (age ${age})';
+
+	/// en: '${date} (aged ${age})'
+	String dateWithAgeAtDeath({required Object date, required Object age}) => '${date} (aged ${age})';
+}
+
 // Path: libraries.tabs
 class Translations$libraries$tabs$en {
 	Translations$libraries$tabs$en.internal(this._root);
@@ -8697,6 +8723,11 @@ extension on Translations {
 			'discover.minutesLeft' => ({required Object minutes}) => '${minutes} min left',
 			'discover.moreLikeThis' => 'More Like This',
 			'discover.titleCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} title', other: '${n} titles', ), 
+			'discover.person.born' => 'Born',
+			'discover.person.died' => 'Died',
+			'discover.person.birthplace' => 'Birthplace',
+			'discover.person.dateWithAge' => ({required Object date, required Object age}) => '${date} (age ${age})',
+			'discover.person.dateWithAgeAtDeath' => ({required Object date, required Object age}) => '${date} (aged ${age})',
 			'errors.searchFailed' => ({required Object error}) => 'Search failed: ${error}',
 			'errors.searchUnavailable' => 'Search could not reach any media server.',
 			'errors.connectionTimeout' => ({required Object context}) => 'Connection timeout while loading ${context}',
@@ -9164,13 +9195,13 @@ extension on Translations {
 			'playlists.errorCreating' => 'Failed to create playlist',
 			'playlists.errorDeleting' => 'Failed to delete playlist',
 			'playlists.errorLoading' => 'Failed to load playlists',
+			_ => null,
+		} ?? switch (path) {
 			'playlists.errorAdding' => 'Failed to add to playlist',
 			'playlists.errorReordering' => 'Failed to reorder playlist item',
 			'playlists.errorRemoving' => 'Failed to remove from playlist',
 			'music.goToAlbum' => 'Go to album',
 			'music.goToArtist' => 'Go to artist',
-			_ => null,
-		} ?? switch (path) {
 			'music.instantMix' => 'Instant Mix',
 			'music.playNext' => 'Play next',
 			'music.addToQueue' => 'Add to queue',
@@ -9678,13 +9709,13 @@ extension on Translations {
 			'seerrIssue.presetVideo' => 'This won\'t play',
 			'seerrIssue.presetAudio' => 'Audio is not English',
 			'seerrIssue.presetSubtitles' => 'Subtitles are missing or wrong',
+			_ => null,
+		} ?? switch (path) {
 			'seerrIssue.messageHint' => 'Describe the issue',
 			'seerrIssue.submit' => 'Send Report',
 			'seerrIssue.submitted' => 'Issue reported — thanks!',
 			'seerrIssue.submitFailed' => 'Couldn\'t send the report',
 			'seerrIssue.unavailable' => 'Can\'t report an issue for this title yet.',
-			_ => null,
-		} ?? switch (path) {
 			'seerrIssue.loadFailed' => 'Couldn\'t check this title against Seerr.',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connected',
