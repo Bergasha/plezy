@@ -1308,6 +1308,24 @@ class Translations$settings$en {
 	/// en: 'Remove combing artifacts from interlaced video (mpv player only)'
 	String get deinterlaceDescription => 'Remove combing artifacts from interlaced video (mpv player only)';
 
+	/// en: 'Off'
+	String get deinterlaceOff => 'Off';
+
+	/// en: 'Show interlaced video as it is decoded'
+	String get deinterlaceOffDescription => 'Show interlaced video as it is decoded';
+
+	/// en: 'Video'
+	String get deinterlaceVideo => 'Video';
+
+	/// en: 'Turn each field into a full frame. For video shot for TV, like sports, news, and concerts'
+	String get deinterlaceVideoDescription => 'Turn each field into a full frame. For video shot for TV, like sports, news, and concerts';
+
+	/// en: 'Film'
+	String get deinterlaceFilm => 'Film';
+
+	/// en: 'Restore the original frames of film and animation telecined to 29.97 fps, common on NTSC DVDs. Video shot for TV stutters. Live TV uses Video'
+	String get deinterlaceFilmDescription => 'Restore the original frames of film and animation telecined to 29.97 fps, common on NTSC DVDs. Video shot for TV stutters. Live TV uses Video';
+
 	/// en: 'Ask for profile on app open'
 	String get requireProfileSelectionOnOpen => 'Ask for profile on app open';
 
@@ -8068,6 +8086,12 @@ extension on Translations {
 			'settings.hdrSdrConversionPlayerDescription' => 'The player converts it. Consistent colors, but 4K may stutter on low-end TV boxes',
 			'settings.deinterlace' => 'Deinterlacing',
 			'settings.deinterlaceDescription' => 'Remove combing artifacts from interlaced video (mpv player only)',
+			'settings.deinterlaceOff' => 'Off',
+			'settings.deinterlaceOffDescription' => 'Show interlaced video as it is decoded',
+			'settings.deinterlaceVideo' => 'Video',
+			'settings.deinterlaceVideoDescription' => 'Turn each field into a full frame. For video shot for TV, like sports, news, and concerts',
+			'settings.deinterlaceFilm' => 'Film',
+			'settings.deinterlaceFilmDescription' => 'Restore the original frames of film and animation telecined to 29.97 fps, common on NTSC DVDs. Video shot for TV stutters. Live TV uses Video',
 			'settings.requireProfileSelectionOnOpen' => 'Ask for profile on app open',
 			'settings.requireProfileSelectionOnOpenDescription' => 'Show profile selection every time the app is opened',
 			'settings.forceTvMode' => 'Force TV mode',
@@ -8167,14 +8191,14 @@ extension on Translations {
 			'hotkeys.actions.skipMarker' => 'Skip Intro/Credits',
 			'hotkeys.actions.screenshot' => 'Take Screenshot',
 			'fileInfo.title' => 'File Info',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.overview' => 'Overview',
 			'fileInfo.video' => 'Video',
 			'fileInfo.audio' => 'Audio',
 			'fileInfo.subtitles' => 'Subtitles',
 			'fileInfo.images' => 'Embedded Images',
 			'fileInfo.dataStreams' => 'Data Streams',
-			_ => null,
-		} ?? switch (path) {
 			'fileInfo.lyrics' => 'Lyrics',
 			'fileInfo.file' => 'File',
 			'fileInfo.attachments' => 'Attachments',
@@ -8681,14 +8705,14 @@ extension on Translations {
 			'accountPreferences.subtitleAccessibilityOptions.onlyNonSdh' => 'Only non-SDH subtitles',
 			'accountPreferences.forcedSubtitles' => 'Forced subtitles',
 			'accountPreferences.forcedSubtitleOptions.preferNonForced' => 'Prefer non-forced subtitles',
+			_ => null,
+		} ?? switch (path) {
 			'accountPreferences.forcedSubtitleOptions.preferForced' => 'Prefer forced subtitles',
 			'accountPreferences.forcedSubtitleOptions.onlyForced' => 'Only forced subtitles',
 			'accountPreferences.forcedSubtitleOptions.onlyNonForced' => 'Only non-forced subtitles',
 			'accountPreferences.displayMissingEpisodes' => 'Show missing episodes',
 			'accountPreferences.displayMissingEpisodesDescription' => 'List episodes the server knows about but has no file for.',
 			'accountPreferences.hidePlayedInLatest' => 'Hide watched items in Latest',
-			_ => null,
-		} ?? switch (path) {
 			'accountPreferences.hidePlayedInLatestDescription' => 'Leave items you have already watched out of the server\'s Latest rows.',
 			'accountPreferences.displayCollectionsView' => 'Show the Collections view',
 			'accountPreferences.displayCollectionsViewDescription' => 'Offer the server\'s Collections view alongside your libraries.',
@@ -9195,14 +9219,14 @@ extension on Translations {
 			'playlists.deleteConfirm' => 'Delete Playlist?',
 			'playlists.deleteMessage' => ({required Object name}) => 'Are you sure you want to delete "${name}"?',
 			'playlists.created' => 'Playlist created',
+			_ => null,
+		} ?? switch (path) {
 			'playlists.deleted' => 'Playlist deleted',
 			'playlists.itemAdded' => 'Added to playlist',
 			'playlists.itemRemoved' => 'Removed from playlist',
 			'playlists.selectPlaylist' => 'Select Playlist',
 			'playlists.searchPlaylists' => 'Search playlists...',
 			'playlists.errorCreating' => 'Failed to create playlist',
-			_ => null,
-		} ?? switch (path) {
 			'playlists.errorDeleting' => 'Failed to delete playlist',
 			'playlists.errorLoading' => 'Failed to load playlists',
 			'playlists.errorAdding' => 'Failed to add to playlist',
@@ -9709,14 +9733,14 @@ extension on Translations {
 			'tautulli.noActiveStreams' => 'No active streams',
 			'tautulli.transcode' => 'TRANSCODE',
 			'tautulli.directPlay' => 'DIRECT',
+			_ => null,
+		} ?? switch (path) {
 			'seerrIssue.title' => 'Report an Issue',
 			'seerrIssue.typeVideo' => 'Video',
 			'seerrIssue.typeAudio' => 'Audio',
 			'seerrIssue.typeSubtitles' => 'Subtitles',
 			'seerrIssue.typeOther' => 'Other',
 			'seerrIssue.presetVideo' => 'This won\'t play',
-			_ => null,
-		} ?? switch (path) {
 			'seerrIssue.presetAudio' => 'Audio is not English',
 			'seerrIssue.presetSubtitles' => 'Subtitles are missing or wrong',
 			'seerrIssue.messageHint' => 'Describe the issue',
