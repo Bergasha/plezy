@@ -1,7 +1,6 @@
 import '../media/media_kind.dart';
 import '../models/catalog/catalog_item.dart';
 import '../models/tmdb/tmdb_filmography_credit.dart';
-import 'catalog/seerr_catalog_source.dart';
 
 /// Converts TMDb's `/person/{id}/combined_credits` cast list into
 /// [CatalogItem]s, so it can flow straight into the app's existing
@@ -36,8 +35,8 @@ List<CatalogItem> mapTmdbFilmography(List<TmdbFilmographyCredit> credits) {
         rating: credit.voteAverage,
         votes: credit.voteCount,
         ids: CatalogItemIds(tmdb: credit.id),
-        posterUrl: SeerrCatalogSource.tmdbImageUrl(credit.posterPath, 'w600_and_h900_bestv2'),
-        backdropUrl: SeerrCatalogSource.tmdbImageUrl(credit.backdropPath, 'w1920_and_h800_multi_faces'),
+        posterUrl: _tmdbImageUrl(credit.posterPath, 'w600_and_h900_bestv2'),
+        backdropUrl: _tmdbImageUrl(credit.backdropPath, 'w1920_and_h800_multi_faces'),
         releaseDate: _dateFrom(credit.releaseDate),
       ),
     );
@@ -50,3 +49,6 @@ List<CatalogItem> mapTmdbFilmography(List<TmdbFilmographyCredit> credits) {
 int? _yearFrom(String? date) => date == null || date.length < 4 ? null : int.tryParse(date.substring(0, 4));
 
 DateTime? _dateFrom(String? date) => date == null ? null : DateTime.tryParse(date);
+
+String? _tmdbImageUrl(String? path, String size) =>
+    path == null || path.isEmpty ? null : 'https://image.tmdb.org/t/p/$size$path';
