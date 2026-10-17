@@ -419,6 +419,14 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   bool _suppressBackAfterPop = false;
   bool _tvDetailRevealed = false;
   bool _tvDetailRevealScheduled = false;
+  // Whether the route's push fade has finished. Until it has, and until the
+  // reveal gate opens, the hidden foreground and rail are not built: every
+  // data arrival during the fade would otherwise build and lay out invisible
+  // rows mid-animation, which drops most of the fade's frames on low-end TV
+  // boxes. After the fade, hidden content builds early again, so a slow load
+  // still warms the rows' artwork before the reveal.
+  bool _tvDetailRouteSettled = false;
+  Animation<double>? _tvDetailRouteAnimation;
   bool _hasLoadedSeasons = false;
   bool _hasLoadedEpisodes = false;
   double? _tvDetailPendingRailHeight;
@@ -1039,12 +1047,44 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     super.didChangeDependencies();
     final routeObserver = ProfileNavigationScope.of(context).routeObserver;
     final route = ModalRoute.of(context);
+    _trackTvDetailRouteSettled(route);
     if (route is! PageRoute<dynamic>) return;
     if (route == _route && routeObserver == _routeObserver) return;
     _routeObserver?.unsubscribe(this);
     _route = route;
     _routeObserver = routeObserver;
     routeObserver.subscribe(this, route);
+  }
+
+  void _trackTvDetailRouteSettled(ModalRoute<dynamic>? route) {
+    if (_tvDetailRouteSettled) return;
+    final animation = PlatformDetector.isTV() ? route?.animation : null;
+    if (identical(animation, _tvDetailRouteAnimation)) return;
+    _tvDetailRouteAnimation?.removeStatusListener(_onTvDetailRouteStatus);
+    _tvDetailRouteAnimation = null;
+    if (animation == null || animation.isCompleted) {
+      _tvDetailRouteSettled = true;
+      return;
+    }
+    _tvDetailRouteAnimation = animation..addStatusListener(_onTvDetailRouteStatus);
+  }
+
+  void _onTvDetailRouteStatus(AnimationStatus status) {
+    if (!status.isCompleted) return;
+    _tvDetailRouteAnimation?.removeStatusListener(_onTvDetailRouteStatus);
+    _tvDetailRouteAnimation = null;
+    if (!mounted) return;
+    // Already revealed: the content is built, so there is nothing to rebuild.
+    if (_tvDetailRevealed) {
+      _tvDetailRouteSettled = true;
+      return;
+    }
+    // The status flips inside the fade's last tick. Building the withheld
+    // content in that frame would hold the fade's final frame back by the
+    // whole build, so it builds in the next frame, when nothing moves.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_tvDetailRouteSettled) setState(() => _tvDetailRouteSettled = true);
+    });
   }
 
   @override
@@ -1211,6 +1251,7 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       source.watchlistChanges.removeListener(_onWatchlistSourceChanged);
     }
     _routeObserver?.unsubscribe(this);
+    _tvDetailRouteAnimation?.removeStatusListener(_onTvDetailRouteStatus);
     _scrollController.dispose();
     _scrollOffset.dispose();
     _tvDetailFocusedEpisode.dispose();
@@ -4232,6 +4273,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     final railTopPadding = 12 * detailScale;
     final foregroundBottom = (railHeight - railTopPadding) + (_tvDetailActionRailGap * detailScale);
     final spotlightLeft = (24 * detailScale).clamp(18.0, 40.0).toDouble();
+    // See _tvDetailRouteSettled. The children stay in place (only their
+    // content is withheld) so the Stack keeps its elements across the swap.
+    final buildHiddenContent = _tvDetailRevealed || _tvDetailRouteSettled;
 
     // Shows split detailHubs into two TvBrowseRail instances so the
     // episode-selection hubs can render FIRST (before Cast/Reviews, so
@@ -4288,11 +4332,13 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
           right: size.width * 0.28,
           top: spotlightTop,
           bottom: foregroundBottom,
-          child: ListenableBuilder(
-            listenable: _tvDetailForegroundListenable,
-            builder: (context, _) =>
-                _buildTvDetailForeground(context, metadata, hideSpoilers: hideSpoilers, scale: detailScale),
-          ),
+          child: buildHiddenContent
+              ? ListenableBuilder(
+                  listenable: _tvDetailForegroundListenable,
+                  builder: (context, _) =>
+                      _buildTvDetailForeground(context, metadata, hideSpoilers: hideSpoilers, scale: detailScale),
+                )
+              : const SizedBox.shrink(),
         ),
         // The action row's track status sits at the screen's right edge,
         // bottom-aligned with the row and outside the hero's 60% text column,
@@ -4329,25 +4375,26 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
             context: context,
           )!,
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: railHeight,
-          child: _buildTvDetailBottomScrollable(
-            metadata: metadata,
-            episodeHubs: episodeHubs,
-            hasEpisodeHubs: hasEpisodeHubs,
-            remainingHubs: remainingHubs,
-            hasRemainingHubs: hasRemainingHubs,
-            hasCast: hasCast,
-            reviews: reviews,
-            hasReviews: hasReviews,
-            extras: extras,
-            hasExtras: hasExtras,
-            scale: detailScale,
+        if (buildHiddenContent)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: railHeight,
+            child: _buildTvDetailBottomScrollable(
+              metadata: metadata,
+              episodeHubs: episodeHubs,
+              hasEpisodeHubs: hasEpisodeHubs,
+              remainingHubs: remainingHubs,
+              hasRemainingHubs: hasRemainingHubs,
+              hasCast: hasCast,
+              reviews: reviews,
+              hasReviews: hasReviews,
+              extras: extras,
+              hasExtras: hasExtras,
+              scale: detailScale,
+            ),
           ),
-        ),
       ],
     );
 
