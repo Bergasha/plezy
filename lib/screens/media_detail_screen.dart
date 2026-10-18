@@ -5075,6 +5075,12 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
   /// badges before the fields that identify the item (#1893). Stream quality
   /// labels stay off the hero line: they describe the file, not the title,
   /// and remain on the rail cards and in the details sheet (#2217).
+  String? _tvDetailGenreLine(MediaItem metadata) {
+    final genres = metadata.genres;
+    if (genres == null || genres.isEmpty) return null;
+    return genres.take(3).join(', ');
+  }
+
   List<MetadataLinePart> _tvDetailMetadataParts(MediaItem metadata) {
     final focusedEpisode = _tvDetailFocusedEpisode.value;
     final lineMetadata = focusedEpisode ?? metadata;
@@ -5093,6 +5099,8 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
     if (lineMetadata.durationMs != null) {
       parts.add(MetadataLineText(formatDurationTextual(lineMetadata.durationMs!), dropPriority: 1));
     }
+    final genreLine = _tvDetailGenreLine(metadata);
+    if (genreLine != null) parts.add(MetadataLineText(genreLine, dropPriority: 5));
     final episodeRatings = focusedEpisode == null
         ? const <MediaRatingSource>[]
         : mediaRatingsFor(_withProbedRatings(focusedEpisode));
@@ -5130,7 +5138,9 @@ class _MediaDetailScreenState extends State<MediaDetailScreen>
       add(lineMetadata.title);
     }
 
+    final genreLine = _tvDetailGenreLine(metadata);
     for (final part in _tvDetailMetadataParts(metadata)) {
+      if (part is MetadataLineText && part.text == genreLine) continue;
       add(switch (part) {
         MetadataLineText(:final text) || MetadataLineIconText(:final text) => text,
         MetadataLineRatings(:final ratings) => ratingsSemanticLabel(ratings),

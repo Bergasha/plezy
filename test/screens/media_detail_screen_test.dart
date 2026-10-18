@@ -338,6 +338,55 @@ void main() {
     expect(find.byType(SvgPicture), findsOneWidget);
   });
 
+  testWidgets('TV detail metadata line shows up to three genres after the runtime', (tester) async {
+    await SettingsService.getInstance();
+    tester.view.physicalSize = const Size(1280, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final movie = MediaItem.plex(
+      id: 'movie_1',
+      serverId: ServerId('server_1'),
+      kind: MediaKind.movie,
+      title: 'Genre Movie',
+      summary: 'The genres sit on the metadata line.',
+      year: 2017,
+      contentRating: 'PG-13',
+      durationMs: 6360000,
+      genres: const ['Drama', 'Crime', 'War', 'Comedy'],
+    );
+
+    final client = _FakeMediaServerClient(show: movie, childrenByParent: {}, mediaSourcesById: {});
+    final provider = testMultiServer(clients: [client]).provider;
+
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: MaterialApp(
+          theme: monoTheme(dark: true),
+          home: ChangeNotifierProvider<MultiServerProvider>.value(
+            value: provider,
+            child: withProfileNavigationScope(child: MediaDetailScreen(metadata: movie)),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump();
+
+    final line = find.descendant(of: find.byType(FittedMetadataLine), matching: find.text('Drama, Crime, War'));
+    expect(line, findsOneWidget, reason: 'only the first three genres go on the line');
+    expect(find.text('Comedy'), findsNothing);
+    expect(
+      tester.getTopLeft(line).dx,
+      greaterThan(tester.getTopLeft(find.text('1h 46min')).dx),
+      reason: 'genres follow the runtime',
+    );
+  });
+
   testWidgets('TV detail metadata line keeps quality labels for the sheet and every field on screen', (tester) async {
     await SettingsService.getInstance();
     tester.view.physicalSize = const Size(1280, 720);
