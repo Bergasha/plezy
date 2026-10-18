@@ -458,6 +458,8 @@
     "screensaverEnabledDescription": "Show cycling backdrop art after a period of inactivity",
     "screensaverIdleTimeout": "Start after",
     "screensaverIdleTimeoutDescription": "How long to wait for inactivity before the screensaver starts",
+    "screensaverBlackout": "Go fully black after",
+    "screensaverBlackoutNever": "Never",
     "navigation": "Navigation",
     "window": "Window",
     "liveTv": "Live TV",

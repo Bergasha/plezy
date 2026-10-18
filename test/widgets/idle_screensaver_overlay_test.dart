@@ -21,6 +21,7 @@ import 'package:plezy/services/multi_server_manager.dart';
 import 'package:plezy/services/settings_service.dart';
 import 'package:plezy/utils/media_server_http_client.dart';
 import 'package:plezy/widgets/cycling_media_backdrop.dart';
+import 'package:plezy/widgets/home_clock.dart';
 import 'package:plezy/widgets/idle_screensaver_overlay.dart';
 
 import '../test_helpers/media_items.dart';
@@ -241,6 +242,41 @@ void main() {
 
     await tester.pump(const Duration(seconds: 5));
     expect(find.text('Movie A'), findsOneWidget);
+  });
+
+  Future<void> showScreensaver(WidgetTester tester, {required int blackoutMinutes}) async {
+    final settings = await SettingsService.getInstance();
+    await settings.write(SettingsService.screensaverIdleMinutes, 1);
+    await settings.write(SettingsService.screensaverEnabled, true);
+    await settings.write(SettingsService.screensaverBlackoutMinutes, blackoutMinutes);
+    aggregation.libraryResult = [movieLibrary];
+    client.libraryContent = [testMediaItem(id: 'a', title: 'Movie A', artPath: '/art/a.jpg', serverId: 'server_1')];
+    await tester.runAsync(() => libraries.loadLibraries());
+
+    await pumpOverlay(tester);
+    await tester.pump(const Duration(minutes: 2));
+    await tester.pump();
+    expect(find.byType(CyclingMediaBackdrop), findsOneWidget);
+  }
+
+  testWidgets('goes fully black after the blackout time, leaving only the clock', (tester) async {
+    await showScreensaver(tester, blackoutMinutes: 5);
+
+    await tester.pump(const Duration(minutes: 5));
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump();
+
+    expect(find.byType(CyclingMediaBackdrop), findsNothing);
+    expect(find.byType(HomeClock), findsOneWidget);
+  });
+
+  testWidgets('a blackout time of zero never goes black', (tester) async {
+    await showScreensaver(tester, blackoutMinutes: 0);
+
+    await tester.pump(const Duration(minutes: 60));
+    await tester.pump(const Duration(seconds: 5));
+
+    expect(find.byType(CyclingMediaBackdrop), findsOneWidget);
   });
 
   testWidgets('the clock moves to a new spot every couple of minutes', (tester) async {

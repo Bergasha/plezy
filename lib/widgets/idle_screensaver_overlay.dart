@@ -327,9 +327,15 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
     Alignment.bottomRight,
   ];
 
+  static const _blackoutFade = Duration(seconds: 4);
+  static const _blackoutClockOpacity = 0.45;
+
   final _random = Random();
   Alignment _clockAlignment = Alignment.topRight;
   Timer? _clockTimer;
+  Timer? _blackoutTimer;
+  bool _blackout = false;
+  bool _artGone = false;
   // A shuffled permutation consumed in order, not a fresh random pick each
   // cycle — picking independently every time is only guaranteed to avoid an
   // *immediate* repeat, so with a modest-size pool the same handful of
@@ -365,6 +371,8 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
     _scheduleTitleReveal();
     _scheduleNextBackdrop();
     _clockTimer = Timer.periodic(_clockMoveInterval, (_) => _moveClock());
+    final blackoutMinutes = SettingsService.instance.read(SettingsService.screensaverBlackoutMinutes);
+    if (blackoutMinutes > 0) _blackoutTimer = Timer(Duration(minutes: blackoutMinutes), _goBlack);
     // `autofocus` alone is a no-op here: it only claims focus when the
     // enclosing scope has none, so whatever the viewer was last focused on
     // (e.g. the player's Play/Pause) simply keeps it, and the *next* key
@@ -381,7 +389,25 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
     _rotationTimer?.cancel();
     _titleRevealTimer?.cancel();
     _clockTimer?.cancel();
+    _blackoutTimer?.cancel();
     super.dispose();
+  }
+
+  void _goBlack() {
+    if (!mounted) return;
+    _rotationTimer?.cancel();
+    _titleRevealTimer?.cancel();
+    setState(() => _blackout = true);
+  }
+
+  void _dropArtwork() {
+    if (!mounted || !_blackout || _artGone) return;
+    setState(() => _artGone = true);
+  }
+
+  Widget _fadeWithBlackout(Widget child) {
+    if (_artGone) return const SizedBox.shrink();
+    return AnimatedOpacity(opacity: _blackout ? 0 : 1, duration: _blackoutFade, onEnd: _dropArtwork, child: child);
   }
 
   void _moveClock() {
@@ -438,23 +464,27 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
                   fit: StackFit.expand,
                   children: [
                     const ColoredBox(color: Colors.black),
-                    CyclingMediaBackdrop(
-                      mediaKey: _currentIndex,
-                      imagePaths: [_current.artPath],
-                      client: widget.client,
-                      width: constraints.maxWidth,
-                      height: constraints.maxHeight,
-                      fallbackColor: Colors.black,
+                    _fadeWithBlackout(
+                      CyclingMediaBackdrop(
+                        mediaKey: _currentIndex,
+                        imagePaths: [_current.artPath],
+                        client: widget.client,
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        fallbackColor: Colors.black,
+                      ),
                     ),
                     // Keeps the clock and title readable regardless of how
                     // bright the current backdrop is.
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.black54, Colors.transparent, Colors.black87],
-                          stops: [0.0, 0.35, 1.0],
+                    _fadeWithBlackout(
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.black54, Colors.transparent, Colors.black87],
+                            stops: [0.0, 0.35, 1.0],
+                          ),
                         ),
                       ),
                     ),
@@ -466,7 +496,11 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
                             alignment: _clockAlignment,
                             duration: _clockGlide,
                             curve: Curves.easeInOut,
-                            child: const HomeClock(color: Colors.white),
+                            child: AnimatedOpacity(
+                              opacity: _blackout ? _blackoutClockOpacity : 1,
+                              duration: _blackoutFade,
+                              child: const HomeClock(color: Colors.white),
+                            ),
                           ),
                         ),
                       ),
@@ -481,29 +515,31 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
                       // *next* title's text while the previous backdrop was
                       // still on screen, since the Text's content swaps
                       // instantly but opacity only catches up gradually.
-                      child: Align(
-                        alignment: Alignment.bottomLeft,
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 900),
-                          switchInCurve: Curves.easeOut,
-                          switchOutCurve: Curves.easeIn,
-                          transitionBuilder: (child, animation) => FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.15),
-                                end: Offset.zero,
-                              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
-                              child: child,
+                      child: _fadeWithBlackout(
+                        Align(
+                          alignment: Alignment.bottomLeft,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 900),
+                            switchInCurve: Curves.easeOut,
+                            switchOutCurve: Curves.easeIn,
+                            transitionBuilder: (child, animation) => FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 0.15),
+                                  end: Offset.zero,
+                                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+                                child: child,
+                              ),
                             ),
+                            child: _showTitle
+                                ? _ScreensaverTitle(
+                                    key: ValueKey(_currentIndex),
+                                    title: _current.title,
+                                    year: _current.year,
+                                  )
+                                : const SizedBox.shrink(key: ValueKey('hidden')),
                           ),
-                          child: _showTitle
-                              ? _ScreensaverTitle(
-                                  key: ValueKey(_currentIndex),
-                                  title: _current.title,
-                                  year: _current.year,
-                                )
-                              : const SizedBox.shrink(key: ValueKey('hidden')),
                         ),
                       ),
                     ),

@@ -624,6 +624,11 @@ class SettingsService extends BaseSharedPreferencesService {
   static const showHeroSection = BoolPref('show_hero_section', defaultValue: true);
   static const screensaverEnabled = BoolPref('screensaver_enabled', defaultValue: true);
   static const screensaverIdleMinutes = IntPref('screensaver_idle_minutes', defaultValue: 3);
+  static final screensaverBlackoutMinutes = IntPref(
+    'screensaver_blackout_minutes',
+    defaultValue: 30,
+    transform: (v) => v.clamp(0, 480),
+  );
   static const tvFullCardLayout = BoolPref('tv_full_card_layout', defaultValue: false);
   static const focusGlow = BoolPref('focus_glow', defaultValue: true);
   static const useGlobalHubs = BoolPref('use_global_hubs', defaultValue: true);
@@ -1597,6 +1602,7 @@ class SettingsService extends BaseSharedPreferencesService {
     showControlsOnMouseMove,
     screensaverEnabled,
     screensaverIdleMinutes,
+    screensaverBlackoutMinutes,
     skipIntroMode,
     skipCreditsMode,
     forceSkipMarkerFallback,
@@ -1665,6 +1671,7 @@ class SettingsService extends BaseSharedPreferencesService {
     'play_next_countdown' => (0, 30),
     'auto_skip_delay' => (1, 30),
     'screensaver_idle_minutes' => (1, 60),
+    'screensaver_blackout_minutes' => (0, 480),
     'subtitle_font_size' => (10, 80),
     'subtitle_border_size' => (0, 5),
     'subtitle_position' => (0, 150),

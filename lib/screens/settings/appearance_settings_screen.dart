@@ -365,6 +365,16 @@ class AppearanceSettingsScreen extends StatelessWidget {
               labelText: t.settings.minutesLabel,
               suffixText: t.settings.minutesShort,
             ),
+          if (enabled)
+            SettingNumberTile(
+              pref: SettingsService.screensaverBlackoutMinutes,
+              icon: Symbols.bedtime_rounded,
+              title: t.settings.screensaverBlackout,
+              subtitleBuilder: (v) =>
+                  v == 0 ? t.settings.screensaverBlackoutNever : t.settings.minutesUnit(minutes: v.toString()),
+              labelText: t.settings.minutesLabel,
+              suffixText: t.settings.minutesShort,
+            ),
         ],
       );
     },

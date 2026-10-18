@@ -1413,6 +1413,12 @@ class Translations$settings$en {
 	/// en: 'How long to wait for inactivity before the screensaver starts'
 	String get screensaverIdleTimeoutDescription => 'How long to wait for inactivity before the screensaver starts';
 
+	/// en: 'Go fully black after'
+	String get screensaverBlackout => 'Go fully black after';
+
+	/// en: 'Never'
+	String get screensaverBlackoutNever => 'Never';
+
 	/// en: 'Navigation'
 	String get navigation => 'Navigation';
 
@@ -8121,6 +8127,8 @@ extension on Translations {
 			'settings.screensaverEnabledDescription' => 'Show cycling backdrop art after a period of inactivity',
 			'settings.screensaverIdleTimeout' => 'Start after',
 			'settings.screensaverIdleTimeoutDescription' => 'How long to wait for inactivity before the screensaver starts',
+			'settings.screensaverBlackout' => 'Go fully black after',
+			'settings.screensaverBlackoutNever' => 'Never',
 			'settings.navigation' => 'Navigation',
 			'settings.window' => 'Window',
 			'settings.liveTv' => 'Live TV',
@@ -8189,10 +8197,10 @@ extension on Translations {
 			'hotkeys.actions.shaderToggle' => 'Toggle Shaders',
 			'hotkeys.actions.performanceOverlayToggle' => 'Toggle Performance Overlay',
 			'hotkeys.actions.skipMarker' => 'Skip Intro/Credits',
-			'hotkeys.actions.screenshot' => 'Take Screenshot',
-			'fileInfo.title' => 'File Info',
 			_ => null,
 		} ?? switch (path) {
+			'hotkeys.actions.screenshot' => 'Take Screenshot',
+			'fileInfo.title' => 'File Info',
 			'fileInfo.overview' => 'Overview',
 			'fileInfo.video' => 'Video',
 			'fileInfo.audio' => 'Audio',
@@ -8703,10 +8711,10 @@ extension on Translations {
 			'accountPreferences.subtitleAccessibilityOptions.preferSdh' => 'Prefer SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.onlySdh' => 'Only SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.onlyNonSdh' => 'Only non-SDH subtitles',
-			'accountPreferences.forcedSubtitles' => 'Forced subtitles',
-			'accountPreferences.forcedSubtitleOptions.preferNonForced' => 'Prefer non-forced subtitles',
 			_ => null,
 		} ?? switch (path) {
+			'accountPreferences.forcedSubtitles' => 'Forced subtitles',
+			'accountPreferences.forcedSubtitleOptions.preferNonForced' => 'Prefer non-forced subtitles',
 			'accountPreferences.forcedSubtitleOptions.preferForced' => 'Prefer forced subtitles',
 			'accountPreferences.forcedSubtitleOptions.onlyForced' => 'Only forced subtitles',
 			'accountPreferences.forcedSubtitleOptions.onlyNonForced' => 'Only non-forced subtitles',
@@ -9217,10 +9225,10 @@ extension on Translations {
 			'playlists.oneItem' => '1 item',
 			'playlists.emptyPlaylist' => 'This playlist is empty',
 			'playlists.deleteConfirm' => 'Delete Playlist?',
-			'playlists.deleteMessage' => ({required Object name}) => 'Are you sure you want to delete "${name}"?',
-			'playlists.created' => 'Playlist created',
 			_ => null,
 		} ?? switch (path) {
+			'playlists.deleteMessage' => ({required Object name}) => 'Are you sure you want to delete "${name}"?',
+			'playlists.created' => 'Playlist created',
 			'playlists.deleted' => 'Playlist deleted',
 			'playlists.itemAdded' => 'Added to playlist',
 			'playlists.itemRemoved' => 'Removed from playlist',
@@ -9731,10 +9739,10 @@ extension on Translations {
 			'tautulli.activeStreams' => 'Active Streams',
 			'tautulli.failedToLoad' => 'Failed to load active streams from Tautulli',
 			'tautulli.noActiveStreams' => 'No active streams',
-			'tautulli.transcode' => 'TRANSCODE',
-			'tautulli.directPlay' => 'DIRECT',
 			_ => null,
 		} ?? switch (path) {
+			'tautulli.transcode' => 'TRANSCODE',
+			'tautulli.directPlay' => 'DIRECT',
 			'seerrIssue.title' => 'Report an Issue',
 			'seerrIssue.typeVideo' => 'Video',
 			'seerrIssue.typeAudio' => 'Audio',
