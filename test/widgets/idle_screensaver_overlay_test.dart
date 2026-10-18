@@ -243,6 +243,34 @@ void main() {
     expect(find.text('Movie A'), findsOneWidget);
   });
 
+  testWidgets('the clock moves to a new spot every couple of minutes', (tester) async {
+    final settings = await SettingsService.getInstance();
+    await settings.write(SettingsService.screensaverIdleMinutes, 1);
+    await settings.write(SettingsService.screensaverEnabled, true);
+    aggregation.libraryResult = [movieLibrary];
+    client.libraryContent = [testMediaItem(id: 'a', title: 'Movie A', artPath: '/art/a.jpg', serverId: 'server_1')];
+    await tester.runAsync(() => libraries.loadLibraries());
+
+    await pumpOverlay(tester);
+    await tester.pump(const Duration(minutes: 2));
+    await tester.pump();
+    expect(find.byType(CyclingMediaBackdrop), findsOneWidget);
+
+    Alignment clockAlignment() => tester.widget<AnimatedAlign>(find.byType(AnimatedAlign)).alignment as Alignment;
+
+    expect(clockAlignment(), Alignment.topRight);
+
+    var previous = clockAlignment();
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(minutes: 2));
+      await tester.pump(const Duration(seconds: 3));
+      final current = clockAlignment();
+      expect(current, isNot(previous), reason: 'the clock never stays put between moves');
+      expect(current, isNot(Alignment.bottomLeft), reason: 'the bottom-left belongs to the title card');
+      previous = current;
+    }
+  });
+
   testWidgets('dismisses on a key press and re-arms the idle timer', (tester) async {
     final settings = await SettingsService.getInstance();
     await settings.write(SettingsService.screensaverIdleMinutes, 1);

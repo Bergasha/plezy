@@ -316,8 +316,20 @@ class _ScreensaverContent extends StatefulWidget {
 class _ScreensaverContentState extends State<_ScreensaverContent> {
   static const _backdropInterval = Duration(seconds: 15);
   static const _titleRevealDelay = Duration(seconds: 4);
+  static const _clockMoveInterval = Duration(minutes: 2);
+  static const _clockGlide = Duration(seconds: 3);
+  static const _clockSpots = [
+    Alignment.topLeft,
+    Alignment.topCenter,
+    Alignment.topRight,
+    Alignment.centerLeft,
+    Alignment.centerRight,
+    Alignment.bottomRight,
+  ];
 
   final _random = Random();
+  Alignment _clockAlignment = Alignment.topRight;
+  Timer? _clockTimer;
   // A shuffled permutation consumed in order, not a fresh random pick each
   // cycle — picking independently every time is only guaranteed to avoid an
   // *immediate* repeat, so with a modest-size pool the same handful of
@@ -352,6 +364,7 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
     super.initState();
     _scheduleTitleReveal();
     _scheduleNextBackdrop();
+    _clockTimer = Timer.periodic(_clockMoveInterval, (_) => _moveClock());
     // `autofocus` alone is a no-op here: it only claims focus when the
     // enclosing scope has none, so whatever the viewer was last focused on
     // (e.g. the player's Play/Pause) simply keeps it, and the *next* key
@@ -367,7 +380,14 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
   void dispose() {
     _rotationTimer?.cancel();
     _titleRevealTimer?.cancel();
+    _clockTimer?.cancel();
     super.dispose();
+  }
+
+  void _moveClock() {
+    if (!mounted) return;
+    final spots = _clockSpots.where((spot) => spot != _clockAlignment).toList();
+    setState(() => _clockAlignment = spots[_random.nextInt(spots.length)]);
   }
 
   void _scheduleNextBackdrop() {
@@ -438,7 +458,19 @@ class _ScreensaverContentState extends State<_ScreensaverContent> {
                         ),
                       ),
                     ),
-                    const Positioned(top: 32, right: 32, child: HomeClock(color: Colors.white)),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: AnimatedAlign(
+                            alignment: _clockAlignment,
+                            duration: _clockGlide,
+                            curve: Curves.easeInOut,
+                            child: const HomeClock(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
                     Positioned(
                       left: 56,
                       bottom: 56,
