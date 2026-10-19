@@ -1188,6 +1188,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       onNavigateUp: _focusTopActions,
       onNavigateToSidebar: _navigateToSidebar,
       tallPosterScale: TvBrowseRailLayout.compactTallPosterScale,
+      widePosterScale: TvBrowseRailLayout.compactEpisodeThumbnailScale,
     );
   }
 
