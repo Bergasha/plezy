@@ -30,6 +30,7 @@ import '../playback_coordinator.dart';
 import '../playback_launch_observer.dart';
 import '../playback_initialization_service.dart';
 import '../playback_progress_tracker.dart';
+import '../preferred_audio_device.dart';
 import '../settings_service.dart';
 import 'music_hardware_transport.dart';
 import 'music_playback_service.dart';
@@ -751,7 +752,18 @@ class MusicPlaybackServiceImpl extends MusicPlaybackService with WidgetsBindingO
     if (isNew && _player == player && !player.disposed && _volume != 100.0) {
       unawaited(player.setVolume(_volume));
     }
+    if (isNew && _player == player && !player.disposed) await _applyAudioOutputDevice(player);
     return player;
+  }
+
+  /// The output picked in the video player's Audio Output menu, before the
+  /// first open so the track starts there instead of moving mid-play. A pick
+  /// made while this core is alive lands on the next one: video playback
+  /// disposes it when it claims the session.
+  Future<void> _applyAudioOutputDevice(Player player) async {
+    final settings = SettingsService.instanceOrNull;
+    if (settings == null) return;
+    await applyPreferredAudioDevice(player, settings.read(SettingsService.audioOutputDevice));
   }
 
   void _wirePlayerStreams(Player player) {
