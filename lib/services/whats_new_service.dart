@@ -55,6 +55,10 @@ const Map<String, List<String>> _whatsNewByVersion = {
     "Screensaver clock now moves after a few minutes so my new TV doesn't get burn in.",
     'Added genre to the metadata line',
   ],
+  '2.17.50': [
+    'Posters now show when a movie or show would finish if you started it now',
+    'Added genre to the metadata line',
+  ],
 };
 
 abstract final class WhatsNewService {
