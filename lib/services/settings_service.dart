@@ -869,6 +869,7 @@ class SettingsService extends BaseSharedPreferencesService {
   /// stays collapsed across launches instead of springing back open (#1896).
   static const librariesSectionExpanded = BoolPref('libraries_section_expanded', defaultValue: true);
   static const showUnwatchedCount = BoolPref('show_unwatched_count', defaultValue: true);
+  static const showFinishTimeOnCards = BoolPref('show_finish_time_on_cards', defaultValue: true);
 
   /// The corner checkmark on watched posters/thumbnails (#1998). Progress bars
   /// and unwatched counts are unaffected.
@@ -1538,6 +1539,7 @@ class SettingsService extends BaseSharedPreferencesService {
     alwaysKeepSidebarOpen,
     librariesSectionExpanded,
     showUnwatchedCount,
+    showFinishTimeOnCards,
     showWatchedIndicators,
     showEpisodeNumberOnCards,
     showSeasonPostersOnTabs,

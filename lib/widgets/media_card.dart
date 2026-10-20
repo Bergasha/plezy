@@ -1233,8 +1233,19 @@ class _MediaCardHelpers {
     }
 
     final text = _metadataSubtitleText(mi, catalogMetadata: catalogMetadata, showTitleImplied: showTitleImplied);
-    return text == null ? const SizedBox.shrink() : _caption(context, text);
+    if (text == null) return const SizedBox.shrink();
+    if (catalogMetadata.isEmpty && _showsFinishTime(mi)) {
+      return _FinishTimeCaption(item: mi, text: text, style: _captionStyle(context));
+    }
+    return _caption(context, text);
   }
+
+  static bool _showsFinishTime(MediaItem mi) =>
+      (mi.kind == MediaKind.movie || mi.kind == MediaKind.show) &&
+      mi.year != null &&
+      mi.displaySubtitle == null &&
+      mi.parentTitle == null &&
+      (mi.durationMs ?? 0) > 0;
 
   static String? _metadataSubtitleText(
     MediaItem mi, {
@@ -1272,6 +1283,74 @@ class _MediaCardHelpers {
       return edition != null ? '$year · $edition' : '$year';
     }
     return null;
+  }
+}
+
+/// When [item] would finish if playback started at [now]: the whole runtime,
+/// or what is left of it when the item is partway through.
+DateTime? mediaFinishTime(MediaItem item, DateTime now) {
+  final durationMs = item.durationMs ?? 0;
+  if (durationMs <= 0) return null;
+  final offsetMs = item.viewOffsetMs ?? 0;
+  final remainingMs = offsetMs > 0 && offsetMs < durationMs ? durationMs - offsetMs : durationMs;
+  return now.add(Duration(milliseconds: remainingMs));
+}
+
+class _FinishTimeCaption extends StatefulWidget {
+  const _FinishTimeCaption({required this.item, required this.text, required this.style});
+
+  final MediaItem item;
+  final String text;
+  final TextStyle? style;
+
+  @override
+  State<_FinishTimeCaption> createState() => _FinishTimeCaptionState();
+}
+
+class _FinishTimeCaptionState extends State<_FinishTimeCaption> {
+  Timer? _tick;
+  DateTime _now = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleTick();
+  }
+
+  void _scheduleTick() {
+    final now = DateTime.now();
+    final nextMinute = DateTime(now.year, now.month, now.day, now.hour, now.minute).add(const Duration(minutes: 1));
+    _tick = Timer(nextMinute.difference(now), () {
+      if (!mounted) return;
+      setState(() => _now = DateTime.now());
+      _scheduleTick();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  String _label(BuildContext context) {
+    final finish = mediaFinishTime(widget.item, _now);
+    if (finish == null) return widget.text;
+    final time = formatClockTime(finish, is24Hour: MediaQuery.alwaysUse24HourFormatOf(context));
+    return '${widget.text} · ${t.videoControls.finishesAt(time: time)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsBuilder(
+      prefs: const [SettingsService.showFinishTimeOnCards],
+      builder: (context) {
+        final enabled = SettingsService.instance.read(SettingsService.showFinishTimeOnCards);
+        return ExcludeSemantics(
+          child: Text(enabled ? _label(context) : widget.text, maxLines: 1, overflow: .ellipsis, style: widget.style),
+        );
+      },
+    );
   }
 }
 

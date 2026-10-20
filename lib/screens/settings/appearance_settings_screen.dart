@@ -162,6 +162,12 @@ class AppearanceSettingsScreen extends StatelessWidget {
               title: t.settings.showUnwatchedCount,
               subtitle: t.settings.showUnwatchedCountDescription,
             ),
+            SettingSwitchTile(
+              pref: SettingsService.showFinishTimeOnCards,
+              icon: Symbols.schedule_rounded,
+              title: t.settings.showFinishTimeOnCards,
+              subtitle: t.settings.showFinishTimeOnCardsDescription,
+            ),
           ],
         ),
 
