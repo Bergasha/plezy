@@ -1348,7 +1348,11 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen>
   @override
   void initState() {
     super.initState();
-    PlaybackCoordinator.instance.registerVideoSession(shutdown: _shutdownVideo, stopAndExit: _stopVideoAndExit);
+    PlaybackCoordinator.instance.registerVideoSession(
+      shutdown: _shutdownVideo,
+      stopAndExit: _stopVideoAndExit,
+      playerState: () => player?.state,
+    );
     SleepTimerService().bindPlayback(
       owner: this,
       onComplete: () {
