@@ -825,6 +825,7 @@
     "subtitlesNoneAvailable": "Subtitles: none available",
     "subtitlesOff": "Subtitles: off",
     "subtitlesTrack": "Subtitles: ${label}",
+    "screenshotFailed": "Couldn't take a screenshot",
     "zoomPercent": "Zoom ${percent}%",
     "volumePercent": "Volume ${percent}%",
     "pipErrors": {

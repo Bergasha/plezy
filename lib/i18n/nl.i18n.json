@@ -759,6 +759,7 @@
     "pipActive": "Afspelen in beeld-in-beeld",
     "pipFailed": "Beeld-in-beeld kon niet worden gestart",
     "screenshotSaved": "Schermafbeelding opgeslagen",
+    "screenshotFailed": "",
     "zoomPercent": "Zoom ${percent}%",
     "volumePercent": "Volume ${percent}%",
     "pipErrors": {

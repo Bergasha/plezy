@@ -2444,6 +2444,9 @@ class Translations$videoControls$en {
 	/// en: 'Subtitles: ${label}'
 	String subtitlesTrack({required Object label}) => 'Subtitles: ${label}';
 
+	/// en: 'Couldn't take a screenshot'
+	String get screenshotFailed => 'Couldn\'t take a screenshot';
+
 	/// en: 'Zoom ${percent}%'
 	String zoomPercent({required Object percent}) => 'Zoom ${percent}%';
 
@@ -8498,6 +8501,7 @@ extension on Translations {
 			'videoControls.subtitlesNoneAvailable' => 'Subtitles: none available',
 			'videoControls.subtitlesOff' => 'Subtitles: off',
 			'videoControls.subtitlesTrack' => ({required Object label}) => 'Subtitles: ${label}',
+			'videoControls.screenshotFailed' => 'Couldn\'t take a screenshot',
 			'videoControls.zoomPercent' => ({required Object percent}) => 'Zoom ${percent}%',
 			'videoControls.volumePercent' => ({required Object percent}) => 'Volume ${percent}%',
 			'videoControls.pipErrors.androidVersion' => 'Requires Android 8.0 or newer',
@@ -8743,9 +8747,9 @@ extension on Translations {
 			'accountPreferences.subtitleModes.none' => 'Manually selected',
 			'accountPreferences.subtitleModes.noneDescription' => 'Never turn subtitles on by itself.',
 			'accountPreferences.subtitleModes.defaultMode' => 'Follow the track flags',
-			'accountPreferences.subtitleModes.defaultModeDescription' => 'Use the default and forced flags stored on each subtitle track.',
 			_ => null,
 		} ?? switch (path) {
+			'accountPreferences.subtitleModes.defaultModeDescription' => 'Use the default and forced flags stored on each subtitle track.',
 			'accountPreferences.subtitleModes.always' => 'Always enabled',
 			'accountPreferences.subtitleModes.alwaysDescription' => 'Turn on a subtitle track in the preferred language whenever one exists.',
 			'accountPreferences.subtitleModes.onlyForced' => 'Only forced subtitles',
@@ -9257,9 +9261,9 @@ extension on Translations {
 			'collections.removeFromCollectionError' => ({required Object error}) => 'Error removing from collection: ${error}',
 			'collections.searchCollections' => 'Search collections...',
 			'playlists.title' => 'Playlists',
-			'playlists.playlist' => 'Playlist',
 			_ => null,
 		} ?? switch (path) {
+			'playlists.playlist' => 'Playlist',
 			'playlists.noPlaylists' => 'No playlists found',
 			'playlists.create' => 'Create Playlist',
 			'playlists.playlistName' => 'Playlist Name',
@@ -9771,9 +9775,9 @@ extension on Translations {
 			'matchScreen.match' => 'Match...',
 			'matchScreen.fixMatch' => 'Fix Match...',
 			'matchScreen.unmatch' => 'Unmatch',
-			'matchScreen.unmatchConfirm' => 'Clear this match? Plex treats it as unmatched until rematched.',
 			_ => null,
 		} ?? switch (path) {
+			'matchScreen.unmatchConfirm' => 'Clear this match? Plex treats it as unmatched until rematched.',
 			'matchScreen.unmatchSuccess' => 'Item unmatched',
 			'matchScreen.unmatchFailed' => 'Failed to unmatch item',
 			'matchScreen.matchApplied' => 'Match applied',
