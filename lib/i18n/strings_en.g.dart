@@ -579,11 +579,11 @@ class Translations$settings$en {
 	/// en: 'Display unwatched episode count on shows and seasons'
 	String get showUnwatchedCountDescription => 'Display unwatched episode count on shows and seasons';
 
-	/// en: 'Show Finish Time'
-	String get showFinishTimeOnCards => 'Show Finish Time';
+	/// en: 'Show End Time'
+	String get showFinishTimeOnCards => 'Show End Time';
 
-	/// en: 'On movie and show posters, show when it would finish if you started watching now'
-	String get showFinishTimeOnCardsDescription => 'On movie and show posters, show when it would finish if you started watching now';
+	/// en: 'On movie and show posters, show when it would end if you started watching now'
+	String get showFinishTimeOnCardsDescription => 'On movie and show posters, show when it would end if you started watching now';
 
 	/// en: 'Show Watched Indicators'
 	String get showWatchedIndicators => 'Show Watched Indicators';
@@ -2398,9 +2398,6 @@ class Translations$videoControls$en {
 
 	/// en: 'Ends at ${time}'
 	String endsAt({required Object time}) => 'Ends at ${time}';
-
-	/// en: 'Finishes at ${time}'
-	String finishesAt({required Object time}) => 'Finishes at ${time}';
 
 	/// en: 'Playing in Picture-in-Picture'
 	String get pipActive => 'Playing in Picture-in-Picture';
@@ -7858,8 +7855,8 @@ extension on Translations {
 			'settings.alwaysKeepSidebarOpenDescription' => 'Sidebar stays expanded and content area adjusts to fit',
 			'settings.showUnwatchedCount' => 'Show Unwatched Count',
 			'settings.showUnwatchedCountDescription' => 'Display unwatched episode count on shows and seasons',
-			'settings.showFinishTimeOnCards' => 'Show Finish Time',
-			'settings.showFinishTimeOnCardsDescription' => 'On movie and show posters, show when it would finish if you started watching now',
+			'settings.showFinishTimeOnCards' => 'Show End Time',
+			'settings.showFinishTimeOnCardsDescription' => 'On movie and show posters, show when it would end if you started watching now',
 			'settings.showWatchedIndicators' => 'Show Watched Indicators',
 			'settings.showWatchedIndicatorsDescription' => 'Display a checkmark on watched movies, shows, and episodes',
 			'settings.showEpisodeNumberOnCards' => 'Show Episode Number on Cards',
@@ -8459,7 +8456,6 @@ extension on Translations {
 			'videoControls.timelineSlider' => 'Video timeline',
 			'videoControls.volumeSlider' => 'Volume level',
 			'videoControls.endsAt' => ({required Object time}) => 'Ends at ${time}',
-			'videoControls.finishesAt' => ({required Object time}) => 'Finishes at ${time}',
 			'videoControls.pipActive' => 'Playing in Picture-in-Picture',
 			'videoControls.pipFailed' => 'Picture-in-picture failed to start',
 			'videoControls.screenshotSaved' => 'Screenshot saved',
@@ -8720,9 +8716,9 @@ extension on Translations {
 			'accountPreferences.subtitleModes.smartDescription' => 'Turn subtitles on only when the audio is in another language.',
 			'accountPreferences.subtitleAccessibility' => 'SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.preferNonSdh' => 'Prefer non-SDH subtitles',
+			'accountPreferences.subtitleAccessibilityOptions.preferSdh' => 'Prefer SDH subtitles',
 			_ => null,
 		} ?? switch (path) {
-			'accountPreferences.subtitleAccessibilityOptions.preferSdh' => 'Prefer SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.onlySdh' => 'Only SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.onlyNonSdh' => 'Only non-SDH subtitles',
 			'accountPreferences.forcedSubtitles' => 'Forced subtitles',
@@ -9234,9 +9230,9 @@ extension on Translations {
 			'playlists.removeItem' => 'Remove from Playlist',
 			'playlists.smartPlaylist' => 'Smart Playlist',
 			'playlists.itemCount' => ({required Object count}) => '${count} items',
+			'playlists.oneItem' => '1 item',
 			_ => null,
 		} ?? switch (path) {
-			'playlists.oneItem' => '1 item',
 			'playlists.emptyPlaylist' => 'This playlist is empty',
 			'playlists.deleteConfirm' => 'Delete Playlist?',
 			'playlists.deleteMessage' => ({required Object name}) => 'Are you sure you want to delete "${name}"?',
@@ -9748,9 +9744,9 @@ extension on Translations {
 			'matchScreen.yearHint' => 'Year',
 			'matchScreen.search' => 'Search',
 			'matchScreen.noMatchesFound' => 'No matches found',
+			'tautulli.activeStreams' => 'Active Streams',
 			_ => null,
 		} ?? switch (path) {
-			'tautulli.activeStreams' => 'Active Streams',
 			'tautulli.failedToLoad' => 'Failed to load active streams from Tautulli',
 			'tautulli.noActiveStreams' => 'No active streams',
 			'tautulli.transcode' => 'TRANSCODE',

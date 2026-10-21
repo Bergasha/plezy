@@ -1337,7 +1337,7 @@ class _FinishTimeCaptionState extends State<_FinishTimeCaption> {
     final finish = mediaFinishTime(widget.item, _now);
     if (finish == null) return widget.text;
     final time = formatClockTime(finish, is24Hour: MediaQuery.alwaysUse24HourFormatOf(context));
-    return '${widget.text} · ${t.videoControls.finishesAt(time: time)}';
+    return '${t.videoControls.endsAt(time: time)} · ${widget.text}';
   }
 
   @override

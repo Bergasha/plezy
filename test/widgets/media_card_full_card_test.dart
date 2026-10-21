@@ -161,7 +161,7 @@ void main() {
     expect(metadata.data, isNot(contains('(')), reason: 'vote counts do not fit a shelf caption');
   });
 
-  testWidgets('plain library grid metadata is the year and finish time only', (tester) async {
+  testWidgets('plain library grid metadata is the end time and year only', (tester) async {
     final item = testMediaItem(
       id: 'library-movie',
       kind: MediaKind.movie,
@@ -175,7 +175,7 @@ void main() {
 
     await tester.pumpWidget(_catalogGridHarness(item));
 
-    expect(find.textContaining('2024 · Finishes at '), findsOneWidget);
+    expect(find.textContaining(' · 2024'), findsOneWidget);
     expect(find.textContaining('PG-13'), findsNothing);
     expect(find.textContaining('2h 5m'), findsNothing);
     expect(find.textContaining('8.6★'), findsNothing);

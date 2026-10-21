@@ -79,16 +79,16 @@ void main() {
     expect(mediaFinishTime(_item(MediaKind.movie), DateTime(2026, 10, 20, 19, 30)), isNull);
   });
 
-  testWidgets('a movie card shows the finish time next to the year', (tester) async {
+  testWidgets('a movie card leads with the end time before the year', (tester) async {
     await _pumpCard(tester, _item(MediaKind.movie, durationMs: const Duration(hours: 2).inMilliseconds));
 
-    expect(find.textContaining('2022 · Finishes at '), findsOneWidget);
+    expect(_caption(RegExp(r'^Ends at .+ · 2022$')), findsOneWidget);
   });
 
-  testWidgets('a show card shows the finish time next to the year', (tester) async {
+  testWidgets('a show card leads with the end time before the year', (tester) async {
     await _pumpCard(tester, _item(MediaKind.show, durationMs: const Duration(minutes: 45).inMilliseconds));
 
-    expect(find.textContaining('2022 · Finishes at '), findsOneWidget);
+    expect(_caption(RegExp(r'^Ends at .+ · 2022$')), findsOneWidget);
   });
 
   testWidgets('the year stands alone when the setting is off', (tester) async {
@@ -96,13 +96,16 @@ void main() {
     await _pumpCard(tester, _item(MediaKind.movie, durationMs: const Duration(hours: 2).inMilliseconds));
 
     expect(find.text('2022'), findsOneWidget);
-    expect(find.textContaining('Finishes at'), findsNothing);
+    expect(find.textContaining('Ends at'), findsNothing);
   });
 
   testWidgets('the year stands alone when the runtime is unknown', (tester) async {
     await _pumpCard(tester, _item(MediaKind.movie));
 
     expect(find.text('2022'), findsOneWidget);
-    expect(find.textContaining('Finishes at'), findsNothing);
+    expect(find.textContaining('Ends at'), findsNothing);
   });
 }
+
+Finder _caption(RegExp pattern) =>
+    find.byWidgetPredicate((widget) => widget is Text && pattern.hasMatch(widget.data ?? ''));
