@@ -34,26 +34,22 @@ import '../theme/mono_tokens.dart';
 import '../widgets/backend_badge.dart';
 import '../i18n/strings.g.dart';
 
-enum _LibraryNavSection { visible, hidden }
-
 sealed class _LibraryNavRow {
-  final _LibraryNavSection section;
-
-  const _LibraryNavRow({required this.section});
+  const _LibraryNavRow();
 }
 
 final class _LibraryServerHeaderRow extends _LibraryNavRow {
   final String serverId;
   final String serverName;
 
-  const _LibraryServerHeaderRow({required super.section, required this.serverId, required this.serverName});
+  const _LibraryServerHeaderRow({required this.serverId, required this.serverName});
 }
 
 final class _LibraryItemRow extends _LibraryNavRow {
   final MediaLibrary library;
   final bool showServerName;
 
-  const _LibraryItemRow({required super.section, required this.library, this.showServerName = false});
+  const _LibraryItemRow({required this.library, this.showServerName = false});
 }
 
 /// SELECT activates the rail row, RIGHT hands off to the content area.
@@ -431,12 +427,20 @@ class SideNavigationRail extends StatefulWidget {
 }
 
 class SideNavigationRailState extends State<SideNavigationRail> with MountedSetStateMixin {
-  /// Libraries section expansion, held in settings rather than widget state so
-  /// it survives relaunch, remount and layout switches (#1896). The rail's
-  /// [ListenableBuilder] below listens to the pref, so the toggle just writes.
-  bool get _librariesExpanded => SettingsService.instance.read(SettingsService.librariesSectionExpanded);
-
   bool _isHovered = false;
+
+  /// Set when a selection collapses the rail while the cursor is still over it.
+  /// The cursor sits on the rail without ever re-entering it, so the hover is
+  /// ignored until the cursor has left once; otherwise the open panel would
+  /// keep covering the page that was just chosen.
+  bool _hoverLocked = false;
+  Offset? _lastPointer;
+  Offset? _lockOrigin;
+  bool _wasKeyboardMode = false;
+
+  /// How far the cursor must travel from where the rail was shut before it
+  /// counts as a deliberate move and reopens the rail.
+  static const double _hoverUnlockDistance = 24.0;
   bool _isTouchExpanded = false;
   bool _lastReportedFloatingPanel = false;
   Timer? _collapseTimer;
@@ -473,17 +477,14 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
   static const _kWatchlist = 'watchlist';
   static const _kExplore = 'explore';
   static const _kNowPlaying = 'nowPlaying';
-  static const _kLibraries = 'libraries';
   static const _kSearch = 'search';
   static const _kDownloads = 'downloads';
   static const _kSettings = 'settings';
   static const _kReconnect = 'reconnect';
   static const _kFullscreen = 'fullscreen';
-  static const _kHiddenLibraries = 'hiddenLibraries';
   static const _kServerHeaderPrefix = 'serverHeader';
   static const _kLibraryItemPrefix = 'library';
 
-  bool _hiddenLibrariesExpanded = false;
   final Set<String> _collapsedServerGroupKeys = {};
 
   // Unified focus state tracker for all nav items (main + libraries)
@@ -527,6 +528,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     if (oldWidget.selectedTab != widget.selectedTab || oldWidget.selectedLibraryKey != widget.selectedLibraryKey) {
       final wasInteractionExpanded = _interactionExpanded;
       _isTouchExpanded = false;
+      if (_isHovered) _lockHover();
       if (wasInteractionExpanded != _interactionExpanded) {
         _scheduleFloatingPanelNotification();
       }
@@ -554,9 +556,32 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     widget.onFloatingPanelChanged?.call(floating);
   }
 
+  /// Shuts a hover-opened rail and ignores the cursor until it leaves, or moves
+  /// well away from where it rests now. A cursor parked on the rail never
+  /// re-enters it, so without this the rail would stay open under it.
+  void _lockHover() {
+    _isHovered = false;
+    _hoverLocked = true;
+    _lockOrigin = _lastPointer;
+  }
+
+  /// Opens the rail on real cursor movement. A stationary cursor that the
+  /// layout merely moved under (the rail growing, content shifting) does not
+  /// reach here, unlike an enter event, which the framework also sends then.
+  void _onPointerHover(PointerHoverEvent event) {
+    _lastPointer = event.position;
+    if (_hoverLocked) {
+      final origin = _lockOrigin;
+      if (origin != null && (event.position - origin).distance < _hoverUnlockDistance) return;
+      _hoverLocked = false;
+      _lockOrigin = null;
+    }
+    _onHoverEnter();
+  }
+
   void _onHoverEnter() {
     _collapseTimer?.cancel();
-    if (_isHovered && !_isTouchExpanded) return;
+    if (_hoverLocked || (_isHovered && !_isTouchExpanded)) return;
     setState(() {
       _isTouchExpanded = false; // Mouse takes over
       _isHovered = true;
@@ -565,6 +590,8 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
   }
 
   void _onHoverExit() {
+    _hoverLocked = false;
+    _lockOrigin = null;
     _collapseTimer?.cancel();
     _collapseTimer = Timer(_collapseDelay, () {
       if (mounted && _isHovered) {
@@ -634,15 +661,9 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
         return _kExplore;
       case NavigationTabId.libraries:
         final libKey = widget.selectedLibraryKey;
-        if (libKey != null && _librariesExpanded) {
-          final visibleKey = '$_kLibraryItemPrefix:${_LibraryNavSection.visible.name}:$libKey';
-          if (_mountedFocusNodeFor(visibleKey) != null) return visibleKey;
-          if (_hiddenLibrariesExpanded) {
-            final hiddenKey = '$_kLibraryItemPrefix:${_LibraryNavSection.hidden.name}:$libKey';
-            if (_mountedFocusNodeFor(hiddenKey) != null) return hiddenKey;
-          }
-        }
-        return _kLibraries;
+        if (libKey == null) return null;
+        final key = _libraryItemFocusKey(libKey);
+        return _mountedFocusNodeFor(key) != null ? key : null;
       case NavigationTabId.search:
         return _kSearch;
       case NavigationTabId.downloads:
@@ -660,26 +681,22 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     scrollContextToCenter(node.context);
   }
 
-  String _serverHeaderFocusKey(_LibraryNavSection section, ServerId serverId) =>
-      '$_kServerHeaderPrefix:${section.name}:$serverId';
+  String _serverHeaderFocusKey(ServerId serverId) => '$_kServerHeaderPrefix:$serverId';
 
-  String _libraryItemFocusKey(_LibraryNavSection section, MediaLibrary library) =>
-      '$_kLibraryItemPrefix:${section.name}:${library.globalKey}';
+  String _libraryItemFocusKey(String libraryGlobalKey) => '$_kLibraryItemPrefix:$libraryGlobalKey';
 
-  String _serverGroupStateKey(_LibraryNavSection section, ServerId serverId) => '${section.name}:$serverId';
+  String _serverGroupStateKey(ServerId serverId) => '$serverId';
 
   String _focusKeyForLibraryRow(_LibraryNavRow row) => switch (row) {
-    _LibraryServerHeaderRow(:final section, :final serverId) => _serverHeaderFocusKey(section, ServerId(serverId)),
-    _LibraryItemRow(:final section, :final library) => _libraryItemFocusKey(section, library),
+    _LibraryServerHeaderRow(:final serverId) => _serverHeaderFocusKey(ServerId(serverId)),
+    _LibraryItemRow(:final library) => _libraryItemFocusKey(library.globalKey),
   };
 
   Iterable<String> _focusKeysForLibraryRows(List<_LibraryNavRow> rows) => rows.map(_focusKeyForLibraryRow);
 
   /// Build the set of valid focus keys (main nav + currently rendered library rows).
   Set<String> _buildValidFocusKeys({
-    required List<_LibraryNavRow> visibleRows,
-    required List<_LibraryNavRow> hiddenRows,
-    required bool hasHiddenLibraries,
+    required List<_LibraryNavRow> libraryRows,
     required bool hasLiveTv,
     required bool hasNowPlaying,
     required bool hasExplore,
@@ -689,32 +706,26 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
       _kHome,
       if (hasWatchlist) _kWatchlist,
       if (hasNowPlaying) _kNowPlaying,
-      _kLibraries,
       if (hasExplore) _kExplore,
       _kSearch,
       if (_showDownloads) _kDownloads,
       _kSettings,
       _kReconnect,
-      if (hasHiddenLibraries) _kHiddenLibraries,
       if (_showFullscreenToggle) _kFullscreen,
       if (hasLiveTv) 'liveTv',
-      ..._focusKeysForLibraryRows(visibleRows),
-      if (_hiddenLibrariesExpanded) ..._focusKeysForLibraryRows(hiddenRows),
+      ..._focusKeysForLibraryRows(libraryRows),
     };
   }
 
-  /// Build rendered rows inside one library section. This is the single source
-  /// of truth for both widget rendering and D-pad focus ordering.
-  List<_LibraryNavRow> _buildLibraryRows(
-    List<MediaLibrary> libs, {
-    required _LibraryNavSection section,
-    required bool showServerHeaders,
-  }) {
+  /// Build the rows the rail shows for the libraries the user keeps visible:
+  /// one nav item per library, with a collapsible server header above each
+  /// server's group when several servers are grouped. This is the single
+  /// source of truth for both widget rendering and D-pad focus ordering.
+  List<_LibraryNavRow> _buildLibraryRows(List<MediaLibrary> libs, {required bool showServerHeaders}) {
     if (!showServerHeaders) {
       final nonUniqueNames = _getNonUniqueLibraryNames(libs);
       return libs.map((lib) {
         return _LibraryItemRow(
-          section: section,
           library: lib,
           showServerName: nonUniqueNames.contains(lib.title) && lib.serverName != null,
         );
@@ -725,44 +736,29 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     for (final serverKey in grouped.serverOrder) {
       final bucket = grouped.byServer[serverKey]!;
       if (serverKey.isNotEmpty) {
-        result.add(
-          _LibraryServerHeaderRow(
-            section: section,
-            serverId: serverKey,
-            serverName: bucket.first.serverName ?? serverKey,
-          ),
-        );
+        result.add(_LibraryServerHeaderRow(serverId: serverKey, serverName: bucket.first.serverName ?? serverKey));
       }
-      if (serverKey.isEmpty ||
-          !_collapsedServerGroupKeys.contains(_serverGroupStateKey(section, ServerId(serverKey)))) {
+      if (serverKey.isEmpty || !_collapsedServerGroupKeys.contains(_serverGroupStateKey(ServerId(serverKey)))) {
         for (final lib in bucket) {
-          result.add(_LibraryItemRow(section: section, library: lib));
+          result.add(_LibraryItemRow(library: lib));
         }
       }
     }
     return result;
   }
 
-  Set<String> _buildServerGroupStateKeys(
-    List<MediaLibrary> visibleLibraries,
-    List<MediaLibrary> hiddenLibraries, {
-    required bool showServerHeaders,
-  }) {
+  Set<String> _buildServerGroupStateKeys(List<MediaLibrary> libraries, {required bool showServerHeaders}) {
     if (!showServerHeaders) return {};
 
     return {
-      for (final lib in visibleLibraries)
-        if (lib.serverId != null) _serverGroupStateKey(_LibraryNavSection.visible, ServerId(lib.serverId!)),
-      for (final lib in hiddenLibraries)
-        if (lib.serverId != null) _serverGroupStateKey(_LibraryNavSection.hidden, ServerId(lib.serverId!)),
+      for (final lib in libraries)
+        if (lib.serverId != null) _serverGroupStateKey(ServerId(lib.serverId!)),
     };
   }
 
   /// Ordered list of focusable keys matching visual top-to-bottom order.
   List<String> _buildFocusOrder(
-    List<_LibraryNavRow> visibleRows,
-    List<_LibraryNavRow> hiddenRows, {
-    required bool hasHiddenLibraries,
+    List<_LibraryNavRow> libraryRows, {
     required bool hasLiveTv,
     required bool hasNowPlaying,
     required bool hasExplore,
@@ -775,17 +771,10 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
         _kHome,
         if (hasWatchlist) _kWatchlist,
         if (hasNowPlaying) _kNowPlaying,
-        _kLibraries,
-        // Library rows render inside ExcludeFocus(excluding: !_librariesExpanded
-        // || isCollapsed); keep the D-pad order in lockstep with that render
-        // condition so a collapsed rail never targets a focus-excluded row.
-        if (_librariesExpanded && !isCollapsed) ...[
-          ..._focusKeysForLibraryRows(visibleRows),
-          if (hasHiddenLibraries) ...[
-            _kHiddenLibraries,
-            if (_hiddenLibrariesExpanded) ..._focusKeysForLibraryRows(hiddenRows),
-          ],
-        ],
+        // A collapsed rail has no server headers, so keep them out of the
+        // D-pad order in lockstep with what is rendered.
+        for (final row in libraryRows)
+          if (!isCollapsed || row is _LibraryItemRow) _focusKeyForLibraryRow(row),
         if (hasLiveTv) 'liveTv',
         if (hasExplore) _kExplore,
         _kSearch,
@@ -876,16 +865,23 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
 
     final allLibraries = librariesProvider.libraries;
     final visibleLibraries = <MediaLibrary>[];
-    final hiddenLibraries = <MediaLibrary>[];
     final serverIds = <String>{};
     for (final lib in allLibraries) {
       if (lib.serverId != null) serverIds.add(lib.serverId!);
-      if (hiddenKeys.contains(lib.globalKey)) {
-        hiddenLibraries.add(lib);
-      } else {
-        visibleLibraries.add(lib);
-      }
+      if (!hiddenKeys.contains(lib.globalKey)) visibleLibraries.add(lib);
     }
+
+    // Keyboard or D-pad input takes over from a cursor resting on the rail:
+    // the rail then follows focus, not the pointer, until the cursor moves.
+    final keyboardMode = InputModeTracker.isKeyboardMode(context);
+    if (keyboardMode && !_wasKeyboardMode && _isHovered) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(_lockHover);
+        _notifyFloatingPanelIfNeeded();
+      });
+    }
+    _wasKeyboardMode = keyboardMode;
 
     final isCollapsed = !_shouldExpand;
     final effectiveCollapsedWidth = collapsedWidthForContext(context);
@@ -905,14 +901,12 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     final nowPlayingTrack = widget.isOfflineMode || !PlatformDetector.isTV() ? null : musicService?.currentTrack;
 
     // Listen to fullscreen + the groupLibrariesByServer / showExploreTab
-    // settings so the rail rebuilds when they are toggled in Appearance, and to
-    // librariesSectionExpanded so the Libraries header toggle repaints.
+    // settings so the rail rebuilds when they are toggled in Appearance.
     return ListenableBuilder(
       listenable: Listenable.merge([
         FullscreenStateManager(),
         SettingsService.instance.listenable(SettingsService.groupLibrariesByServer),
         SettingsService.instance.listenable(SettingsService.showExploreTab),
-        SettingsService.instance.listenable(SettingsService.librariesSectionExpanded),
       ]),
       builder: (context, _) {
         final hasExplore = hasExploreSource && SettingsService.instance.read(SettingsService.showExploreTab);
@@ -920,23 +914,12 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
         final groupByServerSetting = SettingsService.instance.read(SettingsService.groupLibrariesByServer);
         final showServerHeaders = serverIds.length > 1 && groupByServerSetting;
         _collapsedServerGroupKeys.retainAll(
-          _buildServerGroupStateKeys(visibleLibraries, hiddenLibraries, showServerHeaders: showServerHeaders),
+          _buildServerGroupStateKeys(visibleLibraries, showServerHeaders: showServerHeaders),
         );
-        final visibleRows = _buildLibraryRows(
-          visibleLibraries,
-          section: _LibraryNavSection.visible,
-          showServerHeaders: showServerHeaders,
-        );
-        final hiddenRows = _buildLibraryRows(
-          hiddenLibraries,
-          section: _LibraryNavSection.hidden,
-          showServerHeaders: showServerHeaders,
-        );
+        final libraryRows = _buildLibraryRows(visibleLibraries, showServerHeaders: showServerHeaders);
         _focusTracker.pruneExcept(
           _buildValidFocusKeys(
-            visibleRows: visibleRows,
-            hiddenRows: hiddenRows,
-            hasHiddenLibraries: hiddenLibraries.isNotEmpty,
+            libraryRows: libraryRows,
             hasLiveTv: hasLiveTv,
             hasNowPlaying: nowPlayingTrack != null,
             hasExplore: hasExplore,
@@ -944,9 +927,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           ),
         );
         final focusOrder = _buildFocusOrder(
-          visibleRows,
-          hiddenRows,
-          hasHiddenLibraries: hiddenLibraries.isNotEmpty,
+          libraryRows,
           hasLiveTv: hasLiveTv,
           hasNowPlaying: nowPlayingTrack != null,
           hasExplore: hasExplore,
@@ -963,7 +944,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
           },
           child: MouseRegion(
             cursor: isCollapsed ? SystemMouseCursors.click : MouseCursor.defer,
-            onEnter: (_) => _onHoverEnter(),
+            onHover: _onPointerHover,
             onExit: (_) => _onHoverExit(),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -1060,14 +1041,7 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
                                         _buildNowPlayingItem(nowPlayingTrack, musicService, isCollapsed: isCollapsed),
                                         const SizedBox(height: _itemGap),
                                       ],
-                                      _buildLibrariesSection(
-                                        visibleRows,
-                                        hiddenRows,
-                                        hiddenLibraries.length,
-                                        t,
-                                        isCollapsed: isCollapsed,
-                                      ),
-                                      const SizedBox(height: _itemGap),
+                                      ..._buildLibraryNavRows(libraryRows, t, isCollapsed: isCollapsed),
                                       if (context.watch<MultiServerProvider>().hasLiveTv) ...[
                                         _buildNavItem(
                                           icon: Symbols.live_tv_rounded,
@@ -1285,107 +1259,26 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     );
   }
 
-  Widget _buildLibrariesSection(
-    List<_LibraryNavRow> visibleRows,
-    List<_LibraryNavRow> hiddenRows,
-    int hiddenLibraryCount,
-    dynamic t, {
-    bool isCollapsed = false,
-  }) {
-    final librariesProvider = context.watch<LibrariesProvider>();
-    final isLoading = librariesProvider.isLoading;
-    final isLibrariesTabSelected = widget.selectedTab == NavigationTabId.libraries;
-    final allEmpty = visibleRows.isEmpty && hiddenLibraryCount == 0;
-    final headerLabelColor = isLibrariesTabSelected ? t.text : t.textMuted;
-
-    Widget buildChevron(double opacity) {
-      return AppIcon(
-        _librariesExpanded ? Symbols.expand_less_rounded : Symbols.expand_more_rounded,
-        fill: 1,
-        size: 18,
-        color: t.textMuted.withValues(alpha: t.textMuted.a * opacity),
-      );
+  /// The libraries the user keeps visible, as top-level destinations beside
+  /// Home and Search. Server headers show only in the open rail; the collapsed
+  /// rail is icons only.
+  ///
+  /// One column rather than a list child per row: the rail's list builds only
+  /// the rows near the viewport, and D-pad focus can only land on a built row,
+  /// so a library scrolled out of view would be unreachable.
+  List<Widget> _buildLibraryNavRows(List<_LibraryNavRow> rows, dynamic t, {required bool isCollapsed}) {
+    if (rows.isEmpty) return const [];
+    final widgets = <Widget>[];
+    for (final row in rows) {
+      switch (row) {
+        case _LibraryServerHeaderRow(:final serverId, :final serverName):
+          if (!isCollapsed) widgets.add(_buildServerHeader(ServerId(serverId), serverName, t));
+        case _LibraryItemRow(:final library, :final showServerName):
+          widgets.add(_buildLibraryItem(library, t, isCollapsed: isCollapsed, showServerName: showServerName));
+          widgets.add(const SizedBox(height: _itemGap));
+      }
     }
-
-    return Column(
-      crossAxisAlignment: .start,
-      children: [
-        // A destination-sized row like Home/Search — same height, icon and
-        // label metrics — with the chevron as the expand affordance. The
-        // smaller header type is reserved for the nested sub-headers.
-        NavigationRailItem(
-          icon: Symbols.video_library_rounded,
-          label: Text(
-            Translations.of(context).navigation.libraries,
-            style: TextStyle(fontSize: 14, fontWeight: isLibrariesTabSelected ? FontWeight.w600 : FontWeight.w400),
-            overflow: .ellipsis,
-            maxLines: 1,
-          ),
-          labelColor: headerLabelColor,
-          collapsedLabel: Translations.of(context).navigation.libraries,
-          trailing: buildChevron(1),
-          trailingBuilder: buildChevron,
-          isSelected: isLibrariesTabSelected,
-          isCollapsed: isCollapsed,
-          onTap: () =>
-              unawaited(SettingsService.instance.write(SettingsService.librariesSectionExpanded, !_librariesExpanded)),
-          focusNode: _focusTracker.get(_kLibraries),
-          // A selected library owns the highlight; the header only shows it
-          // for the bare Libraries tab.
-          suppressSelectedBackground: widget.isSidebarFocused || widget.selectedLibraryKey != null,
-          focusAlpha: 0.16,
-          selectedFocusAlpha: 0.22,
-          onNavigateRight: widget.onNavigateToContent,
-        ),
-
-        TweenAnimationBuilder<double>(
-          tween: Tween(end: (_librariesExpanded && !isCollapsed) ? 1.0 : 0.0),
-          duration: expandDuration,
-          curve: expandCurve,
-          builder: (context, value, child) {
-            return ClipRect(
-              child: Align(alignment: .topCenter, heightFactor: value, child: child),
-            );
-          },
-          child: ExcludeFocus(
-            excluding: !_librariesExpanded || isCollapsed,
-            child: Column(
-              mainAxisSize: .min,
-              crossAxisAlignment: .start,
-              children: [
-                const SizedBox(height: 4),
-                if (isLoading)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Center(
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: t.textMuted),
-                      ),
-                    ),
-                  )
-                else if (allEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      Translations.of(context).libraries.noLibrariesFound,
-                      style: TextStyle(fontSize: 12, color: t.textMuted),
-                    ),
-                  )
-                else ...[
-                  if (visibleRows.isNotEmpty) _buildLibraryGroupedColumn(visibleRows, t),
-                  if (hiddenLibraryCount > 0) ...[
-                    _buildHiddenLibrariesHeader(hiddenLibraryCount, t),
-                    if (_hiddenLibrariesExpanded) _buildLibraryGroupedColumn(hiddenRows, t),
-                  ],
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
+    return [Column(crossAxisAlignment: .start, children: widgets)];
   }
 
   /// Get set of library names that appear more than once (not globally unique)
@@ -1397,68 +1290,32 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     return nameCounts.entries.where((e) => e.value > 1).map((e) => e.key).toSet();
   }
 
-  Widget _buildLibraryGroupedColumn(List<_LibraryNavRow> rows, dynamic t) {
-    return Column(
-      crossAxisAlignment: .start,
-      children: rows.map((row) {
-        return switch (row) {
-          _LibraryServerHeaderRow(:final section, :final serverId, :final serverName) => _buildServerHeader(
-            section,
-            ServerId(serverId),
-            serverName,
-            t,
-          ),
-          _LibraryItemRow(:final section, :final library, :final showServerName) => _buildLibraryItem(
-            section,
-            library,
-            t,
-            showServerName: showServerName,
-          ),
-        };
-      }).toList(),
-    );
-  }
-
-  Widget _buildServerHeader(_LibraryNavSection section, ServerId serverId, String serverName, dynamic t) {
+  Widget _buildServerHeader(ServerId serverId, String serverName, dynamic t) {
     // Resolve backend per server so the badge matches the brand. Falls back
     // to the generic `dns` icon if the client isn't registered yet (rare —
     // can happen during a profile switch before the manager rehydrates).
     final backend = context.read<MultiServerProvider>().serverManager.getClient(serverId)?.backend;
     return _buildCollapsibleHeader(
-      focusKey: _serverHeaderFocusKey(section, serverId),
+      focusKey: _serverHeaderFocusKey(serverId),
       icon: Symbols.dns_rounded,
       iconSize: 14,
       leading: backend == null ? null : BackendBadge(backend: backend, size: 14, color: t.textMuted),
       label: serverName,
       labelStyle: TextStyle(fontSize: 11, fontWeight: .w600, letterSpacing: 0.4, color: t.textMuted),
       verticalPadding: 6,
-      isExpanded: !_collapsedServerGroupKeys.contains(_serverGroupStateKey(section, serverId)),
-      onToggle: () => _toggleServerCollapse(section, serverId),
+      isExpanded: !_collapsedServerGroupKeys.contains(_serverGroupStateKey(serverId)),
+      onToggle: () => _toggleServerCollapse(serverId),
       t: t,
     );
   }
 
-  void _toggleServerCollapse(_LibraryNavSection section, ServerId serverId) {
-    final groupKey = _serverGroupStateKey(section, serverId);
+  void _toggleServerCollapse(ServerId serverId) {
+    final groupKey = _serverGroupStateKey(serverId);
     setState(() {
       if (!_collapsedServerGroupKeys.add(groupKey)) {
         _collapsedServerGroupKeys.remove(groupKey);
       }
     });
-  }
-
-  Widget _buildHiddenLibrariesHeader(int count, dynamic t) {
-    return _buildCollapsibleHeader(
-      focusKey: _kHiddenLibraries,
-      icon: Symbols.visibility_off_rounded,
-      iconSize: 16,
-      label: Translations.of(context).libraries.hiddenLibrariesCount(count: count),
-      labelStyle: TextStyle(fontSize: 12, fontWeight: .w500, color: t.textMuted),
-      verticalPadding: 8,
-      isExpanded: _hiddenLibrariesExpanded,
-      onToggle: () => setState(() => _hiddenLibrariesExpanded = !_hiddenLibrariesExpanded),
-      t: t,
-    );
   }
 
   Widget _buildCollapsibleHeader({
@@ -1530,41 +1387,45 @@ class SideNavigationRailState extends State<SideNavigationRail> with MountedSetS
     );
   }
 
-  Widget _buildLibraryItem(_LibraryNavSection section, MediaLibrary library, dynamic t, {bool showServerName = false}) {
+  Widget _buildLibraryItem(MediaLibrary library, dynamic t, {required bool isCollapsed, bool showServerName = false}) {
     final isSelected =
         widget.selectedTab == NavigationTabId.libraries && widget.selectedLibraryKey == library.globalKey;
-    final focusKey = _libraryItemFocusKey(section, library);
-    final focusNode = _focusTracker.get(focusKey);
+    final icon = ContentTypeHelper.getLibraryIcon(library.kind.id);
 
-    return NavigationRailItem(
-      icon: ContentTypeHelper.getLibraryIcon(library.kind.id),
-      selectedIcon: ContentTypeHelper.getLibraryIcon(library.kind.id),
-      label: Column(
+    Widget buildLabel(double opacity) {
+      final titleColor = (isSelected ? t.text : t.textMuted) as Color;
+      final titleStyle = TextStyle(
+        fontSize: 14,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+        color: titleColor.withValues(alpha: titleColor.a * opacity),
+      );
+      final mutedColor = t.textMuted as Color;
+      return Column(
         crossAxisAlignment: .start,
         mainAxisSize: .min,
         children: [
-          Text(
-            library.title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? t.text : t.textMuted,
-            ),
-            overflow: .ellipsis,
-          ),
+          Text(library.title, style: titleStyle, overflow: .ellipsis, maxLines: 1),
           if (showServerName)
             Text(
               library.serverName!,
-              style: TextStyle(fontSize: 9, color: t.textMuted.withValues(alpha: 0.4)),
+              style: TextStyle(fontSize: 10, color: mutedColor.withValues(alpha: mutedColor.a * 0.6 * opacity)),
               overflow: .ellipsis,
+              maxLines: 1,
             ),
         ],
-      ),
+      );
+    }
+
+    return NavigationRailItem(
+      icon: icon,
+      selectedIcon: icon,
+      label: buildLabel(1),
+      labelBuilder: buildLabel,
+      collapsedLabel: library.title,
       isSelected: isSelected,
+      isCollapsed: isCollapsed,
       onTap: () => widget.onLibrarySelected(library.globalKey),
-      focusNode: focusNode,
-      iconSize: 18,
-      expandedHeight: 40,
+      focusNode: _focusTracker.get(_libraryItemFocusKey(library.globalKey)),
       suppressSelectedBackground: widget.isSidebarFocused,
       onNavigateRight: widget.onNavigateToContent,
     );

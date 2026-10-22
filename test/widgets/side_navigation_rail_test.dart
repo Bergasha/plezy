@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui' show PointerDeviceKind;
 import 'package:plezy/media/ids.dart';
 
@@ -11,8 +10,6 @@ import 'package:plezy/i18n/strings.g.dart';
 import 'package:plezy/media/media_backend.dart';
 import 'package:plezy/media/media_kind.dart';
 import 'package:plezy/media/media_library.dart';
-import 'package:plezy/media/media_server_client.dart';
-import 'package:plezy/media/server_capabilities.dart';
 import 'package:plezy/navigation/navigation_tabs.dart';
 import 'package:plezy/providers/catalog_sources_provider.dart';
 import 'package:plezy/providers/hidden_libraries_provider.dart';
@@ -29,33 +26,6 @@ import 'package:provider/provider.dart';
 import '../test_helpers/multi_server_fixtures.dart';
 import '../test_helpers/prefs.dart';
 import '../test_helpers/theme.dart';
-
-/// A server whose library fetch waits on [libraries], holding the provider in
-/// its loading state (the rail then swaps the library rows for a spinner).
-class _GatedLibrariesClient implements MediaServerClient {
-  final libraries = Completer<List<MediaLibrary>>();
-
-  @override
-  ServerId get serverId => ServerId('server-a');
-
-  @override
-  String get serverName => 'Server A';
-
-  @override
-  MediaBackend get backend => MediaBackend.plex;
-
-  @override
-  ServerCapabilities get capabilities => ServerCapabilities.plex;
-
-  @override
-  Future<List<MediaLibrary>> fetchLibraries() => libraries.future;
-
-  @override
-  void close() {}
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 /// Minimal source-bearing stand-in: the rail only reads [hasAnySource].
 class _FakeCatalogSourcesProvider extends CatalogSourcesProvider {
@@ -97,11 +67,7 @@ AnimatedOpacity _railSurfaceOpacity(WidgetTester tester) {
       .singleWhere((widget) => widget.child is AnimatedContainer);
 }
 
-/// The Libraries header's expand/collapse chevron, matched by the symbol that
-/// only the given state renders.
-Finder _librariesChevron(IconData icon) {
-  return find.descendant(of: find.widgetWithText(NavigationRailItem, 'Libraries'), matching: find.byIcon(icon));
-}
+Widget _withInputTracker(bool enabled, Widget child) => enabled ? InputModeTracker(child: child) : child;
 
 Future<void> _pumpBasicRail(
   WidgetTester tester, {
@@ -114,6 +80,7 @@ Future<void> _pumpBasicRail(
   double? height,
   CatalogSourcesProvider? catalogSources,
   ValueChanged<bool>? onFloatingPanelChanged,
+  bool withInputTracker = false,
 }) async {
   await SettingsService.getInstance();
 
@@ -151,10 +118,13 @@ Future<void> _pumpBasicRail(
           ChangeNotifierProvider<MultiServerProvider>.value(value: multiServerProvider),
           if (catalogSources != null) ChangeNotifierProvider<CatalogSourcesProvider>.value(value: catalogSources),
         ],
-        child: MaterialApp(
-          theme: ThemeData(extensions: const [testMonoTokens]),
-          home: Scaffold(
-            body: height == null ? rail : SizedBox(height: height, child: rail),
+        child: _withInputTracker(
+          withInputTracker,
+          MaterialApp(
+            theme: ThemeData(extensions: const [testMonoTokens]),
+            home: Scaffold(
+              body: height == null ? rail : SizedBox(height: height, child: rail),
+            ),
           ),
         ),
       ),
@@ -382,19 +352,19 @@ void main() {
 
   testWidgets('focusActiveItem skips a remembered library row that has unmounted', (tester) async {
     await SettingsService.getInstance();
+    await SettingsService.instance.write(SettingsService.groupLibrariesByServer, true);
     final movies = _library(id: '1', title: 'Movies', serverId: ServerId('server-a'), serverName: 'Server A');
+    final shows = _library(id: '2', title: 'Shows', serverId: ServerId('server-b'), serverName: 'Server B');
 
     final librariesProvider = LibrariesProvider();
-    await librariesProvider.updateLibraryOrder([movies]);
+    await librariesProvider.updateLibraryOrder([movies, shows]);
     addTearDown(librariesProvider.dispose);
 
     final hiddenLibrariesProvider = HiddenLibrariesProvider();
     await hiddenLibrariesProvider.ensureInitialized();
     addTearDown(hiddenLibrariesProvider.dispose);
 
-    final client = _GatedLibrariesClient();
-    final manager = MultiServerManager()..debugRegisterClientForTesting(client);
-    final multiServerProvider = testMultiServerProvider(manager);
+    final multiServerProvider = testMultiServerProvider(MultiServerManager());
     addTearDown(multiServerProvider.dispose);
 
     final sideNavKey = GlobalKey<SideNavigationRailState>();
@@ -434,23 +404,19 @@ void main() {
     FocusManager.instance.primaryFocus!.unfocus();
     await tester.pump();
 
-    // A reload swaps the rows for a spinner; the remembered row's node keeps
-    // its old context, so a null-context check still takes it for mounted.
-    librariesProvider.initialize(multiServerProvider.aggregationService);
-    unawaited(librariesProvider.loadLibraries());
-    await tester.pump();
+    // Collapsing Server A's group unmounts its row; the remembered row's node
+    // keeps its old context, so a null-context check still takes it for mounted.
+    await tester.tap(find.text('Server A'));
+    await tester.pumpAndSettle();
     expect(find.widgetWithText(NavigationRailItem, 'Movies'), findsNothing);
 
     sideNavKey.currentState!.focusActiveItem();
     await tester.pump();
 
     expect(
-      tester.widget<NavigationRailItem>(find.widgetWithText(NavigationRailItem, 'Libraries')).focusNode.hasFocus,
+      tester.widget<NavigationRailItem>(find.widgetWithText(NavigationRailItem, 'Home')).focusNode.hasFocus,
       isTrue,
     );
-
-    client.libraries.complete([movies]);
-    await tester.pumpAndSettle();
   });
 
   testWidgets('Explore item follows the showExploreTab appearance setting', (tester) async {
@@ -469,45 +435,79 @@ void main() {
     expect(find.widgetWithText(NavigationRailItem, 'Explore'), findsOneWidget);
   });
 
-  testWidgets('collapsing the Libraries section survives a fresh rail', (tester) async {
+  testWidgets('libraries sit in the rail beside Home, with no Libraries dropdown', (tester) async {
     final movies = _library(id: '1', title: 'Movies', serverId: ServerId('server-a'), serverName: 'Server A');
+    final shows = _library(id: '2', title: 'Shows', serverId: ServerId('server-a'), serverName: 'Server A');
 
-    await _pumpBasicRail(tester, alwaysExpanded: true, libraries: [movies]);
-    expect(_librariesChevron(Symbols.expand_less_rounded), findsOneWidget);
+    await _pumpBasicRail(tester, alwaysExpanded: true, libraries: [movies, shows]);
 
-    await tester.tap(find.widgetWithText(NavigationRailItem, 'Libraries'));
-    await tester.pumpAndSettle();
-    expect(_librariesChevron(Symbols.expand_more_rounded), findsOneWidget);
-    expect(SettingsService.instance.read(SettingsService.librariesSectionExpanded), isFalse);
-
-    // Tear the rail down so the next pump builds a brand-new State — the app
-    // restart the session-only flag used to lose (#1896).
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pumpAndSettle();
-
-    await _pumpBasicRail(tester, alwaysExpanded: true, libraries: [movies]);
-    expect(_librariesChevron(Symbols.expand_more_rounded), findsOneWidget);
+    expect(find.widgetWithText(NavigationRailItem, 'Libraries'), findsNothing);
+    expect(find.widgetWithText(NavigationRailItem, 'Movies'), findsOneWidget);
+    expect(find.widgetWithText(NavigationRailItem, 'Shows'), findsOneWidget);
+    expect(find.byIcon(Symbols.expand_less_rounded), findsNothing);
+    expect(find.byIcon(Symbols.expand_more_rounded), findsNothing);
   });
 
-  testWidgets('a collapsed Libraries section keeps its rows out of D-pad order', (tester) async {
+  testWidgets('hidden libraries stay out of the rail', (tester) async {
     await SettingsService.getInstance();
-    await SettingsService.instance.write(SettingsService.librariesSectionExpanded, false);
-
     final movies = _library(id: '1', title: 'Movies', serverId: ServerId('server-a'), serverName: 'Server A');
+    final shows = _library(id: '2', title: 'Shows', serverId: ServerId('server-a'), serverName: 'Server A');
 
     final librariesProvider = LibrariesProvider();
-    await librariesProvider.updateLibraryOrder([movies]);
+    await librariesProvider.updateLibraryOrder([movies, shows]);
     addTearDown(librariesProvider.dispose);
+    final hiddenLibrariesProvider = HiddenLibrariesProvider();
+    await hiddenLibrariesProvider.ensureInitialized();
+    await hiddenLibrariesProvider.hideLibrary(shows.globalKey);
+    addTearDown(hiddenLibrariesProvider.dispose);
+    final multiServerProvider = testMultiServerProvider(MultiServerManager());
+    addTearDown(multiServerProvider.dispose);
 
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<LibrariesProvider>.value(value: librariesProvider),
+            ChangeNotifierProvider<HiddenLibrariesProvider>.value(value: hiddenLibrariesProvider),
+            ChangeNotifierProvider<MultiServerProvider>.value(value: multiServerProvider),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(extensions: const [testMonoTokens]),
+            home: Scaffold(
+              body: SideNavigationRail(
+                selectedTab: NavigationTabId.discover,
+                alwaysExpanded: true,
+                onDestinationSelected: (_) {},
+                onLibrarySelected: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(NavigationRailItem, 'Movies'), findsOneWidget);
+    expect(find.widgetWithText(NavigationRailItem, 'Shows'), findsNothing);
+    expect(find.textContaining('hidden', findRichText: true), findsNothing);
+  });
+
+  testWidgets('D-pad walks Home, each library, then Search', (tester) async {
+    await SettingsService.getInstance();
+    final movies = _library(id: '1', title: 'Movies', serverId: ServerId('server-a'), serverName: 'Server A');
+    final shows = _library(id: '2', title: 'Shows', serverId: ServerId('server-a'), serverName: 'Server A');
+
+    final librariesProvider = LibrariesProvider();
+    await librariesProvider.updateLibraryOrder([movies, shows]);
+    addTearDown(librariesProvider.dispose);
     final hiddenLibrariesProvider = HiddenLibrariesProvider();
     await hiddenLibrariesProvider.ensureInitialized();
     addTearDown(hiddenLibrariesProvider.dispose);
-
-    final manager = MultiServerManager();
-    final multiServerProvider = testMultiServerProvider(manager);
+    final multiServerProvider = testMultiServerProvider(MultiServerManager());
     addTearDown(multiServerProvider.dispose);
 
     final sideNavKey = GlobalKey<SideNavigationRailState>();
+    final selectedLibraries = <String>[];
     NavigationTabId? selectedTab;
 
     await tester.pumpWidget(
@@ -527,7 +527,7 @@ void main() {
                 isSidebarFocused: true,
                 alwaysExpanded: true,
                 onDestinationSelected: (tab) => selectedTab = tab,
-                onLibrarySelected: (_) {},
+                onLibrarySelected: selectedLibraries.add,
               ),
             ),
           ),
@@ -539,76 +539,37 @@ void main() {
     sideNavKey.currentState!.focusActiveItem();
     await tester.pumpAndSettle();
 
-    // Home -> Libraries -> Search. The Movies row is skipped while collapsed.
-    await _press(tester, LogicalKeyboardKey.arrowDown);
     await _press(tester, LogicalKeyboardKey.arrowDown);
     await _press(tester, LogicalKeyboardKey.enter);
+    expect(selectedLibraries, [movies.globalKey]);
 
+    await _press(tester, LogicalKeyboardKey.arrowDown);
+    await _press(tester, LogicalKeyboardKey.enter);
+    expect(selectedLibraries, [movies.globalKey, shows.globalKey]);
+
+    await _press(tester, LogicalKeyboardKey.arrowDown);
+    await _press(tester, LogicalKeyboardKey.enter);
     expect(selectedTab, NavigationTabId.search);
   });
 
-  testWidgets('collapsed rail with expanded Libraries skips focus-excluded library rows', (tester) async {
-    // The library rows render under ExcludeFocus while the rail is collapsed
-    // even though the Libraries section pref is expanded; targeting one used
-    // to swallow DOWN forever, cutting off everything below the header.
-    await SettingsService.getInstance();
-    await SettingsService.instance.write(SettingsService.librariesSectionExpanded, true);
-
+  testWidgets('the collapsed rail shows each library as an icon destination', (tester) async {
     final movies = _library(id: '1', title: 'Movies', serverId: ServerId('server-a'), serverName: 'Server A');
 
-    final librariesProvider = LibrariesProvider();
-    await librariesProvider.updateLibraryOrder([movies]);
-    addTearDown(librariesProvider.dispose);
+    await _pumpBasicRail(tester, libraries: [movies]);
 
-    final hiddenLibrariesProvider = HiddenLibrariesProvider();
-    await hiddenLibrariesProvider.ensureInitialized();
-    addTearDown(hiddenLibrariesProvider.dispose);
+    final item = tester.widget<NavigationRailItem>(find.byType(NavigationRailItem).at(1));
+    expect(item.isCollapsed, isTrue);
+    expect(item.collapsedLabel, 'Movies');
+  });
 
-    final manager = MultiServerManager();
-    final multiServerProvider = testMultiServerProvider(manager);
-    addTearDown(multiServerProvider.dispose);
+  testWidgets('libraries on different servers with the same name show their server', (tester) async {
+    final a = _library(id: '1', title: 'Movies', serverId: ServerId('server-a'), serverName: 'Server A');
+    final b = _library(id: '1', title: 'Movies', serverId: ServerId('server-b'), serverName: 'Server B');
 
-    final sideNavKey = GlobalKey<SideNavigationRailState>();
-    NavigationTabId? selectedTab;
+    await _pumpBasicRail(tester, alwaysExpanded: true, libraries: [a, b]);
 
-    await tester.pumpWidget(
-      TranslationProvider(
-        child: MultiProvider(
-          providers: [
-            ChangeNotifierProvider<LibrariesProvider>.value(value: librariesProvider),
-            ChangeNotifierProvider<HiddenLibrariesProvider>.value(value: hiddenLibrariesProvider),
-            ChangeNotifierProvider<MultiServerProvider>.value(value: multiServerProvider),
-          ],
-          child: InputModeTracker(
-            child: MaterialApp(
-              theme: ThemeData(extensions: const [testMonoTokens]),
-              home: Scaffold(
-                body: SideNavigationRail(
-                  key: sideNavKey,
-                  selectedTab: NavigationTabId.discover,
-                  isSidebarFocused: false,
-                  alwaysExpanded: false,
-                  onDestinationSelected: (tab) => selectedTab = tab,
-                  onLibrarySelected: (_) {},
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    sideNavKey.currentState!.focusActiveItem();
-    await tester.pumpAndSettle();
-
-    // Home -> Libraries -> Search. The Movies row stays out of D-pad order
-    // while the rail is collapsed, so DOWN lands on the next real row.
-    await _press(tester, LogicalKeyboardKey.arrowDown);
-    await _press(tester, LogicalKeyboardKey.arrowDown);
-    await _press(tester, LogicalKeyboardKey.enter);
-
-    expect(selectedTab, NavigationTabId.search);
+    expect(find.text('Server A'), findsOneWidget);
+    expect(find.text('Server B'), findsOneWidget);
   });
 
   testWidgets('hover expands the rail as an overlay and collapses on exit', (tester) async {
@@ -677,10 +638,138 @@ void main() {
     expect(tester.getSize(rail).width, SideNavigationRailState.expandedWidth);
 
     await gesture.moveTo(tester.getBottomRight(rail) + const Offset(100, -10));
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
 
     expect(tester.getSize(rail).width, SideNavigationRailState.collapsedWidth);
     expect(scrimReports.last, isFalse);
+  });
+
+  testWidgets(
+    'choosing a destination with the cursor still on the rail closes it until the cursor leaves and returns',
+    (tester) async {
+      await SettingsService.getInstance();
+
+      final librariesProvider = LibrariesProvider();
+      addTearDown(librariesProvider.dispose);
+      final hiddenLibrariesProvider = HiddenLibrariesProvider();
+      await hiddenLibrariesProvider.ensureInitialized();
+      addTearDown(hiddenLibrariesProvider.dispose);
+      final multiServerProvider = testMultiServerProvider(MultiServerManager());
+      addTearDown(multiServerProvider.dispose);
+
+      var selectedTab = NavigationTabId.discover;
+
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: MultiProvider(
+            providers: [
+              ChangeNotifierProvider<LibrariesProvider>.value(value: librariesProvider),
+              ChangeNotifierProvider<HiddenLibrariesProvider>.value(value: hiddenLibrariesProvider),
+              ChangeNotifierProvider<MultiServerProvider>.value(value: multiServerProvider),
+            ],
+            child: MaterialApp(
+              theme: ThemeData(extensions: const [testMonoTokens]),
+              home: Scaffold(
+                body: StatefulBuilder(
+                  builder: (context, setState) => SideNavigationRail(
+                    selectedTab: selectedTab,
+                    onDestinationSelected: (tab) => setState(() => selectedTab = tab),
+                    onLibrarySelected: (_) {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final rail = find.descendant(of: find.byType(SideNavigationRail), matching: find.byType(AnimatedContainer)).first;
+      final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: const Offset(700, 500));
+      await tester.pump();
+
+      await gesture.moveTo(const Offset(40, 100));
+      await tester.pumpAndSettle();
+      expect(tester.getSize(rail).width, SideNavigationRailState.expandedWidth);
+
+      final search = find.widgetWithText(NavigationRailItem, 'Search');
+      final onSearch = Offset(40, tester.getCenter(search).dy);
+      await gesture.moveTo(onSearch);
+      await gesture.down(onSearch);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(selectedTab, NavigationTabId.search);
+      expect(
+        tester.getSize(rail).width,
+        SideNavigationRailState.collapsedWidth,
+        reason: 'a chosen page must not stay covered by the open rail',
+      );
+
+      await gesture.moveTo(const Offset(44, 100));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getSize(rail).width,
+        SideNavigationRailState.collapsedWidth,
+        reason: 'resting on the rail stays shut',
+      );
+
+      await gesture.moveTo(const Offset(500, 300));
+      await tester.pumpAndSettle();
+      await gesture.moveTo(const Offset(40, 140));
+      await tester.pumpAndSettle();
+      expect(tester.getSize(rail).width, SideNavigationRailState.expandedWidth, reason: 'coming back opens it again');
+    },
+  );
+
+  testWidgets('a cursor merely resting where the rail is does not open it', (tester) async {
+    await _pumpBasicRail(tester);
+
+    final rail = find.descendant(of: find.byType(SideNavigationRail), matching: find.byType(AnimatedContainer)).first;
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: const Offset(40, 100));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(tester.getSize(rail).width, SideNavigationRailState.collapsedWidth);
+
+    await gesture.moveTo(const Offset(42, 120));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(rail).width, SideNavigationRailState.expandedWidth, reason: 'moving the mouse opens it');
+  });
+
+  testWidgets('keyboard input shuts a hover-opened rail even with the cursor still on it', (tester) async {
+    await _pumpBasicRail(tester, withInputTracker: true);
+
+    final rail = find.descendant(of: find.byType(SideNavigationRail), matching: find.byType(AnimatedContainer)).first;
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: const Offset(700, 500));
+    await tester.pump();
+    await gesture.moveTo(const Offset(40, 100));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(rail).width, SideNavigationRailState.expandedWidth);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(rail).width,
+      SideNavigationRailState.collapsedWidth,
+      reason: 'the cursor never moved, so it must not hold the rail open',
+    );
+
+    await gesture.moveTo(const Offset(41, 102));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(rail).width, SideNavigationRailState.collapsedWidth, reason: 'a nudge does not reopen it');
+
+    await gesture.moveTo(const Offset(40, 300));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(rail).width, SideNavigationRailState.expandedWidth, reason: 'a real move does');
   });
 
   /// An always-open rail is docked: hovering it must not report a floating
@@ -707,6 +796,7 @@ void main() {
     expect(scrimReports.last, isTrue);
 
     await gesture.moveTo(tester.getBottomRight(rail) + const Offset(100, -10));
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
     expect(scrimReports.last, isFalse);
   });
@@ -737,6 +827,7 @@ void main() {
     expect(_railSurfaceOpacity(tester).opacity, 1.0);
 
     await gesture.moveTo(tester.getBottomRight(rail) + const Offset(100, -10));
+    await tester.pump(const Duration(milliseconds: 200));
     await tester.pumpAndSettle();
 
     expect(tester.getSize(rail).width, SideNavigationRailState.tvCollapsedWidth);
@@ -824,94 +915,12 @@ void main() {
     sideNavKey.currentState!.focusActiveItem();
     await tester.pumpAndSettle();
 
-    // Home -> Libraries -> Search -> Settings. Downloads is hidden on Apple TV.
-    await _press(tester, LogicalKeyboardKey.arrowDown);
+    // Home -> Search -> Settings. Downloads is hidden on Apple TV.
     await _press(tester, LogicalKeyboardKey.arrowDown);
     await _press(tester, LogicalKeyboardKey.arrowDown);
     await _press(tester, LogicalKeyboardKey.enter);
 
     expect(selectedTab, NavigationTabId.settings);
-  });
-
-  testWidgets('D-pad down from a hidden server header focuses that hidden server library', (tester) async {
-    await SettingsService.getInstance();
-
-    final visibleServerALibrary = _library(
-      id: '1',
-      title: 'Visible Server A',
-      serverId: ServerId('server-a'),
-      serverName: 'Server A',
-    );
-    final hiddenServerALibrary = _library(
-      id: '2',
-      title: 'Hidden Server A',
-      serverId: ServerId('server-a'),
-      serverName: 'Server A',
-    );
-    final visibleServerBLibrary = _library(
-      id: '1',
-      title: 'Visible Server B',
-      serverId: ServerId('server-b'),
-      serverName: 'Server B',
-    );
-
-    final librariesProvider = LibrariesProvider();
-    await librariesProvider.updateLibraryOrder([visibleServerALibrary, hiddenServerALibrary, visibleServerBLibrary]);
-    addTearDown(librariesProvider.dispose);
-
-    final hiddenLibrariesProvider = HiddenLibrariesProvider();
-    await hiddenLibrariesProvider.ensureInitialized();
-    await hiddenLibrariesProvider.hideLibrary(hiddenServerALibrary.globalKey);
-    addTearDown(hiddenLibrariesProvider.dispose);
-
-    final manager = MultiServerManager();
-    final multiServerProvider = testMultiServerProvider(manager);
-    addTearDown(multiServerProvider.dispose);
-
-    final sideNavKey = GlobalKey<SideNavigationRailState>();
-    var selectedLibraryKey = '';
-
-    await tester.pumpWidget(
-      TranslationProvider(
-        child: MultiProvider(
-          providers: [
-            ChangeNotifierProvider<LibrariesProvider>.value(value: librariesProvider),
-            ChangeNotifierProvider<HiddenLibrariesProvider>.value(value: hiddenLibrariesProvider),
-            ChangeNotifierProvider<MultiServerProvider>.value(value: multiServerProvider),
-          ],
-          child: MaterialApp(
-            theme: ThemeData(extensions: const [testMonoTokens]),
-            home: Scaffold(
-              body: SideNavigationRail(
-                key: sideNavKey,
-                selectedTab: NavigationTabId.discover,
-                isSidebarFocused: true,
-                alwaysExpanded: true,
-                onDestinationSelected: (_) {},
-                onLibrarySelected: (key) => selectedLibraryKey = key,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    sideNavKey.currentState!.focusActiveItem();
-    await tester.pumpAndSettle();
-
-    // Home -> Libraries -> Server A header -> visible A -> Server B header -> visible B -> Hidden Libraries.
-    for (var i = 0; i < 6; i++) {
-      await _press(tester, LogicalKeyboardKey.arrowDown);
-    }
-    await _press(tester, LogicalKeyboardKey.enter);
-
-    // Hidden Libraries -> hidden Server A header -> hidden Server A library.
-    await _press(tester, LogicalKeyboardKey.arrowDown);
-    await _press(tester, LogicalKeyboardKey.arrowDown);
-    await _press(tester, LogicalKeyboardKey.enter);
-
-    expect(selectedLibraryKey, hiddenServerALibrary.globalKey);
   });
 
   testWidgets('rail item focus repaints locally without rebuilding its parent', (tester) async {
