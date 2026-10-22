@@ -67,6 +67,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
   '2.17.53': ['Show libraries straight in the sidebar', 'Add Poster Glow', 'Add genre to info screen (Thanks Fergie)'],
   '2.17.54': ['Show libraries straight in the sidebar', 'Add Poster Glow', 'Add genre to info screen (Thanks Fergie)'],
   '2.17.55': ['Show libraries straight in the sidebar', 'Add Poster Glow', 'Add genre to info screen (Thanks Fergie)'],
+  '2.17.56': ['Show libraries straight in the sidebar', 'Add Poster Glow', 'Add genre to info screen (Thanks Fergie)'],
 };
 
 abstract final class WhatsNewService {
