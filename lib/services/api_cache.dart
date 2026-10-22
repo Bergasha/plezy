@@ -175,9 +175,12 @@ abstract class ApiCache {
     await _db.delete(_db.apiCache).go();
   }
 
-  /// Clear volatile cached rows while preserving pinned offline metadata.
+  /// Clear volatile cached rows while preserving pinned offline metadata and
+  /// the poster colours, which are expensive to rebuild and never go stale.
   Future<void> clearVolatile() async {
-    await (_db.delete(_db.apiCache)..where((t) => t.pinned.equals(false))).go();
+    await (_db.delete(
+      _db.apiCache,
+    )..where((t) => t.pinned.equals(false) & t.cacheKey.like('poster_color:%').not())).go();
   }
 
   /// Pull pinned rows for [serverId] and extract the first capture group of

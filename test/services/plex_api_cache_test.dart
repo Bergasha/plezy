@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:ui' show Color;
 import 'package:plezy/media/ids.dart';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plezy/database/app_database.dart';
+import 'package:plezy/database/poster_color_operations.dart';
 import 'package:plezy/media/media_backend.dart';
 import 'package:plezy/services/api_cache.dart';
 import 'package:plezy/services/jellyfin_api_cache.dart';
@@ -258,6 +260,16 @@ void main() {
 
       expect(await cache.get(ServerId('srv-a'), '/library/metadata/1'), isNotNull);
       expect(await cache.get(ServerId('srv-a'), '/library/metadata/2'), isNull);
+    });
+
+    test('clearVolatile keeps stored poster colours', () async {
+      await cache.put(ServerId('srv-a'), '/library/metadata/2', mediaContainer(ratingKey: '2'));
+      await db.setPosterColor('srv-a:1|/thumb/1', const Color(0xFFE5484D));
+
+      await cache.clearVolatile();
+
+      expect(await cache.get(ServerId('srv-a'), '/library/metadata/2'), isNull);
+      expect(await db.getPosterColor('srv-a:1|/thumb/1'), const Color(0xFFE5484D));
     });
   });
 
