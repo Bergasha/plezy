@@ -48,6 +48,8 @@ import '../models/transcode_quality_preset.dart';
 import '../media/media_source_info.dart';
 import '../media/media_sort.dart';
 import '../media/media_version.dart';
+import '../utils/oled_effects.dart';
+import 'poster_color_service.dart';
 import '../utils/app_logger.dart';
 import '../utils/device_identity.dart';
 import '../utils/failover_http_client.dart';

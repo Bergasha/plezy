@@ -21,3 +21,20 @@ extension PosterColorOperations on AppDatabase {
     );
   }
 }
+
+extension PosterColorBatchOperations on AppDatabase {
+  /// Stored colours for whichever of [keys] have one.
+  Future<Map<String, Color>> getPosterColors(Iterable<String> keys) async {
+    final found = <String, Color>{};
+    final wanted = keys.toList();
+    for (var start = 0; start < wanted.length; start += 400) {
+      final chunk = [for (final key in wanted.skip(start).take(400)) 'poster_color:$key'];
+      final rows = await (select(apiCache)..where((t) => t.cacheKey.isIn(chunk))).get();
+      for (final row in rows) {
+        final argb = (jsonDecode(row.data) as Map<String, dynamic>)['argb'];
+        if (argb is int) found[row.cacheKey.substring('poster_color:'.length)] = Color(argb);
+      }
+    }
+    return found;
+  }
+}

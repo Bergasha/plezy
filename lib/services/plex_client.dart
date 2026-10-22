@@ -1,4 +1,6 @@
 import 'dart:async';
+import '../utils/oled_effects.dart';
+import 'poster_color_service.dart';
 import '../utils/isolate_helper.dart';
 import '../utils/json_utils.dart';
 import 'package:flutter/foundation.dart';
@@ -4389,6 +4391,7 @@ class PlexClient
       filters: filters,
       abort: abort,
     );
+    if (OledEffects.needsPosterColor) unawaited(PosterColorService.instance.preload(result.items));
     return LibraryPage<MediaItem>(items: result.items, totalCount: result.totalSize, offset: query.offset);
   }
 

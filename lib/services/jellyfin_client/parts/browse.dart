@@ -690,7 +690,9 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
         (query.kind == null && query.includeKinds.isEmpty && libraryKind != null && libraryKind != MediaKind.unknown)
         ? query.copyWith(kind: libraryKind)
         : query;
-    return _fetchLibraryContent(libraryId, effective, abort: abort);
+    final page = await _fetchLibraryContent(libraryId, effective, abort: abort);
+    if (OledEffects.needsPosterColor) unawaited(PosterColorService.instance.preload(page.items));
+    return page;
   }
 
   /// Queue a metadata refresh for the library. Jellyfin treats a library

@@ -17,6 +17,8 @@ import '../utils/search_relevance.dart';
 import '../utils/media_server_http_client.dart';
 import '../utils/media_server_timeouts.dart';
 import 'local_playback_history.dart';
+import 'poster_color_service.dart';
+import '../utils/oled_effects.dart';
 import 'multi_server_manager.dart';
 
 /// A row a successful response actually returned, paired with the immutable
@@ -136,6 +138,10 @@ Set<String> _hiddenLibraryIdsOn(String serverId, Set<String>? hiddenLibraryKeys)
 /// only owns the genuinely multi-server flows: home/discover hubs, on-deck,
 /// search, and the global library list.
 class DataAggregationService {
+  static void _preloadPosterColors(List<MediaItem> items) {
+    if (OledEffects.needsPosterColor) unawaited(PosterColorService.instance.preload(items));
+  }
+
   final MultiServerManager _serverManager;
 
   DataAggregationService(this._serverManager);
@@ -303,6 +309,7 @@ class DataAggregationService {
         // there is no way back to the client that produced a row.
         final scope = client.cacheServerId;
         observedRows.addAll([for (final row in rows) (item: row, clientScope: scope)]);
+        _preloadPosterColors(rows);
         return rows;
       },
     );
@@ -608,6 +615,7 @@ class DataAggregationService {
           List<MediaHub> globalHubs = const [];
           try {
             globalHubs = await globalFuture;
+            _preloadPosterColors([for (final hub in globalHubs) ...hub.items]);
           } catch (error, stackTrace) {
             globalDiagnostics.recordFailure(error);
             globalError = error;
@@ -731,6 +739,7 @@ class DataAggregationService {
             diagnostics: diagnostics,
           );
           results[index] = hubs;
+          _preloadPosterColors([for (final hub in hubs) ...hub.items]);
           if (hubs.isNotEmpty || (!diagnostics.failed && !diagnostics.cancelled)) succeeded = true;
         } catch (e, st) {
           if (_isCancellation(e)) {

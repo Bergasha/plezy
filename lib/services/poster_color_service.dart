@@ -12,7 +12,7 @@ import '../media/media_server_client.dart';
 import '../utils/app_logger.dart';
 import '../utils/blurhash.dart';
 import '../utils/media_image_helper.dart';
-import 'settings_service.dart' show EpisodePosterMode;
+import 'settings_service.dart' show EpisodePosterMode, SettingsService;
 
 /// Reduces a poster to one vivid colour for the OLED focus effects.
 ///
@@ -24,7 +24,7 @@ class PosterColorService {
 
   static final PosterColorService instance = PosterColorService._();
 
-  static const _maxEntries = 300;
+  static const _maxEntries = 4000;
   static const _sampleWidth = 16;
   static const _sampleHeight = 24;
 
@@ -58,6 +58,42 @@ class PosterColorService {
   void seed(String key, Color color) {
     _remember(key, color);
     _persist(key, color);
+  }
+
+  /// Warms the colours of a freshly loaded page of titles, so each one is
+  /// ready before it is focused: from the server's BlurHash where it sent one,
+  /// otherwise from what an earlier session stored, in a single query.
+  Future<void> preload(List<MediaItem> items, {EpisodePosterMode? mode}) async {
+    final database = _database;
+    if (database == null) return;
+    final posterMode =
+        mode ?? SettingsService.instance.read(SettingsService.episodePosterMode) ?? EpisodePosterMode.seriesPoster;
+    final missing = <String>[];
+    for (final item in items) {
+      final path =
+          item.posterThumb(mode: posterMode, mixedHubContext: false) ??
+          item.posterThumbFallback(mode: posterMode, mixedHubContext: false);
+      if (path == null || path.isEmpty) continue;
+      final key = '${item.globalKey}|$path';
+      if (cached(key) != null) continue;
+      final hash = posterBlurHash(item, path);
+      final pixels = hash == null ? null : decodeBlurHash(hash, width: 8, height: 12);
+      final color = pixels == null ? null : vividColorFromRgba(pixels);
+      if (color != null) {
+        _remember(key, color);
+      } else {
+        missing.add(key);
+      }
+    }
+    if (missing.isEmpty) return;
+    try {
+      final stored = await database.getPosterColors(missing);
+      stored.forEach((key, color) {
+        if (cached(key) == null) _remember(key, color);
+      });
+    } catch (error, stackTrace) {
+      appLogger.d('Poster colour preload failed', error: error, stackTrace: stackTrace);
+    }
   }
 
   Future<Color?> resolve(String key, ImageProvider Function() provider) {
