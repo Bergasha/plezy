@@ -64,6 +64,7 @@ const Map<String, List<String>> _whatsNewByVersion = {
     'Added genre to the metadata line',
   ],
   '2.17.52': ['Show libraries straight in the sidebar', 'Add Poster Glow', 'Add genre to info screen (Thanks Fergie)'],
+  '2.17.53': ['Show libraries straight in the sidebar', 'Add Poster Glow', 'Add genre to info screen (Thanks Fergie)'],
 };
 
 abstract final class WhatsNewService {
