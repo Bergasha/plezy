@@ -903,6 +903,12 @@ class Translations$settings$en {
 	/// en: 'Poster colour scan complete'
 	String get scanPosterColorsComplete => 'Poster colour scan complete';
 
+	/// en: 'Scanned ${total} titles, ${failed} had no readable poster'
+	String scanPosterColorsCompleteWithFailures({required Object total, required Object failed}) => 'Scanned ${total} titles, ${failed} had no readable poster';
+
+	/// en: 'The poster colour scan stopped unexpectedly'
+	String get scanPosterColorsFailed => 'The poster colour scan stopped unexpectedly';
+
 	/// en: 'Reset Settings'
 	String get resetSettings => 'Reset Settings';
 
@@ -7984,6 +7990,8 @@ extension on Translations {
 			'settings.scanPosterColorsProgress' => ({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles',
 			'settings.scanPosterColorsRunInBackground' => 'Run in Background',
 			'settings.scanPosterColorsComplete' => 'Poster colour scan complete',
+			'settings.scanPosterColorsCompleteWithFailures' => ({required Object total, required Object failed}) => 'Scanned ${total} titles, ${failed} had no readable poster',
+			'settings.scanPosterColorsFailed' => 'The poster colour scan stopped unexpectedly',
 			'settings.resetSettings' => 'Reset Settings',
 			'settings.resetSettingsDescription' => 'Restore default settings. This can\'t be undone.',
 			'settings.resetSettingsSuccess' => 'Settings reset successfully',
@@ -8222,10 +8230,10 @@ extension on Translations {
 			'hotkeys.actions.chapterPrevious' => 'Previous Chapter',
 			'hotkeys.actions.episodeNext' => 'Next Episode',
 			'hotkeys.actions.episodePrevious' => 'Previous Episode',
-			'hotkeys.actions.speedIncrease' => 'Increase Speed',
-			'hotkeys.actions.speedDecrease' => 'Decrease Speed',
 			_ => null,
 		} ?? switch (path) {
+			'hotkeys.actions.speedIncrease' => 'Increase Speed',
+			'hotkeys.actions.speedDecrease' => 'Decrease Speed',
 			'hotkeys.actions.speedReset' => 'Reset Speed',
 			'hotkeys.actions.zoomIn' => 'Zoom In',
 			'hotkeys.actions.zoomOut' => 'Zoom Out',
@@ -8736,10 +8744,10 @@ extension on Translations {
 			'accountPreferences.subtitleModes.noneDescription' => 'Never turn subtitles on by itself.',
 			'accountPreferences.subtitleModes.defaultMode' => 'Follow the track flags',
 			'accountPreferences.subtitleModes.defaultModeDescription' => 'Use the default and forced flags stored on each subtitle track.',
-			'accountPreferences.subtitleModes.always' => 'Always enabled',
-			'accountPreferences.subtitleModes.alwaysDescription' => 'Turn on a subtitle track in the preferred language whenever one exists.',
 			_ => null,
 		} ?? switch (path) {
+			'accountPreferences.subtitleModes.always' => 'Always enabled',
+			'accountPreferences.subtitleModes.alwaysDescription' => 'Turn on a subtitle track in the preferred language whenever one exists.',
 			'accountPreferences.subtitleModes.onlyForced' => 'Only forced subtitles',
 			'accountPreferences.subtitleModes.onlyForcedDescription' => 'Load only the tracks marked as forced.',
 			'accountPreferences.subtitleModes.smart' => 'Shown with foreign audio',
@@ -9250,10 +9258,10 @@ extension on Translations {
 			'collections.searchCollections' => 'Search collections...',
 			'playlists.title' => 'Playlists',
 			'playlists.playlist' => 'Playlist',
-			'playlists.noPlaylists' => 'No playlists found',
-			'playlists.create' => 'Create Playlist',
 			_ => null,
 		} ?? switch (path) {
+			'playlists.noPlaylists' => 'No playlists found',
+			'playlists.create' => 'Create Playlist',
 			'playlists.playlistName' => 'Playlist Name',
 			'playlists.enterPlaylistName' => 'Enter playlist name',
 			'playlists.delete' => 'Delete Playlist',
@@ -9764,10 +9772,10 @@ extension on Translations {
 			'matchScreen.fixMatch' => 'Fix Match...',
 			'matchScreen.unmatch' => 'Unmatch',
 			'matchScreen.unmatchConfirm' => 'Clear this match? Plex treats it as unmatched until rematched.',
-			'matchScreen.unmatchSuccess' => 'Item unmatched',
-			'matchScreen.unmatchFailed' => 'Failed to unmatch item',
 			_ => null,
 		} ?? switch (path) {
+			'matchScreen.unmatchSuccess' => 'Item unmatched',
+			'matchScreen.unmatchFailed' => 'Failed to unmatch item',
 			'matchScreen.matchApplied' => 'Match applied',
 			'matchScreen.matchFailed' => 'Failed to apply match',
 			'matchScreen.titleHint' => 'Title',

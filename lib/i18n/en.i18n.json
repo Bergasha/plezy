@@ -288,6 +288,8 @@
     "scanPosterColorsProgress": "Scanned ${current} of ${total} titles",
     "scanPosterColorsRunInBackground": "Run in Background",
     "scanPosterColorsComplete": "Poster colour scan complete",
+    "scanPosterColorsCompleteWithFailures": "Scanned ${total} titles, ${failed} had no readable poster",
+    "scanPosterColorsFailed": "The poster colour scan stopped unexpectedly",
     "resetSettings": "Reset Settings",
     "resetSettingsDescription": "Restore default settings. This can't be undone.",
     "resetSettingsSuccess": "Settings reset successfully",

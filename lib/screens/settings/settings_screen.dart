@@ -35,6 +35,7 @@ import '../../services/settings_mutation_service.dart';
 import '../../services/poster_color_scanner.dart';
 import '../../widgets/background_download_warning_banner.dart';
 import '../../services/update_service.dart';
+import '../../utils/app_logger.dart';
 import '../../utils/dialogs.dart';
 import '../../utils/provider_extensions.dart';
 import '../../utils/snackbar_helper.dart';
@@ -861,6 +862,13 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
     var current = 0;
     var total = 0;
     StateSetter? dialogSetState;
+    BuildContext? openDialogContext;
+
+    void closeDialog() {
+      final dialogContext = openDialogContext;
+      if (dialogContext != null && dialogContext.mounted) Navigator.of(dialogContext).pop();
+      openDialogContext = null;
+    }
 
     final warmer = PosterColorScanner(
       clientForLibrary: (library) => context.getMediaClientForLibrary(library),
@@ -871,9 +879,23 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
       },
     );
 
-    final scanFuture = warmer.scanLibraries(libraries).then((_) {
-      if (mounted) showSuccessSnackBar(context, t.settings.scanPosterColorsComplete);
-    });
+    final scanFuture = warmer
+        .scanLibraries(libraries)
+        .then((result) {
+          closeDialog();
+          if (!mounted) return;
+          showSuccessSnackBar(
+            context,
+            result.failed == 0
+                ? t.settings.scanPosterColorsComplete
+                : t.settings.scanPosterColorsCompleteWithFailures(total: result.total, failed: result.failed),
+          );
+        })
+        .catchError((Object error, StackTrace stackTrace) {
+          appLogger.w('Poster colour scan failed', error: error, stackTrace: stackTrace);
+          closeDialog();
+          if (mounted) showErrorSnackBar(context, t.settings.scanPosterColorsFailed);
+        });
     unawaited(scanFuture);
 
     if (!mounted) return;
@@ -881,6 +903,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        openDialogContext = dialogContext;
         return StatefulBuilder(
           builder: (context, setState) {
             dialogSetState = setState;
@@ -916,6 +939,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
         );
       },
     );
+    openDialogContext = null;
   }
 
   Future<void> _showResetSettingsDialog() async {
