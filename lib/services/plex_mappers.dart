@@ -587,6 +587,7 @@ class PlexMetadataDto {
   final int? parentYear;
   final String? originallyAvailableAt;
   final String? thumb;
+  final String? thumbBlurHash;
   final String? art;
   @JsonKey(fromJson: flexibleInt)
   final int? duration;
@@ -694,6 +695,7 @@ class PlexMetadataDto {
     this.parentYear,
     this.originallyAvailableAt,
     this.thumb,
+    this.thumbBlurHash,
     this.art,
     this.duration,
     this.addedAt,
@@ -817,6 +819,7 @@ class PlexMetadataDto {
     int? year,
     int? parentYear,
     String? originallyAvailableAt,
+    String? thumbBlurHash,
     String? thumb,
     String? art,
     int? duration,
@@ -889,6 +892,7 @@ class PlexMetadataDto {
       parentYear: parentYear ?? this.parentYear,
       originallyAvailableAt: originallyAvailableAt ?? this.originallyAvailableAt,
       thumb: thumb ?? this.thumb,
+      thumbBlurHash: thumbBlurHash ?? this.thumbBlurHash,
       art: art ?? this.art,
       duration: duration ?? this.duration,
       addedAt: addedAt ?? this.addedAt,
@@ -949,6 +953,7 @@ class PlexMetadataDto {
 Map<String, Object?>? _rawMetadata(PlexMetadataDto dto) {
   final raw = <String, Object?>{};
   if (dto.key != null) raw['key'] = dto.key;
+  if (dto.thumbBlurHash != null) raw['thumbBlurHash'] = dto.thumbBlurHash;
   if (dto.skipChildren != null) raw['skipChildren'] = dto.skipChildren;
   if (dto.flattenSeasons != null) raw['flattenSeasons'] = dto.flattenSeasons;
   return raw.isEmpty ? null : raw;

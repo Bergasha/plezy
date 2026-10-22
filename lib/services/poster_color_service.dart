@@ -10,6 +10,7 @@ import '../database/poster_color_operations.dart';
 import '../media/media_item.dart';
 import '../media/media_server_client.dart';
 import '../utils/app_logger.dart';
+import '../utils/blurhash.dart';
 import '../utils/media_image_helper.dart';
 import 'settings_service.dart' show EpisodePosterMode;
 
@@ -50,6 +51,13 @@ class PosterColorService {
     if (stored == null) return false;
     _remember(key, stored);
     return true;
+  }
+
+  /// Records a colour the server already told us about, so nothing has to be
+  /// downloaded or sampled for [key].
+  void seed(String key, Color color) {
+    _remember(key, color);
+    _persist(key, color);
   }
 
   Future<Color?> resolve(String key, ImageProvider Function() provider) {
@@ -195,8 +203,33 @@ Color? vividColorFromRgba(Uint8List rgba) {
     pixelRatio: 1,
   );
   if (url.isEmpty) return null;
+  final key = '${item.globalKey}|$path';
+  if (PosterColorService.instance.cached(key) == null) {
+    final hash = posterBlurHash(item, path);
+    final pixels = hash == null ? null : decodeBlurHash(hash);
+    final color = pixels == null ? null : vividColorFromRgba(pixels);
+    if (color != null) PosterColorService.instance.seed(key, color);
+  }
   return (
-    key: '${item.globalKey}|$path',
+    key: key,
     provider: () => MediaImageHelper.serverArtworkProvider(imageUrl: url, memWidth: 120, memHeight: 180),
   );
+}
+
+/// The BlurHash the server sent for [item]'s own poster at [path], if any.
+/// Jellyfin and Emby include it with every item; Plex only when asked.
+String? posterBlurHash(MediaItem item, String path) {
+  if (path != item.thumbPath) return null;
+  final raw = item.raw;
+  if (raw == null) return null;
+  final plex = raw['thumbBlurHash'];
+  if (plex is String && plex.isNotEmpty) return plex;
+  final tags = raw['ImageTags'];
+  final hashes = raw['ImageBlurHashes'];
+  if (tags is! Map || hashes is! Map) return null;
+  final tag = tags['Primary'];
+  final primary = hashes['Primary'];
+  if (tag is! String || primary is! Map) return null;
+  final hash = primary[tag];
+  return hash is String && hash.isNotEmpty ? hash : null;
 }

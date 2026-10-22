@@ -1126,7 +1126,7 @@ class PlexClient
     Map<String, dynamic>? filters,
     AbortController? abort,
   }) async {
-    final queryParams = _buildPaginationParams(start, size);
+    final queryParams = _buildPaginationParams(start, size)..['includeFields'] = 'thumbBlurHash';
     if (filters != null) queryParams.addAll(filters);
     final endpoint = sectionId == 'shared' ? '/library/shared/all' : '/library/sections/$sectionId/all';
     final response = await _getWithFailover(endpoint, queryParameters: queryParams, abort: abort);
