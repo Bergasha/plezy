@@ -4,21 +4,23 @@ import '../media/media_kind.dart';
 import '../media/media_library.dart';
 import '../media/media_server_client.dart';
 import '../utils/app_logger.dart';
-import '../utils/serial_future_queue.dart';
-import 'tmdb_cast_matcher.dart';
+import 'poster_color_service.dart';
+import 'settings_service.dart' show EpisodePosterMode;
 
-
-class TmdbCacheWarmer {
-  static const _throttle = Duration(milliseconds: 250);
+/// Walks the movie and show libraries in the background and records each
+/// poster's colour in the app database, so the OLED focus effects have it the
+/// first time a title is focused. Titles that already have a colour are skipped.
+class PosterColorScanner {
+  static const _throttle = Duration(milliseconds: 120);
 
   final MediaServerClient Function(MediaLibrary library) clientForLibrary;
-  final TmdbCastMatcher matcher;
+  final PosterColorService service;
   final void Function(int scanned, int total)? onProgress;
 
-  final _queue = SerialFutureQueue();
   bool _cancelled = false;
 
-  TmdbCacheWarmer({required this.clientForLibrary, required this.matcher, this.onProgress});
+  PosterColorScanner({required this.clientForLibrary, PosterColorService? service, this.onProgress})
+    : service = service ?? PosterColorService.instance;
 
   void cancel() => _cancelled = true;
 
@@ -40,27 +42,26 @@ class TmdbCacheWarmer {
         pageSize: 200,
       );
     } catch (e) {
-      appLogger.w('TMDb cache warmer: failed to list library ${library.title}', error: e);
+      appLogger.w('Poster colour scan: failed to list library ${library.title}', error: e);
       return;
     }
 
     for (var i = 0; i < items.length; i++) {
       if (_cancelled) return;
       final item = items[i];
-      final roles = item.roles;
-      if (roles != null && roles.isNotEmpty) {
-        await _queue.run(() async {
-          try {
-            await matcher.resolveCastMembersForTitle(
-              metadata: item,
-              actorNames: roles.map((r) => r.tag).toList(),
-              client: client,
-            );
-          } catch (e) {
-            appLogger.w('TMDb cache warmer: failed for "${item.title}"', error: e);
-          }
-          await Future.delayed(_throttle);
-        });
+      final target = posterColorTarget(
+        item: item,
+        client: client,
+        mode: EpisodePosterMode.seriesPoster,
+        mixedHubContext: false,
+      );
+      if (target != null && !await service.isKnown(target.key)) {
+        try {
+          await service.resolve(target.key, target.provider);
+        } catch (e) {
+          appLogger.w('Poster colour scan: failed for "${item.title}"', error: e);
+        }
+        await Future.delayed(_throttle);
       }
       onProgress?.call(i + 1, items.length);
     }

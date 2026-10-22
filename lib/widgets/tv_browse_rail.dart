@@ -20,11 +20,13 @@ import '../media/media_item.dart';
 import '../navigation/main_screen_scope.dart';
 import '../screens/hub_detail_screen.dart';
 import '../services/device_performance.dart';
+import '../services/poster_color_service.dart';
 import '../services/settings_service.dart';
 import '../theme/mono_tokens.dart';
 import '../utils/layout_constants.dart';
 import '../utils/media_image_helper.dart';
 import '../utils/media_navigation_helper.dart';
+import '../utils/oled_effects.dart';
 import '../utils/provider_extensions.dart';
 import 'animated_dim_scrim.dart';
 import 'app_icon.dart';
@@ -39,6 +41,7 @@ import 'rasterized_gradient.dart';
 import 'settings_builder.dart';
 
 const _inactiveArtworkDimAlpha = 0.3;
+const _spotlightArtworkDimAlpha = 0.45;
 
 class TvBrowseRailLayoutMetrics {
   final bool isPersonHub;
@@ -431,6 +434,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   final Map<String, TvRailTrailing> _lastTrailingByHubKey = {};
   final Map<String, GlobalKey<MediaContextMenuState>> _leadingMenuKeys = {};
   final Map<int, _HubArtworkDim> _artworkDims = {};
+  _SpotlightDimModel? _spotlightDim;
 
   int _hubIndex = 0;
   int _itemIndex = 0;
@@ -440,6 +444,55 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   /// only the affected subtrees instead of setState-rebuilding every visible
   /// row (expensive on low-end TVs).
   final _RailFocusModel _focusModel = _RailFocusModel();
+
+  final ValueNotifier<Color?> _posterColor = ValueNotifier<Color?>(null);
+  late final Listenable _focusAndPosterColor = Listenable.merge([_focusModel, _posterColor]);
+  Timer? _posterColorTimer;
+  (int, int)? _posterColorPosition;
+
+  void _handlePosterColorFocus() {
+    if (!OledEffects.needsPosterColor) return;
+    if (!_focusModel.railHasFocus) {
+      _posterColorTimer?.cancel();
+      return;
+    }
+    final position = _focusModel.position;
+    if (position == _posterColorPosition) return;
+    _posterColorPosition = position;
+    _posterColorTimer?.cancel();
+
+    final target = _posterColorTarget(position);
+    if (target == null) return;
+    final cached = PosterColorService.instance.cached(target.key);
+    if (cached != null) {
+      _posterColor.value = cached.color;
+      return;
+    }
+    _posterColorTimer = Timer(const Duration(milliseconds: 140), () async {
+      final color = await PosterColorService.instance.resolve(target.key, target.provider);
+      if (!mounted || _posterColorPosition != position) return;
+      _posterColor.value = color;
+    });
+  }
+
+  ({String key, ImageProvider Function() provider})? _posterColorTarget((int, int) position) {
+    final hubIndex = position.$1;
+    if (hubIndex < 0 || hubIndex >= widget.hubs.length) return null;
+    final hub = widget.hubs[hubIndex];
+    final itemIndex = position.$2 - _leadingCountFor(hub);
+    if (itemIndex < 0 || itemIndex >= hub.items.length) return null;
+    final item = hub.items[itemIndex];
+    return posterColorTarget(
+      item: item,
+      client: context.tryGetMediaClientWithFallback(serverIdOrNull(item.serverId)),
+      mode:
+          widget.episodePosterModeForHub?.call(hub) ??
+          SettingsService.instance.read(SettingsService.episodePosterMode) ??
+          EpisodePosterMode.seriesPoster,
+      mixedHubContext: _metricsByHub[_hubKey(hub)]?.isMixedHub ?? false,
+    );
+  }
+
   List<double> _sectionOffsets = const [];
   double _sectionMaxScrollExtent = 0;
   final _selectLongPress = DpadSelectLongPressController();
@@ -464,6 +517,7 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
   void initState() {
     super.initState();
     _focusNode.addListener(_handleFocusChange);
+    _focusModel.addListener(_handlePosterColorFocus);
     final startHub = _activeHub;
     if (startHub != null) _itemIndex = _defaultSlotFor(startHub);
     _selectInitialHubIfPossible();
@@ -630,6 +684,10 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     for (final dim in _artworkDims.values) {
       dim.dispose();
     }
+    _spotlightDim?.dispose();
+    _focusModel.removeListener(_handlePosterColorFocus);
+    _posterColorTimer?.cancel();
+    _posterColor.dispose();
     _focusModel.dispose();
     for (final controller in _scrollControllers.values) {
       controller.dispose();
@@ -1647,11 +1705,17 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
                   // over the spotlight while the target row is still offscreen. The
                   // selection collapses to (false, false) for unfocused cards, so the
                   // flag flip repaints only the focused card.
-                  final focusableCard = ListenableSelector<(bool, bool)>(
-                    listenable: _focusModel,
+                  final oledGlow = OledEffects.posterGlow;
+                  final oledBleed = OledEffects.colorBleed;
+                  final focusableCard = ListenableSelector<(bool, bool, Color?)>(
+                    listenable: _focusAndPosterColor,
                     selector: () {
                       final isFocused = isItemFocused();
-                      return (isFocused, isFocused && !_focusModel.verticalScrollActive);
+                      return (
+                        isFocused,
+                        isFocused && !_focusModel.verticalScrollActive,
+                        isFocused && (oledGlow || oledBleed) ? _posterColor.value : null,
+                      );
                     },
                     builder: (context, focus, child) => FocusBuilders.buildLockedFocusWrapper(
                       context: context,
@@ -1659,7 +1723,10 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
                       borderRadius: tokens(context).radiusSm,
                       focusScale: fullCardLayout ? TvBrowseRailLayout.fullCardFocusScale : FocusTheme.focusScale,
                       useFocusGlow: fullCardLayout,
+                      posterGlow: !fullCardLayout && (oledGlow || oledBleed),
                       showGlow: focus.$2,
+                      focusColor: focus.$3,
+                      glowBleed: oledBleed,
                       // The card draws the border itself (poster rect for
                       // standard cards, whole card when full-bleed).
                       delegateFocusBorder: true,
@@ -1719,7 +1786,17 @@ class TvBrowseRailState extends State<TvBrowseRail> with TickerProviderStateMixi
     required double scale,
     required bool fullCardLayout,
   }) {
-    final artworkDim = _artworkDimForHub(context, hubIndex);
+    final Animation<double> artworkDim = OledEffects.spotlight
+        ? _SpotlightItemDim(
+            _spotlightDim ??= _SpotlightDimModel(
+              _focusModel,
+              vsync: this,
+              duration: FocusTheme.getAnimationDuration(context),
+            ),
+            hubIndex,
+            itemIndex,
+          )
+        : _artworkDimForHub(context, hubIndex);
     return metrics.isPersonHub
         ? MergeSemantics(
             child: _buildPersonCard(
@@ -2213,4 +2290,87 @@ class _HubArtworkDim extends Animation<double> {
     _focusModel.removeListener(_handleFocusChange);
     _controller.dispose();
   }
+}
+
+typedef _SpotlightState = ((int, int) position, bool railHasFocus);
+
+/// Drives the OLED spotlight: while the rail has focus, every poster except
+/// the focused one is dimmed, and a d-pad move fades the old card down and the
+/// new one up.
+///
+/// One controller serves the whole rail. Each card gets a cheap
+/// [_SpotlightItemDim] that reads its own dim from the previous and current
+/// focus state, so no card needs a ticker of its own.
+class _SpotlightDimModel {
+  _SpotlightDimModel(this._focusModel, {required TickerProvider vsync, required Duration duration})
+    : _duration = duration {
+    controller = AnimationController(vsync: vsync, duration: duration, value: 1);
+    _current = (_focusModel.position, _focusModel.railHasFocus);
+    _previous = _current;
+    _focusModel.addListener(_handleFocusChange);
+  }
+
+  final _RailFocusModel _focusModel;
+  final Duration _duration;
+  late final AnimationController controller;
+  late _SpotlightState _previous;
+  late _SpotlightState _current;
+
+  void _handleFocusChange() {
+    final next = (_focusModel.position, _focusModel.railHasFocus);
+    if (next == _current) return;
+    _previous = _current;
+    _current = next;
+    if (_duration == Duration.zero) {
+      controller.value = 1;
+    } else {
+      unawaited(controller.forward(from: 0));
+    }
+  }
+
+  static double _alphaFor(int hubIndex, int slotIndex, _SpotlightState state) {
+    final (position, railHasFocus) = state;
+    if (!railHasFocus) return 0;
+    if (position.$1 != hubIndex) return _inactiveArtworkDimAlpha;
+    if (position.$2 != slotIndex) return _spotlightArtworkDimAlpha;
+    return 0;
+  }
+
+  double valueFor(int hubIndex, int slotIndex) {
+    final from = _alphaFor(hubIndex, slotIndex, _previous);
+    final to = _alphaFor(hubIndex, slotIndex, _current);
+    if (from == to) return to;
+    return from + (to - from) * Curves.easeOutCubic.transform(controller.value);
+  }
+
+  void dispose() {
+    _focusModel.removeListener(_handleFocusChange);
+    controller.dispose();
+  }
+}
+
+class _SpotlightItemDim extends Animation<double> {
+  _SpotlightItemDim(this._model, this._hubIndex, this._slotIndex);
+
+  final _SpotlightDimModel _model;
+  final int _hubIndex;
+  final int _slotIndex;
+
+  @override
+  double get value => _model.valueFor(_hubIndex, _slotIndex);
+
+  @override
+  AnimationStatus get status => _model.controller.status;
+
+  @override
+  void addListener(VoidCallback listener) => _model.controller.addListener(listener);
+
+  @override
+  void removeListener(VoidCallback listener) => _model.controller.removeListener(listener);
+
+  @override
+  void addStatusListener(AnimationStatusListener listener) => _model.controller.addStatusListener(listener);
+
+  @override
+  void removeStatusListener(AnimationStatusListener listener) => _model.controller.removeStatusListener(listener);
 }

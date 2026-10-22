@@ -26,11 +26,18 @@ Widget buildFocusChrome(
   bool delegateFocusBorder = false,
   bool? showGlow,
   Size? glowSize,
+  bool glowBleed = false,
+  bool posterGlow = false,
   required Widget child,
 }) {
   Widget card;
   if (delegateFocusBorder) {
-    card = CardFocusScope(showFocus: showFocus, child: child);
+    card = CardFocusScope(
+      showFocus: showFocus,
+      color: focusColor,
+      glow: posterGlow ? CardGlow(visible: showGlow ?? showFocus, bleed: glowBleed) : null,
+      child: child,
+    );
   } else {
     final decoration = useBackgroundFocus
         ? FocusTheme.focusBackgroundDecoration(isFocused: showFocus, borderRadius: borderRadius, radii: borderRadii)
@@ -54,6 +61,7 @@ Widget buildFocusChrome(
       borderRadius: borderRadius,
       color: focusColor ?? FocusTheme.getFocusBorderColor(context),
       glowSize: glowSize,
+      bleed: glowBleed,
       child: card,
     );
   }

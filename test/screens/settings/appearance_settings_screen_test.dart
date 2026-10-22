@@ -4,6 +4,7 @@ import 'package:plezy/i18n/strings.g.dart';
 import 'package:plezy/providers/theme_provider.dart';
 import 'package:plezy/screens/settings/appearance_settings_screen.dart';
 import 'package:plezy/services/settings_service.dart';
+import 'package:plezy/services/settings_service.dart' as settings show ThemeMode;
 import 'package:plezy/theme/mono_theme.dart';
 import 'package:provider/provider.dart';
 
@@ -72,5 +73,33 @@ void main() {
     await tester.tap(find.text(t.settings.themeMusicOff));
     await tester.pumpAndSettle();
     expect(find.text(t.settings.themeMusicVolume), findsNothing);
+  });
+
+  testWidgets('the OLED effects group shows for the OLED theme and hides for the others', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1000, 3000);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    final theme = ThemeProvider();
+    addTearDown(theme.dispose);
+    await tester.pumpWidget(
+      ChangeNotifierProvider<ThemeProvider>.value(
+        value: theme,
+        child: MaterialApp(theme: monoTheme(dark: true), home: const AppearanceSettingsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(SettingsService.instance.read(SettingsService.themeMode), settings.ThemeMode.oled);
+    expect(find.text(t.settings.oledEffects), findsOneWidget);
+    expect(find.text(t.settings.oledPosterGlow), findsOneWidget);
+    expect(find.text(t.settings.oledSpotlight), findsOneWidget);
+    expect(find.text(t.settings.oledColorBleed), findsOneWidget);
+
+    await SettingsService.instance.write(SettingsService.themeMode, settings.ThemeMode.dark);
+    await tester.pumpAndSettle();
+
+    expect(find.text(t.settings.oledEffects), findsNothing);
   });
 }

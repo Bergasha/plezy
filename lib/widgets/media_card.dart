@@ -635,18 +635,19 @@ class MediaCardState extends State<MediaCard> with ContextMenuTapMixin<MediaCard
       if (item is MediaItem && _showsWatchedIndicator(item)) WatchedIndicator(item: item),
       if (badgeLabels.isNotEmpty) _CatalogBadges(labels: badgeLabels),
     ];
-    return ExcludeSemantics(
-      child: _VoteBorder(
-        color: _voteBorderColorFor(context, item),
+    final poster = _VoteBorder(
+      color: _voteBorderColorFor(context, item),
+      borderRadius: _posterFocusRadius(context, item),
+      child: _CatalogFocusBorder(
+        accentColor: _catalogAccent,
         borderRadius: _posterFocusRadius(context, item),
-        child: _CatalogFocusBorder(
-          accentColor: _catalogAccent,
-          borderRadius: _posterFocusRadius(context, item),
-          child: fullBleed
-              ? _clipPosterImage(context, item, Stack(fit: StackFit.expand, children: [image, ...overlays]))
-              : Stack(children: [_clipPosterImage(context, item, image), ...overlays]),
-        ),
+        child: fullBleed
+            ? _clipPosterImage(context, item, Stack(fit: StackFit.expand, children: [image, ...overlays]))
+            : Stack(children: [_clipPosterImage(context, item, image), ...overlays]),
       ),
+    );
+    return ExcludeSemantics(
+      child: fullBleed ? poster : CardFocusGlow(borderRadius: _posterFocusRadius(context, item), child: poster),
     );
   }
 

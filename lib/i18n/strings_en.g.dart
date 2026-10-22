@@ -615,6 +615,27 @@ class Translations$settings$en {
 	/// en: 'Draw a soft glow around the focused card'
 	String get focusGlowDescription => 'Draw a soft glow around the focused card';
 
+	/// en: 'OLED effects'
+	String get oledEffects => 'OLED effects';
+
+	/// en: 'Poster-coloured glow'
+	String get oledPosterGlow => 'Poster-coloured glow';
+
+	/// en: 'Light the focused poster in its own colours'
+	String get oledPosterGlowDescription => 'Light the focused poster in its own colours';
+
+	/// en: 'Dim the rest'
+	String get oledSpotlight => 'Dim the rest';
+
+	/// en: 'Dim the other posters so the focused one stands out'
+	String get oledSpotlightDescription => 'Dim the other posters so the focused one stands out';
+
+	/// en: 'Colour bleed'
+	String get oledColorBleed => 'Colour bleed';
+
+	/// en: 'Let the focused poster's colour spill softly into the black behind it'
+	String get oledColorBleedDescription => 'Let the focused poster\'s colour spill softly into the black behind it';
+
 	/// en: 'Visual Effects'
 	String get visualEffects => 'Visual Effects';
 
@@ -858,29 +879,29 @@ class Translations$settings$en {
 	/// en: 'Image cache cleared successfully'
 	String get clearImageCacheSuccess => 'Image cache cleared successfully';
 
-	/// en: 'Scan Library for Cast Info'
-	String get scanCastInfo => 'Scan Library for Cast Info';
+	/// en: 'Scan Library for Poster Colours'
+	String get scanPosterColors => 'Scan Library for Poster Colours';
 
-	/// en: 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they're instant the first time you look someone up.'
-	String get scanCastInfoDescription => 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they\'re instant the first time you look someone up.';
+	/// en: 'Work out each poster's colours ahead of time so the OLED glow is instant the first time you land on a title.'
+	String get scanPosterColorsDescription => 'Work out each poster\'s colours ahead of time so the OLED glow is instant the first time you land on a title.';
 
-	/// en: 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn't affect app performance while it runs.'
-	String get scanCastInfoConfirm => 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.';
+	/// en: 'This reads a small copy of every movie and show poster in the background. It may take a while and uses some network bandwidth, but shouldn't affect app performance while it runs.'
+	String get scanPosterColorsConfirm => 'This reads a small copy of every movie and show poster in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.';
 
 	/// en: 'Start Scan'
-	String get scanCastInfoStart => 'Start Scan';
+	String get scanPosterColorsStart => 'Start Scan';
 
 	/// en: 'Starting scan…'
-	String get scanCastInfoStarting => 'Starting scan…';
+	String get scanPosterColorsStarting => 'Starting scan…';
 
 	/// en: 'Scanned ${current} of ${total} titles'
-	String scanCastInfoProgress({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles';
+	String scanPosterColorsProgress({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles';
 
 	/// en: 'Run in Background'
-	String get scanCastInfoRunInBackground => 'Run in Background';
+	String get scanPosterColorsRunInBackground => 'Run in Background';
 
-	/// en: 'Cast info scan complete'
-	String get scanCastInfoComplete => 'Cast info scan complete';
+	/// en: 'Poster colour scan complete'
+	String get scanPosterColorsComplete => 'Poster colour scan complete';
 
 	/// en: 'Reset Settings'
 	String get resetSettings => 'Reset Settings';
@@ -7867,6 +7888,13 @@ extension on Translations {
 			'settings.tvFullCardLayoutDescription' => 'Use image-only TV cards with actor names overlaid',
 			'settings.focusGlow' => 'Focus Glow',
 			'settings.focusGlowDescription' => 'Draw a soft glow around the focused card',
+			'settings.oledEffects' => 'OLED effects',
+			'settings.oledPosterGlow' => 'Poster-coloured glow',
+			'settings.oledPosterGlowDescription' => 'Light the focused poster in its own colours',
+			'settings.oledSpotlight' => 'Dim the rest',
+			'settings.oledSpotlightDescription' => 'Dim the other posters so the focused one stands out',
+			'settings.oledColorBleed' => 'Colour bleed',
+			'settings.oledColorBleedDescription' => 'Let the focused poster\'s colour spill softly into the black behind it',
 			'settings.visualEffects' => 'Visual Effects',
 			'settings.visualEffectsAuto' => 'Auto',
 			'settings.visualEffectsAutoDescription' => 'Reduce effects automatically on low-power devices',
@@ -7948,14 +7976,14 @@ extension on Translations {
 			'settings.clearImageCache' => 'Clear Image Cache',
 			'settings.clearImageCacheDescription' => 'Clear cached artwork and thumbnails. Images may load slower until downloaded again.',
 			'settings.clearImageCacheSuccess' => 'Image cache cleared successfully',
-			'settings.scanCastInfo' => 'Scan Library for Cast Info',
-			'settings.scanCastInfoDescription' => 'Pre-fetch cast biography, birth/death dates, and photos from TMDb so they\'re instant the first time you look someone up.',
-			'settings.scanCastInfoConfirm' => 'This fetches cast data from TMDb for your whole library in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.',
-			'settings.scanCastInfoStart' => 'Start Scan',
-			'settings.scanCastInfoStarting' => 'Starting scan…',
-			'settings.scanCastInfoProgress' => ({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles',
-			'settings.scanCastInfoRunInBackground' => 'Run in Background',
-			'settings.scanCastInfoComplete' => 'Cast info scan complete',
+			'settings.scanPosterColors' => 'Scan Library for Poster Colours',
+			'settings.scanPosterColorsDescription' => 'Work out each poster\'s colours ahead of time so the OLED glow is instant the first time you land on a title.',
+			'settings.scanPosterColorsConfirm' => 'This reads a small copy of every movie and show poster in the background. It may take a while and uses some network bandwidth, but shouldn\'t affect app performance while it runs.',
+			'settings.scanPosterColorsStart' => 'Start Scan',
+			'settings.scanPosterColorsStarting' => 'Starting scan…',
+			'settings.scanPosterColorsProgress' => ({required Object current, required Object total}) => 'Scanned ${current} of ${total} titles',
+			'settings.scanPosterColorsRunInBackground' => 'Run in Background',
+			'settings.scanPosterColorsComplete' => 'Poster colour scan complete',
 			'settings.resetSettings' => 'Reset Settings',
 			'settings.resetSettingsDescription' => 'Restore default settings. This can\'t be undone.',
 			'settings.resetSettingsSuccess' => 'Settings reset successfully',
@@ -8196,6 +8224,8 @@ extension on Translations {
 			'hotkeys.actions.episodePrevious' => 'Previous Episode',
 			'hotkeys.actions.speedIncrease' => 'Increase Speed',
 			'hotkeys.actions.speedDecrease' => 'Decrease Speed',
+			_ => null,
+		} ?? switch (path) {
 			'hotkeys.actions.speedReset' => 'Reset Speed',
 			'hotkeys.actions.zoomIn' => 'Zoom In',
 			'hotkeys.actions.zoomOut' => 'Zoom Out',
@@ -8203,8 +8233,6 @@ extension on Translations {
 			'hotkeys.actions.subSeekNext' => 'Seek to Next Subtitle',
 			'hotkeys.actions.subSeekPrev' => 'Seek to Previous Subtitle',
 			'hotkeys.actions.shaderToggle' => 'Toggle Shaders',
-			_ => null,
-		} ?? switch (path) {
 			'hotkeys.actions.performanceOverlayToggle' => 'Toggle Performance Overlay',
 			'hotkeys.actions.skipMarker' => 'Skip Intro/Credits',
 			'hotkeys.actions.screenshot' => 'Take Screenshot',
@@ -8710,6 +8738,8 @@ extension on Translations {
 			'accountPreferences.subtitleModes.defaultModeDescription' => 'Use the default and forced flags stored on each subtitle track.',
 			'accountPreferences.subtitleModes.always' => 'Always enabled',
 			'accountPreferences.subtitleModes.alwaysDescription' => 'Turn on a subtitle track in the preferred language whenever one exists.',
+			_ => null,
+		} ?? switch (path) {
 			'accountPreferences.subtitleModes.onlyForced' => 'Only forced subtitles',
 			'accountPreferences.subtitleModes.onlyForcedDescription' => 'Load only the tracks marked as forced.',
 			'accountPreferences.subtitleModes.smart' => 'Shown with foreign audio',
@@ -8717,8 +8747,6 @@ extension on Translations {
 			'accountPreferences.subtitleAccessibility' => 'SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.preferNonSdh' => 'Prefer non-SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.preferSdh' => 'Prefer SDH subtitles',
-			_ => null,
-		} ?? switch (path) {
 			'accountPreferences.subtitleAccessibilityOptions.onlySdh' => 'Only SDH subtitles',
 			'accountPreferences.subtitleAccessibilityOptions.onlyNonSdh' => 'Only non-SDH subtitles',
 			'accountPreferences.forcedSubtitles' => 'Forced subtitles',
@@ -9224,6 +9252,8 @@ extension on Translations {
 			'playlists.playlist' => 'Playlist',
 			'playlists.noPlaylists' => 'No playlists found',
 			'playlists.create' => 'Create Playlist',
+			_ => null,
+		} ?? switch (path) {
 			'playlists.playlistName' => 'Playlist Name',
 			'playlists.enterPlaylistName' => 'Enter playlist name',
 			'playlists.delete' => 'Delete Playlist',
@@ -9231,8 +9261,6 @@ extension on Translations {
 			'playlists.smartPlaylist' => 'Smart Playlist',
 			'playlists.itemCount' => ({required Object count}) => '${count} items',
 			'playlists.oneItem' => '1 item',
-			_ => null,
-		} ?? switch (path) {
 			'playlists.emptyPlaylist' => 'This playlist is empty',
 			'playlists.deleteConfirm' => 'Delete Playlist?',
 			'playlists.deleteMessage' => ({required Object name}) => 'Are you sure you want to delete "${name}"?',
@@ -9738,6 +9766,8 @@ extension on Translations {
 			'matchScreen.unmatchConfirm' => 'Clear this match? Plex treats it as unmatched until rematched.',
 			'matchScreen.unmatchSuccess' => 'Item unmatched',
 			'matchScreen.unmatchFailed' => 'Failed to unmatch item',
+			_ => null,
+		} ?? switch (path) {
 			'matchScreen.matchApplied' => 'Match applied',
 			'matchScreen.matchFailed' => 'Failed to apply match',
 			'matchScreen.titleHint' => 'Title',
@@ -9745,8 +9775,6 @@ extension on Translations {
 			'matchScreen.search' => 'Search',
 			'matchScreen.noMatchesFound' => 'No matches found',
 			'tautulli.activeStreams' => 'Active Streams',
-			_ => null,
-		} ?? switch (path) {
 			'tautulli.failedToLoad' => 'Failed to load active streams from Tautulli',
 			'tautulli.noActiveStreams' => 'No active streams',
 			'tautulli.transcode' => 'TRANSCODE',

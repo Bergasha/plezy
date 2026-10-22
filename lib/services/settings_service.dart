@@ -631,6 +631,9 @@ class SettingsService extends BaseSharedPreferencesService {
   );
   static const tvFullCardLayout = BoolPref('tv_full_card_layout', defaultValue: false);
   static const focusGlow = BoolPref('focus_glow', defaultValue: true);
+  static const oledPosterGlow = BoolPref('oled_poster_glow', defaultValue: true);
+  static const oledSpotlight = BoolPref('oled_spotlight', defaultValue: true);
+  static const oledColorBleed = BoolPref('oled_color_bleed', defaultValue: true);
   static const useGlobalHubs = BoolPref('use_global_hubs', defaultValue: true);
   static const showServerNameOnHubs = BoolPref('show_server_name_on_hubs');
   static const groupLibrariesByServer = BoolPref('group_libraries_by_server', defaultValue: true);
@@ -867,7 +870,6 @@ class SettingsService extends BaseSharedPreferencesService {
 
   /// Sidebar Libraries section expansion. Persisted so a collapsed section
   /// stays collapsed across launches instead of springing back open (#1896).
-  static const librariesSectionExpanded = BoolPref('libraries_section_expanded', defaultValue: true);
   static const showUnwatchedCount = BoolPref('show_unwatched_count', defaultValue: true);
   static const showFinishTimeOnCards = BoolPref('show_finish_time_on_cards', defaultValue: true);
 
@@ -1537,7 +1539,6 @@ class SettingsService extends BaseSharedPreferencesService {
     startupSection,
     showExploreTab,
     alwaysKeepSidebarOpen,
-    librariesSectionExpanded,
     showUnwatchedCount,
     showFinishTimeOnCards,
     showWatchedIndicators,
@@ -1591,6 +1592,9 @@ class SettingsService extends BaseSharedPreferencesService {
     rewindOnResume,
     tvFullCardLayout,
     focusGlow,
+    oledPosterGlow,
+    oledSpotlight,
+    oledColorBleed,
     useGlobalHubs,
     showServerNameOnHubs,
     groupLibrariesByServer,

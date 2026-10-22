@@ -432,8 +432,10 @@ void main() {
     expect(FocusTheme.focusGlowShadows(const Color(0xFFFFFFFF)), hasLength(2));
   });
 
-  testWidgets('non full bleed card does not use the overlay glow', (tester) async {
+  testWidgets('non full bleed card does not use the overlay glow when the OLED glow effects are off', (tester) async {
     TvDetectionService.debugSetAppleTVOverride(true);
+    await SettingsService.instance.write(SettingsService.oledPosterGlow, false);
+    await SettingsService.instance.write(SettingsService.oledColorBleed, false);
     final focusNode = FocusNode();
     addTearDown(focusNode.dispose);
 
@@ -444,6 +446,20 @@ void main() {
 
     expect(find.byType(FocusGlowOverlay), findsNothing);
     expect(find.byType(CompositedTransformFollower), findsNothing);
+  });
+
+  testWidgets('non full bleed card glows around its poster under the OLED theme', (tester) async {
+    TvDetectionService.debugSetAppleTVOverride(true);
+    final focusNode = FocusNode();
+    addTearDown(focusNode.dispose);
+
+    await tester.pumpWidget(_fullCardHarness(focusNode: focusNode, fullBleed: false));
+    focusNode.requestFocus();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(FocusGlowOverlay), findsOneWidget);
+    expect(find.byType(CompositedTransformFollower), findsOneWidget);
   });
 
   testWidgets('overlay glow fades out and unmounts when focus is lost', (tester) async {

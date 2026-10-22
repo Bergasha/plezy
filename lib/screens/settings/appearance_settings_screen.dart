@@ -123,6 +123,7 @@ class AppearanceSettingsScreen extends StatelessWidget {
           ],
         ),
 
+        _oledEffectsGroup(),
         _screensaverGroup(),
 
         SettingsGroup(
@@ -347,6 +348,38 @@ class AppearanceSettingsScreen extends StatelessWidget {
       ButtonSegment(value: ContinueWatchingAction.play, label: Text(t.settings.continueWatchingPlay)),
       ButtonSegment(value: ContinueWatchingAction.details, label: Text(t.settings.continueWatchingDetails)),
     ],
+  );
+
+  Widget _oledEffectsGroup() => SettingsBuilder(
+    prefs: const [SettingsService.themeMode],
+    builder: (_) {
+      if (SettingsService.instance.read(SettingsService.themeMode) != settings.ThemeMode.oled) {
+        return const SizedBox.shrink();
+      }
+      return SettingsGroup(
+        title: t.settings.oledEffects,
+        children: [
+          SettingSwitchTile(
+            pref: SettingsService.oledPosterGlow,
+            icon: Symbols.light_mode_rounded,
+            title: t.settings.oledPosterGlow,
+            subtitle: t.settings.oledPosterGlowDescription,
+          ),
+          SettingSwitchTile(
+            pref: SettingsService.oledSpotlight,
+            icon: Symbols.highlight_rounded,
+            title: t.settings.oledSpotlight,
+            subtitle: t.settings.oledSpotlightDescription,
+          ),
+          SettingSwitchTile(
+            pref: SettingsService.oledColorBleed,
+            icon: Symbols.gradient_rounded,
+            title: t.settings.oledColorBleed,
+            subtitle: t.settings.oledColorBleedDescription,
+          ),
+        ],
+      );
+    },
   );
 
   Widget _screensaverGroup() => SettingsBuilder(

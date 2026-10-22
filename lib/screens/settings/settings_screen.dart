@@ -16,7 +16,6 @@ import '../../i18n/strings.g.dart';
 import '../main_screen.dart';
 import '../../mixins/mounted_set_state_mixin.dart';
 import '../../mixins/refreshable.dart';
-import '../../database/app_database.dart';
 import '../../providers/account_preferences_controller.dart';
 import '../../providers/hidden_libraries_provider.dart';
 import '../../providers/download_provider.dart';
@@ -33,8 +32,7 @@ import '../../services/keyboard_shortcuts_service.dart';
 import '../../services/background_work_diagnostics_service.dart';
 import '../../services/settings_service.dart' as settings;
 import '../../services/settings_mutation_service.dart';
-import '../../services/tmdb_cache_warmer.dart';
-import '../../services/tmdb_cast_matcher.dart';
+import '../../services/poster_color_scanner.dart';
 import '../../widgets/background_download_warning_banner.dart';
 import '../../services/update_service.dart';
 import '../../utils/dialogs.dart';
@@ -595,9 +593,9 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
         ),
         SettingNavigationTile(
           icon: Symbols.groups_rounded,
-          title: t.settings.scanCastInfo,
-          subtitle: t.settings.scanCastInfoDescription,
-          onTap: () => _showScanCastInfoDialog(),
+          title: t.settings.scanPosterColors,
+          subtitle: t.settings.scanPosterColorsDescription,
+          onTap: () => _showScanPosterColorsDialog(),
         ),
         SettingNavigationTile(
           focusNode: _focusTracker.get(_kResetSettings),
@@ -849,26 +847,23 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
     if (mounted) showSuccessSnackBar(context, t.settings.clearImageCacheSuccess);
   }
 
-  Future<void> _showScanCastInfoDialog() async {
+  Future<void> _showScanPosterColorsDialog() async {
     final confirmed = await showConfirmDialog(
       context,
-      title: t.settings.scanCastInfo,
-      message: t.settings.scanCastInfoConfirm,
-      confirmText: t.settings.scanCastInfoStart,
+      title: t.settings.scanPosterColors,
+      message: t.settings.scanPosterColorsConfirm,
+      confirmText: t.settings.scanPosterColorsStart,
     );
     if (!confirmed) return;
 
     final libraries = context.read<LibrariesProvider>().libraries;
-    final database = context.read<AppDatabase>();
-    final matcher = TmdbCastMatcher(database: database);
 
     var current = 0;
     var total = 0;
     StateSetter? dialogSetState;
 
-    final warmer = TmdbCacheWarmer(
+    final warmer = PosterColorScanner(
       clientForLibrary: (library) => context.getMediaClientForLibrary(library),
-      matcher: matcher,
       onProgress: (scanned, totalItems) {
         current = scanned;
         total = totalItems;
@@ -877,8 +872,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
     );
 
     final scanFuture = warmer.scanLibraries(libraries).then((_) {
-      matcher.dispose();
-      if (mounted) showSuccessSnackBar(context, t.settings.scanCastInfoComplete);
+      if (mounted) showSuccessSnackBar(context, t.settings.scanPosterColorsComplete);
     });
     unawaited(scanFuture);
 
@@ -891,7 +885,7 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
           builder: (context, setState) {
             dialogSetState = setState;
             return AlertDialog(
-              title: Text(t.settings.scanCastInfo),
+              title: Text(t.settings.scanPosterColors),
               content: Column(
                 mainAxisSize: .min,
                 children: [
@@ -899,15 +893,15 @@ class _SettingsScreenState extends State<SettingsScreen> with FocusableTab, Moun
                   const SizedBox(height: 24),
                   Text(
                     total > 0
-                        ? t.settings.scanCastInfoProgress(current: current, total: total)
-                        : t.settings.scanCastInfoStarting,
+                        ? t.settings.scanPosterColorsProgress(current: current, total: total)
+                        : t.settings.scanPosterColorsStarting,
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: Text(t.settings.scanCastInfoRunInBackground),
+                  child: Text(t.settings.scanPosterColorsRunInBackground),
                 ),
                 TextButton(
                   onPressed: () {

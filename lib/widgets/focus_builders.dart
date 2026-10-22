@@ -92,6 +92,9 @@ class FocusBuilders {
     /// while its vertical viewport is animating.
     bool? showGlow,
     Size? glowSize,
+    Color? focusColor,
+    bool glowBleed = false,
+    bool posterGlow = false,
     required Widget child,
   }) {
     final isKeyboardMode = InputModeTracker.isKeyboardMode(context);
@@ -120,6 +123,9 @@ class FocusBuilders {
         delegateFocusBorder: delegateFocusBorder,
         showGlow: showGlow,
         glowSize: glowSize,
+        focusColor: focusColor,
+        glowBleed: glowBleed,
+        posterGlow: posterGlow,
         child: child,
       ),
     );

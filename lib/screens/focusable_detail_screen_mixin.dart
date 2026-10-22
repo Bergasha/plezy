@@ -225,7 +225,6 @@ mixin FocusableDetailScreenMixin<T extends StatefulWidget> on State<T>, GridFocu
     String? collectionId,
     VoidCallback? onListRefresh,
     CardShape? shape,
-    FocusNode? navigateUpTarget,
     int indexOffset = 0,
     bool isOffline = false,
     VoidCallback? onFirstRowNavigateUp,
@@ -261,13 +260,10 @@ mixin FocusableDetailScreenMixin<T extends StatefulWidget> on State<T>, GridFocu
             isOffline: isOffline,
             fullBleedImage: useFullCardLayout && position.isGrid,
             cardShapeOverride: shape,
-            // The first section's first row reaches the app bar (or
-            // navigateUpTarget / onFirstRowNavigateUp when given); later
+            // The first section's first row reaches the app bar; later
             // sections fall through to traversal, which enters the previous
             // section's grid.
-            onNavigateUp: position.isFirstRow && indexOffset == 0
-                ? (navigateUpTarget != null ? navigateUpTarget.requestFocus : onFirstRowNavigateUp ?? navigateToAppBar)
-                : null,
+            onNavigateUp: position.isFirstRow && indexOffset == 0 ? onFirstRowNavigateUp ?? navigateToAppBar : null,
             onBack: handleBackFromContent,
             onFocusChange: (hasFocus) => trackGridItemFocus(globalIndex, hasFocus),
           );

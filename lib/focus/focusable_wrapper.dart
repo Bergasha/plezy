@@ -172,6 +172,12 @@ class FocusableWrapper extends StatefulWidget {
   /// Whether to draw a glow around the focused widget.
   final bool useFocusGlow;
 
+  /// Glow around the artwork of a card that draws its own border (see
+  /// [delegateFocusBorder]) instead of around the whole wrapped widget, with
+  /// [glowBleed] adding the wide colour-bleed halo. The OLED effects.
+  final bool posterGlow;
+  final bool glowBleed;
+
   /// Skip drawing the focus border here and expose the focus state through a
   /// [CardFocusScope] instead, so the child places the border on the exact
   /// rect it wants highlighted (e.g. MediaCard's poster image).
@@ -218,6 +224,8 @@ class FocusableWrapper extends StatefulWidget {
     this.disableScale = false,
     this.focusScale = FocusTheme.focusScale,
     this.useFocusGlow = false,
+    this.posterGlow = false,
+    this.glowBleed = false,
     this.delegateFocusBorder = false,
     this.descendantsAreFocusable = true,
     this.includeFocusSemantics = true,
@@ -540,6 +548,8 @@ class _FocusableWrapperState extends State<FocusableWrapper> with SingleTickerPr
           focusColor: widget.focusColor,
           useBackgroundFocus: widget.useBackgroundFocus,
           useFocusGlow: widget.useFocusGlow,
+          posterGlow: widget.posterGlow,
+          glowBleed: widget.glowBleed,
           delegateFocusBorder: widget.delegateFocusBorder,
           child: widget.child,
         ),

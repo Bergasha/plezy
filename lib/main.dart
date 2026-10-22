@@ -75,6 +75,7 @@ import 'services/connectivity_probe.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'services/jellyfin_api_cache.dart';
 import 'services/plex_api_cache.dart';
+import 'services/poster_color_service.dart';
 import 'database/app_database.dart';
 import 'database/download_operations.dart';
 import 'database/tvos_database_recovery_store.dart';
@@ -90,6 +91,7 @@ import 'i18n/app_locale_utils.dart';
 import 'i18n/strings.g.dart';
 import 'widgets/app_icon.dart';
 import 'focus/input_mode_tracker.dart';
+import 'focus/oled_spotlight.dart';
 import 'focus/key_event_utils.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'utils/navigation_transitions.dart';
@@ -1333,6 +1335,7 @@ class _MainAppState extends State<MainApp> with WidgetsBindingObserver {
     _appDatabase = widget.appDatabase;
 
     PlexApiCache.initialize(_appDatabase);
+    PosterColorService.instance.attach(_appDatabase);
     JellyfinApiCache.initialize(_appDatabase);
 
     _downloadManager = DownloadManagerService(
@@ -1915,9 +1918,11 @@ class _AppShell extends StatelessWidget {
 /// interface grew.
 Widget rootShell(Widget? child) {
   return FormFactorScale(
-    child: ScaffoldMessenger(
-      key: rootScaffoldMessengerKey,
-      child: Scaffold(backgroundColor: Colors.transparent, body: child),
+    child: OledSpotlightHost(
+      child: ScaffoldMessenger(
+        key: rootScaffoldMessengerKey,
+        child: Scaffold(backgroundColor: Colors.transparent, body: child),
+      ),
     ),
   );
 }

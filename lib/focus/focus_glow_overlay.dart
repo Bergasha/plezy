@@ -27,6 +27,7 @@ class FocusGlowOverlay extends StatefulWidget {
     required this.color,
     required this.child,
     this.glowSize,
+    this.bleed = false,
   });
 
   /// Whether the wrapped card currently shows focus. Drives the glow.
@@ -42,6 +43,9 @@ class FocusGlowOverlay extends StatefulWidget {
   /// Explicit card size. When null, falls back to [LayerLink.leaderSize] (one
   /// frame late on first show, hidden under the opacity-0 fade-in).
   final Size? glowSize;
+
+  /// Adds the wide colour-bleed halo around the glow.
+  final bool bleed;
 
   final Widget child;
 
@@ -136,7 +140,7 @@ class _FocusGlowOverlayState extends State<FocusGlowOverlay> {
       controller: _controller,
       overlayChildBuilder: (overlayContext) {
         final size = widget.glowSize ?? _link.leaderSize;
-        final extent = FocusTheme.focusGlowExtent;
+        final extent = widget.bleed ? FocusTheme.focusBleedExtent : FocusTheme.focusGlowExtent;
 
         return CompositedTransformFollower(
           link: _link,
@@ -156,7 +160,10 @@ class _FocusGlowOverlayState extends State<FocusGlowOverlay> {
                       painter: _FocusGlowPainter(
                         rect: Offset(extent, extent) & size,
                         borderRadius: widget.borderRadius,
-                        shadows: FocusTheme.focusGlowShadows(widget.color),
+                        shadows: [
+                          ...FocusTheme.focusGlowShadows(widget.color),
+                          if (widget.bleed) ...FocusTheme.focusBleedShadows(widget.color),
+                        ],
                       ),
                     ),
             ),

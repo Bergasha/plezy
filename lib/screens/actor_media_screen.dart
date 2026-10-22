@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../media/ids.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../media/library_query.dart';
@@ -16,26 +16,16 @@ import '../utils/app_logger.dart';
 import '../utils/error_message_utils.dart';
 import '../utils/media_server_http_client.dart';
 import '../utils/provider_extensions.dart';
+import '../widgets/collapsible_text.dart';
 import '../widgets/desktop_app_bar.dart';
 import '../widgets/optimized_media_image.dart';
 import '../utils/media_image_helper.dart';
+import '../i18n/app_locale_utils.dart';
 import '../i18n/strings.g.dart';
-import '../utils/formatters.dart';
-import '../widgets/collapsible_text.dart';
 import 'base_media_list_detail_screen.dart';
 import 'focusable_detail_screen_mixin.dart';
 import '../mixins/grid_focus_node_mixin.dart';
 import '../focus/focusable_action_bar.dart';
-import '../database/app_database.dart';
-import '../models/catalog/catalog_item.dart';
-import '../models/tmdb/tmdb_person.dart';
-import '../focus/focus_theme.dart';
-import '../services/settings_service.dart';
-import '../services/tmdb_cast_matcher.dart';
-import '../services/tmdb_filmography_mapper.dart';
-import '../utils/grid_size_calculator.dart';
-import '../utils/platform_detector.dart';
-import '../widgets/focusable_media_card.dart';
 
 /// Screen to browse all media featuring a specific actor.
 class ActorMediaScreen extends StatefulWidget {
@@ -46,7 +36,6 @@ class ActorMediaScreen extends StatefulWidget {
   final String serverId;
   final String? serverName;
   final MediaBackend backend;
-  final MediaItem? sourceMediaItem;
 
   const ActorMediaScreen({
     super.key,
@@ -57,7 +46,6 @@ class ActorMediaScreen extends StatefulWidget {
     required this.serverId,
     this.serverName,
     required this.backend,
-    this.sourceMediaItem,
   });
 
   @override
@@ -73,45 +61,16 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
         StandardPaginatedView<MediaItem, ActorMediaScreen> {
   static const int _pageSize = 200;
 
-  TmdbCastMatcher? _tmdbMatcherOrNull;
-  TmdbCastMatcher get _tmdbMatcher => _tmdbMatcherOrNull ??= TmdbCastMatcher(database: context.read<AppDatabase>());
-  TmdbPerson? _tmdbPerson;
-  bool _tmdbLoading = false;
-  final _bioFocusNode = FocusNode();
-  List<CatalogItem>? _filmography;
+  /// Keeps a long biography to a readable line length on wide layouts.
+  static const double _biographyMaxWidth = 800;
+
   final AbortController _detailsAbort = AbortController();
+  late final FocusNode _biographyFocusNode = FocusNode(debugLabel: 'person_biography');
   MediaPersonDetails _details = MediaPersonDetails.empty;
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_loadDetails());
-    final source = widget.sourceMediaItem;
-    if (source != null) {
-      _tmdbLoading = true;
-      _tmdbMatcher
-          .resolveCastMember(metadata: source, actorName: widget.actorName, client: _mediaClient)
-          .then((person) async {
-            if (!mounted) return;
-            setState(() {
-              _tmdbPerson = person;
-              _tmdbLoading = false;
-            });
-            if (person == null) return;
-            try {
-              final credits = await _tmdbMatcher.getFilmography(person.id);
-              if (!mounted) return;
-              setState(() => _filmography = mapTmdbFilmography(credits));
-            } catch (_) {
-              if (mounted) setState(() => _filmography = const []);
-            }
-          })
-          .catchError((_) {
-            if (!mounted) return;
-            setState(() => _tmdbLoading = false);
-          });
-    }
-  }
+  /// Whether the biography is truncated, so D-pad focus has a reason to stop
+  /// on it (SELECT expands it) between the grid and the app bar.
+  bool _biographyExpandable = false;
 
   @override
   MediaItem get mediaItem => MediaItem(
@@ -131,6 +90,30 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
   @override
   bool get hasItems => totalSize > 0;
 
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadDetails());
+  }
+
+  @override
+  void dispose() {
+    _detailsAbort.abort();
+    _biographyFocusNode.dispose();
+    disposePagination();
+    disposeFocusResources();
+    super.dispose();
+  }
+
+  MediaServerClient get _mediaClient => context.getMediaClientForServer(ServerId(widget.serverId));
+
+  /// The server may be offline (a cast tap from an offline detail): the header
+  /// then shows the fallback avatar and the load reports the failure, instead
+  /// of the lookup throwing during build.
+  MediaServerClient? get _mediaClientOrNull => context.tryGetMediaClientForServer(ServerId(widget.serverId));
+
+  /// Best-effort: the filmography is the page. A server that cannot describe
+  /// the person, or a failed lookup, leaves the header as name and photo.
   Future<void> _loadDetails() async {
     final client = _mediaClientOrNull;
     if (client == null) return;
@@ -144,29 +127,32 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
     }
   }
 
-  String? _isoDate(DateTime? date) {
-    if (date == null) return null;
-    return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  /// Born, died, and birthplace rows; the age goes with the death date for
+  /// someone who has died, and with the birth date otherwise.
+  List<({String label, String value})> _personFacts() {
+    final details = _details;
+    final locale = LocaleSettings.currentLocale.intlLocaleName;
+    String format(DateTime date) => DateFormat.yMMMMd(locale).format(date);
+    final age = details.ageOn(DateTime.now());
+    final strings = t.discover.person;
+    return [
+      if (details.birthDate case final born?)
+        (
+          label: strings.born,
+          value: age != null && details.deathDate == null
+              ? strings.dateWithAge(date: format(born), age: age)
+              : format(born),
+        ),
+      if (details.deathDate case final died?)
+        (
+          label: strings.died,
+          value: age != null ? strings.dateWithAgeAtDeath(date: format(died), age: age) : format(died),
+        ),
+      if (details.birthPlace case final place?) (label: strings.birthplace, value: place),
+    ];
   }
 
-  String? get _biography => _tmdbPerson?.biography ?? _details.biography;
-
-  @override
-  void dispose() {
-    _detailsAbort.abort();
-    _tmdbMatcherOrNull?.dispose();
-    _bioFocusNode.dispose();
-    disposePagination();
-    disposeFocusResources();
-    super.dispose();
-  }
-
-  MediaServerClient get _mediaClient => context.getMediaClientForServer(ServerId(widget.serverId));
-
-  /// The server may be offline (a cast tap from an offline detail): the header
-  /// then shows the fallback avatar and the load reports the failure, instead
-  /// of the lookup throwing during build.
-  MediaServerClient? get _mediaClientOrNull => context.tryGetMediaClientForServer(ServerId(widget.serverId));
+  void _focusBiography() => _biographyFocusNode.requestFocus();
 
   @override
   Future<LibraryPage<MediaItem>> fetchPage(int start, int size, AbortController? abort) {
@@ -190,174 +176,96 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
     return [];
   }
 
-  int? _ageInYears(String birthday, String? asOf) {
-    try {
-      final birth = DateTime.parse(birthday);
-      final end = asOf != null ? DateTime.parse(asOf) : DateTime.now();
-      var age = end.year - birth.year;
-      if (end.month < birth.month || (end.month == birth.month && end.day < birth.day)) age--;
-      return age;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String? _departmentLabel(String? department) {
-    return switch (department) {
-      'Acting' => 'Actor',
-      'Directing' => 'Director',
-      'Production' => 'Producer',
-      'Writing' => 'Writer',
-      _ => department,
-    };
-  }
-
   Widget _buildActorHeader() {
     final theme = Theme.of(context);
-    final person = _tmdbPerson;
-    final photoUrl = person?.profilePath != null ? 'https://image.tmdb.org/t/p/w500${person!.profilePath}' : null;
-    final occupation = _departmentLabel(person?.knownForDepartment);
-    final birthday = person?.birthday ?? _isoDate(_details.birthDate);
-    final deathday = person?.deathday ?? _isoDate(_details.deathDate);
-    final birthplace = person?.placeOfBirth ?? _details.birthPlace;
-    final biography = _biography;
-
+    final mutedColor = theme.colorScheme.onSurfaceVariant;
+    final facts = _personFacts();
+    final biography = _details.biography;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          crossAxisAlignment: .start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: OptimizedMediaImage(
-                client: photoUrl == null ? _mediaClientOrNull : null,
-                imagePath: photoUrl ?? widget.actorThumb,
-                width: 160,
-                height: 240,
-                fit: BoxFit.cover,
-                imageType: ImageType.avatar,
-                fallbackIcon: Symbols.person_rounded,
-              ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: .start,
-                children: [
-                  Text(
-                    widget.actorName,
-                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: .bold),
-                    maxLines: 2,
-                    overflow: .ellipsis,
-                  ),
-                  if (occupation != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      occupation,
-                      style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                  if (birthday != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      deathday != null
-                          ? 'Born ${formatFullDate(birthday)}\nDied ${formatFullDate(deathday)} (${_ageInYears(birthday, deathday)})'
-                          : 'Born ${formatFullDate(birthday)} (${_ageInYears(birthday, null)} years)',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                  if (birthplace != null && birthplace.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      '${t.discover.person.birthplace}: $birthplace',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                  if (biography != null && biography.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    CollapsibleText(
-                      text: biography,
-                      maxLines: 4,
-                      style: theme.textTheme.bodyMedium,
-                      skipTraversal: false,
-                      focusNode: _bioFocusNode,
-                    ),
-                  ],
-                  if (widget.characterName != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.characterName!,
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      maxLines: 1,
-                      overflow: .ellipsis,
-                    ),
-                  ],
-                  if (totalSize > 0) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      t.discover.titleCount(n: totalSize),
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilmographySection() {
-    final filmography = _filmography;
-    if (filmography == null || filmography.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
-    final theme = Theme.of(context);
-
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Column(
           crossAxisAlignment: .start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(t.actor.filmography, style: theme.textTheme.titleMedium?.copyWith(fontWeight: .bold)),
-            ),
-            const SizedBox(height: 8),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final density = SettingsService.instance.read(SettingsService.libraryDensity);
-                final isTv = PlatformDetector.isTV();
-                final cardWidth = GridSizeCalculator.getCellWidth(constraints.maxWidth, context, density);
-                final posterWidth = cardWidth - 6;
-                final posterHeight = posterWidth * 1.5;
-                final containerHeight = posterHeight + (isTv ? 48 : 33);
-                final focusExtra = FocusTheme.focusBorderWidth * 2;
-
-                return SizedBox(
-                  height: containerHeight + focusExtra + (isTv ? 12 : 4) + 16,
-                  child: ListView.builder(
-                    scrollDirection: .horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filmography.length,
-                    itemBuilder: (context, index) {
-                      final catalogItem = filmography[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FocusableMediaCard(
-                          item: catalogItem.toMediaItem(),
-                          width: cardWidth,
-                          height: containerHeight,
-                          viewModeOverride: ViewMode.grid,
-                          onBack: handleBackFromContent,
-                        ),
-                      );
-                    },
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(40),
+                  child: OptimizedMediaImage(
+                    client: _mediaClientOrNull,
+                    imagePath: widget.actorThumb,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    imageType: ImageType.avatar,
+                    fallbackIcon: Symbols.person_rounded,
                   ),
-                );
-              },
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: .start,
+                    children: [
+                      Text(
+                        widget.actorName,
+                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: .bold),
+                        maxLines: 2,
+                        overflow: .ellipsis,
+                      ),
+                      if (widget.characterName != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.characterName!,
+                          style: theme.textTheme.bodyMedium?.copyWith(color: mutedColor),
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                        ),
+                      ],
+                      if (totalSize > 0) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          t.discover.titleCount(n: totalSize),
+                          style: theme.textTheme.bodySmall?.copyWith(color: mutedColor),
+                        ),
+                      ],
+                      if (facts.isNotEmpty) const SizedBox(height: 4),
+                      for (final fact in facts)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '${fact.label}  ',
+                                  style: TextStyle(color: mutedColor),
+                                ),
+                                TextSpan(text: fact.value),
+                              ],
+                            ),
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+            if (biography != null) ...[
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: _biographyMaxWidth),
+                child: CollapsibleText(
+                  text: biography,
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                  focusNode: _biographyFocusNode,
+                  onOverflowChanged: (overflows) => setState(() => _biographyExpandable = overflows),
+                  onNavigateUp: navigateToAppBar,
+                  onNavigateDown: navigateToGrid,
+                  onNavigateLeft: () {},
+                  onNavigateRight: () {},
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -382,9 +290,8 @@ class _ActorMediaScreenState extends BaseMediaListDetailScreen<ActorMediaScreen>
             itemAt: (index) => loadedItems[index],
             onRefresh: updateItem,
             onSkeletonVisible: (index) => ensureIndexLoaded(index, pageSize: _pageSize),
-            navigateUpTarget: (_biography?.isNotEmpty ?? false) ? _bioFocusNode : null,
+            onFirstRowNavigateUp: _biographyExpandable ? _focusBiography : null,
           ),
-        _buildFilmographySection(),
       ],
     );
   }

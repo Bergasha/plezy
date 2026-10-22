@@ -84,6 +84,24 @@ class FocusTheme {
   /// the overlay paint area so the blur is not clipped.
   static double get focusGlowExtent => focusGlowOuterBlurRadius * 2 + focusGlowSpreadRadius;
 
+  static const double focusBleedBlurRadius = 120;
+  static const double focusBleedSpreadRadius = 16;
+
+  /// The wide, faint halo that lets a focused card's colour spill into the
+  /// black around it on OLED. Added to [focusGlowShadows] by
+  /// [FocusGlowOverlay] when colour bleed is on.
+  static List<BoxShadow> focusBleedShadows(Color color) {
+    return [
+      BoxShadow(
+        color: color.withValues(alpha: 0.16),
+        blurRadius: focusBleedBlurRadius,
+        spreadRadius: focusBleedSpreadRadius,
+      ),
+    ];
+  }
+
+  static double get focusBleedExtent => focusBleedBlurRadius * 2 + focusBleedSpreadRadius;
+
   /// Build focus decoration with background color instead of border.
   /// Useful for video controls where it should match the native hover style.
   /// [radii] overrides [borderRadius] when per-corner radii are needed.

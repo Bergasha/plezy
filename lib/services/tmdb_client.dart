@@ -4,12 +4,8 @@ import 'package:http/http.dart' as http;
 
 import '../database/app_database.dart';
 import '../database/tmdb_cache_operations.dart';
-import '../models/tmdb/tmdb_cast_credit.dart';
-import '../models/tmdb/tmdb_filmography_credit.dart';
-import '../models/tmdb/tmdb_person.dart';
 import '../models/tmdb/tmdb_tv_details.dart';
 import '../utils/app_logger.dart';
-
 
 class TmdbClient {
   static const String _apiKey = '081c05fd83dc7e4b14f3cc56b41fd390';
@@ -18,36 +14,11 @@ class TmdbClient {
   final http.Client _http;
   final AppDatabase? _database;
 
-  TmdbClient({http.Client? httpClient, AppDatabase? database}) : _http = httpClient ?? http.Client(), _database = database;
+  TmdbClient({http.Client? httpClient, AppDatabase? database})
+    : _http = httpClient ?? http.Client(),
+      _database = database;
 
   void dispose() => _http.close();
-
-  Future<List<TmdbCastCredit>> getMovieCredits(int tmdbMovieId) => _getCastCredits('/movie/$tmdbMovieId/credits');
-
-  Future<List<TmdbCastCredit>> getTvCredits(int tmdbShowId) =>
-      _getCastCredits('/tv/$tmdbShowId/aggregate_credits');
-
-  Future<List<TmdbCastCredit>> _getCastCredits(String path) async {
-    final json = await _get(path);
-    if (json == null) return const [];
-    final cast = json['cast'] as List<dynamic>?;
-    if (cast == null) return const [];
-    return cast.map((entry) => TmdbCastCredit.fromJson(entry as Map<String, dynamic>)).toList();
-  }
-
-  Future<TmdbPerson?> getPerson(int personId) async {
-    final json = await _get('/person/$personId');
-    if (json == null) return null;
-    return TmdbPerson.fromJson(json);
-  }
-
-  Future<List<TmdbFilmographyCredit>> getPersonCombinedCredits(int personId) async {
-    final json = await _get('/person/$personId/combined_credits');
-    if (json == null) return const [];
-    final cast = json['cast'] as List<dynamic>?;
-    if (cast == null) return const [];
-    return cast.map((entry) => TmdbFilmographyCredit.fromJson(entry as Map<String, dynamic>)).toList();
-  }
 
   /// Show-level status (`status`, `in_production`) and `next_episode_to_air`
   /// — used to tell an airing show apart from a finished one and, when
