@@ -5242,6 +5242,9 @@ class Translations$performanceOverlay$en {
 	/// en: 'Player'
 	String get player => 'Player';
 
+	/// en: 'Play Method'
+	String get playMethod => 'Play Method';
+
 	/// en: 'Memory'
 	String get memory => 'Memory';
 
@@ -9673,6 +9676,7 @@ extension on Translations {
 			'performanceOverlay.cacheLimit' => 'Cache Limit',
 			'performanceOverlay.speed' => 'Speed',
 			'performanceOverlay.player' => 'Player',
+			'performanceOverlay.playMethod' => 'Play Method',
 			'performanceOverlay.memory' => 'Memory',
 			'performanceOverlay.uiFps' => 'UI FPS',
 			'performanceOverlay.fps' => 'FPS',
@@ -9777,9 +9781,9 @@ extension on Translations {
 			'metadataEdit.label' => 'Label',
 			'metadataEdit.quickTag' => 'Quick Tag...',
 			'matchScreen.match' => 'Match...',
-			'matchScreen.fixMatch' => 'Fix Match...',
 			_ => null,
 		} ?? switch (path) {
+			'matchScreen.fixMatch' => 'Fix Match...',
 			'matchScreen.unmatch' => 'Unmatch',
 			'matchScreen.unmatchConfirm' => 'Clear this match? Plex treats it as unmatched until rematched.',
 			'matchScreen.unmatchSuccess' => 'Item unmatched',
