@@ -3943,6 +3943,9 @@ class Translations$liveTv$en {
 	/// en: 'LIVE'
 	String get live => 'LIVE';
 
+	/// en: 'NEW'
+	String get premiereBadge => 'NEW';
+
 	/// en: 'Reload Guide'
 	String get reloadGuide => 'Reload Guide';
 
@@ -9162,6 +9165,7 @@ extension on Translations {
 			'liveTv.channelNumber' => ({required Object number}) => 'Channel ${number}',
 			'liveTv.unknownChannel' => 'Unknown channel',
 			'liveTv.live' => 'LIVE',
+			'liveTv.premiereBadge' => 'NEW',
 			'liveTv.reloadGuide' => 'Reload Guide',
 			'liveTv.searchGuide' => 'Search Guide',
 			'liveTv.searchHint' => 'Search channels & programs',
@@ -9260,9 +9264,9 @@ extension on Translations {
 			'collections.removeFromCollectionFailed' => 'Failed to remove from collection',
 			'collections.removeFromCollectionError' => ({required Object error}) => 'Error removing from collection: ${error}',
 			'collections.searchCollections' => 'Search collections...',
-			'playlists.title' => 'Playlists',
 			_ => null,
 		} ?? switch (path) {
+			'playlists.title' => 'Playlists',
 			'playlists.playlist' => 'Playlist',
 			'playlists.noPlaylists' => 'No playlists found',
 			'playlists.create' => 'Create Playlist',
@@ -9774,9 +9778,9 @@ extension on Translations {
 			'metadataEdit.quickTag' => 'Quick Tag...',
 			'matchScreen.match' => 'Match...',
 			'matchScreen.fixMatch' => 'Fix Match...',
-			'matchScreen.unmatch' => 'Unmatch',
 			_ => null,
 		} ?? switch (path) {
+			'matchScreen.unmatch' => 'Unmatch',
 			'matchScreen.unmatchConfirm' => 'Clear this match? Plex treats it as unmatched until rematched.',
 			'matchScreen.unmatchSuccess' => 'Item unmatched',
 			'matchScreen.unmatchFailed' => 'Failed to unmatch item',
