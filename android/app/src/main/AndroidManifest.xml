@@ -55,6 +55,7 @@
         <uses-library android:name="android.car" android:required="false" />
         <activity
             android:name=".MainActivity"
+            android:turnScreenOn="true"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
