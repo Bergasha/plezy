@@ -40,14 +40,11 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 
 	// Translations
 	@override late final _Translations$app$fr app = _Translations$app$fr._(_root);
-	@override late final _Translations$appIcon$fr appIcon = _Translations$appIcon$fr._(_root);
 	@override late final _Translations$auth$fr auth = _Translations$auth$fr._(_root);
 	@override late final _Translations$common$fr common = _Translations$common$fr._(_root);
 	@override late final _Translations$screens$fr screens = _Translations$screens$fr._(_root);
 	@override late final _Translations$update$fr update = _Translations$update$fr._(_root);
-	@override late final _Translations$supporter$fr supporter = _Translations$supporter$fr._(_root);
 	@override late final _Translations$settings$fr settings = _Translations$settings$fr._(_root);
-	@override late final _Translations$themeEditor$fr themeEditor = _Translations$themeEditor$fr._(_root);
 	@override late final _Translations$search$fr search = _Translations$search$fr._(_root);
 	@override late final _Translations$hotkeys$fr hotkeys = _Translations$hotkeys$fr._(_root);
 	@override late final _Translations$fileInfo$fr fileInfo = _Translations$fileInfo$fr._(_root);
@@ -88,7 +85,6 @@ class TranslationsFr extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$externalPlayer$fr externalPlayer = _Translations$externalPlayer$fr._(_root);
 	@override late final _Translations$metadataEdit$fr metadataEdit = _Translations$metadataEdit$fr._(_root);
 	@override late final _Translations$matchScreen$fr matchScreen = _Translations$matchScreen$fr._(_root);
-	@override late final _Translations$serverTasks$fr serverTasks = _Translations$serverTasks$fr._(_root);
 	@override late final _Translations$trakt$fr trakt = _Translations$trakt$fr._(_root);
 	@override late final _Translations$seerr$fr seerr = _Translations$seerr$fr._(_root);
 	@override late final _Translations$services$fr services = _Translations$services$fr._(_root);
@@ -103,24 +99,6 @@ class _Translations$app$fr extends Translations$app$en {
 
 	// Translations
 	@override String get title => 'Plezy';
-}
-
-// Path: appIcon
-class _Translations$appIcon$fr extends Translations$appIcon$en {
-	_Translations$appIcon$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Icône de l’application';
-	@override String get defaultIcon => 'Par défaut';
-	@override String get current => 'Icône actuelle';
-	@override String get locked => 'Avantage Supporter';
-	@override String get lockedHint => 'Les icônes alternatives sont un avantage Supporter.';
-	@override String get changeFailed => 'Impossible de changer l’icône de l’application';
-	@override String get launcherHint => 'La nouvelle icône apparaîtra sur votre écran d’accueil une fois que vous aurez quitté Plezy.';
-	@override String get tvLauncherHint => 'La nouvelle bannière apparaîtra une fois que vous aurez quitté Plezy. Android TV peut continuer à afficher l’ancienne jusqu’au redémarrage du téléviseur.';
-	@override late final _Translations$appIcon$names$fr names = _Translations$appIcon$names$fr._(_root);
 }
 
 // Path: auth
@@ -239,33 +217,6 @@ class _Translations$update$fr extends Translations$update$en {
 	@override String get checkFailed => 'Échec de la vérification des mises à jour';
 }
 
-// Path: supporter
-class _Translations$supporter$fr extends Translations$supporter$en {
-	_Translations$supporter$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Plezy Supporter';
-	@override String get intro => 'Un achat unique qui soutient le développement de Plezy et débloque des bonus esthétiques :';
-	@override String get presetThemes => 'Thèmes prédéfinis';
-	@override String get presetThemesDescription => 'Braise, Glacier, Forêt, Prune et Papier';
-	@override String get customTheme => 'Thème personnalisé';
-	@override String get customThemeDescription => 'Choisissez vous-même chaque couleur';
-	@override String get appIcons => 'Icônes de l’application';
-	@override String get appIconsDescription => 'Choisissez une autre icône Plezy';
-	@override String buy({required Object price}) => 'Acheter pour ${price}';
-	@override String get loadingPrice => 'Chargement du prix...';
-	@override String get restore => 'Restaurer les achats';
-	@override String get pending => 'Votre achat est en attente de paiement ou d’approbation. Les bonus seront débloqués dès que la boutique l’aura finalisé.';
-	@override String get thankYouTitle => 'Merci de soutenir Plezy';
-	@override String get thankYouBody => 'Vos bonus Supporter sont débloqués.';
-	@override String get tileSubtitle => 'Débloquez des thèmes et des icônes d’application grâce à un achat unique';
-	@override String get tileSubtitleThemesOnly => 'Débloquez des thèmes grâce à un achat unique';
-	@override String get tileUnlocked => 'Merci pour votre soutien';
-	@override late final _Translations$supporter$errors$fr errors = _Translations$supporter$errors$fr._(_root);
-}
-
 // Path: settings
 class _Translations$settings$fr extends Translations$settings$en {
 	_Translations$settings$fr._(TranslationsFr root) : this._root = root, super.internal(root);
@@ -296,11 +247,6 @@ class _Translations$settings$fr extends Translations$settings$en {
 	@override String get lightTheme => 'Clair';
 	@override String get darkTheme => 'Sombre';
 	@override String get oledTheme => 'OLED';
-	@override String get emberTheme => 'Braise';
-	@override String get glacierTheme => 'Glacier';
-	@override String get forestTheme => 'Forêt';
-	@override String get plumTheme => 'Prune';
-	@override String get paperTheme => 'Papier';
 	@override String get libraryDensity => 'Densité des bibliothèques';
 	@override String get displayScale => 'Échelle d\'affichage';
 	@override String get compact => 'Compact';
@@ -508,8 +454,6 @@ class _Translations$settings$fr extends Translations$settings$en {
 	@override String get tunneledPlaybackDescription => 'Utiliser le tunneling vidéo. Désactivez si la lecture HDR affiche un écran noir ou si l’image saccade.';
 	@override String get audioPassthrough => 'Transmission audio directe';
 	@override String get audioPassthroughDescription => 'Envoyer l’audio Dolby/DTS à votre ampli ou téléviseur sans le réencoder afin de préserver le son surround. Désactivez cette option en l’absence de son.';
-	@override String get audioPassthroughDescriptionApple => 'Utiliser le décodeur Dolby natif d’Apple pour le Dolby Digital Plus, y compris Atmos. Le DTS et le TrueHD sont toujours lus en PCM multicanal. Désactivez cette option en l’absence de son.';
-	@override String get audioPassthroughDescriptionAppleSpatial => 'Utiliser le décodeur Dolby natif d’Apple pour le Dolby Digital Plus, y compris Atmos. Sous iOS, iPadOS et tvOS 26 ou version ultérieure, le TrueHD Atmos et le DTS:X sont lus en audio spatial. Les autres pistes DTS et TrueHD sont lues en PCM multicanal. Désactivez cette option en l’absence de son.';
 	@override String get audioPassthroughOverriddenByNormalization => 'Désactivée tant que la normalisation du volume est active';
 	@override String get audioChannelLimit => 'Canaux audio';
 	@override String get audioChannelLimitDescription => 'Réduire le nombre de canaux de l’audio décodé pour les enceintes, casques ou installations HDMI qui ne peuvent pas restituer tous les canaux';
@@ -608,42 +552,6 @@ class _Translations$settings$fr extends Translations$settings$en {
 	@override String get playerScopeLibrary => 'Par bibliothèque';
 	@override String get playerScopeTitle => 'Par série ou film';
 	@override String get exportDialogTitle => 'Exporter les paramètres de Plezy';
-}
-
-// Path: themeEditor
-class _Translations$themeEditor$fr extends Translations$themeEditor$en {
-	_Translations$themeEditor$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get builtIn => 'Intégrés';
-	@override String get presets => 'Prédéfinis';
-	@override String get custom => 'Personnalisé';
-	@override String get customEmpty => 'Pas encore créé';
-	@override String get editCustom => 'Modifier le thème personnalisé';
-	@override String get editCustomDescription => 'Choisissez vous-même chaque couleur';
-	@override String get locked => 'Débloquer avec Supporter';
-	@override String get savedLocked => 'Enregistré — se débloque avec Supporter';
-	@override String get title => 'Thème personnalisé';
-	@override String get startFrom => 'Partir d’un thème';
-	@override String get startFromDescription => 'Copier toutes les couleurs d’un autre thème';
-	@override String get colors => 'Couleurs';
-	@override String get preview => 'Aperçu';
-	@override late final _Translations$themeEditor$slots$fr slots = _Translations$themeEditor$slots$fr._(_root);
-	@override String get opacity => 'Opacité';
-	@override String get hexHint => '#RRGGBB ou #AARRGGBB';
-	@override String get fromOtherThemes => 'Dans les autres thèmes';
-	@override String swatchLabel({required Object color, required Object theme}) => '${color} du thème ${theme}';
-	@override late final _Translations$themeEditor$contrast$fr contrast = _Translations$themeEditor$contrast$fr._(_root);
-	@override String lowContrast({required Object pair, required Object ratio, required Object minimum}) => '${pair} : ${ratio}:1, sous le seuil recommandé de ${minimum}:1';
-	@override String get discardTitle => 'Abandonner les modifications ?';
-	@override String get discardMessage => 'Vos modifications de couleurs non enregistrées seront perdues.';
-	@override String get discard => 'Abandonner';
-	@override String previewCardTitle({required Object number}) => 'Épisode ${number}';
-	@override String previewCardSubtitle({required Object minutes}) => '${minutes} min restantes';
-	@override String get previewSwitch => 'Lecture automatique';
-	@override String get previewMutedText => 'Voici à quoi ressemble le texte secondaire';
 }
 
 // Path: search
@@ -1803,113 +1711,23 @@ class _Translations$watchTogether$fr extends Translations$watchTogether$en {
 	// Translations
 	@override String get title => 'Regarder ensemble';
 	@override String get description => 'Regarder du contenu en synchronisation avec vos proches';
-	@override String get createRoom => 'Créer un salon';
-	@override String get creatingRoom => 'Création du salon...';
-	@override String get joinRoom => 'Rejoindre un salon';
-	@override String get joiningRoom => 'Connexion au salon...';
-	@override String get connecting => 'Connexion...';
-	@override String get relayPublic => 'Les salons utilisent les relais publics Open Watch Party.';
-	@override String relayCustom({required Object url}) => 'Les salons utilisent votre relais à l’adresse ${url}.';
 	@override String get recentRooms => 'Salons récents';
-	@override String get roomActions => 'Actions du salon';
 	@override String get renameRoom => 'Renommer le salon';
 	@override String get removeRoom => 'Supprimer';
-	@override String get enterRoomCode => 'Saisissez le code à 6 caractères communiqué par l’hôte.';
-	@override String get roomCode => 'Code du salon';
-	@override String get paste => 'Coller';
-	@override String get noCodeInClipboard => 'Le presse-papiers ne contient pas de code de salon';
-	@override String get copyCode => 'Copier le code';
-	@override String get codeCopied => 'Code du salon copié';
-	@override String get shareInvite => 'Partager l’invitation';
-	@override String get inviteCopied => 'Invitation copiée. Collez-la dans un message.';
-	@override String inviteMessage({required Object code}) => 'Rejoignez mon salon Regarder ensemble dans Plezy : ouvrez « Regarder ensemble », choisissez « Rejoindre un salon » et saisissez ${code}.';
 	@override String get openSessionControls => 'Ouvrir les commandes de la session Regarder ensemble';
-	@override String get reconnecting => 'Reconnexion...';
-	@override String get reconnectingDescription => 'La connexion a été interrompue. Vous rejoindrez le salon automatiquement.';
-	@override String get connected => 'Connecté';
-	@override String get disconnected => 'Déconnecté';
 	@override String get youAreHost => 'Vous êtes l\'hôte';
-	@override String hostedBy({required Object name}) => 'Hôte : ${name}';
 	@override String get hostControlsPlayback => 'L\'hôte contrôle la lecture';
 	@override String get anyoneCanControl => 'Tout le monde peut contrôler la lecture';
-	@override String get roomLocked => 'Salon verrouillé';
-	@override String get nowPlaying => 'En cours de lecture';
-	@override String get nothingPlaying => 'Aucune lecture en cours';
-	@override String get nothingPlayingHost => 'Lancez un contenu depuis n’importe quelle bibliothèque pour le partager avec le salon.';
-	@override String get nothingPlayingGuest => 'Quand l’hôte lancera un contenu, il s’ouvrira ici.';
-	@override String get notShareable => 'Cette vidéo n’a aucune correspondance dans le catalogue : seules les personnes ayant accès au même serveur peuvent la lire.';
-	@override String get searching => 'Recherche de cette vidéo dans vos bibliothèques...';
-	@override String get yourCopy => 'Votre copie';
-	@override String get sharingYourCopy => 'Vous partagez votre copie';
-	@override String playingOtherLength({required Object difference}) => 'Lecture de votre copie, ${difference}';
-	@override String get mismatchTitle => 'Votre copie a une durée différente';
-	@override String mismatchDescription({required Object difference}) => 'Votre copie la plus proche est ${difference} que la vidéo du salon. Il peut s’agir d’un autre montage ou d’une autre version.';
-	@override String get playAnyway => 'Lire quand même';
-	@override String get chooseAnotherCopy => 'Choisir une autre copie';
-	@override String get dontPlay => 'Ne pas lire';
-	@override String get unavailableTitle => 'Vous n’avez pas cette vidéo';
-	@override String get unavailableDescription => 'Plezy ne l’a pas trouvée dans vos bibliothèques. Choisissez vous-même une copie ou relancez la recherche.';
-	@override String get chooseCopy => 'Choisir une copie';
-	@override String get searchAgain => 'Relancer la recherche';
-	@override String get noCandidates => 'Aucune copie trouvée dans vos bibliothèques.';
-	@override String get choiceFailed => 'Impossible de lire cette copie pour le salon';
-	@override String lengthLonger({required Object duration}) => 'plus longue de ${duration}';
-	@override String lengthShorter({required Object duration}) => 'plus courte de ${duration}';
-	@override String get lengthSame => 'même durée';
-	@override String get lengthUnknown => 'durée inconnue';
 	@override String get joinCurrentPlayback => 'Rejoindre la lecture en cours';
 	@override String get joinCurrentPlaybackDescription => 'Reprendre le contenu que l’hôte regarde actuellement';
-	@override String get stopMedia => 'Arrêter la vidéo pour tout le monde';
-	@override String get syncOffset => 'Décalage de synchronisation';
-	@override String get syncOffsetDescription => 'Décalez votre vidéo si elle est en avance ou en retard sur le salon.';
-	@override String offsetHint({required Object difference}) => 'Votre copie est ${difference} que la vidéo du salon.';
-	@override String applyDifference({required Object offset}) => 'Appliquer ${offset}';
-	@override String get offsetMinusSecond => '-1 s';
-	@override String get offsetMinusTenth => '-100 ms';
-	@override String get offsetPlusTenth => '+100 ms';
-	@override String get offsetPlusSecond => '+1 s';
 	@override String get participants => 'Participants';
-	@override String participantCount({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('fr'))(n,
-		one: '${n} participant',
-		other: '${n} participants',
-	);
 	@override String get hostBadge => 'HÔTE';
-	@override String nameYou({required Object name}) => '${name} (vous)';
-	@override String get playerIdle => 'Inactif';
-	@override String get playerLoading => 'Chargement';
-	@override String get playerReady => 'Prêt';
-	@override String get playerBuffering => 'Mise en tampon';
-	@override String get matchSearching => 'Recherche en cours';
-	@override String get matchMatched => 'Possède la vidéo';
-	@override String get matchMismatched => 'Durée différente';
-	@override String get matchUnavailable => 'Ne possède pas la vidéo';
-	@override String participantOffset({required Object offset}) => 'Décalage ${offset}';
 	@override String get makeHost => 'Nommer hôte';
 	@override String get makeHostQuestion => 'Transférer le rôle d’hôte ?';
 	@override String makeHostConfirm({required Object name}) => '${name} contrôlera la lecture et dirigera la session pour tout le monde.';
 	@override String get transfer => 'Transférer';
-	@override String get removeParticipant => 'Retirer du salon';
-	@override String removeParticipantQuestion({required Object name}) => 'Retirer ${name} ?';
-	@override String removeParticipantConfirm({required Object name}) => '${name} quittera le salon. Cette personne pourra revenir avec le code, sauf si vous verrouillez le salon.';
-	@override String get remove => 'Retirer';
-	@override String get roomSettings => 'Paramètres du salon';
-	@override String get letEveryoneControl => 'Laisser tout le monde contrôler la lecture';
-	@override String get lockRoom => 'Verrouiller le salon';
-	@override String get lockRoomDescription => 'Aucun nouveau participant ne peut rejoindre le salon';
-	@override String get leaveRoom => 'Quitter le salon';
-	@override String get leaveRoomQuestion => 'Quitter le salon ?';
-	@override String get leaveRoomConfirm => 'Vous pourrez revenir avec le code du salon.';
 	@override String get leave => 'Quitter';
-	@override String get endRoom => 'Fermer le salon';
-	@override String get endRoomQuestion => 'Fermer le salon ?';
-	@override String get endRoomConfirm => 'Le salon sera fermé pour tout le monde.';
 	@override String get end => 'Terminer';
-	@override String get playBlockedTitle => 'La lecture n’a pas démarré';
-	@override String get playBlockedDescription => 'Appuyez sur Lecture pour commencer à regarder avec le salon.';
-	@override late final _Translations$watchTogether$notices$fr notices = _Translations$watchTogether$notices$fr._(_root);
-	@override late final _Translations$watchTogether$ended$fr ended = _Translations$watchTogether$ended$fr._(_root);
-	@override late final _Translations$watchTogether$errors$fr errors = _Translations$watchTogether$errors$fr._(_root);
-	@override String untitledEpisode({required Object number}) => 'Épisode ${number}';
 }
 
 // Path: downloads
@@ -2288,18 +2106,6 @@ class _Translations$matchScreen$fr extends Translations$matchScreen$en {
 	@override String get noMatchesFound => 'Aucune correspondance';
 }
 
-// Path: serverTasks
-class _Translations$serverTasks$fr extends Translations$serverTasks$en {
-	_Translations$serverTasks$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Tâches du serveur';
-	@override String get failedToLoad => 'Échec du chargement des tâches';
-	@override String get noTasks => 'Aucune tâche en cours';
-}
-
 // Path: trakt
 class _Translations$trakt$fr extends Translations$trakt$en {
 	_Translations$trakt$fr._(TranslationsFr root) : this._root = root, super.internal(root);
@@ -2458,38 +2264,6 @@ class _Translations$addServer$fr extends Translations$addServer$en {
 	@override String redirectUnsupportedEnterFinal({required Object product}) => 'Le serveur a redirigé vers une URL non prise en charge. Saisissez directement l’URL finale du serveur ${product}.';
 }
 
-// Path: appIcon.names
-class _Translations$appIcon$names$fr extends Translations$appIcon$names$en {
-	_Translations$appIcon$names$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get midnight => 'Minuit';
-	@override String get ember => 'Braise';
-	@override String get paper => 'Papier';
-	@override String get oled => 'OLED';
-	@override String get line => 'Trait';
-	@override String get ocean => 'Océan';
-	@override String get ultraviolet => 'Ultraviolet';
-	@override String get matcha => 'Matcha';
-	@override String get sunset => 'Crépuscule';
-	@override String get gold => 'Or';
-	@override String get titanium => 'Titane';
-	@override String get glass => 'Verre';
-	@override String get crt => 'CRT';
-	@override String get vhs => 'VHS';
-	@override String get synthwave => 'Synthwave';
-	@override String get pixel => 'Pixel';
-	@override String get neon => 'Néon';
-	@override String get sticker => 'Autocollant';
-	@override String get ticket => 'Ticket';
-	@override String get pop => 'Pop';
-	@override String get strata => 'Strates';
-	@override String get facet => 'Facettes';
-	@override String get tilde => 'Tilde';
-}
-
 // Path: common.ratingSource
 class _Translations$common$ratingSource$fr extends Translations$common$ratingSource$en {
 	_Translations$common$ratingSource$fr._(TranslationsFr root) : this._root = root, super.internal(root);
@@ -2531,52 +2305,6 @@ class _Translations$common$mediaKind$fr extends Translations$common$mediaKind$en
 	@override String get clip => 'Clip';
 	@override String get photo => 'Photo';
 	@override String get folder => 'Dossier';
-}
-
-// Path: supporter.errors
-class _Translations$supporter$errors$fr extends Translations$supporter$errors$en {
-	_Translations$supporter$errors$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get storeUnavailable => 'Les achats ne sont pas disponibles. Vérifiez que vous êtes connecté à la boutique et que les achats sont autorisés sur cet appareil.';
-	@override String get productNotFound => 'L’achat Supporter n’est pas disponible dans votre boutique pour le moment.';
-	@override String get productQueryFailed => 'Impossible de charger le prix. Vérifiez votre connexion et réessayez.';
-	@override String get purchaseFailed => 'L’achat n’a pas abouti. Réessayez.';
-	@override String get restoreFailed => 'Impossible de joindre la boutique pour restaurer votre achat. Réessayez.';
-	@override String get nothingToRestore => 'Aucun achat Supporter n’a été trouvé pour ce compte de la boutique.';
-}
-
-// Path: themeEditor.slots
-class _Translations$themeEditor$slots$fr extends Translations$themeEditor$slots$en {
-	_Translations$themeEditor$slots$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get bg => 'Arrière-plan';
-	@override String get surface => 'Surface';
-	@override String get outline => 'Contour';
-	@override String get text => 'Texte';
-	@override String get textMuted => 'Texte secondaire';
-	@override String get accent => 'Accent';
-}
-
-// Path: themeEditor.contrast
-class _Translations$themeEditor$contrast$fr extends Translations$themeEditor$contrast$en {
-	_Translations$themeEditor$contrast$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get textOnBg => 'Texte sur l’arrière-plan';
-	@override String get textOnSurface => 'Texte sur la surface';
-	@override String get textMutedOnBg => 'Texte secondaire sur l’arrière-plan';
-	@override String get textMutedOnSurface => 'Texte secondaire sur la surface';
-	@override String get accentOnBg => 'Accent sur l’arrière-plan';
-	@override String get accentOnSurface => 'Accent sur la surface';
-	@override String get labelOnAccent => 'Libellé de bouton sur l’accent';
 }
 
 // Path: hotkeys.actions
@@ -3088,77 +2816,6 @@ class _Translations$music$discography$fr extends Translations$music$discography$
 	@override String get compilations => 'Compilations';
 }
 
-// Path: watchTogether.notices
-class _Translations$watchTogether$notices$fr extends Translations$watchTogether$notices$en {
-	_Translations$watchTogether$notices$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String pressedPlay({required Object name}) => '${name} a lancé la lecture';
-	@override String get playbackStarted => 'Lecture lancée';
-	@override String paused({required Object name}) => '${name} a mis en pause';
-	@override String get playbackPaused => 'Lecture en pause';
-	@override String jumpedTo({required Object name, required Object position}) => '${name} a sauté à ${position}';
-	@override String roomJumpedTo({required Object position}) => 'Passage à ${position}';
-	@override String changedSpeed({required Object name, required Object speed}) => '${name} a réglé la vitesse sur ${speed}';
-	@override String speedChanged({required Object speed}) => 'Vitesse réglée sur ${speed}';
-	@override String startedMedia({required Object name, required Object title}) => '${name} a lancé ${title}';
-	@override String mediaStarted({required Object title}) => 'Lecture en cours : ${title}';
-	@override String stoppedMedia({required Object name}) => '${name} a arrêté la vidéo';
-	@override String get mediaStopped => 'La vidéo s’est arrêtée';
-	@override String waitingFor({required Object name}) => 'En attente de ${name}...';
-	@override String get waitingForSomeone => 'En attente d’un participant en retard...';
-	@override String get finished => 'Terminé';
-	@override String hostChangedTo({required Object name}) => '${name} est maintenant l’hôte';
-	@override String get youAreNowHost => 'Vous êtes maintenant l’hôte';
-	@override String joined({required Object name}) => '${name} a rejoint';
-	@override String left({required Object name}) => '${name} est parti';
-	@override String get controlRefused => 'Seul l’hôte peut contrôler la lecture';
-	@override String get searchFailed => 'Impossible de rechercher la vidéo du salon sur certains serveurs';
-	@override String get playBlocked => 'Appuyez sur Lecture pour commencer';
-	@override String get shareFailed => 'Impossible de partager cette vidéo avec le salon';
-	@override String get downloadNotShared => 'Les téléchargements ne sont pas partagés avec le salon tant que leur serveur est hors ligne';
-	@override String get openFailed => 'Impossible d’ouvrir la vidéo du salon';
-}
-
-// Path: watchTogether.ended
-class _Translations$watchTogether$ended$fr extends Translations$watchTogether$ended$en {
-	_Translations$watchTogether$ended$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get ended => 'L’hôte a fermé le salon';
-	@override String get kicked => 'Vous avez été retiré du salon';
-	@override String get expired => 'Le salon a expiré';
-	@override String get replaced => 'Vous avez rejoint ce salon sur un autre appareil';
-	@override String get lost => 'Connexion au salon perdue';
-}
-
-// Path: watchTogether.errors
-class _Translations$watchTogether$errors$fr extends Translations$watchTogether$errors$en {
-	_Translations$watchTogether$errors$fr._(TranslationsFr root) : this._root = root, super.internal(root);
-
-	final TranslationsFr _root; // ignore: unused_field
-
-	// Translations
-	@override String get invalidCode => 'Ce n’est pas un code de salon. Les codes comportent 6 lettres et chiffres, sans 0, 1, I, L ni O.';
-	@override String get roomNotFound => 'Aucun salon ne correspond à ce code. Il a peut-être été fermé.';
-	@override String get roomFull => 'Ce salon est complet.';
-	@override String get roomLocked => 'L’hôte a verrouillé ce salon.';
-	@override String get relayFull => 'Le service Regarder ensemble est saturé pour le moment. Réessayez plus tard.';
-	@override String get unreachable => 'Impossible de joindre le relais Regarder ensemble. Vérifiez votre connexion.';
-	@override String get rateLimited => 'Trop de tentatives. Patientez un instant, puis réessayez.';
-	@override String get clientBlocked => 'Cette version de Plezy ne peut pas utiliser le relais. Mettez l’application à jour.';
-	@override String get forbidden => 'Seul l’hôte peut faire cela.';
-	@override String get notInRoom => 'Vous n’êtes pas dans un salon.';
-	@override String get alreadyInRoom => 'Vous êtes déjà dans un salon.';
-	@override String get resumeFailed => 'Impossible de rejoindre à nouveau le salon.';
-	@override String get unsupported => 'Le relais ne prend pas en charge cette fonction.';
-	@override String get generic => 'Une erreur s’est produite. Réessayez.';
-}
-
 // Path: downloads.backgroundWarning
 class _Translations$downloads$backgroundWarning$fr extends Translations$downloads$backgroundWarning$en {
 	_Translations$downloads$backgroundWarning$fr._(TranslationsFr root) : this._root = root, super.internal(root);
@@ -3396,37 +3053,6 @@ extension on TranslationsFr {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
 			'app.title' => 'Plezy',
-			'appIcon.title' => 'Icône de l’application',
-			'appIcon.defaultIcon' => 'Par défaut',
-			'appIcon.current' => 'Icône actuelle',
-			'appIcon.locked' => 'Avantage Supporter',
-			'appIcon.lockedHint' => 'Les icônes alternatives sont un avantage Supporter.',
-			'appIcon.changeFailed' => 'Impossible de changer l’icône de l’application',
-			'appIcon.launcherHint' => 'La nouvelle icône apparaîtra sur votre écran d’accueil une fois que vous aurez quitté Plezy.',
-			'appIcon.tvLauncherHint' => 'La nouvelle bannière apparaîtra une fois que vous aurez quitté Plezy. Android TV peut continuer à afficher l’ancienne jusqu’au redémarrage du téléviseur.',
-			'appIcon.names.midnight' => 'Minuit',
-			'appIcon.names.ember' => 'Braise',
-			'appIcon.names.paper' => 'Papier',
-			'appIcon.names.oled' => 'OLED',
-			'appIcon.names.line' => 'Trait',
-			'appIcon.names.ocean' => 'Océan',
-			'appIcon.names.ultraviolet' => 'Ultraviolet',
-			'appIcon.names.matcha' => 'Matcha',
-			'appIcon.names.sunset' => 'Crépuscule',
-			'appIcon.names.gold' => 'Or',
-			'appIcon.names.titanium' => 'Titane',
-			'appIcon.names.glass' => 'Verre',
-			'appIcon.names.crt' => 'CRT',
-			'appIcon.names.vhs' => 'VHS',
-			'appIcon.names.synthwave' => 'Synthwave',
-			'appIcon.names.pixel' => 'Pixel',
-			'appIcon.names.neon' => 'Néon',
-			'appIcon.names.sticker' => 'Autocollant',
-			'appIcon.names.ticket' => 'Ticket',
-			'appIcon.names.pop' => 'Pop',
-			'appIcon.names.strata' => 'Strates',
-			'appIcon.names.facet' => 'Facettes',
-			'appIcon.names.tilde' => 'Tilde',
 			'auth.signInWithPlex' => 'Se connecter avec Plex',
 			'auth.showQRCode' => 'Afficher le code QR',
 			'auth.authenticate' => 'S\'authentifier',
@@ -3530,29 +3156,6 @@ extension on TranslationsFr {
 			'update.viewRelease' => 'Voir les notes de version',
 			'update.latestVersion' => 'Vous utilisez la dernière version',
 			'update.checkFailed' => 'Échec de la vérification des mises à jour',
-			'supporter.title' => 'Plezy Supporter',
-			'supporter.intro' => 'Un achat unique qui soutient le développement de Plezy et débloque des bonus esthétiques :',
-			'supporter.presetThemes' => 'Thèmes prédéfinis',
-			'supporter.presetThemesDescription' => 'Braise, Glacier, Forêt, Prune et Papier',
-			'supporter.customTheme' => 'Thème personnalisé',
-			'supporter.customThemeDescription' => 'Choisissez vous-même chaque couleur',
-			'supporter.appIcons' => 'Icônes de l’application',
-			'supporter.appIconsDescription' => 'Choisissez une autre icône Plezy',
-			'supporter.buy' => ({required Object price}) => 'Acheter pour ${price}',
-			'supporter.loadingPrice' => 'Chargement du prix...',
-			'supporter.restore' => 'Restaurer les achats',
-			'supporter.pending' => 'Votre achat est en attente de paiement ou d’approbation. Les bonus seront débloqués dès que la boutique l’aura finalisé.',
-			'supporter.thankYouTitle' => 'Merci de soutenir Plezy',
-			'supporter.thankYouBody' => 'Vos bonus Supporter sont débloqués.',
-			'supporter.tileSubtitle' => 'Débloquez des thèmes et des icônes d’application grâce à un achat unique',
-			'supporter.tileSubtitleThemesOnly' => 'Débloquez des thèmes grâce à un achat unique',
-			'supporter.tileUnlocked' => 'Merci pour votre soutien',
-			'supporter.errors.storeUnavailable' => 'Les achats ne sont pas disponibles. Vérifiez que vous êtes connecté à la boutique et que les achats sont autorisés sur cet appareil.',
-			'supporter.errors.productNotFound' => 'L’achat Supporter n’est pas disponible dans votre boutique pour le moment.',
-			'supporter.errors.productQueryFailed' => 'Impossible de charger le prix. Vérifiez votre connexion et réessayez.',
-			'supporter.errors.purchaseFailed' => 'L’achat n’a pas abouti. Réessayez.',
-			'supporter.errors.restoreFailed' => 'Impossible de joindre la boutique pour restaurer votre achat. Réessayez.',
-			'supporter.errors.nothingToRestore' => 'Aucun achat Supporter n’a été trouvé pour ce compte de la boutique.',
 			'settings.title' => 'Paramètres',
 			'settings.supportDeveloper' => 'Soutenir Plezy',
 			'settings.supportDeveloperDescription' => 'Faites un don via Liberapay pour financer le développement',
@@ -3576,11 +3179,6 @@ extension on TranslationsFr {
 			'settings.lightTheme' => 'Clair',
 			'settings.darkTheme' => 'Sombre',
 			'settings.oledTheme' => 'OLED',
-			'settings.emberTheme' => 'Braise',
-			'settings.glacierTheme' => 'Glacier',
-			'settings.forestTheme' => 'Forêt',
-			'settings.plumTheme' => 'Prune',
-			'settings.paperTheme' => 'Papier',
 			'settings.libraryDensity' => 'Densité des bibliothèques',
 			'settings.displayScale' => 'Échelle d\'affichage',
 			'settings.compact' => 'Compact',
@@ -3788,8 +3386,6 @@ extension on TranslationsFr {
 			'settings.tunneledPlaybackDescription' => 'Utiliser le tunneling vidéo. Désactivez si la lecture HDR affiche un écran noir ou si l’image saccade.',
 			'settings.audioPassthrough' => 'Transmission audio directe',
 			'settings.audioPassthroughDescription' => 'Envoyer l’audio Dolby/DTS à votre ampli ou téléviseur sans le réencoder afin de préserver le son surround. Désactivez cette option en l’absence de son.',
-			'settings.audioPassthroughDescriptionApple' => 'Utiliser le décodeur Dolby natif d’Apple pour le Dolby Digital Plus, y compris Atmos. Le DTS et le TrueHD sont toujours lus en PCM multicanal. Désactivez cette option en l’absence de son.',
-			'settings.audioPassthroughDescriptionAppleSpatial' => 'Utiliser le décodeur Dolby natif d’Apple pour le Dolby Digital Plus, y compris Atmos. Sous iOS, iPadOS et tvOS 26 ou version ultérieure, le TrueHD Atmos et le DTS:X sont lus en audio spatial. Les autres pistes DTS et TrueHD sont lues en PCM multicanal. Désactivez cette option en l’absence de son.',
 			'settings.audioPassthroughOverriddenByNormalization' => 'Désactivée tant que la normalisation du volume est active',
 			'settings.audioChannelLimit' => 'Canaux audio',
 			'settings.audioChannelLimitDescription' => 'Réduire le nombre de canaux de l’audio décodé pour les enceintes, casques ou installations HDMI qui ne peuvent pas restituer tous les canaux',
@@ -3888,46 +3484,6 @@ extension on TranslationsFr {
 			'settings.playerScopeLibrary' => 'Par bibliothèque',
 			'settings.playerScopeTitle' => 'Par série ou film',
 			'settings.exportDialogTitle' => 'Exporter les paramètres de Plezy',
-			'themeEditor.builtIn' => 'Intégrés',
-			'themeEditor.presets' => 'Prédéfinis',
-			'themeEditor.custom' => 'Personnalisé',
-			'themeEditor.customEmpty' => 'Pas encore créé',
-			'themeEditor.editCustom' => 'Modifier le thème personnalisé',
-			'themeEditor.editCustomDescription' => 'Choisissez vous-même chaque couleur',
-			'themeEditor.locked' => 'Débloquer avec Supporter',
-			'themeEditor.savedLocked' => 'Enregistré — se débloque avec Supporter',
-			'themeEditor.title' => 'Thème personnalisé',
-			'themeEditor.startFrom' => 'Partir d’un thème',
-			'themeEditor.startFromDescription' => 'Copier toutes les couleurs d’un autre thème',
-			'themeEditor.colors' => 'Couleurs',
-			'themeEditor.preview' => 'Aperçu',
-			'themeEditor.slots.bg' => 'Arrière-plan',
-			'themeEditor.slots.surface' => 'Surface',
-			'themeEditor.slots.outline' => 'Contour',
-			'themeEditor.slots.text' => 'Texte',
-			'themeEditor.slots.textMuted' => 'Texte secondaire',
-			'themeEditor.slots.accent' => 'Accent',
-			_ => null,
-		} ?? switch (path) {
-			'themeEditor.opacity' => 'Opacité',
-			'themeEditor.hexHint' => '#RRGGBB ou #AARRGGBB',
-			'themeEditor.fromOtherThemes' => 'Dans les autres thèmes',
-			'themeEditor.swatchLabel' => ({required Object color, required Object theme}) => '${color} du thème ${theme}',
-			'themeEditor.contrast.textOnBg' => 'Texte sur l’arrière-plan',
-			'themeEditor.contrast.textOnSurface' => 'Texte sur la surface',
-			'themeEditor.contrast.textMutedOnBg' => 'Texte secondaire sur l’arrière-plan',
-			'themeEditor.contrast.textMutedOnSurface' => 'Texte secondaire sur la surface',
-			'themeEditor.contrast.accentOnBg' => 'Accent sur l’arrière-plan',
-			'themeEditor.contrast.accentOnSurface' => 'Accent sur la surface',
-			'themeEditor.contrast.labelOnAccent' => 'Libellé de bouton sur l’accent',
-			'themeEditor.lowContrast' => ({required Object pair, required Object ratio, required Object minimum}) => '${pair} : ${ratio}:1, sous le seuil recommandé de ${minimum}:1',
-			'themeEditor.discardTitle' => 'Abandonner les modifications ?',
-			'themeEditor.discardMessage' => 'Vos modifications de couleurs non enregistrées seront perdues.',
-			'themeEditor.discard' => 'Abandonner',
-			'themeEditor.previewCardTitle' => ({required Object number}) => 'Épisode ${number}',
-			'themeEditor.previewCardSubtitle' => ({required Object minutes}) => '${minutes} min restantes',
-			'themeEditor.previewSwitch' => 'Lecture automatique',
-			'themeEditor.previewMutedText' => 'Voici à quoi ressemble le texte secondaire',
 			'search.hint' => 'Rechercher des films, des séries, de la musique...',
 			'search.tryDifferentTerm' => 'Essayez un autre terme de recherche',
 			'search.searchYourMedia' => 'Rechercher dans vos médias',
@@ -4008,6 +3564,8 @@ extension on TranslationsFr {
 			'fileInfo.chromaSubsampling' => 'Sous-échantillonnage chromatique',
 			'fileInfo.chromaLocation' => 'Position du chroma',
 			'fileInfo.scanType' => 'Type de balayage',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.interlaced' => 'Entrelacé',
 			'fileInfo.anamorphic' => 'Anamorphique',
 			'fileInfo.referenceFrames' => 'Images de référence',
@@ -4421,8 +3979,6 @@ extension on TranslationsFr {
 			'profiles.tokenIdentityMismatch' => 'Le jeton du profil Plex correspond à un serveur inattendu',
 			'connections.sectionTitle' => 'Connexions',
 			'connections.addConnection' => 'Ajouter une connexion',
-			_ => null,
-		} ?? switch (path) {
 			'connections.addConnectionSubtitleNoProfile' => 'Connectez-vous avec Plex ou connectez un serveur Jellyfin ou Emby',
 			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => 'Ajouter à ${displayName} : Plex, Jellyfin, Emby ou une autre connexion de profil',
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Session expirée pour ${name}',
@@ -4522,6 +4078,8 @@ extension on TranslationsFr {
 			'errors.searchFailed' => ({required Object error}) => 'Échec de la recherche : ${error}',
 			'errors.searchUnavailable' => 'La recherche n\'a pu atteindre aucun serveur multimédia.',
 			'errors.connectionTimeout' => ({required Object context}) => 'Délai d\'attente de connexion dépassé pendant le chargement ${context}',
+			_ => null,
+		} ?? switch (path) {
 			'errors.connectionFailed' => 'Impossible de se connecter au serveur multimédia',
 			'errors.unableToLoad' => ({required Object context}) => 'Impossible de charger ${context}. Réessayez.',
 			'errors.noClientAvailable' => 'Aucun client disponible',
@@ -4935,8 +4493,6 @@ extension on TranslationsFr {
 			'liveTv.recordSettings.keepUpToHint' => '0 conserve tous les épisodes',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => 'Commence dans ${minutes} min',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} à ${time}',
-			_ => null,
-		} ?? switch (path) {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} a renvoyé des données de lecture de TV en direct non valides',
 			'liveTv.failedToStartChannel' => 'Impossible de lancer la chaîne en direct',
 			'liveTv.failedToBuildStreamUrl' => 'Impossible de générer l’URL du flux',
@@ -5019,151 +4575,25 @@ extension on TranslationsFr {
 			'music.discography.compilations' => 'Compilations',
 			'watchTogether.title' => 'Regarder ensemble',
 			'watchTogether.description' => 'Regarder du contenu en synchronisation avec vos proches',
-			'watchTogether.createRoom' => 'Créer un salon',
-			'watchTogether.creatingRoom' => 'Création du salon...',
-			'watchTogether.joinRoom' => 'Rejoindre un salon',
-			'watchTogether.joiningRoom' => 'Connexion au salon...',
-			'watchTogether.connecting' => 'Connexion...',
-			'watchTogether.relayPublic' => 'Les salons utilisent les relais publics Open Watch Party.',
-			'watchTogether.relayCustom' => ({required Object url}) => 'Les salons utilisent votre relais à l’adresse ${url}.',
 			'watchTogether.recentRooms' => 'Salons récents',
-			'watchTogether.roomActions' => 'Actions du salon',
 			'watchTogether.renameRoom' => 'Renommer le salon',
 			'watchTogether.removeRoom' => 'Supprimer',
-			'watchTogether.enterRoomCode' => 'Saisissez le code à 6 caractères communiqué par l’hôte.',
-			'watchTogether.roomCode' => 'Code du salon',
-			'watchTogether.paste' => 'Coller',
-			'watchTogether.noCodeInClipboard' => 'Le presse-papiers ne contient pas de code de salon',
-			'watchTogether.copyCode' => 'Copier le code',
-			'watchTogether.codeCopied' => 'Code du salon copié',
-			'watchTogether.shareInvite' => 'Partager l’invitation',
-			'watchTogether.inviteCopied' => 'Invitation copiée. Collez-la dans un message.',
-			'watchTogether.inviteMessage' => ({required Object code}) => 'Rejoignez mon salon Regarder ensemble dans Plezy : ouvrez « Regarder ensemble », choisissez « Rejoindre un salon » et saisissez ${code}.',
 			'watchTogether.openSessionControls' => 'Ouvrir les commandes de la session Regarder ensemble',
-			'watchTogether.reconnecting' => 'Reconnexion...',
-			'watchTogether.reconnectingDescription' => 'La connexion a été interrompue. Vous rejoindrez le salon automatiquement.',
-			'watchTogether.connected' => 'Connecté',
-			'watchTogether.disconnected' => 'Déconnecté',
 			'watchTogether.youAreHost' => 'Vous êtes l\'hôte',
-			'watchTogether.hostedBy' => ({required Object name}) => 'Hôte : ${name}',
 			'watchTogether.hostControlsPlayback' => 'L\'hôte contrôle la lecture',
 			'watchTogether.anyoneCanControl' => 'Tout le monde peut contrôler la lecture',
-			'watchTogether.roomLocked' => 'Salon verrouillé',
-			'watchTogether.nowPlaying' => 'En cours de lecture',
-			'watchTogether.nothingPlaying' => 'Aucune lecture en cours',
-			'watchTogether.nothingPlayingHost' => 'Lancez un contenu depuis n’importe quelle bibliothèque pour le partager avec le salon.',
-			'watchTogether.nothingPlayingGuest' => 'Quand l’hôte lancera un contenu, il s’ouvrira ici.',
-			'watchTogether.notShareable' => 'Cette vidéo n’a aucune correspondance dans le catalogue : seules les personnes ayant accès au même serveur peuvent la lire.',
-			'watchTogether.searching' => 'Recherche de cette vidéo dans vos bibliothèques...',
-			'watchTogether.yourCopy' => 'Votre copie',
-			'watchTogether.sharingYourCopy' => 'Vous partagez votre copie',
-			'watchTogether.playingOtherLength' => ({required Object difference}) => 'Lecture de votre copie, ${difference}',
-			'watchTogether.mismatchTitle' => 'Votre copie a une durée différente',
-			'watchTogether.mismatchDescription' => ({required Object difference}) => 'Votre copie la plus proche est ${difference} que la vidéo du salon. Il peut s’agir d’un autre montage ou d’une autre version.',
-			'watchTogether.playAnyway' => 'Lire quand même',
-			'watchTogether.chooseAnotherCopy' => 'Choisir une autre copie',
-			'watchTogether.dontPlay' => 'Ne pas lire',
-			'watchTogether.unavailableTitle' => 'Vous n’avez pas cette vidéo',
-			'watchTogether.unavailableDescription' => 'Plezy ne l’a pas trouvée dans vos bibliothèques. Choisissez vous-même une copie ou relancez la recherche.',
-			'watchTogether.chooseCopy' => 'Choisir une copie',
-			'watchTogether.searchAgain' => 'Relancer la recherche',
-			'watchTogether.noCandidates' => 'Aucune copie trouvée dans vos bibliothèques.',
-			'watchTogether.choiceFailed' => 'Impossible de lire cette copie pour le salon',
-			'watchTogether.lengthLonger' => ({required Object duration}) => 'plus longue de ${duration}',
-			'watchTogether.lengthShorter' => ({required Object duration}) => 'plus courte de ${duration}',
-			'watchTogether.lengthSame' => 'même durée',
-			'watchTogether.lengthUnknown' => 'durée inconnue',
 			'watchTogether.joinCurrentPlayback' => 'Rejoindre la lecture en cours',
 			'watchTogether.joinCurrentPlaybackDescription' => 'Reprendre le contenu que l’hôte regarde actuellement',
-			'watchTogether.stopMedia' => 'Arrêter la vidéo pour tout le monde',
-			'watchTogether.syncOffset' => 'Décalage de synchronisation',
-			'watchTogether.syncOffsetDescription' => 'Décalez votre vidéo si elle est en avance ou en retard sur le salon.',
-			'watchTogether.offsetHint' => ({required Object difference}) => 'Votre copie est ${difference} que la vidéo du salon.',
-			'watchTogether.applyDifference' => ({required Object offset}) => 'Appliquer ${offset}',
-			'watchTogether.offsetMinusSecond' => '-1 s',
-			'watchTogether.offsetMinusTenth' => '-100 ms',
-			'watchTogether.offsetPlusTenth' => '+100 ms',
-			'watchTogether.offsetPlusSecond' => '+1 s',
 			'watchTogether.participants' => 'Participants',
-			'watchTogether.participantCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('fr'))(n, one: '${n} participant', other: '${n} participants', ), 
 			'watchTogether.hostBadge' => 'HÔTE',
-			'watchTogether.nameYou' => ({required Object name}) => '${name} (vous)',
-			'watchTogether.playerIdle' => 'Inactif',
-			'watchTogether.playerLoading' => 'Chargement',
-			'watchTogether.playerReady' => 'Prêt',
-			'watchTogether.playerBuffering' => 'Mise en tampon',
-			'watchTogether.matchSearching' => 'Recherche en cours',
-			'watchTogether.matchMatched' => 'Possède la vidéo',
-			'watchTogether.matchMismatched' => 'Durée différente',
-			'watchTogether.matchUnavailable' => 'Ne possède pas la vidéo',
-			'watchTogether.participantOffset' => ({required Object offset}) => 'Décalage ${offset}',
 			'watchTogether.makeHost' => 'Nommer hôte',
 			'watchTogether.makeHostQuestion' => 'Transférer le rôle d’hôte ?',
 			'watchTogether.makeHostConfirm' => ({required Object name}) => '${name} contrôlera la lecture et dirigera la session pour tout le monde.',
 			'watchTogether.transfer' => 'Transférer',
-			'watchTogether.removeParticipant' => 'Retirer du salon',
-			'watchTogether.removeParticipantQuestion' => ({required Object name}) => 'Retirer ${name} ?',
-			'watchTogether.removeParticipantConfirm' => ({required Object name}) => '${name} quittera le salon. Cette personne pourra revenir avec le code, sauf si vous verrouillez le salon.',
-			'watchTogether.remove' => 'Retirer',
-			'watchTogether.roomSettings' => 'Paramètres du salon',
-			'watchTogether.letEveryoneControl' => 'Laisser tout le monde contrôler la lecture',
-			'watchTogether.lockRoom' => 'Verrouiller le salon',
-			'watchTogether.lockRoomDescription' => 'Aucun nouveau participant ne peut rejoindre le salon',
-			'watchTogether.leaveRoom' => 'Quitter le salon',
-			'watchTogether.leaveRoomQuestion' => 'Quitter le salon ?',
-			'watchTogether.leaveRoomConfirm' => 'Vous pourrez revenir avec le code du salon.',
 			'watchTogether.leave' => 'Quitter',
-			'watchTogether.endRoom' => 'Fermer le salon',
-			'watchTogether.endRoomQuestion' => 'Fermer le salon ?',
-			'watchTogether.endRoomConfirm' => 'Le salon sera fermé pour tout le monde.',
 			'watchTogether.end' => 'Terminer',
-			'watchTogether.playBlockedTitle' => 'La lecture n’a pas démarré',
-			'watchTogether.playBlockedDescription' => 'Appuyez sur Lecture pour commencer à regarder avec le salon.',
-			'watchTogether.notices.pressedPlay' => ({required Object name}) => '${name} a lancé la lecture',
-			'watchTogether.notices.playbackStarted' => 'Lecture lancée',
-			'watchTogether.notices.paused' => ({required Object name}) => '${name} a mis en pause',
-			'watchTogether.notices.playbackPaused' => 'Lecture en pause',
-			'watchTogether.notices.jumpedTo' => ({required Object name, required Object position}) => '${name} a sauté à ${position}',
-			'watchTogether.notices.roomJumpedTo' => ({required Object position}) => 'Passage à ${position}',
-			'watchTogether.notices.changedSpeed' => ({required Object name, required Object speed}) => '${name} a réglé la vitesse sur ${speed}',
-			'watchTogether.notices.speedChanged' => ({required Object speed}) => 'Vitesse réglée sur ${speed}',
-			'watchTogether.notices.startedMedia' => ({required Object name, required Object title}) => '${name} a lancé ${title}',
-			'watchTogether.notices.mediaStarted' => ({required Object title}) => 'Lecture en cours : ${title}',
-			'watchTogether.notices.stoppedMedia' => ({required Object name}) => '${name} a arrêté la vidéo',
-			'watchTogether.notices.mediaStopped' => 'La vidéo s’est arrêtée',
-			'watchTogether.notices.waitingFor' => ({required Object name}) => 'En attente de ${name}...',
-			'watchTogether.notices.waitingForSomeone' => 'En attente d’un participant en retard...',
-			'watchTogether.notices.finished' => 'Terminé',
-			'watchTogether.notices.hostChangedTo' => ({required Object name}) => '${name} est maintenant l’hôte',
-			'watchTogether.notices.youAreNowHost' => 'Vous êtes maintenant l’hôte',
-			'watchTogether.notices.joined' => ({required Object name}) => '${name} a rejoint',
-			'watchTogether.notices.left' => ({required Object name}) => '${name} est parti',
-			'watchTogether.notices.controlRefused' => 'Seul l’hôte peut contrôler la lecture',
-			'watchTogether.notices.searchFailed' => 'Impossible de rechercher la vidéo du salon sur certains serveurs',
-			'watchTogether.notices.playBlocked' => 'Appuyez sur Lecture pour commencer',
-			'watchTogether.notices.shareFailed' => 'Impossible de partager cette vidéo avec le salon',
-			'watchTogether.notices.downloadNotShared' => 'Les téléchargements ne sont pas partagés avec le salon tant que leur serveur est hors ligne',
-			'watchTogether.notices.openFailed' => 'Impossible d’ouvrir la vidéo du salon',
-			'watchTogether.ended.ended' => 'L’hôte a fermé le salon',
-			'watchTogether.ended.kicked' => 'Vous avez été retiré du salon',
-			'watchTogether.ended.expired' => 'Le salon a expiré',
-			'watchTogether.ended.replaced' => 'Vous avez rejoint ce salon sur un autre appareil',
-			'watchTogether.ended.lost' => 'Connexion au salon perdue',
-			'watchTogether.errors.invalidCode' => 'Ce n’est pas un code de salon. Les codes comportent 6 lettres et chiffres, sans 0, 1, I, L ni O.',
-			'watchTogether.errors.roomNotFound' => 'Aucun salon ne correspond à ce code. Il a peut-être été fermé.',
-			'watchTogether.errors.roomFull' => 'Ce salon est complet.',
-			'watchTogether.errors.roomLocked' => 'L’hôte a verrouillé ce salon.',
-			'watchTogether.errors.relayFull' => 'Le service Regarder ensemble est saturé pour le moment. Réessayez plus tard.',
-			'watchTogether.errors.unreachable' => 'Impossible de joindre le relais Regarder ensemble. Vérifiez votre connexion.',
-			'watchTogether.errors.rateLimited' => 'Trop de tentatives. Patientez un instant, puis réessayez.',
-			'watchTogether.errors.clientBlocked' => 'Cette version de Plezy ne peut pas utiliser le relais. Mettez l’application à jour.',
-			'watchTogether.errors.forbidden' => 'Seul l’hôte peut faire cela.',
-			'watchTogether.errors.notInRoom' => 'Vous n’êtes pas dans un salon.',
-			'watchTogether.errors.alreadyInRoom' => 'Vous êtes déjà dans un salon.',
-			'watchTogether.errors.resumeFailed' => 'Impossible de rejoindre à nouveau le salon.',
-			'watchTogether.errors.unsupported' => 'Le relais ne prend pas en charge cette fonction.',
-			'watchTogether.errors.generic' => 'Une erreur s’est produite. Réessayez.',
-			'watchTogether.untitledEpisode' => ({required Object number}) => 'Épisode ${number}',
+			_ => null,
+		} ?? switch (path) {
 			'downloads.title' => 'Téléchargements',
 			'downloads.manage' => 'Gérer',
 			'downloads.tvShows' => 'Séries TV',
@@ -5449,8 +4879,6 @@ extension on TranslationsFr {
 			'performanceOverlay.decoderHardware' => 'Matériel',
 			'performanceOverlay.tunnelingActive' => 'Actif',
 			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (${failures} échecs)',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.title' => 'Lecteur externe',
 			'externalPlayer.useExternalPlayer' => 'Utiliser un lecteur externe',
 			'externalPlayer.useExternalPlayerDescription' => 'Ouvrir les vidéos dans une autre application',
@@ -5554,9 +4982,6 @@ extension on TranslationsFr {
 			'matchScreen.yearHint' => 'Année',
 			'matchScreen.search' => 'Rechercher',
 			'matchScreen.noMatchesFound' => 'Aucune correspondance',
-			'serverTasks.title' => 'Tâches du serveur',
-			'serverTasks.failedToLoad' => 'Échec du chargement des tâches',
-			'serverTasks.noTasks' => 'Aucune tâche en cours',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Connecté',
 			'trakt.connectedAs' => ({required Object username}) => 'Connecté en tant que @${username}',
@@ -5681,6 +5106,8 @@ extension on TranslationsFr {
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Autorisez un compte Plex. Les utilisateurs Home deviennent des profils.',
 			'addServer.connectToMediaBrowserCard' => ({required Object product}) => 'Se connecter à ${product}',
 			'addServer.connectToMediaBrowserCardSubtitle' => 'Saisissez l\'URL de votre serveur, votre nom d\'utilisateur et votre mot de passe.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.connectToMediaBrowserCardSubtitleScoped' => ({required Object product, required Object name}) => 'Connectez-vous à votre serveur ${product}. Sera associé à ${name}.',
 			'addServer.borrowFromAnotherProfile' => 'Emprunter à un autre profil',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Réutiliser la connexion d\'un autre profil. Les profils protégés par PIN exigent un PIN.',

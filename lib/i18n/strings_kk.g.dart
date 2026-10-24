@@ -40,14 +40,11 @@ class TranslationsKk extends Translations with BaseTranslations<AppLocale, Trans
 
 	// Translations
 	@override late final _Translations$app$kk app = _Translations$app$kk._(_root);
-	@override late final _Translations$appIcon$kk appIcon = _Translations$appIcon$kk._(_root);
 	@override late final _Translations$auth$kk auth = _Translations$auth$kk._(_root);
 	@override late final _Translations$common$kk common = _Translations$common$kk._(_root);
 	@override late final _Translations$screens$kk screens = _Translations$screens$kk._(_root);
 	@override late final _Translations$update$kk update = _Translations$update$kk._(_root);
-	@override late final _Translations$supporter$kk supporter = _Translations$supporter$kk._(_root);
 	@override late final _Translations$settings$kk settings = _Translations$settings$kk._(_root);
-	@override late final _Translations$themeEditor$kk themeEditor = _Translations$themeEditor$kk._(_root);
 	@override late final _Translations$search$kk search = _Translations$search$kk._(_root);
 	@override late final _Translations$hotkeys$kk hotkeys = _Translations$hotkeys$kk._(_root);
 	@override late final _Translations$fileInfo$kk fileInfo = _Translations$fileInfo$kk._(_root);
@@ -88,7 +85,6 @@ class TranslationsKk extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$externalPlayer$kk externalPlayer = _Translations$externalPlayer$kk._(_root);
 	@override late final _Translations$metadataEdit$kk metadataEdit = _Translations$metadataEdit$kk._(_root);
 	@override late final _Translations$matchScreen$kk matchScreen = _Translations$matchScreen$kk._(_root);
-	@override late final _Translations$serverTasks$kk serverTasks = _Translations$serverTasks$kk._(_root);
 	@override late final _Translations$trakt$kk trakt = _Translations$trakt$kk._(_root);
 	@override late final _Translations$seerr$kk seerr = _Translations$seerr$kk._(_root);
 	@override late final _Translations$services$kk services = _Translations$services$kk._(_root);
@@ -103,24 +99,6 @@ class _Translations$app$kk extends Translations$app$en {
 
 	// Translations
 	@override String get title => 'Plezy';
-}
-
-// Path: appIcon
-class _Translations$appIcon$kk extends Translations$appIcon$en {
-	_Translations$appIcon$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Қолданба белгішесі';
-	@override String get defaultIcon => 'Әдепкі';
-	@override String get current => 'Ағымдағы белгіше';
-	@override String get locked => 'Supporter артықшылығы';
-	@override String get lockedHint => 'Балама белгішелер — Supporter артықшылығы.';
-	@override String get changeFailed => 'Қолданба белгішесін өзгерту мүмкін болмады';
-	@override String get launcherHint => 'Plezy-ден шыққаннан кейін жаңа белгіше басты экранда пайда болады.';
-	@override String get tvLauncherHint => 'Plezy-ден шыққаннан кейін жаңа баннер пайда болады. Android TV теледидар қайта іске қосылғанша ескісін көрсете беруі мүмкін.';
-	@override late final _Translations$appIcon$names$kk names = _Translations$appIcon$names$kk._(_root);
 }
 
 // Path: auth
@@ -239,33 +217,6 @@ class _Translations$update$kk extends Translations$update$en {
 	@override String get checkFailed => 'Жаңартуларды тексеру мүмкін болмады';
 }
 
-// Path: supporter
-class _Translations$supporter$kk extends Translations$supporter$en {
-	_Translations$supporter$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Plezy Supporter';
-	@override String get intro => 'Plezy-дің дамуына қолдау көрсетіп, безендіру мүмкіндіктерін ашатын бір реттік сатып алу:';
-	@override String get presetThemes => 'Дайын тақырыптар';
-	@override String get presetThemesDescription => 'Шоқ, Мұздық, Орман, Алхоры және Қағаз';
-	@override String get customTheme => 'Жеке тақырып';
-	@override String get customThemeDescription => 'Әр түсті өзіңіз таңдаңыз';
-	@override String get appIcons => 'Қолданба белгішелері';
-	@override String get appIconsDescription => 'Plezy-дің балама белгішесін таңдаңыз';
-	@override String buy({required Object price}) => '${price} бағасына сатып алу';
-	@override String get loadingPrice => 'Баға жүктелуде...';
-	@override String get restore => 'Сатып алуларды қалпына келтіру';
-	@override String get pending => 'Сатып алуыңыз төлемді немесе растауды күтуде. Дүкен оны аяқтаған бойда қосымша мүмкіндіктер ашылады.';
-	@override String get thankYouTitle => 'Plezy-ді қолдағаныңыз үшін рахмет';
-	@override String get thankYouBody => 'Supporter мүмкіндіктеріңіз ашылды.';
-	@override String get tileSubtitle => 'Тақырыптар мен қолданба белгішелерін бір реттік сатып алумен ашыңыз';
-	@override String get tileSubtitleThemesOnly => 'Тақырыптарды бір реттік сатып алумен ашыңыз';
-	@override String get tileUnlocked => 'Қолдауыңыз үшін рахмет';
-	@override late final _Translations$supporter$errors$kk errors = _Translations$supporter$errors$kk._(_root);
-}
-
 // Path: settings
 class _Translations$settings$kk extends Translations$settings$en {
 	_Translations$settings$kk._(TranslationsKk root) : this._root = root, super.internal(root);
@@ -296,11 +247,6 @@ class _Translations$settings$kk extends Translations$settings$en {
 	@override String get lightTheme => 'Жарық';
 	@override String get darkTheme => 'Қараңғы';
 	@override String get oledTheme => 'OLED';
-	@override String get emberTheme => 'Шоқ';
-	@override String get glacierTheme => 'Мұздық';
-	@override String get forestTheme => 'Орман';
-	@override String get plumTheme => 'Алхоры';
-	@override String get paperTheme => 'Қағаз';
 	@override String get libraryDensity => 'Кітапхана тығыздығы';
 	@override String get displayScale => 'Дисплей масштабы';
 	@override String get compact => 'Тығыз';
@@ -508,8 +454,6 @@ class _Translations$settings$kk extends Translations$settings$en {
 	@override String get tunneledPlaybackDescription => 'Видео туннельдеуді пайдалану. HDR ойнатқанда қара экран көрінсе немесе қозғалыс кідірсе, өшіріңіз.';
 	@override String get audioPassthrough => 'Дыбысты тікелей өткізу (Passthrough)';
 	@override String get audioPassthroughDescription => 'Dolby/DTS дыбысын қайта кодтамай, көлемдік дыбысты сақтап ресиверге немесе теледидарға жіберу. Дыбыс болмаса, өшіріңіз.';
-	@override String get audioPassthroughDescriptionApple => 'Dolby Digital Plus, соның ішінде Atmos үшін Apple-дың өз Dolby декодерін пайдалану. DTS және TrueHD бұрынғыша көпарналы PCM ретінде ойнатылады. Дыбыс болмаса, өшіріңіз.';
-	@override String get audioPassthroughDescriptionAppleSpatial => 'Dolby Digital Plus, соның ішінде Atmos үшін Apple-дың өз Dolby декодерін пайдалану. iOS, iPadOS және tvOS 26 немесе жаңарақ нұсқаларында TrueHD Atmos пен DTS:X кеңістіктік дыбыс ретінде ойнатылады. Басқа DTS және TrueHD жолдары көпарналы PCM ретінде ойнатылады. Дыбыс болмаса, өшіріңіз.';
 	@override String get audioPassthroughOverriddenByNormalization => 'Дыбыс деңгейін нормалау қосулы кезде өшірулі';
 	@override String get audioChannelLimit => 'Аудио арналары';
 	@override String get audioChannelLimitDescription => 'Барлық арнаны ойната алмайтын динамиктер, құлаққаптар немесе HDMI жүйелері үшін декодталған дыбысты азырақ арнаға түрлендіру';
@@ -608,42 +552,6 @@ class _Translations$settings$kk extends Translations$settings$en {
 	@override String get playerScopeLibrary => 'Кітапхана бойынша';
 	@override String get playerScopeTitle => 'Сериал немесе фильм бойынша';
 	@override String get exportDialogTitle => 'Plezy параметрлерін экспорттау';
-}
-
-// Path: themeEditor
-class _Translations$themeEditor$kk extends Translations$themeEditor$en {
-	_Translations$themeEditor$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get builtIn => 'Кірістірілген';
-	@override String get presets => 'Дайын тақырыптар';
-	@override String get custom => 'Жеке';
-	@override String get customEmpty => 'Әлі жасалмаған';
-	@override String get editCustom => 'Жеке тақырыпты өңдеу';
-	@override String get editCustomDescription => 'Әр түсті өзіңіз таңдаңыз';
-	@override String get locked => 'Supporter арқылы ашу';
-	@override String get savedLocked => 'Сақталды — Supporter арқылы ашылады';
-	@override String get title => 'Жеке тақырып';
-	@override String get startFrom => 'Негізге алу';
-	@override String get startFromDescription => 'Барлық түстерді басқа тақырыптан көшіру';
-	@override String get colors => 'Түстер';
-	@override String get preview => 'Алдын ала қарау';
-	@override late final _Translations$themeEditor$slots$kk slots = _Translations$themeEditor$slots$kk._(_root);
-	@override String get opacity => 'Мөлдірлік';
-	@override String get hexHint => '#RRGGBB немесе #AARRGGBB';
-	@override String get fromOtherThemes => 'Басқа тақырыптардан';
-	@override String swatchLabel({required Object theme, required Object color}) => '${theme}: ${color}';
-	@override late final _Translations$themeEditor$contrast$kk contrast = _Translations$themeEditor$contrast$kk._(_root);
-	@override String lowContrast({required Object pair, required Object ratio, required Object minimum}) => '${pair}: ${ratio}:1, ұсынылған ${minimum}:1 мәнінен төмен';
-	@override String get discardTitle => 'Өзгерістер жойылсын ба?';
-	@override String get discardMessage => 'Сақталмаған түс өзгерістері жоғалады.';
-	@override String get discard => 'Жою';
-	@override String previewCardTitle({required Object number}) => '${number}-бөлім';
-	@override String previewCardSubtitle({required Object minutes}) => '${minutes} мин қалды';
-	@override String get previewSwitch => 'Автоойнату';
-	@override String get previewMutedText => 'Қосалқы мәтін осылай көрінеді';
 }
 
 // Path: search
@@ -1803,113 +1711,23 @@ class _Translations$watchTogether$kk extends Translations$watchTogether$en {
 	// Translations
 	@override String get title => 'Бірге көру';
 	@override String get description => 'Достарыңызбен және отбасыңызбен синхронды түрде бірге көріңіз';
-	@override String get createRoom => 'Бөлме құру';
-	@override String get creatingRoom => 'Бөлме құрылуда...';
-	@override String get joinRoom => 'Бөлмеге қосылу';
-	@override String get joiningRoom => 'Бөлмеге қосылуда...';
-	@override String get connecting => 'Қосылуда...';
-	@override String get relayPublic => 'Бөлмелер жалпыға ортақ Open Watch Party релелерін пайдаланады.';
-	@override String relayCustom({required Object url}) => 'Бөлмелер ${url} мекенжайындағы релеңізді пайдаланады.';
 	@override String get recentRooms => 'Соңғы бөлмелер';
-	@override String get roomActions => 'Бөлме әрекеттері';
 	@override String get renameRoom => 'Бөлме атын өзгерткіңіз келе ме?';
 	@override String get removeRoom => 'Өшіру';
-	@override String get enterRoomCode => 'Ұйымдастырушыдан алған 6 таңбалы кодты енгізіңіз.';
-	@override String get roomCode => 'Бөлме коды';
-	@override String get paste => 'Қою';
-	@override String get noCodeInClipboard => 'Алмасу буферінде бөлме коды жоқ';
-	@override String get copyCode => 'Кодты көшіру';
-	@override String get codeCopied => 'Бөлме коды көшірілді';
-	@override String get shareInvite => 'Шақыру жіберу';
-	@override String get inviteCopied => 'Шақыру көшірілді. Оны хабарламаға қойыңыз.';
-	@override String inviteMessage({required Object code}) => 'Plezy-дегі «Бірге көру» бөлмеме қосылыңыз: «Бірге көру» бөлімін ашып, «Бөлмеге қосылу» түймесін таңдаңыз да, ${code} кодын енгізіңіз.';
 	@override String get openSessionControls => 'Басқару элементтерін ашу';
-	@override String get reconnecting => 'Қайта қосылуда...';
-	@override String get reconnectingDescription => 'Байланыс үзілді. Бөлмеге автоматты түрде қайта қосыласыз.';
-	@override String get connected => 'Қосылды';
-	@override String get disconnected => 'Ажыратылды';
 	@override String get youAreHost => 'Сіз ұйымдастырушысыз';
-	@override String hostedBy({required Object name}) => 'Ұйымдастырушы: ${name}';
 	@override String get hostControlsPlayback => 'Ойнатуды ұйымдастырушы басқарады';
 	@override String get anyoneCanControl => 'Ойнатуды кез келген адам басқара алады';
-	@override String get roomLocked => 'Бөлме бұғатталған';
-	@override String get nowPlaying => 'Қазір ойнатылуда';
-	@override String get nothingPlaying => 'Ештеңе ойнатылмай тұр';
-	@override String get nothingPlayingHost => 'Бөлмемен бөлісу үшін кез келген кітапханадан бірдеңе ойнатыңыз.';
-	@override String get nothingPlayingGuest => 'Ұйымдастырушы бірдеңе ойнатқанда, ол осы жерде ашылады.';
-	@override String get notShareable => 'Бұл видеоның каталогта сәйкестігі жоқ, сондықтан оны тек сол серверге қолжетімділігі бар адамдар ғана ойната алады.';
-	@override String get searching => 'Бұл видео кітапханаларыңыздан ізделуде...';
-	@override String get yourCopy => 'Сіздің көшірмеңіз';
-	@override String get sharingYourCopy => 'Сіз өз көшірмеңізбен бөлісудесіз';
-	@override String playingOtherLength({required Object difference}) => 'Көшірмеңіз ойнатылуда, ${difference}';
-	@override String get mismatchTitle => 'Көшірмеңіздің ұзақтығы басқа';
-	@override String mismatchDescription({required Object difference}) => 'Ең жақын көшірмеңіз бөлмедегі видеодан ${difference}. Бұл басқа монтаж немесе нұсқа болуы мүмкін.';
-	@override String get playAnyway => 'Сонда да ойнату';
-	@override String get chooseAnotherCopy => 'Басқа көшірмені таңдау';
-	@override String get dontPlay => 'Ойнатпау';
-	@override String get unavailableTitle => 'Сізде бұл видео жоқ';
-	@override String get unavailableDescription => 'Plezy оны кітапханаларыңыздан таба алмады. Көшірмені өзіңіз таңдаңыз немесе қайта іздеңіз.';
-	@override String get chooseCopy => 'Көшірмені таңдау';
-	@override String get searchAgain => 'Қайта іздеу';
-	@override String get noCandidates => 'Кітапханаларыңыздан көшірмелер табылмады.';
-	@override String get choiceFailed => 'Бұл көшірмені бөлме үшін ойнату мүмкін болмады';
-	@override String lengthLonger({required Object duration}) => '${duration} ұзағырақ';
-	@override String lengthShorter({required Object duration}) => '${duration} қысқарақ';
-	@override String get lengthSame => 'Ұзақтығы бірдей';
-	@override String get lengthUnknown => 'Ұзақтығы белгісіз';
 	@override String get joinCurrentPlayback => 'Ағымдағы ойнатуға қосылу';
 	@override String get joinCurrentPlaybackDescription => 'Ұйымдастырушы көріп жатқан жерге өту';
-	@override String get stopMedia => 'Видеоны барлығы үшін тоқтату';
-	@override String get syncOffset => 'Синхрондау ығысуы';
-	@override String get syncOffsetDescription => 'Видеоңыз бөлмеден озып немесе қалып бара жатса, оны жылжытыңыз.';
-	@override String offsetHint({required Object difference}) => 'Көшірмеңіз бөлмедегі видеодан ${difference}.';
-	@override String applyDifference({required Object offset}) => '${offset} қолдану';
-	@override String get offsetMinusSecond => '-1 сек';
-	@override String get offsetMinusTenth => '-100 мс';
-	@override String get offsetPlusTenth => '+100 мс';
-	@override String get offsetPlusSecond => '+1 сек';
 	@override String get participants => 'Қатысушылар';
-	@override String participantCount({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('kk'))(n,
-		one: '${n} қатысушы',
-		other: '${n} қатысушы',
-	);
 	@override String get hostBadge => 'ҰЙЫМДАСТЫРУШЫ';
-	@override String nameYou({required Object name}) => '${name} (Сіз)';
-	@override String get playerIdle => 'Әрекетсіз';
-	@override String get playerLoading => 'Жүктелуде';
-	@override String get playerReady => 'Дайын';
-	@override String get playerBuffering => 'Буферленуде';
-	@override String get matchSearching => 'Іздеуде';
-	@override String get matchMatched => 'Видеосы бар';
-	@override String get matchMismatched => 'Ұзақтығы басқа';
-	@override String get matchUnavailable => 'Видеосы жоқ';
-	@override String participantOffset({required Object offset}) => 'Ығысу ${offset}';
 	@override String get makeHost => 'Ұйымдастырушы ету';
 	@override String get makeHostQuestion => 'Ұйымдастырушыны ауыстыру керек пе?';
 	@override String makeHostConfirm({required Object name}) => '${name} ойнатуды басқарып, сеансты барлығы үшін жүргізеді.';
 	@override String get transfer => 'Ауыстыру';
-	@override String get removeParticipant => 'Бөлмеден шығару';
-	@override String removeParticipantQuestion({required Object name}) => '${name} шығарылсын ба?';
-	@override String removeParticipantConfirm({required Object name}) => '${name} бөлмеден шығады. Бөлмені бұғаттамасаңыз, ол кодпен қайта қосыла алады.';
-	@override String get remove => 'Шығару';
-	@override String get roomSettings => 'Бөлме баптаулары';
-	@override String get letEveryoneControl => 'Ойнатуды барлығына басқаруға рұқсат беру';
-	@override String get lockRoom => 'Бөлмені бұғаттау';
-	@override String get lockRoomDescription => 'Жаңа ешкім қосыла алмайды';
-	@override String get leaveRoom => 'Бөлмеден шығу';
-	@override String get leaveRoomQuestion => 'Бөлмеден шығасыз ба?';
-	@override String get leaveRoomConfirm => 'Бөлме коды арқылы қайта қосыла аласыз.';
 	@override String get leave => 'Шығу';
-	@override String get endRoom => 'Бөлмені жабу';
-	@override String get endRoomQuestion => 'Бөлме жабылсын ба?';
-	@override String get endRoomConfirm => 'Бұл бөлмені барлығы үшін жабады.';
 	@override String get end => 'Аяқтау';
-	@override String get playBlockedTitle => 'Ойнату басталмады';
-	@override String get playBlockedDescription => 'Бөлмемен бірге көруді бастау үшін ойнату түймесін басыңыз.';
-	@override late final _Translations$watchTogether$notices$kk notices = _Translations$watchTogether$notices$kk._(_root);
-	@override late final _Translations$watchTogether$ended$kk ended = _Translations$watchTogether$ended$kk._(_root);
-	@override late final _Translations$watchTogether$errors$kk errors = _Translations$watchTogether$errors$kk._(_root);
-	@override String untitledEpisode({required Object number}) => '${number}-бөлім';
 }
 
 // Path: downloads
@@ -2288,18 +2106,6 @@ class _Translations$matchScreen$kk extends Translations$matchScreen$en {
 	@override String get noMatchesFound => 'Сәйкестіктер табылмады';
 }
 
-// Path: serverTasks
-class _Translations$serverTasks$kk extends Translations$serverTasks$en {
-	_Translations$serverTasks$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Сервер тапсырмалары';
-	@override String get failedToLoad => 'Тапсырмаларды жүктеу мүмкін болмады';
-	@override String get noTasks => 'Орындалып жатқан тапсырмалар жоқ';
-}
-
 // Path: trakt
 class _Translations$trakt$kk extends Translations$trakt$en {
 	_Translations$trakt$kk._(TranslationsKk root) : this._root = root, super.internal(root);
@@ -2458,38 +2264,6 @@ class _Translations$addServer$kk extends Translations$addServer$en {
 	@override String redirectUnsupportedEnterFinal({required Object product}) => 'Сервер қолдау көрсетілмейтін URL-ге қайта бағыттады. Соңғы ${product} URL-ін тікелей енгізіңіз.';
 }
 
-// Path: appIcon.names
-class _Translations$appIcon$names$kk extends Translations$appIcon$names$en {
-	_Translations$appIcon$names$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get midnight => 'Түн ортасы';
-	@override String get ember => 'Шоқ';
-	@override String get paper => 'Қағаз';
-	@override String get oled => 'OLED';
-	@override String get line => 'Сызық';
-	@override String get ocean => 'Мұхит';
-	@override String get ultraviolet => 'Ультракүлгін';
-	@override String get matcha => 'Матча';
-	@override String get sunset => 'Күн батуы';
-	@override String get gold => 'Алтын';
-	@override String get titanium => 'Титан';
-	@override String get glass => 'Шыны';
-	@override String get crt => 'CRT';
-	@override String get vhs => 'VHS';
-	@override String get synthwave => 'Synthwave';
-	@override String get pixel => 'Пиксель';
-	@override String get neon => 'Неон';
-	@override String get sticker => 'Стикер';
-	@override String get ticket => 'Билет';
-	@override String get pop => 'Поп';
-	@override String get strata => 'Қабаттар';
-	@override String get facet => 'Қырлы';
-	@override String get tilde => 'Тильда';
-}
-
 // Path: common.ratingSource
 class _Translations$common$ratingSource$kk extends Translations$common$ratingSource$en {
 	_Translations$common$ratingSource$kk._(TranslationsKk root) : this._root = root, super.internal(root);
@@ -2531,52 +2305,6 @@ class _Translations$common$mediaKind$kk extends Translations$common$mediaKind$en
 	@override String get clip => 'Клип';
 	@override String get photo => 'Фото';
 	@override String get folder => 'Қалта';
-}
-
-// Path: supporter.errors
-class _Translations$supporter$errors$kk extends Translations$supporter$errors$en {
-	_Translations$supporter$errors$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get storeUnavailable => 'Сатып алу қолжетімсіз. Дүкенге кіргеніңізді және осы құрылғыда сатып алуға рұқсат етілгенін тексеріңіз.';
-	@override String get productNotFound => 'Supporter сатып алуы қазір дүкеніңізде қолжетімсіз.';
-	@override String get productQueryFailed => 'Бағаны жүктеу мүмкін болмады. Қосылымды тексеріп, қайтадан байқап көріңіз.';
-	@override String get purchaseFailed => 'Сатып алу орындалмады. Қайтадан байқап көріңіз.';
-	@override String get restoreFailed => 'Сатып алуды қалпына келтіру үшін дүкенге қосылу мүмкін болмады. Қайтадан байқап көріңіз.';
-	@override String get nothingToRestore => 'Осы дүкен тіркелгісінде Supporter сатып алуы табылмады.';
-}
-
-// Path: themeEditor.slots
-class _Translations$themeEditor$slots$kk extends Translations$themeEditor$slots$en {
-	_Translations$themeEditor$slots$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get bg => 'Фон';
-	@override String get surface => 'Беткі қабат';
-	@override String get outline => 'Контур';
-	@override String get text => 'Мәтін';
-	@override String get textMuted => 'Қосалқы мәтін';
-	@override String get accent => 'Акцент';
-}
-
-// Path: themeEditor.contrast
-class _Translations$themeEditor$contrast$kk extends Translations$themeEditor$contrast$en {
-	_Translations$themeEditor$contrast$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get textOnBg => 'Фондағы мәтін';
-	@override String get textOnSurface => 'Беткі қабаттағы мәтін';
-	@override String get textMutedOnBg => 'Фондағы қосалқы мәтін';
-	@override String get textMutedOnSurface => 'Беткі қабаттағы қосалқы мәтін';
-	@override String get accentOnBg => 'Фондағы акцент';
-	@override String get accentOnSurface => 'Беткі қабаттағы акцент';
-	@override String get labelOnAccent => 'Акценттегі түйме мәтіні';
 }
 
 // Path: hotkeys.actions
@@ -3088,77 +2816,6 @@ class _Translations$music$discography$kk extends Translations$music$discography$
 	@override String get compilations => 'Жинақтар';
 }
 
-// Path: watchTogether.notices
-class _Translations$watchTogether$notices$kk extends Translations$watchTogether$notices$en {
-	_Translations$watchTogether$notices$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String pressedPlay({required Object name}) => '${name} ойнату түймесін басты';
-	@override String get playbackStarted => 'Ойнату басталды';
-	@override String paused({required Object name}) => '${name} кідіртті';
-	@override String get playbackPaused => 'Ойнату кідіртілді';
-	@override String jumpedTo({required Object name, required Object position}) => '${name} ${position} сәтіне өтті';
-	@override String roomJumpedTo({required Object position}) => '${position} сәтіне өтілді';
-	@override String changedSpeed({required Object name, required Object speed}) => '${name} жылдамдықты ${speed} етіп орнатты';
-	@override String speedChanged({required Object speed}) => 'Жылдамдық ${speed} етіп орнатылды';
-	@override String startedMedia({required Object name, required Object title}) => '${name} ойнатуды бастады: ${title}';
-	@override String mediaStarted({required Object title}) => 'Қазір ойнатылуда: ${title}';
-	@override String stoppedMedia({required Object name}) => '${name} видеоны тоқтатты';
-	@override String get mediaStopped => 'Видео тоқтатылды';
-	@override String waitingFor({required Object name}) => '${name} күтілуде...';
-	@override String get waitingForSomeone => 'Біреудің қуып жетуі күтілуде...';
-	@override String get finished => 'Аяқталды';
-	@override String hostChangedTo({required Object name}) => '${name} енді ұйымдастырушы';
-	@override String get youAreNowHost => 'Енді ұйымдастырушы сізсіз';
-	@override String joined({required Object name}) => '${name} қосылды';
-	@override String left({required Object name}) => '${name} шықты';
-	@override String get controlRefused => 'Ойнатуды тек ұйымдастырушы басқара алады';
-	@override String get searchFailed => 'Кейбір серверлерден бөлме видеосын іздеу мүмкін болмады';
-	@override String get playBlocked => 'Бастау үшін ойнату түймесін басыңыз';
-	@override String get shareFailed => 'Бұл видеоны бөлмемен бөлісу мүмкін болмады';
-	@override String get downloadNotShared => 'Жүктеулердің сервері офлайн болғанда, олар бөлмемен бөлісілмейді';
-	@override String get openFailed => 'Бөлме видеосын ашу мүмкін болмады';
-}
-
-// Path: watchTogether.ended
-class _Translations$watchTogether$ended$kk extends Translations$watchTogether$ended$en {
-	_Translations$watchTogether$ended$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get ended => 'Ұйымдастырушы бөлмені жапты';
-	@override String get kicked => 'Сіз бөлмеден шығарылдыңыз';
-	@override String get expired => 'Бөлменің мерзімі аяқталды';
-	@override String get replaced => 'Сіз бұл бөлмеге басқа құрылғыда қосылдыңыз';
-	@override String get lost => 'Бөлмемен байланыс үзілді';
-}
-
-// Path: watchTogether.errors
-class _Translations$watchTogether$errors$kk extends Translations$watchTogether$errors$en {
-	_Translations$watchTogether$errors$kk._(TranslationsKk root) : this._root = root, super.internal(root);
-
-	final TranslationsKk _root; // ignore: unused_field
-
-	// Translations
-	@override String get invalidCode => 'Бұл бөлме коды емес. Кодтар 6 әріп пен цифрдан тұрады, оларда 0, 1, I, L немесе O болмайды.';
-	@override String get roomNotFound => 'Бұл кодпен бөлме жоқ. Ол жабылған болуы мүмкін.';
-	@override String get roomFull => 'Бұл бөлме толы.';
-	@override String get roomLocked => 'Ұйымдастырушы бұл бөлмені бұғаттады.';
-	@override String get relayFull => 'Бірге көру қызметі қазір шамадан тыс жүктелген. Кейінірек қайталап көріңіз.';
-	@override String get unreachable => 'Бірге көру релесіне қосылу мүмкін болмады. Қосылымды тексеріңіз.';
-	@override String get rateLimited => 'Әрекеттер тым көп. Біраз күтіп, қайтадан байқап көріңіз.';
-	@override String get clientBlocked => 'Plezy-дің бұл нұсқасы релені пайдалана алмайды. Қолданбаны жаңартыңыз.';
-	@override String get forbidden => 'Мұны тек ұйымдастырушы жасай алады.';
-	@override String get notInRoom => 'Сіз бөлмеде емессіз.';
-	@override String get alreadyInRoom => 'Сіз бұрыннан бөлмедесіз.';
-	@override String get resumeFailed => 'Бөлмеге қайта қосылу мүмкін болмады.';
-	@override String get unsupported => 'Реле бұған қолдау көрсетпейді.';
-	@override String get generic => 'Қате орын алды. Қайтадан байқап көріңіз.';
-}
-
 // Path: downloads.backgroundWarning
 class _Translations$downloads$backgroundWarning$kk extends Translations$downloads$backgroundWarning$en {
 	_Translations$downloads$backgroundWarning$kk._(TranslationsKk root) : this._root = root, super.internal(root);
@@ -3396,37 +3053,6 @@ extension on TranslationsKk {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
 			'app.title' => 'Plezy',
-			'appIcon.title' => 'Қолданба белгішесі',
-			'appIcon.defaultIcon' => 'Әдепкі',
-			'appIcon.current' => 'Ағымдағы белгіше',
-			'appIcon.locked' => 'Supporter артықшылығы',
-			'appIcon.lockedHint' => 'Балама белгішелер — Supporter артықшылығы.',
-			'appIcon.changeFailed' => 'Қолданба белгішесін өзгерту мүмкін болмады',
-			'appIcon.launcherHint' => 'Plezy-ден шыққаннан кейін жаңа белгіше басты экранда пайда болады.',
-			'appIcon.tvLauncherHint' => 'Plezy-ден шыққаннан кейін жаңа баннер пайда болады. Android TV теледидар қайта іске қосылғанша ескісін көрсете беруі мүмкін.',
-			'appIcon.names.midnight' => 'Түн ортасы',
-			'appIcon.names.ember' => 'Шоқ',
-			'appIcon.names.paper' => 'Қағаз',
-			'appIcon.names.oled' => 'OLED',
-			'appIcon.names.line' => 'Сызық',
-			'appIcon.names.ocean' => 'Мұхит',
-			'appIcon.names.ultraviolet' => 'Ультракүлгін',
-			'appIcon.names.matcha' => 'Матча',
-			'appIcon.names.sunset' => 'Күн батуы',
-			'appIcon.names.gold' => 'Алтын',
-			'appIcon.names.titanium' => 'Титан',
-			'appIcon.names.glass' => 'Шыны',
-			'appIcon.names.crt' => 'CRT',
-			'appIcon.names.vhs' => 'VHS',
-			'appIcon.names.synthwave' => 'Synthwave',
-			'appIcon.names.pixel' => 'Пиксель',
-			'appIcon.names.neon' => 'Неон',
-			'appIcon.names.sticker' => 'Стикер',
-			'appIcon.names.ticket' => 'Билет',
-			'appIcon.names.pop' => 'Поп',
-			'appIcon.names.strata' => 'Қабаттар',
-			'appIcon.names.facet' => 'Қырлы',
-			'appIcon.names.tilde' => 'Тильда',
 			'auth.signInWithPlex' => 'Plex арқылы кіру',
 			'auth.showQRCode' => 'QR кодты көрсету',
 			'auth.authenticate' => 'Растау',
@@ -3530,29 +3156,6 @@ extension on TranslationsKk {
 			'update.viewRelease' => 'Релизді көру',
 			'update.latestVersion' => 'Сізде ең соңғы нұсқа орнатылған',
 			'update.checkFailed' => 'Жаңартуларды тексеру мүмкін болмады',
-			'supporter.title' => 'Plezy Supporter',
-			'supporter.intro' => 'Plezy-дің дамуына қолдау көрсетіп, безендіру мүмкіндіктерін ашатын бір реттік сатып алу:',
-			'supporter.presetThemes' => 'Дайын тақырыптар',
-			'supporter.presetThemesDescription' => 'Шоқ, Мұздық, Орман, Алхоры және Қағаз',
-			'supporter.customTheme' => 'Жеке тақырып',
-			'supporter.customThemeDescription' => 'Әр түсті өзіңіз таңдаңыз',
-			'supporter.appIcons' => 'Қолданба белгішелері',
-			'supporter.appIconsDescription' => 'Plezy-дің балама белгішесін таңдаңыз',
-			'supporter.buy' => ({required Object price}) => '${price} бағасына сатып алу',
-			'supporter.loadingPrice' => 'Баға жүктелуде...',
-			'supporter.restore' => 'Сатып алуларды қалпына келтіру',
-			'supporter.pending' => 'Сатып алуыңыз төлемді немесе растауды күтуде. Дүкен оны аяқтаған бойда қосымша мүмкіндіктер ашылады.',
-			'supporter.thankYouTitle' => 'Plezy-ді қолдағаныңыз үшін рахмет',
-			'supporter.thankYouBody' => 'Supporter мүмкіндіктеріңіз ашылды.',
-			'supporter.tileSubtitle' => 'Тақырыптар мен қолданба белгішелерін бір реттік сатып алумен ашыңыз',
-			'supporter.tileSubtitleThemesOnly' => 'Тақырыптарды бір реттік сатып алумен ашыңыз',
-			'supporter.tileUnlocked' => 'Қолдауыңыз үшін рахмет',
-			'supporter.errors.storeUnavailable' => 'Сатып алу қолжетімсіз. Дүкенге кіргеніңізді және осы құрылғыда сатып алуға рұқсат етілгенін тексеріңіз.',
-			'supporter.errors.productNotFound' => 'Supporter сатып алуы қазір дүкеніңізде қолжетімсіз.',
-			'supporter.errors.productQueryFailed' => 'Бағаны жүктеу мүмкін болмады. Қосылымды тексеріп, қайтадан байқап көріңіз.',
-			'supporter.errors.purchaseFailed' => 'Сатып алу орындалмады. Қайтадан байқап көріңіз.',
-			'supporter.errors.restoreFailed' => 'Сатып алуды қалпына келтіру үшін дүкенге қосылу мүмкін болмады. Қайтадан байқап көріңіз.',
-			'supporter.errors.nothingToRestore' => 'Осы дүкен тіркелгісінде Supporter сатып алуы табылмады.',
 			'settings.title' => 'Баптаулар',
 			'settings.supportDeveloper' => 'Plezy жобасын қолдау',
 			'settings.supportDeveloperDescription' => 'Дамытуды қаржыландыру үшін Liberapay арқылы демеушілік жасаңыз',
@@ -3576,11 +3179,6 @@ extension on TranslationsKk {
 			'settings.lightTheme' => 'Жарық',
 			'settings.darkTheme' => 'Қараңғы',
 			'settings.oledTheme' => 'OLED',
-			'settings.emberTheme' => 'Шоқ',
-			'settings.glacierTheme' => 'Мұздық',
-			'settings.forestTheme' => 'Орман',
-			'settings.plumTheme' => 'Алхоры',
-			'settings.paperTheme' => 'Қағаз',
 			'settings.libraryDensity' => 'Кітапхана тығыздығы',
 			'settings.displayScale' => 'Дисплей масштабы',
 			'settings.compact' => 'Тығыз',
@@ -3788,8 +3386,6 @@ extension on TranslationsKk {
 			'settings.tunneledPlaybackDescription' => 'Видео туннельдеуді пайдалану. HDR ойнатқанда қара экран көрінсе немесе қозғалыс кідірсе, өшіріңіз.',
 			'settings.audioPassthrough' => 'Дыбысты тікелей өткізу (Passthrough)',
 			'settings.audioPassthroughDescription' => 'Dolby/DTS дыбысын қайта кодтамай, көлемдік дыбысты сақтап ресиверге немесе теледидарға жіберу. Дыбыс болмаса, өшіріңіз.',
-			'settings.audioPassthroughDescriptionApple' => 'Dolby Digital Plus, соның ішінде Atmos үшін Apple-дың өз Dolby декодерін пайдалану. DTS және TrueHD бұрынғыша көпарналы PCM ретінде ойнатылады. Дыбыс болмаса, өшіріңіз.',
-			'settings.audioPassthroughDescriptionAppleSpatial' => 'Dolby Digital Plus, соның ішінде Atmos үшін Apple-дың өз Dolby декодерін пайдалану. iOS, iPadOS және tvOS 26 немесе жаңарақ нұсқаларында TrueHD Atmos пен DTS:X кеңістіктік дыбыс ретінде ойнатылады. Басқа DTS және TrueHD жолдары көпарналы PCM ретінде ойнатылады. Дыбыс болмаса, өшіріңіз.',
 			'settings.audioPassthroughOverriddenByNormalization' => 'Дыбыс деңгейін нормалау қосулы кезде өшірулі',
 			'settings.audioChannelLimit' => 'Аудио арналары',
 			'settings.audioChannelLimitDescription' => 'Барлық арнаны ойната алмайтын динамиктер, құлаққаптар немесе HDMI жүйелері үшін декодталған дыбысты азырақ арнаға түрлендіру',
@@ -3888,46 +3484,6 @@ extension on TranslationsKk {
 			'settings.playerScopeLibrary' => 'Кітапхана бойынша',
 			'settings.playerScopeTitle' => 'Сериал немесе фильм бойынша',
 			'settings.exportDialogTitle' => 'Plezy параметрлерін экспорттау',
-			'themeEditor.builtIn' => 'Кірістірілген',
-			'themeEditor.presets' => 'Дайын тақырыптар',
-			'themeEditor.custom' => 'Жеке',
-			'themeEditor.customEmpty' => 'Әлі жасалмаған',
-			'themeEditor.editCustom' => 'Жеке тақырыпты өңдеу',
-			'themeEditor.editCustomDescription' => 'Әр түсті өзіңіз таңдаңыз',
-			'themeEditor.locked' => 'Supporter арқылы ашу',
-			'themeEditor.savedLocked' => 'Сақталды — Supporter арқылы ашылады',
-			'themeEditor.title' => 'Жеке тақырып',
-			'themeEditor.startFrom' => 'Негізге алу',
-			'themeEditor.startFromDescription' => 'Барлық түстерді басқа тақырыптан көшіру',
-			'themeEditor.colors' => 'Түстер',
-			'themeEditor.preview' => 'Алдын ала қарау',
-			'themeEditor.slots.bg' => 'Фон',
-			'themeEditor.slots.surface' => 'Беткі қабат',
-			'themeEditor.slots.outline' => 'Контур',
-			'themeEditor.slots.text' => 'Мәтін',
-			'themeEditor.slots.textMuted' => 'Қосалқы мәтін',
-			'themeEditor.slots.accent' => 'Акцент',
-			_ => null,
-		} ?? switch (path) {
-			'themeEditor.opacity' => 'Мөлдірлік',
-			'themeEditor.hexHint' => '#RRGGBB немесе #AARRGGBB',
-			'themeEditor.fromOtherThemes' => 'Басқа тақырыптардан',
-			'themeEditor.swatchLabel' => ({required Object theme, required Object color}) => '${theme}: ${color}',
-			'themeEditor.contrast.textOnBg' => 'Фондағы мәтін',
-			'themeEditor.contrast.textOnSurface' => 'Беткі қабаттағы мәтін',
-			'themeEditor.contrast.textMutedOnBg' => 'Фондағы қосалқы мәтін',
-			'themeEditor.contrast.textMutedOnSurface' => 'Беткі қабаттағы қосалқы мәтін',
-			'themeEditor.contrast.accentOnBg' => 'Фондағы акцент',
-			'themeEditor.contrast.accentOnSurface' => 'Беткі қабаттағы акцент',
-			'themeEditor.contrast.labelOnAccent' => 'Акценттегі түйме мәтіні',
-			'themeEditor.lowContrast' => ({required Object pair, required Object ratio, required Object minimum}) => '${pair}: ${ratio}:1, ұсынылған ${minimum}:1 мәнінен төмен',
-			'themeEditor.discardTitle' => 'Өзгерістер жойылсын ба?',
-			'themeEditor.discardMessage' => 'Сақталмаған түс өзгерістері жоғалады.',
-			'themeEditor.discard' => 'Жою',
-			'themeEditor.previewCardTitle' => ({required Object number}) => '${number}-бөлім',
-			'themeEditor.previewCardSubtitle' => ({required Object minutes}) => '${minutes} мин қалды',
-			'themeEditor.previewSwitch' => 'Автоойнату',
-			'themeEditor.previewMutedText' => 'Қосалқы мәтін осылай көрінеді',
 			'search.hint' => 'Фильмдер, сериалдар, музыка іздеу...',
 			'search.tryDifferentTerm' => 'Басқа іздеу сөзін байқап көріңіз',
 			'search.searchYourMedia' => 'Медиафайлдардан іздеу',
@@ -4008,6 +3564,8 @@ extension on TranslationsKk {
 			'fileInfo.chromaSubsampling' => 'Түстік субдискретизация',
 			'fileInfo.chromaLocation' => 'Chroma орналасуы',
 			'fileInfo.scanType' => 'Сканерлеу түрі',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.interlaced' => 'Жоларалық',
 			'fileInfo.anamorphic' => 'Анаморфты',
 			'fileInfo.referenceFrames' => 'Тірек кадрлар',
@@ -4421,8 +3979,6 @@ extension on TranslationsKk {
 			'profiles.tokenIdentityMismatch' => 'Plex профилінің токені күтілмеген серверді анықтады',
 			'connections.sectionTitle' => 'Қосылымдар',
 			'connections.addConnection' => 'Қосылым қосу',
-			_ => null,
-		} ?? switch (path) {
 			'connections.addConnectionSubtitleNoProfile' => 'Plex арқылы кіріңіз немесе Jellyfin не Emby серверіне қосылыңыз',
 			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => '${displayName} профиліне қосу: Plex, Jellyfin, Emby немесе басқа қосылым',
 			'connections.sessionExpiredOne' => ({required Object name}) => '${name} үшін сеанс мерзімі өтті',
@@ -4522,6 +4078,8 @@ extension on TranslationsKk {
 			'errors.searchFailed' => ({required Object error}) => 'Іздеу қатесі: ${error}',
 			'errors.searchUnavailable' => 'Іздеу ешбір медиа серверге қосыла алмады.',
 			'errors.connectionTimeout' => ({required Object context}) => '${context} жүктеу уақыты өтті',
+			_ => null,
+		} ?? switch (path) {
 			'errors.connectionFailed' => 'Медиа серверіне қосылу мүмкін емес',
 			'errors.unableToLoad' => ({required Object context}) => '${context} жүктеу мүмкін болмады.',
 			'errors.noClientAvailable' => 'Қолжетімді клиент жоқ',
@@ -4935,8 +4493,6 @@ extension on TranslationsKk {
 			'liveTv.recordSettings.keepUpToHint' => '0 барлық эпизодты сақтайды',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => '${minutes} мин кейін басталады',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day}, ${time}',
-			_ => null,
-		} ?? switch (path) {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product} жарамсыз тікелей TV ойнату деректерін қайтарды',
 			'liveTv.failedToStartChannel' => 'Тікелей эфир арнасын іске қосу мүмкін болмады',
 			'liveTv.failedToBuildStreamUrl' => 'Ағын URL-ін құру мүмкін болмады',
@@ -5019,151 +4575,25 @@ extension on TranslationsKk {
 			'music.discography.compilations' => 'Жинақтар',
 			'watchTogether.title' => 'Бірге көру',
 			'watchTogether.description' => 'Достарыңызбен және отбасыңызбен синхронды түрде бірге көріңіз',
-			'watchTogether.createRoom' => 'Бөлме құру',
-			'watchTogether.creatingRoom' => 'Бөлме құрылуда...',
-			'watchTogether.joinRoom' => 'Бөлмеге қосылу',
-			'watchTogether.joiningRoom' => 'Бөлмеге қосылуда...',
-			'watchTogether.connecting' => 'Қосылуда...',
-			'watchTogether.relayPublic' => 'Бөлмелер жалпыға ортақ Open Watch Party релелерін пайдаланады.',
-			'watchTogether.relayCustom' => ({required Object url}) => 'Бөлмелер ${url} мекенжайындағы релеңізді пайдаланады.',
 			'watchTogether.recentRooms' => 'Соңғы бөлмелер',
-			'watchTogether.roomActions' => 'Бөлме әрекеттері',
 			'watchTogether.renameRoom' => 'Бөлме атын өзгерткіңіз келе ме?',
 			'watchTogether.removeRoom' => 'Өшіру',
-			'watchTogether.enterRoomCode' => 'Ұйымдастырушыдан алған 6 таңбалы кодты енгізіңіз.',
-			'watchTogether.roomCode' => 'Бөлме коды',
-			'watchTogether.paste' => 'Қою',
-			'watchTogether.noCodeInClipboard' => 'Алмасу буферінде бөлме коды жоқ',
-			'watchTogether.copyCode' => 'Кодты көшіру',
-			'watchTogether.codeCopied' => 'Бөлме коды көшірілді',
-			'watchTogether.shareInvite' => 'Шақыру жіберу',
-			'watchTogether.inviteCopied' => 'Шақыру көшірілді. Оны хабарламаға қойыңыз.',
-			'watchTogether.inviteMessage' => ({required Object code}) => 'Plezy-дегі «Бірге көру» бөлмеме қосылыңыз: «Бірге көру» бөлімін ашып, «Бөлмеге қосылу» түймесін таңдаңыз да, ${code} кодын енгізіңіз.',
 			'watchTogether.openSessionControls' => 'Басқару элементтерін ашу',
-			'watchTogether.reconnecting' => 'Қайта қосылуда...',
-			'watchTogether.reconnectingDescription' => 'Байланыс үзілді. Бөлмеге автоматты түрде қайта қосыласыз.',
-			'watchTogether.connected' => 'Қосылды',
-			'watchTogether.disconnected' => 'Ажыратылды',
 			'watchTogether.youAreHost' => 'Сіз ұйымдастырушысыз',
-			'watchTogether.hostedBy' => ({required Object name}) => 'Ұйымдастырушы: ${name}',
 			'watchTogether.hostControlsPlayback' => 'Ойнатуды ұйымдастырушы басқарады',
 			'watchTogether.anyoneCanControl' => 'Ойнатуды кез келген адам басқара алады',
-			'watchTogether.roomLocked' => 'Бөлме бұғатталған',
-			'watchTogether.nowPlaying' => 'Қазір ойнатылуда',
-			'watchTogether.nothingPlaying' => 'Ештеңе ойнатылмай тұр',
-			'watchTogether.nothingPlayingHost' => 'Бөлмемен бөлісу үшін кез келген кітапханадан бірдеңе ойнатыңыз.',
-			'watchTogether.nothingPlayingGuest' => 'Ұйымдастырушы бірдеңе ойнатқанда, ол осы жерде ашылады.',
-			'watchTogether.notShareable' => 'Бұл видеоның каталогта сәйкестігі жоқ, сондықтан оны тек сол серверге қолжетімділігі бар адамдар ғана ойната алады.',
-			'watchTogether.searching' => 'Бұл видео кітапханаларыңыздан ізделуде...',
-			'watchTogether.yourCopy' => 'Сіздің көшірмеңіз',
-			'watchTogether.sharingYourCopy' => 'Сіз өз көшірмеңізбен бөлісудесіз',
-			'watchTogether.playingOtherLength' => ({required Object difference}) => 'Көшірмеңіз ойнатылуда, ${difference}',
-			'watchTogether.mismatchTitle' => 'Көшірмеңіздің ұзақтығы басқа',
-			'watchTogether.mismatchDescription' => ({required Object difference}) => 'Ең жақын көшірмеңіз бөлмедегі видеодан ${difference}. Бұл басқа монтаж немесе нұсқа болуы мүмкін.',
-			'watchTogether.playAnyway' => 'Сонда да ойнату',
-			'watchTogether.chooseAnotherCopy' => 'Басқа көшірмені таңдау',
-			'watchTogether.dontPlay' => 'Ойнатпау',
-			'watchTogether.unavailableTitle' => 'Сізде бұл видео жоқ',
-			'watchTogether.unavailableDescription' => 'Plezy оны кітапханаларыңыздан таба алмады. Көшірмені өзіңіз таңдаңыз немесе қайта іздеңіз.',
-			'watchTogether.chooseCopy' => 'Көшірмені таңдау',
-			'watchTogether.searchAgain' => 'Қайта іздеу',
-			'watchTogether.noCandidates' => 'Кітапханаларыңыздан көшірмелер табылмады.',
-			'watchTogether.choiceFailed' => 'Бұл көшірмені бөлме үшін ойнату мүмкін болмады',
-			'watchTogether.lengthLonger' => ({required Object duration}) => '${duration} ұзағырақ',
-			'watchTogether.lengthShorter' => ({required Object duration}) => '${duration} қысқарақ',
-			'watchTogether.lengthSame' => 'Ұзақтығы бірдей',
-			'watchTogether.lengthUnknown' => 'Ұзақтығы белгісіз',
 			'watchTogether.joinCurrentPlayback' => 'Ағымдағы ойнатуға қосылу',
 			'watchTogether.joinCurrentPlaybackDescription' => 'Ұйымдастырушы көріп жатқан жерге өту',
-			'watchTogether.stopMedia' => 'Видеоны барлығы үшін тоқтату',
-			'watchTogether.syncOffset' => 'Синхрондау ығысуы',
-			'watchTogether.syncOffsetDescription' => 'Видеоңыз бөлмеден озып немесе қалып бара жатса, оны жылжытыңыз.',
-			'watchTogether.offsetHint' => ({required Object difference}) => 'Көшірмеңіз бөлмедегі видеодан ${difference}.',
-			'watchTogether.applyDifference' => ({required Object offset}) => '${offset} қолдану',
-			'watchTogether.offsetMinusSecond' => '-1 сек',
-			'watchTogether.offsetMinusTenth' => '-100 мс',
-			'watchTogether.offsetPlusTenth' => '+100 мс',
-			'watchTogether.offsetPlusSecond' => '+1 сек',
 			'watchTogether.participants' => 'Қатысушылар',
-			'watchTogether.participantCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('kk'))(n, one: '${n} қатысушы', other: '${n} қатысушы', ), 
 			'watchTogether.hostBadge' => 'ҰЙЫМДАСТЫРУШЫ',
-			'watchTogether.nameYou' => ({required Object name}) => '${name} (Сіз)',
-			'watchTogether.playerIdle' => 'Әрекетсіз',
-			'watchTogether.playerLoading' => 'Жүктелуде',
-			'watchTogether.playerReady' => 'Дайын',
-			'watchTogether.playerBuffering' => 'Буферленуде',
-			'watchTogether.matchSearching' => 'Іздеуде',
-			'watchTogether.matchMatched' => 'Видеосы бар',
-			'watchTogether.matchMismatched' => 'Ұзақтығы басқа',
-			'watchTogether.matchUnavailable' => 'Видеосы жоқ',
-			'watchTogether.participantOffset' => ({required Object offset}) => 'Ығысу ${offset}',
 			'watchTogether.makeHost' => 'Ұйымдастырушы ету',
 			'watchTogether.makeHostQuestion' => 'Ұйымдастырушыны ауыстыру керек пе?',
 			'watchTogether.makeHostConfirm' => ({required Object name}) => '${name} ойнатуды басқарып, сеансты барлығы үшін жүргізеді.',
 			'watchTogether.transfer' => 'Ауыстыру',
-			'watchTogether.removeParticipant' => 'Бөлмеден шығару',
-			'watchTogether.removeParticipantQuestion' => ({required Object name}) => '${name} шығарылсын ба?',
-			'watchTogether.removeParticipantConfirm' => ({required Object name}) => '${name} бөлмеден шығады. Бөлмені бұғаттамасаңыз, ол кодпен қайта қосыла алады.',
-			'watchTogether.remove' => 'Шығару',
-			'watchTogether.roomSettings' => 'Бөлме баптаулары',
-			'watchTogether.letEveryoneControl' => 'Ойнатуды барлығына басқаруға рұқсат беру',
-			'watchTogether.lockRoom' => 'Бөлмені бұғаттау',
-			'watchTogether.lockRoomDescription' => 'Жаңа ешкім қосыла алмайды',
-			'watchTogether.leaveRoom' => 'Бөлмеден шығу',
-			'watchTogether.leaveRoomQuestion' => 'Бөлмеден шығасыз ба?',
-			'watchTogether.leaveRoomConfirm' => 'Бөлме коды арқылы қайта қосыла аласыз.',
 			'watchTogether.leave' => 'Шығу',
-			'watchTogether.endRoom' => 'Бөлмені жабу',
-			'watchTogether.endRoomQuestion' => 'Бөлме жабылсын ба?',
-			'watchTogether.endRoomConfirm' => 'Бұл бөлмені барлығы үшін жабады.',
 			'watchTogether.end' => 'Аяқтау',
-			'watchTogether.playBlockedTitle' => 'Ойнату басталмады',
-			'watchTogether.playBlockedDescription' => 'Бөлмемен бірге көруді бастау үшін ойнату түймесін басыңыз.',
-			'watchTogether.notices.pressedPlay' => ({required Object name}) => '${name} ойнату түймесін басты',
-			'watchTogether.notices.playbackStarted' => 'Ойнату басталды',
-			'watchTogether.notices.paused' => ({required Object name}) => '${name} кідіртті',
-			'watchTogether.notices.playbackPaused' => 'Ойнату кідіртілді',
-			'watchTogether.notices.jumpedTo' => ({required Object name, required Object position}) => '${name} ${position} сәтіне өтті',
-			'watchTogether.notices.roomJumpedTo' => ({required Object position}) => '${position} сәтіне өтілді',
-			'watchTogether.notices.changedSpeed' => ({required Object name, required Object speed}) => '${name} жылдамдықты ${speed} етіп орнатты',
-			'watchTogether.notices.speedChanged' => ({required Object speed}) => 'Жылдамдық ${speed} етіп орнатылды',
-			'watchTogether.notices.startedMedia' => ({required Object name, required Object title}) => '${name} ойнатуды бастады: ${title}',
-			'watchTogether.notices.mediaStarted' => ({required Object title}) => 'Қазір ойнатылуда: ${title}',
-			'watchTogether.notices.stoppedMedia' => ({required Object name}) => '${name} видеоны тоқтатты',
-			'watchTogether.notices.mediaStopped' => 'Видео тоқтатылды',
-			'watchTogether.notices.waitingFor' => ({required Object name}) => '${name} күтілуде...',
-			'watchTogether.notices.waitingForSomeone' => 'Біреудің қуып жетуі күтілуде...',
-			'watchTogether.notices.finished' => 'Аяқталды',
-			'watchTogether.notices.hostChangedTo' => ({required Object name}) => '${name} енді ұйымдастырушы',
-			'watchTogether.notices.youAreNowHost' => 'Енді ұйымдастырушы сізсіз',
-			'watchTogether.notices.joined' => ({required Object name}) => '${name} қосылды',
-			'watchTogether.notices.left' => ({required Object name}) => '${name} шықты',
-			'watchTogether.notices.controlRefused' => 'Ойнатуды тек ұйымдастырушы басқара алады',
-			'watchTogether.notices.searchFailed' => 'Кейбір серверлерден бөлме видеосын іздеу мүмкін болмады',
-			'watchTogether.notices.playBlocked' => 'Бастау үшін ойнату түймесін басыңыз',
-			'watchTogether.notices.shareFailed' => 'Бұл видеоны бөлмемен бөлісу мүмкін болмады',
-			'watchTogether.notices.downloadNotShared' => 'Жүктеулердің сервері офлайн болғанда, олар бөлмемен бөлісілмейді',
-			'watchTogether.notices.openFailed' => 'Бөлме видеосын ашу мүмкін болмады',
-			'watchTogether.ended.ended' => 'Ұйымдастырушы бөлмені жапты',
-			'watchTogether.ended.kicked' => 'Сіз бөлмеден шығарылдыңыз',
-			'watchTogether.ended.expired' => 'Бөлменің мерзімі аяқталды',
-			'watchTogether.ended.replaced' => 'Сіз бұл бөлмеге басқа құрылғыда қосылдыңыз',
-			'watchTogether.ended.lost' => 'Бөлмемен байланыс үзілді',
-			'watchTogether.errors.invalidCode' => 'Бұл бөлме коды емес. Кодтар 6 әріп пен цифрдан тұрады, оларда 0, 1, I, L немесе O болмайды.',
-			'watchTogether.errors.roomNotFound' => 'Бұл кодпен бөлме жоқ. Ол жабылған болуы мүмкін.',
-			'watchTogether.errors.roomFull' => 'Бұл бөлме толы.',
-			'watchTogether.errors.roomLocked' => 'Ұйымдастырушы бұл бөлмені бұғаттады.',
-			'watchTogether.errors.relayFull' => 'Бірге көру қызметі қазір шамадан тыс жүктелген. Кейінірек қайталап көріңіз.',
-			'watchTogether.errors.unreachable' => 'Бірге көру релесіне қосылу мүмкін болмады. Қосылымды тексеріңіз.',
-			'watchTogether.errors.rateLimited' => 'Әрекеттер тым көп. Біраз күтіп, қайтадан байқап көріңіз.',
-			'watchTogether.errors.clientBlocked' => 'Plezy-дің бұл нұсқасы релені пайдалана алмайды. Қолданбаны жаңартыңыз.',
-			'watchTogether.errors.forbidden' => 'Мұны тек ұйымдастырушы жасай алады.',
-			'watchTogether.errors.notInRoom' => 'Сіз бөлмеде емессіз.',
-			'watchTogether.errors.alreadyInRoom' => 'Сіз бұрыннан бөлмедесіз.',
-			'watchTogether.errors.resumeFailed' => 'Бөлмеге қайта қосылу мүмкін болмады.',
-			'watchTogether.errors.unsupported' => 'Реле бұған қолдау көрсетпейді.',
-			'watchTogether.errors.generic' => 'Қате орын алды. Қайтадан байқап көріңіз.',
-			'watchTogether.untitledEpisode' => ({required Object number}) => '${number}-бөлім',
+			_ => null,
+		} ?? switch (path) {
 			'downloads.title' => 'Жүктеулер',
 			'downloads.manage' => 'Басқару',
 			'downloads.tvShows' => 'TV Шоулар',
@@ -5449,8 +4879,6 @@ extension on TranslationsKk {
 			'performanceOverlay.decoderHardware' => 'Аппараттық',
 			'performanceOverlay.tunnelingActive' => 'Белсенді',
 			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (${failures} сәтсіз аяқталды)',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.title' => 'Сыртқы ойнатқыш',
 			'externalPlayer.useExternalPlayer' => 'Сыртқы ойнатқышты пайдалану',
 			'externalPlayer.useExternalPlayerDescription' => 'Видеоларды басқа қолданбада ашу',
@@ -5554,9 +4982,6 @@ extension on TranslationsKk {
 			'matchScreen.yearHint' => 'Жыл',
 			'matchScreen.search' => 'Іздеу',
 			'matchScreen.noMatchesFound' => 'Сәйкестіктер табылмады',
-			'serverTasks.title' => 'Сервер тапсырмалары',
-			'serverTasks.failedToLoad' => 'Тапсырмаларды жүктеу мүмкін болмады',
-			'serverTasks.noTasks' => 'Орындалып жатқан тапсырмалар жоқ',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => 'Қосылды',
 			'trakt.connectedAs' => ({required Object username}) => '@${username} ретінде қосылды',
@@ -5681,6 +5106,8 @@ extension on TranslationsKk {
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Plex тіркелгісін авторизациялаңыз. Home пайдаланушылары профильдерге айналады.',
 			'addServer.connectToMediaBrowserCard' => ({required Object product}) => '${product} қосылу',
 			'addServer.connectToMediaBrowserCardSubtitle' => 'Сервер URL мекенжайын, пайдаланушы атын және құпия сөзді енгізіңіз.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.connectToMediaBrowserCardSubtitleScoped' => ({required Object product, required Object name}) => '${product} серверіне кіріңіз. ${name} тіркелгісіне байланыстырылады.',
 			'addServer.borrowFromAnotherProfile' => 'Басқа профильден алу',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Басқа профильдің қосылымын қайта пайдалану. PIN кодпен қорғалған профильдер PIN кодты талап етеді.',

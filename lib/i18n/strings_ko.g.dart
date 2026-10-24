@@ -40,14 +40,11 @@ class TranslationsKo extends Translations with BaseTranslations<AppLocale, Trans
 
 	// Translations
 	@override late final _Translations$app$ko app = _Translations$app$ko._(_root);
-	@override late final _Translations$appIcon$ko appIcon = _Translations$appIcon$ko._(_root);
 	@override late final _Translations$auth$ko auth = _Translations$auth$ko._(_root);
 	@override late final _Translations$common$ko common = _Translations$common$ko._(_root);
 	@override late final _Translations$screens$ko screens = _Translations$screens$ko._(_root);
 	@override late final _Translations$update$ko update = _Translations$update$ko._(_root);
-	@override late final _Translations$supporter$ko supporter = _Translations$supporter$ko._(_root);
 	@override late final _Translations$settings$ko settings = _Translations$settings$ko._(_root);
-	@override late final _Translations$themeEditor$ko themeEditor = _Translations$themeEditor$ko._(_root);
 	@override late final _Translations$search$ko search = _Translations$search$ko._(_root);
 	@override late final _Translations$hotkeys$ko hotkeys = _Translations$hotkeys$ko._(_root);
 	@override late final _Translations$fileInfo$ko fileInfo = _Translations$fileInfo$ko._(_root);
@@ -88,7 +85,6 @@ class TranslationsKo extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$externalPlayer$ko externalPlayer = _Translations$externalPlayer$ko._(_root);
 	@override late final _Translations$metadataEdit$ko metadataEdit = _Translations$metadataEdit$ko._(_root);
 	@override late final _Translations$matchScreen$ko matchScreen = _Translations$matchScreen$ko._(_root);
-	@override late final _Translations$serverTasks$ko serverTasks = _Translations$serverTasks$ko._(_root);
 	@override late final _Translations$trakt$ko trakt = _Translations$trakt$ko._(_root);
 	@override late final _Translations$seerr$ko seerr = _Translations$seerr$ko._(_root);
 	@override late final _Translations$services$ko services = _Translations$services$ko._(_root);
@@ -103,24 +99,6 @@ class _Translations$app$ko extends Translations$app$en {
 
 	// Translations
 	@override String get title => 'Plezy';
-}
-
-// Path: appIcon
-class _Translations$appIcon$ko extends Translations$appIcon$en {
-	_Translations$appIcon$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => '앱 아이콘';
-	@override String get defaultIcon => '기본';
-	@override String get current => '현재 아이콘';
-	@override String get locked => 'Supporter 혜택';
-	@override String get lockedHint => '대체 아이콘은 Supporter 혜택입니다.';
-	@override String get changeFailed => '앱 아이콘을 변경하지 못했습니다';
-	@override String get launcherHint => 'Plezy를 나가면 홈 화면에 새 아이콘이 표시됩니다.';
-	@override String get tvLauncherHint => 'Plezy를 나가면 새 배너가 표시됩니다. Android TV에서는 TV를 다시 시작할 때까지 이전 배너가 계속 표시될 수 있습니다.';
-	@override late final _Translations$appIcon$names$ko names = _Translations$appIcon$names$ko._(_root);
 }
 
 // Path: auth
@@ -239,33 +217,6 @@ class _Translations$update$ko extends Translations$update$en {
 	@override String get checkFailed => '업데이트 확인 실패';
 }
 
-// Path: supporter
-class _Translations$supporter$ko extends Translations$supporter$en {
-	_Translations$supporter$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => 'Plezy Supporter';
-	@override String get intro => 'Plezy 개발을 후원하고 외형 꾸미기 기능을 잠금 해제하는 1회성 구매입니다:';
-	@override String get presetThemes => '프리셋 테마';
-	@override String get presetThemesDescription => '불씨, 빙하, 숲, 자두, 종이';
-	@override String get customTheme => '사용자 지정 테마';
-	@override String get customThemeDescription => '모든 색상을 직접 선택';
-	@override String get appIcons => '앱 아이콘';
-	@override String get appIconsDescription => '대체 Plezy 아이콘 선택';
-	@override String buy({required Object price}) => '${price}에 구매';
-	@override String get loadingPrice => '가격 불러오는 중...';
-	@override String get restore => '구매 복원';
-	@override String get pending => '구매가 결제 또는 승인 대기 중입니다. 스토어에서 처리가 완료되는 즉시 추가 기능이 잠금 해제됩니다.';
-	@override String get thankYouTitle => 'Plezy를 후원해 주셔서 감사합니다';
-	@override String get thankYouBody => 'Supporter 추가 기능이 잠금 해제되었습니다.';
-	@override String get tileSubtitle => '1회성 구매로 테마와 앱 아이콘 잠금 해제';
-	@override String get tileSubtitleThemesOnly => '1회성 구매로 테마 잠금 해제';
-	@override String get tileUnlocked => '후원해 주셔서 감사합니다';
-	@override late final _Translations$supporter$errors$ko errors = _Translations$supporter$errors$ko._(_root);
-}
-
 // Path: settings
 class _Translations$settings$ko extends Translations$settings$en {
 	_Translations$settings$ko._(TranslationsKo root) : this._root = root, super.internal(root);
@@ -296,11 +247,6 @@ class _Translations$settings$ko extends Translations$settings$en {
 	@override String get lightTheme => '라이트';
 	@override String get darkTheme => '다크';
 	@override String get oledTheme => 'OLED';
-	@override String get emberTheme => '불씨';
-	@override String get glacierTheme => '빙하';
-	@override String get forestTheme => '숲';
-	@override String get plumTheme => '자두';
-	@override String get paperTheme => '종이';
 	@override String get libraryDensity => '라이브러리 표시 밀도';
 	@override String get displayScale => '표시 배율';
 	@override String get compact => '조밀하게';
@@ -508,8 +454,6 @@ class _Translations$settings$ko extends Translations$settings$en {
 	@override String get tunneledPlaybackDescription => '비디오 터널링을 사용합니다. HDR 재생 시 검은 화면이 보이거나 움직임이 끊기면 비활성화하세요.';
 	@override String get audioPassthrough => '오디오 패스스루';
 	@override String get audioPassthroughDescription => 'Dolby/DTS 오디오를 재인코딩 없이 리시버나 TV로 전송하여 서라운드 사운드를 유지합니다. 소리가 나지 않으면 비활성화하세요.';
-	@override String get audioPassthroughDescriptionApple => 'Dolby Digital Plus(Atmos 포함)에 Apple의 기본 Dolby 디코더를 사용합니다. DTS와 TrueHD는 계속 멀티채널 PCM으로 재생됩니다. 소리가 나지 않으면 비활성화하세요.';
-	@override String get audioPassthroughDescriptionAppleSpatial => 'Dolby Digital Plus(Atmos 포함)에 Apple의 기본 Dolby 디코더를 사용합니다. iOS, iPadOS, tvOS 26 이상에서는 TrueHD Atmos와 DTS:X가 공간 오디오로 재생됩니다. 그 밖의 DTS 및 TrueHD 트랙은 멀티채널 PCM으로 재생됩니다. 소리가 나지 않으면 비활성화하세요.';
 	@override String get audioPassthroughOverriddenByNormalization => '음량 정규화가 켜져 있는 동안 꺼짐';
 	@override String get audioChannelLimit => '오디오 채널';
 	@override String get audioChannelLimitDescription => '모든 채널을 재생할 수 없는 스피커, 헤드폰 또는 HDMI 환경에 맞게 디코딩된 오디오를 다운믹스합니다';
@@ -608,42 +552,6 @@ class _Translations$settings$ko extends Translations$settings$en {
 	@override String get playerScopeLibrary => '라이브러리별';
 	@override String get playerScopeTitle => '시리즈 또는 영화별';
 	@override String get exportDialogTitle => 'Plezy 설정 내보내기';
-}
-
-// Path: themeEditor
-class _Translations$themeEditor$ko extends Translations$themeEditor$en {
-	_Translations$themeEditor$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get builtIn => '기본 제공';
-	@override String get presets => '프리셋';
-	@override String get custom => '사용자 지정';
-	@override String get customEmpty => '아직 만들지 않음';
-	@override String get editCustom => '사용자 지정 테마 편집';
-	@override String get editCustomDescription => '모든 색상을 직접 선택';
-	@override String get locked => 'Supporter로 잠금 해제';
-	@override String get savedLocked => '저장됨 — Supporter로 잠금 해제';
-	@override String get title => '사용자 지정 테마';
-	@override String get startFrom => '기반 테마';
-	@override String get startFromDescription => '다른 테마의 모든 색상을 복사합니다';
-	@override String get colors => '색상';
-	@override String get preview => '미리보기';
-	@override late final _Translations$themeEditor$slots$ko slots = _Translations$themeEditor$slots$ko._(_root);
-	@override String get opacity => '불투명도';
-	@override String get hexHint => '#RRGGBB 또는 #AARRGGBB';
-	@override String get fromOtherThemes => '다른 테마에서';
-	@override String swatchLabel({required Object theme, required Object color}) => '${theme} ${color}';
-	@override late final _Translations$themeEditor$contrast$ko contrast = _Translations$themeEditor$contrast$ko._(_root);
-	@override String lowContrast({required Object pair, required Object ratio, required Object minimum}) => '${pair}: ${ratio}:1, 권장 기준 ${minimum}:1 미만';
-	@override String get discardTitle => '변경 사항을 버리시겠습니까?';
-	@override String get discardMessage => '저장하지 않은 색상 변경 사항이 사라집니다.';
-	@override String get discard => '버리기';
-	@override String previewCardTitle({required Object number}) => '${number}화';
-	@override String previewCardSubtitle({required Object minutes}) => '${minutes}분 남음';
-	@override String get previewSwitch => '자동 재생';
-	@override String get previewMutedText => '보조 텍스트는 이렇게 표시됩니다';
 }
 
 // Path: search
@@ -1794,112 +1702,23 @@ class _Translations$watchTogether$ko extends Translations$watchTogether$en {
 	// Translations
 	@override String get title => '함께 보기';
 	@override String get description => '친구 및 가족과 콘텐츠를 동시에 시청하세요';
-	@override String get createRoom => '방 만들기';
-	@override String get creatingRoom => '방 만드는 중...';
-	@override String get joinRoom => '방 참여';
-	@override String get joiningRoom => '방에 참여하는 중...';
-	@override String get connecting => '연결 중...';
-	@override String get relayPublic => '방은 공개 Open Watch Party 릴레이를 사용합니다.';
-	@override String relayCustom({required Object url}) => '방은 ${url}에 있는 내 릴레이를 사용합니다.';
 	@override String get recentRooms => '최근 참여한 방';
-	@override String get roomActions => '방 작업';
 	@override String get renameRoom => '방 이름 변경';
 	@override String get removeRoom => '제거';
-	@override String get enterRoomCode => '호스트에게 받은 6자리 코드를 입력하세요.';
-	@override String get roomCode => '방 코드';
-	@override String get paste => '붙여넣기';
-	@override String get noCodeInClipboard => '클립보드에 방 코드가 없습니다';
-	@override String get copyCode => '코드 복사';
-	@override String get codeCopied => '방 코드가 복사되었습니다';
-	@override String get shareInvite => '초대 공유';
-	@override String get inviteCopied => '초대 메시지가 복사되었습니다. 메시지에 붙여넣으세요.';
-	@override String inviteMessage({required Object code}) => 'Plezy 함께 보기 방에 초대합니다. \'함께 보기\'를 열고 \'방 참여\'를 선택한 다음 ${code} 코드를 입력하세요.';
 	@override String get openSessionControls => '함께 보기 세션 제어 열기';
-	@override String get reconnecting => '재연결 중...';
-	@override String get reconnectingDescription => '연결이 끊어졌습니다. 자동으로 방에 다시 참여합니다.';
-	@override String get connected => '연결됨';
-	@override String get disconnected => '연결 끊김';
 	@override String get youAreHost => '호스트입니다';
-	@override String hostedBy({required Object name}) => '호스트: ${name}';
 	@override String get hostControlsPlayback => '호스트 재생 제어';
 	@override String get anyoneCanControl => '누구나 재생 제어 가능';
-	@override String get roomLocked => '방 잠김';
-	@override String get nowPlaying => '지금 재생 중';
-	@override String get nothingPlaying => '재생 중인 항목 없음';
-	@override String get nothingPlayingHost => '라이브러리에서 아무 콘텐츠나 재생하면 방에 공유됩니다.';
-	@override String get nothingPlayingGuest => '호스트가 콘텐츠를 재생하면 여기에서 열립니다.';
-	@override String get notShareable => '이 비디오는 카탈로그와 일치하는 항목이 없어 같은 서버에 접근할 수 있는 사람만 재생할 수 있습니다.';
-	@override String get searching => '라이브러리에서 이 비디오를 찾는 중...';
-	@override String get yourCopy => '내 사본';
-	@override String get sharingYourCopy => '내 사본을 공유하는 중';
-	@override String playingOtherLength({required Object difference}) => '내 사본 재생 중(${difference})';
-	@override String get mismatchTitle => '내 사본의 길이가 다릅니다';
-	@override String mismatchDescription({required Object difference}) => '가장 근접한 내 사본이 방의 비디오와 길이가 다릅니다(${difference}). 다른 편집본이나 버전일 수 있습니다.';
-	@override String get playAnyway => '그래도 재생';
-	@override String get chooseAnotherCopy => '다른 사본 선택';
-	@override String get dontPlay => '재생 안 함';
-	@override String get unavailableTitle => '이 비디오가 없습니다';
-	@override String get unavailableDescription => 'Plezy가 라이브러리에서 이 비디오를 찾지 못했습니다. 직접 사본을 선택하거나 다시 검색하세요.';
-	@override String get chooseCopy => '사본 선택';
-	@override String get searchAgain => '다시 검색';
-	@override String get noCandidates => '라이브러리에서 사본을 찾을 수 없습니다.';
-	@override String get choiceFailed => '방에서 이 사본을 재생할 수 없습니다';
-	@override String lengthLonger({required Object duration}) => '${duration} 더 김';
-	@override String lengthShorter({required Object duration}) => '${duration} 더 짧음';
-	@override String get lengthSame => '길이 같음';
-	@override String get lengthUnknown => '길이 알 수 없음';
 	@override String get joinCurrentPlayback => '현재 재생 참여';
 	@override String get joinCurrentPlaybackDescription => '호스트가 현재 시청 중인 콘텐츠로 이동합니다';
-	@override String get stopMedia => '모든 참가자의 비디오 중지';
-	@override String get syncOffset => '동기화 오프셋';
-	@override String get syncOffsetDescription => '비디오가 방보다 앞서거나 뒤처지면 시간을 조정하세요.';
-	@override String offsetHint({required Object difference}) => '내 사본이 방의 비디오와 길이가 다릅니다(${difference}).';
-	@override String applyDifference({required Object offset}) => '${offset} 적용';
-	@override String get offsetMinusSecond => '-1초';
-	@override String get offsetMinusTenth => '-100ms';
-	@override String get offsetPlusTenth => '+100ms';
-	@override String get offsetPlusSecond => '+1초';
 	@override String get participants => '참가자';
-	@override String participantCount({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ko'))(n,
-		other: '참가자 ${n}명',
-	);
 	@override String get hostBadge => '호스트';
-	@override String nameYou({required Object name}) => '${name}(나)';
-	@override String get playerIdle => '대기 중';
-	@override String get playerLoading => '로딩 중';
-	@override String get playerReady => '준비됨';
-	@override String get playerBuffering => '버퍼링 중';
-	@override String get matchSearching => '찾는 중';
-	@override String get matchMatched => '비디오 있음';
-	@override String get matchMismatched => '길이 다름';
-	@override String get matchUnavailable => '비디오 없음';
-	@override String participantOffset({required Object offset}) => '오프셋 ${offset}';
 	@override String get makeHost => '호스트로 지정';
 	@override String get makeHostQuestion => '호스트를 이전하시겠습니까?';
 	@override String makeHostConfirm({required Object name}) => '${name}님이 재생을 제어하고 모든 참가자의 세션을 이끕니다.';
 	@override String get transfer => '이전';
-	@override String get removeParticipant => '방에서 내보내기';
-	@override String removeParticipantQuestion({required Object name}) => '${name}님을 내보내시겠습니까?';
-	@override String removeParticipantConfirm({required Object name}) => '${name}님이 방에서 나가게 됩니다. 방을 잠그지 않으면 코드로 다시 참여할 수 있습니다.';
-	@override String get remove => '내보내기';
-	@override String get roomSettings => '방 설정';
-	@override String get letEveryoneControl => '모든 참가자에게 재생 제어 허용';
-	@override String get lockRoom => '방 잠그기';
-	@override String get lockRoomDescription => '새 참가자가 참여할 수 없습니다';
-	@override String get leaveRoom => '방 나가기';
-	@override String get leaveRoomQuestion => '방에서 나가시겠습니까?';
-	@override String get leaveRoomConfirm => '방 코드로 다시 참여할 수 있습니다.';
 	@override String get leave => '나가기';
-	@override String get endRoom => '방 종료';
-	@override String get endRoomQuestion => '방을 종료하시겠습니까?';
-	@override String get endRoomConfirm => '모든 참가자에게 방이 종료됩니다.';
 	@override String get end => '종료';
-	@override String get playBlockedTitle => '재생이 시작되지 않았습니다';
-	@override String get playBlockedDescription => '재생을 눌러 방 참가자들과 함께 시청을 시작하세요.';
-	@override late final _Translations$watchTogether$notices$ko notices = _Translations$watchTogether$notices$ko._(_root);
-	@override late final _Translations$watchTogether$ended$ko ended = _Translations$watchTogether$ended$ko._(_root);
-	@override late final _Translations$watchTogether$errors$ko errors = _Translations$watchTogether$errors$ko._(_root);
-	@override String untitledEpisode({required Object number}) => '${number}화';
 }
 
 // Path: downloads
@@ -2278,18 +2097,6 @@ class _Translations$matchScreen$ko extends Translations$matchScreen$en {
 	@override String get noMatchesFound => '일치하는 항목이 없습니다';
 }
 
-// Path: serverTasks
-class _Translations$serverTasks$ko extends Translations$serverTasks$en {
-	_Translations$serverTasks$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get title => '서버 작업';
-	@override String get failedToLoad => '작업을 불러올 수 없습니다';
-	@override String get noTasks => '실행 중인 작업 없음';
-}
-
 // Path: trakt
 class _Translations$trakt$ko extends Translations$trakt$en {
 	_Translations$trakt$ko._(TranslationsKo root) : this._root = root, super.internal(root);
@@ -2448,38 +2255,6 @@ class _Translations$addServer$ko extends Translations$addServer$en {
 	@override String redirectUnsupportedEnterFinal({required Object product}) => '서버가 지원되지 않는 URL로 리디렉션했습니다. 최종 ${product} URL을 직접 입력하세요.';
 }
 
-// Path: appIcon.names
-class _Translations$appIcon$names$ko extends Translations$appIcon$names$en {
-	_Translations$appIcon$names$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get midnight => '한밤';
-	@override String get ember => '불씨';
-	@override String get paper => '종이';
-	@override String get oled => 'OLED';
-	@override String get line => '라인';
-	@override String get ocean => '바다';
-	@override String get ultraviolet => '자외선';
-	@override String get matcha => '말차';
-	@override String get sunset => '노을';
-	@override String get gold => '골드';
-	@override String get titanium => '티타늄';
-	@override String get glass => '유리';
-	@override String get crt => 'CRT';
-	@override String get vhs => 'VHS';
-	@override String get synthwave => '신스웨이브';
-	@override String get pixel => '픽셀';
-	@override String get neon => '네온';
-	@override String get sticker => '스티커';
-	@override String get ticket => '티켓';
-	@override String get pop => '팝';
-	@override String get strata => '지층';
-	@override String get facet => '패싯';
-	@override String get tilde => '물결';
-}
-
 // Path: common.ratingSource
 class _Translations$common$ratingSource$ko extends Translations$common$ratingSource$en {
 	_Translations$common$ratingSource$ko._(TranslationsKo root) : this._root = root, super.internal(root);
@@ -2521,52 +2296,6 @@ class _Translations$common$mediaKind$ko extends Translations$common$mediaKind$en
 	@override String get clip => '클립';
 	@override String get photo => '사진';
 	@override String get folder => '폴더';
-}
-
-// Path: supporter.errors
-class _Translations$supporter$errors$ko extends Translations$supporter$errors$en {
-	_Translations$supporter$errors$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get storeUnavailable => '구매를 이용할 수 없습니다. 스토어에 로그인되어 있고 이 기기에서 구매가 허용되어 있는지 확인하세요.';
-	@override String get productNotFound => '현재 스토어에서 Supporter를 구매할 수 없습니다.';
-	@override String get productQueryFailed => '가격을 불러오지 못했습니다. 연결을 확인하고 다시 시도하세요.';
-	@override String get purchaseFailed => '구매가 완료되지 않았습니다. 다시 시도하세요.';
-	@override String get restoreFailed => '구매를 복원하기 위해 스토어에 연결하지 못했습니다. 다시 시도하세요.';
-	@override String get nothingToRestore => '이 스토어 계정에서 Supporter 구매 내역을 찾을 수 없습니다.';
-}
-
-// Path: themeEditor.slots
-class _Translations$themeEditor$slots$ko extends Translations$themeEditor$slots$en {
-	_Translations$themeEditor$slots$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get bg => '배경';
-	@override String get surface => '표면';
-	@override String get outline => '윤곽선';
-	@override String get text => '텍스트';
-	@override String get textMuted => '보조 텍스트';
-	@override String get accent => '강조색';
-}
-
-// Path: themeEditor.contrast
-class _Translations$themeEditor$contrast$ko extends Translations$themeEditor$contrast$en {
-	_Translations$themeEditor$contrast$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get textOnBg => '배경 위 텍스트';
-	@override String get textOnSurface => '표면 위 텍스트';
-	@override String get textMutedOnBg => '배경 위 보조 텍스트';
-	@override String get textMutedOnSurface => '표면 위 보조 텍스트';
-	@override String get accentOnBg => '배경 위 강조색';
-	@override String get accentOnSurface => '표면 위 강조색';
-	@override String get labelOnAccent => '강조색 위 버튼 라벨';
 }
 
 // Path: hotkeys.actions
@@ -3076,77 +2805,6 @@ class _Translations$music$discography$ko extends Translations$music$discography$
 	@override String get compilations => '컴필레이션';
 }
 
-// Path: watchTogether.notices
-class _Translations$watchTogether$notices$ko extends Translations$watchTogether$notices$en {
-	_Translations$watchTogether$notices$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String pressedPlay({required Object name}) => '${name}님이 재생을 눌렀습니다';
-	@override String get playbackStarted => '재생이 시작되었습니다';
-	@override String paused({required Object name}) => '${name}님이 일시정지했습니다';
-	@override String get playbackPaused => '재생이 일시정지되었습니다';
-	@override String jumpedTo({required Object name, required Object position}) => '${name}님이 ${position}(으)로 이동했습니다';
-	@override String roomJumpedTo({required Object position}) => '${position}(으)로 이동했습니다';
-	@override String changedSpeed({required Object name, required Object speed}) => '${name}님이 속도를 ${speed}(으)로 설정했습니다';
-	@override String speedChanged({required Object speed}) => '속도가 ${speed}(으)로 설정되었습니다';
-	@override String startedMedia({required Object name, required Object title}) => '${name}님이 ${title} 재생을 시작했습니다';
-	@override String mediaStarted({required Object title}) => '지금 재생 중: ${title}';
-	@override String stoppedMedia({required Object name}) => '${name}님이 비디오를 중지했습니다';
-	@override String get mediaStopped => '비디오가 중지되었습니다';
-	@override String waitingFor({required Object name}) => '${name}님을 기다리는 중...';
-	@override String get waitingForSomeone => '다른 참가자를 기다리는 중...';
-	@override String get finished => '재생 완료';
-	@override String hostChangedTo({required Object name}) => '${name}님이 호스트가 되었습니다';
-	@override String get youAreNowHost => '이제 호스트입니다';
-	@override String joined({required Object name}) => '${name}님이 참여했습니다';
-	@override String left({required Object name}) => '${name}님이 나갔습니다';
-	@override String get controlRefused => '호스트만 재생을 제어할 수 있습니다';
-	@override String get searchFailed => '일부 서버에서 방의 비디오를 검색하지 못했습니다';
-	@override String get playBlocked => '재생을 눌러 시작하세요';
-	@override String get shareFailed => '이 비디오를 방에 공유하지 못했습니다';
-	@override String get downloadNotShared => '서버가 오프라인인 동안에는 다운로드한 항목이 방에 공유되지 않습니다';
-	@override String get openFailed => '방의 비디오를 열지 못했습니다';
-}
-
-// Path: watchTogether.ended
-class _Translations$watchTogether$ended$ko extends Translations$watchTogether$ended$en {
-	_Translations$watchTogether$ended$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get ended => '호스트가 방을 종료했습니다';
-	@override String get kicked => '방에서 내보내졌습니다';
-	@override String get expired => '방이 만료되었습니다';
-	@override String get replaced => '다른 기기에서 이 방에 참여했습니다';
-	@override String get lost => '방과의 연결이 끊어졌습니다';
-}
-
-// Path: watchTogether.errors
-class _Translations$watchTogether$errors$ko extends Translations$watchTogether$errors$en {
-	_Translations$watchTogether$errors$ko._(TranslationsKo root) : this._root = root, super.internal(root);
-
-	final TranslationsKo _root; // ignore: unused_field
-
-	// Translations
-	@override String get invalidCode => '방 코드가 아닙니다. 코드는 0, 1, I, L 또는 O를 제외한 영문자와 숫자 6자리입니다.';
-	@override String get roomNotFound => '해당 코드의 방이 없습니다. 종료되었을 수 있습니다.';
-	@override String get roomFull => '방이 가득 찼습니다.';
-	@override String get roomLocked => '호스트가 방을 잠갔습니다.';
-	@override String get relayFull => '지금은 함께 보기 이용자가 많습니다. 나중에 다시 시도하세요.';
-	@override String get unreachable => '함께 보기 릴레이에 연결할 수 없습니다. 연결을 확인하세요.';
-	@override String get rateLimited => '시도 횟수가 너무 많습니다. 잠시 후 다시 시도하세요.';
-	@override String get clientBlocked => '이 버전의 Plezy는 릴레이를 사용할 수 없습니다. 앱을 업데이트하세요.';
-	@override String get forbidden => '호스트만 이 작업을 할 수 있습니다.';
-	@override String get notInRoom => '방에 참여하고 있지 않습니다.';
-	@override String get alreadyInRoom => '이미 방에 참여하고 있습니다.';
-	@override String get resumeFailed => '방에 다시 참여하지 못했습니다.';
-	@override String get unsupported => '릴레이에서 지원하지 않는 기능입니다.';
-	@override String get generic => '문제가 발생했습니다. 다시 시도하세요.';
-}
-
 // Path: downloads.backgroundWarning
 class _Translations$downloads$backgroundWarning$ko extends Translations$downloads$backgroundWarning$en {
 	_Translations$downloads$backgroundWarning$ko._(TranslationsKo root) : this._root = root, super.internal(root);
@@ -3384,37 +3042,6 @@ extension on TranslationsKo {
 	dynamic _flatMapFunction(String path) {
 		return switch (path) {
 			'app.title' => 'Plezy',
-			'appIcon.title' => '앱 아이콘',
-			'appIcon.defaultIcon' => '기본',
-			'appIcon.current' => '현재 아이콘',
-			'appIcon.locked' => 'Supporter 혜택',
-			'appIcon.lockedHint' => '대체 아이콘은 Supporter 혜택입니다.',
-			'appIcon.changeFailed' => '앱 아이콘을 변경하지 못했습니다',
-			'appIcon.launcherHint' => 'Plezy를 나가면 홈 화면에 새 아이콘이 표시됩니다.',
-			'appIcon.tvLauncherHint' => 'Plezy를 나가면 새 배너가 표시됩니다. Android TV에서는 TV를 다시 시작할 때까지 이전 배너가 계속 표시될 수 있습니다.',
-			'appIcon.names.midnight' => '한밤',
-			'appIcon.names.ember' => '불씨',
-			'appIcon.names.paper' => '종이',
-			'appIcon.names.oled' => 'OLED',
-			'appIcon.names.line' => '라인',
-			'appIcon.names.ocean' => '바다',
-			'appIcon.names.ultraviolet' => '자외선',
-			'appIcon.names.matcha' => '말차',
-			'appIcon.names.sunset' => '노을',
-			'appIcon.names.gold' => '골드',
-			'appIcon.names.titanium' => '티타늄',
-			'appIcon.names.glass' => '유리',
-			'appIcon.names.crt' => 'CRT',
-			'appIcon.names.vhs' => 'VHS',
-			'appIcon.names.synthwave' => '신스웨이브',
-			'appIcon.names.pixel' => '픽셀',
-			'appIcon.names.neon' => '네온',
-			'appIcon.names.sticker' => '스티커',
-			'appIcon.names.ticket' => '티켓',
-			'appIcon.names.pop' => '팝',
-			'appIcon.names.strata' => '지층',
-			'appIcon.names.facet' => '패싯',
-			'appIcon.names.tilde' => '물결',
 			'auth.signInWithPlex' => 'Plex 계정으로 로그인',
 			'auth.showQRCode' => 'QR 코드 표시',
 			'auth.authenticate' => '인증',
@@ -3518,29 +3145,6 @@ extension on TranslationsKo {
 			'update.viewRelease' => '릴리스 정보 보기',
 			'update.latestVersion' => '최신 버전을 사용 중입니다',
 			'update.checkFailed' => '업데이트 확인 실패',
-			'supporter.title' => 'Plezy Supporter',
-			'supporter.intro' => 'Plezy 개발을 후원하고 외형 꾸미기 기능을 잠금 해제하는 1회성 구매입니다:',
-			'supporter.presetThemes' => '프리셋 테마',
-			'supporter.presetThemesDescription' => '불씨, 빙하, 숲, 자두, 종이',
-			'supporter.customTheme' => '사용자 지정 테마',
-			'supporter.customThemeDescription' => '모든 색상을 직접 선택',
-			'supporter.appIcons' => '앱 아이콘',
-			'supporter.appIconsDescription' => '대체 Plezy 아이콘 선택',
-			'supporter.buy' => ({required Object price}) => '${price}에 구매',
-			'supporter.loadingPrice' => '가격 불러오는 중...',
-			'supporter.restore' => '구매 복원',
-			'supporter.pending' => '구매가 결제 또는 승인 대기 중입니다. 스토어에서 처리가 완료되는 즉시 추가 기능이 잠금 해제됩니다.',
-			'supporter.thankYouTitle' => 'Plezy를 후원해 주셔서 감사합니다',
-			'supporter.thankYouBody' => 'Supporter 추가 기능이 잠금 해제되었습니다.',
-			'supporter.tileSubtitle' => '1회성 구매로 테마와 앱 아이콘 잠금 해제',
-			'supporter.tileSubtitleThemesOnly' => '1회성 구매로 테마 잠금 해제',
-			'supporter.tileUnlocked' => '후원해 주셔서 감사합니다',
-			'supporter.errors.storeUnavailable' => '구매를 이용할 수 없습니다. 스토어에 로그인되어 있고 이 기기에서 구매가 허용되어 있는지 확인하세요.',
-			'supporter.errors.productNotFound' => '현재 스토어에서 Supporter를 구매할 수 없습니다.',
-			'supporter.errors.productQueryFailed' => '가격을 불러오지 못했습니다. 연결을 확인하고 다시 시도하세요.',
-			'supporter.errors.purchaseFailed' => '구매가 완료되지 않았습니다. 다시 시도하세요.',
-			'supporter.errors.restoreFailed' => '구매를 복원하기 위해 스토어에 연결하지 못했습니다. 다시 시도하세요.',
-			'supporter.errors.nothingToRestore' => '이 스토어 계정에서 Supporter 구매 내역을 찾을 수 없습니다.',
 			'settings.title' => '설정',
 			'settings.supportDeveloper' => 'Plezy 후원하기',
 			'settings.supportDeveloperDescription' => 'Liberapay로 후원하여 개발 지원',
@@ -3564,11 +3168,6 @@ extension on TranslationsKo {
 			'settings.lightTheme' => '라이트',
 			'settings.darkTheme' => '다크',
 			'settings.oledTheme' => 'OLED',
-			'settings.emberTheme' => '불씨',
-			'settings.glacierTheme' => '빙하',
-			'settings.forestTheme' => '숲',
-			'settings.plumTheme' => '자두',
-			'settings.paperTheme' => '종이',
 			'settings.libraryDensity' => '라이브러리 표시 밀도',
 			'settings.displayScale' => '표시 배율',
 			'settings.compact' => '조밀하게',
@@ -3776,8 +3375,6 @@ extension on TranslationsKo {
 			'settings.tunneledPlaybackDescription' => '비디오 터널링을 사용합니다. HDR 재생 시 검은 화면이 보이거나 움직임이 끊기면 비활성화하세요.',
 			'settings.audioPassthrough' => '오디오 패스스루',
 			'settings.audioPassthroughDescription' => 'Dolby/DTS 오디오를 재인코딩 없이 리시버나 TV로 전송하여 서라운드 사운드를 유지합니다. 소리가 나지 않으면 비활성화하세요.',
-			'settings.audioPassthroughDescriptionApple' => 'Dolby Digital Plus(Atmos 포함)에 Apple의 기본 Dolby 디코더를 사용합니다. DTS와 TrueHD는 계속 멀티채널 PCM으로 재생됩니다. 소리가 나지 않으면 비활성화하세요.',
-			'settings.audioPassthroughDescriptionAppleSpatial' => 'Dolby Digital Plus(Atmos 포함)에 Apple의 기본 Dolby 디코더를 사용합니다. iOS, iPadOS, tvOS 26 이상에서는 TrueHD Atmos와 DTS:X가 공간 오디오로 재생됩니다. 그 밖의 DTS 및 TrueHD 트랙은 멀티채널 PCM으로 재생됩니다. 소리가 나지 않으면 비활성화하세요.',
 			'settings.audioPassthroughOverriddenByNormalization' => '음량 정규화가 켜져 있는 동안 꺼짐',
 			'settings.audioChannelLimit' => '오디오 채널',
 			'settings.audioChannelLimitDescription' => '모든 채널을 재생할 수 없는 스피커, 헤드폰 또는 HDMI 환경에 맞게 디코딩된 오디오를 다운믹스합니다',
@@ -3876,46 +3473,6 @@ extension on TranslationsKo {
 			'settings.playerScopeLibrary' => '라이브러리별',
 			'settings.playerScopeTitle' => '시리즈 또는 영화별',
 			'settings.exportDialogTitle' => 'Plezy 설정 내보내기',
-			'themeEditor.builtIn' => '기본 제공',
-			'themeEditor.presets' => '프리셋',
-			'themeEditor.custom' => '사용자 지정',
-			'themeEditor.customEmpty' => '아직 만들지 않음',
-			'themeEditor.editCustom' => '사용자 지정 테마 편집',
-			'themeEditor.editCustomDescription' => '모든 색상을 직접 선택',
-			'themeEditor.locked' => 'Supporter로 잠금 해제',
-			'themeEditor.savedLocked' => '저장됨 — Supporter로 잠금 해제',
-			'themeEditor.title' => '사용자 지정 테마',
-			'themeEditor.startFrom' => '기반 테마',
-			'themeEditor.startFromDescription' => '다른 테마의 모든 색상을 복사합니다',
-			'themeEditor.colors' => '색상',
-			'themeEditor.preview' => '미리보기',
-			'themeEditor.slots.bg' => '배경',
-			'themeEditor.slots.surface' => '표면',
-			'themeEditor.slots.outline' => '윤곽선',
-			'themeEditor.slots.text' => '텍스트',
-			'themeEditor.slots.textMuted' => '보조 텍스트',
-			'themeEditor.slots.accent' => '강조색',
-			_ => null,
-		} ?? switch (path) {
-			'themeEditor.opacity' => '불투명도',
-			'themeEditor.hexHint' => '#RRGGBB 또는 #AARRGGBB',
-			'themeEditor.fromOtherThemes' => '다른 테마에서',
-			'themeEditor.swatchLabel' => ({required Object theme, required Object color}) => '${theme} ${color}',
-			'themeEditor.contrast.textOnBg' => '배경 위 텍스트',
-			'themeEditor.contrast.textOnSurface' => '표면 위 텍스트',
-			'themeEditor.contrast.textMutedOnBg' => '배경 위 보조 텍스트',
-			'themeEditor.contrast.textMutedOnSurface' => '표면 위 보조 텍스트',
-			'themeEditor.contrast.accentOnBg' => '배경 위 강조색',
-			'themeEditor.contrast.accentOnSurface' => '표면 위 강조색',
-			'themeEditor.contrast.labelOnAccent' => '강조색 위 버튼 라벨',
-			'themeEditor.lowContrast' => ({required Object pair, required Object ratio, required Object minimum}) => '${pair}: ${ratio}:1, 권장 기준 ${minimum}:1 미만',
-			'themeEditor.discardTitle' => '변경 사항을 버리시겠습니까?',
-			'themeEditor.discardMessage' => '저장하지 않은 색상 변경 사항이 사라집니다.',
-			'themeEditor.discard' => '버리기',
-			'themeEditor.previewCardTitle' => ({required Object number}) => '${number}화',
-			'themeEditor.previewCardSubtitle' => ({required Object minutes}) => '${minutes}분 남음',
-			'themeEditor.previewSwitch' => '자동 재생',
-			'themeEditor.previewMutedText' => '보조 텍스트는 이렇게 표시됩니다',
 			'search.hint' => '영화, 시리즈, 음악 등을 검색하세요...',
 			'search.tryDifferentTerm' => '다른 검색어를 시도해 보세요',
 			'search.searchYourMedia' => '미디어 검색',
@@ -3996,6 +3553,8 @@ extension on TranslationsKo {
 			'fileInfo.chromaSubsampling' => '색차 서브샘플링',
 			'fileInfo.chromaLocation' => '크로마 위치',
 			'fileInfo.scanType' => '주사 방식',
+			_ => null,
+		} ?? switch (path) {
 			'fileInfo.interlaced' => '비월 주사',
 			'fileInfo.anamorphic' => '아나모픽',
 			'fileInfo.referenceFrames' => '참조 프레임',
@@ -4409,8 +3968,6 @@ extension on TranslationsKo {
 			'profiles.tokenIdentityMismatch' => 'Plex 프로필 토큰이 예상과 다른 서버로 확인되었습니다',
 			'connections.sectionTitle' => '연결',
 			'connections.addConnection' => '연결 추가',
-			_ => null,
-		} ?? switch (path) {
 			'connections.addConnectionSubtitleNoProfile' => 'Plex로 로그인하거나 Jellyfin 또는 Emby 서버에 연결',
 			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => '${displayName}에 추가: Plex, Jellyfin, Emby 또는 다른 프로필 연결',
 			'connections.sessionExpiredOne' => ({required Object name}) => '${name}의 세션이 만료되었습니다',
@@ -4510,6 +4067,8 @@ extension on TranslationsKo {
 			'errors.searchFailed' => ({required Object error}) => '검색 실패: ${error}',
 			'errors.searchUnavailable' => '검색이 어떤 미디어 서버에도 연결할 수 없습니다.',
 			'errors.connectionTimeout' => ({required Object context}) => '${context} 로드 중 연결 시간 초과',
+			_ => null,
+		} ?? switch (path) {
 			'errors.connectionFailed' => '미디어 서버에 연결할 수 없습니다',
 			'errors.unableToLoad' => ({required Object context}) => '${context}을(를) 불러올 수 없습니다. 다시 시도하세요.',
 			'errors.noClientAvailable' => '사용 가능한 클라이언트가 없습니다',
@@ -4923,8 +4482,6 @@ extension on TranslationsKo {
 			'liveTv.recordSettings.keepUpToHint' => '0이면 모든 에피소드 보관',
 			'liveTv.startingInMinutes' => ({required Object minutes}) => '${minutes}분 후 시작',
 			'liveTv.dayAtTime' => ({required Object day, required Object time}) => '${day} ${time}',
-			_ => null,
-		} ?? switch (path) {
 			'liveTv.invalidPlaybackData' => ({required Object product}) => '${product}에서 잘못된 실시간 TV 재생 데이터를 반환했습니다',
 			'liveTv.failedToStartChannel' => '실시간 채널을 시작할 수 없습니다',
 			'liveTv.failedToBuildStreamUrl' => '스트림 URL을 생성할 수 없습니다',
@@ -5007,151 +4564,25 @@ extension on TranslationsKo {
 			'music.discography.compilations' => '컴필레이션',
 			'watchTogether.title' => '함께 보기',
 			'watchTogether.description' => '친구 및 가족과 콘텐츠를 동시에 시청하세요',
-			'watchTogether.createRoom' => '방 만들기',
-			'watchTogether.creatingRoom' => '방 만드는 중...',
-			'watchTogether.joinRoom' => '방 참여',
-			'watchTogether.joiningRoom' => '방에 참여하는 중...',
-			'watchTogether.connecting' => '연결 중...',
-			'watchTogether.relayPublic' => '방은 공개 Open Watch Party 릴레이를 사용합니다.',
-			'watchTogether.relayCustom' => ({required Object url}) => '방은 ${url}에 있는 내 릴레이를 사용합니다.',
 			'watchTogether.recentRooms' => '최근 참여한 방',
-			'watchTogether.roomActions' => '방 작업',
 			'watchTogether.renameRoom' => '방 이름 변경',
 			'watchTogether.removeRoom' => '제거',
-			'watchTogether.enterRoomCode' => '호스트에게 받은 6자리 코드를 입력하세요.',
-			'watchTogether.roomCode' => '방 코드',
-			'watchTogether.paste' => '붙여넣기',
-			'watchTogether.noCodeInClipboard' => '클립보드에 방 코드가 없습니다',
-			'watchTogether.copyCode' => '코드 복사',
-			'watchTogether.codeCopied' => '방 코드가 복사되었습니다',
-			'watchTogether.shareInvite' => '초대 공유',
-			'watchTogether.inviteCopied' => '초대 메시지가 복사되었습니다. 메시지에 붙여넣으세요.',
-			'watchTogether.inviteMessage' => ({required Object code}) => 'Plezy 함께 보기 방에 초대합니다. \'함께 보기\'를 열고 \'방 참여\'를 선택한 다음 ${code} 코드를 입력하세요.',
 			'watchTogether.openSessionControls' => '함께 보기 세션 제어 열기',
-			'watchTogether.reconnecting' => '재연결 중...',
-			'watchTogether.reconnectingDescription' => '연결이 끊어졌습니다. 자동으로 방에 다시 참여합니다.',
-			'watchTogether.connected' => '연결됨',
-			'watchTogether.disconnected' => '연결 끊김',
 			'watchTogether.youAreHost' => '호스트입니다',
-			'watchTogether.hostedBy' => ({required Object name}) => '호스트: ${name}',
 			'watchTogether.hostControlsPlayback' => '호스트 재생 제어',
 			'watchTogether.anyoneCanControl' => '누구나 재생 제어 가능',
-			'watchTogether.roomLocked' => '방 잠김',
-			'watchTogether.nowPlaying' => '지금 재생 중',
-			'watchTogether.nothingPlaying' => '재생 중인 항목 없음',
-			'watchTogether.nothingPlayingHost' => '라이브러리에서 아무 콘텐츠나 재생하면 방에 공유됩니다.',
-			'watchTogether.nothingPlayingGuest' => '호스트가 콘텐츠를 재생하면 여기에서 열립니다.',
-			'watchTogether.notShareable' => '이 비디오는 카탈로그와 일치하는 항목이 없어 같은 서버에 접근할 수 있는 사람만 재생할 수 있습니다.',
-			'watchTogether.searching' => '라이브러리에서 이 비디오를 찾는 중...',
-			'watchTogether.yourCopy' => '내 사본',
-			'watchTogether.sharingYourCopy' => '내 사본을 공유하는 중',
-			'watchTogether.playingOtherLength' => ({required Object difference}) => '내 사본 재생 중(${difference})',
-			'watchTogether.mismatchTitle' => '내 사본의 길이가 다릅니다',
-			'watchTogether.mismatchDescription' => ({required Object difference}) => '가장 근접한 내 사본이 방의 비디오와 길이가 다릅니다(${difference}). 다른 편집본이나 버전일 수 있습니다.',
-			'watchTogether.playAnyway' => '그래도 재생',
-			'watchTogether.chooseAnotherCopy' => '다른 사본 선택',
-			'watchTogether.dontPlay' => '재생 안 함',
-			'watchTogether.unavailableTitle' => '이 비디오가 없습니다',
-			'watchTogether.unavailableDescription' => 'Plezy가 라이브러리에서 이 비디오를 찾지 못했습니다. 직접 사본을 선택하거나 다시 검색하세요.',
-			'watchTogether.chooseCopy' => '사본 선택',
-			'watchTogether.searchAgain' => '다시 검색',
-			'watchTogether.noCandidates' => '라이브러리에서 사본을 찾을 수 없습니다.',
-			'watchTogether.choiceFailed' => '방에서 이 사본을 재생할 수 없습니다',
-			'watchTogether.lengthLonger' => ({required Object duration}) => '${duration} 더 김',
-			'watchTogether.lengthShorter' => ({required Object duration}) => '${duration} 더 짧음',
-			'watchTogether.lengthSame' => '길이 같음',
-			'watchTogether.lengthUnknown' => '길이 알 수 없음',
 			'watchTogether.joinCurrentPlayback' => '현재 재생 참여',
 			'watchTogether.joinCurrentPlaybackDescription' => '호스트가 현재 시청 중인 콘텐츠로 이동합니다',
-			'watchTogether.stopMedia' => '모든 참가자의 비디오 중지',
-			'watchTogether.syncOffset' => '동기화 오프셋',
-			'watchTogether.syncOffsetDescription' => '비디오가 방보다 앞서거나 뒤처지면 시간을 조정하세요.',
-			'watchTogether.offsetHint' => ({required Object difference}) => '내 사본이 방의 비디오와 길이가 다릅니다(${difference}).',
-			'watchTogether.applyDifference' => ({required Object offset}) => '${offset} 적용',
-			'watchTogether.offsetMinusSecond' => '-1초',
-			'watchTogether.offsetMinusTenth' => '-100ms',
-			'watchTogether.offsetPlusTenth' => '+100ms',
-			'watchTogether.offsetPlusSecond' => '+1초',
 			'watchTogether.participants' => '참가자',
-			'watchTogether.participantCount' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ko'))(n, other: '참가자 ${n}명', ), 
 			'watchTogether.hostBadge' => '호스트',
-			'watchTogether.nameYou' => ({required Object name}) => '${name}(나)',
-			'watchTogether.playerIdle' => '대기 중',
-			'watchTogether.playerLoading' => '로딩 중',
-			'watchTogether.playerReady' => '준비됨',
-			'watchTogether.playerBuffering' => '버퍼링 중',
-			'watchTogether.matchSearching' => '찾는 중',
-			'watchTogether.matchMatched' => '비디오 있음',
-			'watchTogether.matchMismatched' => '길이 다름',
-			'watchTogether.matchUnavailable' => '비디오 없음',
-			'watchTogether.participantOffset' => ({required Object offset}) => '오프셋 ${offset}',
 			'watchTogether.makeHost' => '호스트로 지정',
 			'watchTogether.makeHostQuestion' => '호스트를 이전하시겠습니까?',
 			'watchTogether.makeHostConfirm' => ({required Object name}) => '${name}님이 재생을 제어하고 모든 참가자의 세션을 이끕니다.',
 			'watchTogether.transfer' => '이전',
-			'watchTogether.removeParticipant' => '방에서 내보내기',
-			'watchTogether.removeParticipantQuestion' => ({required Object name}) => '${name}님을 내보내시겠습니까?',
-			'watchTogether.removeParticipantConfirm' => ({required Object name}) => '${name}님이 방에서 나가게 됩니다. 방을 잠그지 않으면 코드로 다시 참여할 수 있습니다.',
-			'watchTogether.remove' => '내보내기',
-			'watchTogether.roomSettings' => '방 설정',
-			'watchTogether.letEveryoneControl' => '모든 참가자에게 재생 제어 허용',
-			'watchTogether.lockRoom' => '방 잠그기',
-			'watchTogether.lockRoomDescription' => '새 참가자가 참여할 수 없습니다',
-			'watchTogether.leaveRoom' => '방 나가기',
-			'watchTogether.leaveRoomQuestion' => '방에서 나가시겠습니까?',
-			'watchTogether.leaveRoomConfirm' => '방 코드로 다시 참여할 수 있습니다.',
 			'watchTogether.leave' => '나가기',
-			'watchTogether.endRoom' => '방 종료',
-			'watchTogether.endRoomQuestion' => '방을 종료하시겠습니까?',
-			'watchTogether.endRoomConfirm' => '모든 참가자에게 방이 종료됩니다.',
 			'watchTogether.end' => '종료',
-			'watchTogether.playBlockedTitle' => '재생이 시작되지 않았습니다',
-			'watchTogether.playBlockedDescription' => '재생을 눌러 방 참가자들과 함께 시청을 시작하세요.',
-			'watchTogether.notices.pressedPlay' => ({required Object name}) => '${name}님이 재생을 눌렀습니다',
-			'watchTogether.notices.playbackStarted' => '재생이 시작되었습니다',
-			'watchTogether.notices.paused' => ({required Object name}) => '${name}님이 일시정지했습니다',
-			'watchTogether.notices.playbackPaused' => '재생이 일시정지되었습니다',
-			'watchTogether.notices.jumpedTo' => ({required Object name, required Object position}) => '${name}님이 ${position}(으)로 이동했습니다',
-			'watchTogether.notices.roomJumpedTo' => ({required Object position}) => '${position}(으)로 이동했습니다',
-			'watchTogether.notices.changedSpeed' => ({required Object name, required Object speed}) => '${name}님이 속도를 ${speed}(으)로 설정했습니다',
-			'watchTogether.notices.speedChanged' => ({required Object speed}) => '속도가 ${speed}(으)로 설정되었습니다',
-			'watchTogether.notices.startedMedia' => ({required Object name, required Object title}) => '${name}님이 ${title} 재생을 시작했습니다',
-			'watchTogether.notices.mediaStarted' => ({required Object title}) => '지금 재생 중: ${title}',
-			'watchTogether.notices.stoppedMedia' => ({required Object name}) => '${name}님이 비디오를 중지했습니다',
-			'watchTogether.notices.mediaStopped' => '비디오가 중지되었습니다',
-			'watchTogether.notices.waitingFor' => ({required Object name}) => '${name}님을 기다리는 중...',
-			'watchTogether.notices.waitingForSomeone' => '다른 참가자를 기다리는 중...',
-			'watchTogether.notices.finished' => '재생 완료',
-			'watchTogether.notices.hostChangedTo' => ({required Object name}) => '${name}님이 호스트가 되었습니다',
-			'watchTogether.notices.youAreNowHost' => '이제 호스트입니다',
-			'watchTogether.notices.joined' => ({required Object name}) => '${name}님이 참여했습니다',
-			'watchTogether.notices.left' => ({required Object name}) => '${name}님이 나갔습니다',
-			'watchTogether.notices.controlRefused' => '호스트만 재생을 제어할 수 있습니다',
-			'watchTogether.notices.searchFailed' => '일부 서버에서 방의 비디오를 검색하지 못했습니다',
-			'watchTogether.notices.playBlocked' => '재생을 눌러 시작하세요',
-			'watchTogether.notices.shareFailed' => '이 비디오를 방에 공유하지 못했습니다',
-			'watchTogether.notices.downloadNotShared' => '서버가 오프라인인 동안에는 다운로드한 항목이 방에 공유되지 않습니다',
-			'watchTogether.notices.openFailed' => '방의 비디오를 열지 못했습니다',
-			'watchTogether.ended.ended' => '호스트가 방을 종료했습니다',
-			'watchTogether.ended.kicked' => '방에서 내보내졌습니다',
-			'watchTogether.ended.expired' => '방이 만료되었습니다',
-			'watchTogether.ended.replaced' => '다른 기기에서 이 방에 참여했습니다',
-			'watchTogether.ended.lost' => '방과의 연결이 끊어졌습니다',
-			'watchTogether.errors.invalidCode' => '방 코드가 아닙니다. 코드는 0, 1, I, L 또는 O를 제외한 영문자와 숫자 6자리입니다.',
-			'watchTogether.errors.roomNotFound' => '해당 코드의 방이 없습니다. 종료되었을 수 있습니다.',
-			'watchTogether.errors.roomFull' => '방이 가득 찼습니다.',
-			'watchTogether.errors.roomLocked' => '호스트가 방을 잠갔습니다.',
-			'watchTogether.errors.relayFull' => '지금은 함께 보기 이용자가 많습니다. 나중에 다시 시도하세요.',
-			'watchTogether.errors.unreachable' => '함께 보기 릴레이에 연결할 수 없습니다. 연결을 확인하세요.',
-			'watchTogether.errors.rateLimited' => '시도 횟수가 너무 많습니다. 잠시 후 다시 시도하세요.',
-			'watchTogether.errors.clientBlocked' => '이 버전의 Plezy는 릴레이를 사용할 수 없습니다. 앱을 업데이트하세요.',
-			'watchTogether.errors.forbidden' => '호스트만 이 작업을 할 수 있습니다.',
-			'watchTogether.errors.notInRoom' => '방에 참여하고 있지 않습니다.',
-			'watchTogether.errors.alreadyInRoom' => '이미 방에 참여하고 있습니다.',
-			'watchTogether.errors.resumeFailed' => '방에 다시 참여하지 못했습니다.',
-			'watchTogether.errors.unsupported' => '릴레이에서 지원하지 않는 기능입니다.',
-			'watchTogether.errors.generic' => '문제가 발생했습니다. 다시 시도하세요.',
-			'watchTogether.untitledEpisode' => ({required Object number}) => '${number}화',
+			_ => null,
+		} ?? switch (path) {
 			'downloads.title' => '다운로드',
 			'downloads.manage' => '관리',
 			'downloads.tvShows' => 'TV 프로그램',
@@ -5437,8 +4868,6 @@ extension on TranslationsKo {
 			'performanceOverlay.decoderHardware' => '하드웨어',
 			'performanceOverlay.tunnelingActive' => '활성',
 			'performanceOverlay.dvRpuFailed' => ({required Object converted, required Object failures}) => '${converted} (${failures}개 실패)',
-			_ => null,
-		} ?? switch (path) {
 			'externalPlayer.title' => '외부 플레이어',
 			'externalPlayer.useExternalPlayer' => '외부 플레이어 사용',
 			'externalPlayer.useExternalPlayerDescription' => '동영상을 다른 앱에서 열기',
@@ -5542,9 +4971,6 @@ extension on TranslationsKo {
 			'matchScreen.yearHint' => '연도',
 			'matchScreen.search' => '검색',
 			'matchScreen.noMatchesFound' => '일치하는 항목이 없습니다',
-			'serverTasks.title' => '서버 작업',
-			'serverTasks.failedToLoad' => '작업을 불러올 수 없습니다',
-			'serverTasks.noTasks' => '실행 중인 작업 없음',
 			'trakt.title' => 'Trakt',
 			'trakt.connected' => '연결됨',
 			'trakt.connectedAs' => ({required Object username}) => '@${username}(으)로 연결됨',
@@ -5669,6 +5095,8 @@ extension on TranslationsKo {
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Plex 계정을 승인합니다. Home 사용자는 프로필이 됩니다.',
 			'addServer.connectToMediaBrowserCard' => ({required Object product}) => '${product}에 연결',
 			'addServer.connectToMediaBrowserCardSubtitle' => '서버 URL, 사용자 이름, 비밀번호를 입력하세요.',
+			_ => null,
+		} ?? switch (path) {
 			'addServer.connectToMediaBrowserCardSubtitleScoped' => ({required Object product, required Object name}) => '${product} 서버에 로그인하세요. ${name}에 연결됩니다.',
 			'addServer.borrowFromAnotherProfile' => '다른 프로필에서 빌리기',
 			'addServer.borrowFromAnotherProfileSubtitle' => '다른 프로필의 연결을 재사용합니다. PIN으로 보호된 프로필에는 PIN이 필요합니다.',
